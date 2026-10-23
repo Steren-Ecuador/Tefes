@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<!-- Portal Steren: misma dirección que la app de Google, cambiando solo el inicio (https://steren-ecuador.github.io/Tefes/). -->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0b4f8a">
+<title>Portal Steren</title>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  var a = q.get('t') ? 'tienda.html' : q.get('p') ? 'panel.html' : q.get('m') ? 'https://diegorevelom.github.io/Muestreo/' : q.get('a') ? 'https://diegorevelom.github.io/Muestreo/auditor.html'
+    : (q.get('invp') || q.get('mue')) ? 'https://script.google.com/macros/s/AKfycbxvxIW9iw7D6IyKTMx5Xyj9BW4d_u7G4BMVwRzaI9ug1MIB1tdfVCAWhu2iIWjbz0lgMA/exec' : '';
+  if (a) { document.documentElement.style.display = 'none'; location.replace(a + location.search + location.hash); }
+})();
+</script>
+</head>
+<body style="font-family:Arial,sans-serif;padding:40px;text-align:center;color:#16202c">
+<h2>Enlace no válido</h2>
+<p>Pide a tu supervisor el enlace correcto de tu tienda.</p>
+</body>
+</html>
