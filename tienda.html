@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (306bd3cdbe4b). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (5412c3a39ae8). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -409,6 +409,10 @@ input[type=tel],input[type=email]{width:100%;border:1px solid var(--line);border
 .guia h4{margin:0;font-size:16px}
 .guia .btn{text-align:center;text-decoration:none;color:inherit}
 .guia .btn.primary{color:#fff}
+/* manuales y guías */
+.sec-t h4{margin:0;font-size:14px;color:var(--muted)}
+.card.manual{display:block;text-decoration:none;color:inherit}
+.manual h4{margin:0;font-size:16px}
 </style>
 </head>
 <body>
@@ -593,6 +597,7 @@ function ipdfBajar(blob, nombre){
     <button data-v="pend">Pendientes <span class="badge" id="bPend">·</span></button>
     <button data-v="inv">Inventario</button>
     <button data-v="pol">Políticas<span class="dot" id="bPol" hidden></span></button>
+    <button data-v="gui">Guías<span class="dot" id="bGui" hidden></span></button>
     <button data-v="sup">Supervisión</button>
   </nav>
 </header>
@@ -735,7 +740,7 @@ document.querySelectorAll('nav button').forEach(b => b.onclick = () => irA(b.dat
 function irA(v){
   if (v === 'hist') v = 'sup';   // Historial ahora vive dentro de Supervisión
   S.vista = v;
-  if (window.REG) REG.vista({inicio: 'Hoy', pend: 'Pendientes', inv: 'Inventario', sup: 'Supervisión', pol: 'Políticas'}[v] || v);
+  if (window.REG) REG.vista({inicio: 'Hoy', pend: 'Pendientes', inv: 'Inventario', sup: 'Supervisión', pol: 'Políticas', gui: 'Manuales y guías'}[v] || v);
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   window.scrollTo(0,0); render();
 }
@@ -744,8 +749,9 @@ function render(){
   $('#bPend').textContent = S.data.pendientes.filter(p => ABIERTOS.includes(p.estado)).length;
   $('#footer').innerHTML = '';
   marcaInicio(); pintarLogo();
-  marcaPol();
+  marcaPol(); marcaGui();
   if(S.vista === 'pol') renderPol();
+  else if(S.vista === 'gui') renderGui();
   else if(S.vista === 'inicio') renderInicio();
   else if(S.vista === 'pend') renderPend();
   else if(S.vista === 'inv') renderInv();
@@ -1102,32 +1108,42 @@ function marcaInicio(){ const el = $('#bIni'); if (el) el.hidden = !(S.data.anun
 const POL = {paso:'lista', id:'', persona:'', preguntas:null, resp:{}, res:null, enviando:false};
 const polFaltan = p => { const ya = p.aprobados.map(a => a.persona); return gente().filter(n => ya.indexOf(n) < 0); };
 const polPend = () => (S.data.politicas || []).filter(p => gente().length ? polFaltan(p).length : !p.aprobados.length);
-/* ---------- GUÍAS Y PROCESOS: cómo procesar algo; cada persona confirma que la leyó ---------- */
+/* ---------- MANUALES Y GUÍAS: la guía explica cómo procesar algo y cada persona confirma que la leyó; el manual solo se consulta ---------- */
+const guiasDe = () => (S.data.guias || []).filter(g => g.tipo !== 'Manual');
 const guiaFaltan = g => { const ya = g.lecturas.map(l => l.persona); return gente().filter(n => ya.indexOf(n) < 0); };
-const guiaPend = () => (S.data.guias || []).filter(g => gente().length ? guiaFaltan(g).length : !g.lecturas.length);
+const guiaPend = () => guiasDe().filter(g => gente().length ? guiaFaltan(g).length : !g.lecturas.length);
+function marcaGui(){ const el = $('#bGui'); if (el) el.hidden = !guiaPend().length; }
 function guiaToca(linea){
   const G = guiaPend(); if (!G.length) return '';
   return linea(G.length === 1 ? 'Guía por leer: ' + esc(G[0].titulo) : G.length + ' guías por leer',
-    gente().length ? 'Faltan ' + guiaFaltan(G[0]).length + ' de ' + gente().length : 'Cada persona la lee y confirma', 'var(--warn)', '<button class="btn primary" data-ir="pol">Leer</button>');
+    gente().length ? 'Faltan ' + guiaFaltan(G[0]).length + ' de ' + gente().length : 'Cada persona la lee y confirma', 'var(--warn)', '<button class="btn primary" data-ir="gui">Leer</button>');
 }
-function guiasHtml(){
-  const G = S.data.guias || [], n = gente().length;
-  if (!G.length) return '';
-  return '<div class="sec-t" style="margin-top:18px"><h3>Guías y procesos</h3><span class="tiny muted">Cómo hacer cada proceso</span></div>' +
-    G.map(g => { const f = guiaFaltan(g), ok = n ? n - f.length : g.lecturas.length;
-      return '<div class="card guia' + (n && f.length ? ' falta' : '') + '" data-guia="' + esc(g.id) + '"><div class="row"><h4 class="grow">' + esc(g.titulo) + '</h4>' +
-        '<span class="tag ' + (n && !f.length ? 't-Cerrado' : 't-En') + '">' + (n && !f.length ? 'Al día' : 'Por leer') + '</span></div>' +
-        (g.resumen ? '<div class="small muted">' + esc(g.resumen) + '</div>' : '') +
-        (n ? '<div class="tiny muted" style="margin-top:4px">' + ok + ' de ' + n + ' la leyeron</div>' : '') +
-        '<div class="nombres" style="margin:8px 0 0">' + g.lecturas.map(a => '<span class="si">✓ ' + esc(a.persona) + '</span>').join('') +
-          f.map(z => '<span class="no">' + esc(z) + '</span>').join('') + '</div>' +
-        '<div class="row" style="margin-top:10px"><a class="btn grow guia-abrir" href="' + esc(g.enlace) + '" target="_blank" rel="noopener">Abrir la guía</a>' +
-        (n && !f.length ? '' : '<button class="btn primary grow" data-gconf>Ya la leí</button>') + '</div></div>'; }).join('');
+function guiaCard(g){
+  const n = gente().length, f = guiaFaltan(g), ok = n ? n - f.length : g.lecturas.length;
+  return '<div class="card guia' + (n && f.length ? ' falta' : '') + '" data-guia="' + esc(g.id) + '"><div class="row"><h4 class="grow">' + esc(g.titulo) + '</h4>' +
+    '<span class="tag ' + (n && !f.length ? 't-Cerrado' : 't-En') + '">' + (n && !f.length ? 'Al día' : 'Por leer') + '</span></div>' +
+    (g.resumen ? '<div class="small muted">' + esc(g.resumen) + '</div>' : '') +
+    (n ? '<div class="tiny muted" style="margin-top:4px">' + ok + ' de ' + n + ' la leyeron</div>' : '') +
+    '<div class="nombres" style="margin:8px 0 0">' + g.lecturas.map(a => '<span class="si">✓ ' + esc(a.persona) + '</span>').join('') +
+      f.map(z => '<span class="no">' + esc(z) + '</span>').join('') + '</div>' +
+    '<div class="row" style="margin-top:10px"><a class="btn grow guia-abrir" href="' + esc(g.enlace) + '" target="_blank" rel="noopener">Abrir la guía</a>' +
+    (n && !f.length ? '' : '<button class="btn primary grow" data-gconf>Ya la leí</button>') + '</div></div>';
 }
-function guiasEnlazar(){
+function manualCard(g){
+  return '<a class="card manual" data-guia="' + esc(g.id) + '" href="' + esc(g.enlace) + '" target="_blank" rel="noopener"><div class="row"><h4 class="grow">' + esc(g.titulo) + '</h4><span class="tiny muted">Abrir ›</span></div>' +
+    (g.resumen ? '<div class="small muted">' + esc(g.resumen) + '</div>' : '') + '</a>';
+}
+function renderGui(){
+  const all = S.data.guias || [], G = guiasDe(), M = all.filter(g => g.tipo === 'Manual');
+  let h = '<div class="sec-t"><h3>Manuales y guías</h3><span class="tiny muted">Cómo hacer cada proceso</span></div>';
+  if (!all.length) h += '<div class="card muted small">Todavía no hay manuales ni guías publicados.</div>';
+  if (G.length) h += '<div class="sec-t" style="margin-top:6px"><h4>Guías</h4><span class="tiny muted">Cada persona la lee y confirma</span></div>' + G.map(guiaCard).join('');
+  if (M.length) h += '<div class="sec-t" style="margin-top:18px"><h4>Manuales</h4><span class="tiny muted">Para consultar cuando lo necesites</span></div>' + M.map(manualCard).join('');
+  $('#main').innerHTML = h;
   document.querySelectorAll('[data-guia]').forEach(el => {
-    const g = (S.data.guias || []).find(x => x.id === el.dataset.guia); if (!g) return;
-    const a = el.querySelector('.guia-abrir'); if (a) a.onclick = () => { if (window.REG) REG.ev('Guía abierta', g.id); };
+    const g = all.find(x => x.id === el.dataset.guia); if (!g) return;
+    const a = el.classList.contains('manual') ? el : el.querySelector('.guia-abrir');
+    if (a) a.addEventListener('click', () => { if (window.REG) REG.ev(g.tipo === 'Manual' ? 'Manual abierto' : 'Guía abierta', g.id); });
     const b = el.querySelector('[data-gconf]'); if (b) b.onclick = () => modalGuia(g);
   });
 }
@@ -1150,11 +1166,11 @@ function modalGuia(g){
       const r = await api('apiConfirmarGuia', g.id, elegido);
       if (!g.lecturas.some(l => l.persona === r.persona)) g.lecturas.push({persona: r.persona, fecha: r.fecha, hora: r.hora});
       if (window.REG) REG.ev('Lectura de guía', g.id + ' · ' + r.persona);
-      closeModal(); toast('Lectura registrada: ' + r.persona, 3500); marcaPol(); render();
+      closeModal(); toast('Lectura registrada: ' + r.persona, 3500); render();
     } catch(e){ si.disabled = false; si.textContent = 'Confirmar'; toast(e.message || 'No se pudo guardar. Revisa tu internet.'); }
   };
 }
-function marcaPol(){ const el = $('#bPol'); if (el) el.hidden = !polPend().length && !guiaPend().length; }
+function marcaPol(){ const el = $('#bPol'); if (el) el.hidden = !polPend().length; }
 function polToca(linea){
   const P = polPend(); if (!P.length) return '';
   return linea(P.length === 1 ? 'Política por leer: ' + esc(P[0].titulo) : P.length + ' políticas por leer',
@@ -1167,9 +1183,9 @@ function renderPol(){
   let h = '';
   if (POL.paso === 'lista' || !p) {
     const pend = polPend();
-    h = (S.data.politicas || []).length || !(S.data.guias || []).length ? '<div class="sec-t"><h3>Políticas de la tienda</h3></div>' : '';
+    h = '<div class="sec-t"><h3>Políticas de la tienda</h3></div>';
     if (pend.length) h += '<div class="aviso" style="background:var(--warn-soft);color:var(--warn)"><div><b>' + (pend.length === 1 ? 'Hay una política nueva' : 'Hay ' + pend.length + ' políticas por leer') + '</b>Cada persona de la tienda la lee, elige su nombre y responde 3 preguntas.</div></div>';
-    if (!P.length && !(S.data.guias || []).length) h += '<div class="card muted small">Todavía no hay políticas publicadas.</div>';
+    if (!P.length) h += '<div class="card muted small">Todavía no hay políticas publicadas.</div>';
     h += P.map(x => { const f = polFaltan(x), ok = n ? n - f.length : x.aprobados.length;
       return '<button class="card pol-card' + (n && f.length ? ' falta' : '') + '" data-pol="' + esc(x.id) + '"><div class="row"><h4 class="grow">' + esc(x.titulo) + '</h4>' +
         '<span class="tag ' + (n && !f.length ? 't-Cerrado' : 't-En') + '">' + (n && !f.length ? 'Al día' : 'Por leer') + '</span></div>' +
@@ -1203,9 +1219,7 @@ function renderPol(){
         POL.preguntas.map(q => { const b = (r.detalle.find(x => x.n === q.n) || {}).bien; return '<div class="card small"><b style="color:' + (b ? 'var(--ok)' : 'var(--bad)') + '">' + (b ? '✓ Bien' : '✗ Incorrecta') + '</b> · ' + esc(q.pregunta) + '</div>'; }).join('') +
         '<button class="btn primary block" data-pp="leer">Volver a leer la política</button>';
   }
-  if (POL.paso === 'lista' || !p) h += guiasHtml();
   $('#main').innerHTML = h;
-  guiasEnlazar();
   document.querySelectorAll('[data-pol]').forEach(b => b.onclick = () => { POL.id = b.dataset.pol; POL.persona = ''; polIr('leer'); });
   document.querySelectorAll('[data-pp]').forEach(b => b.onclick = () => polIr(b.dataset.pp));
   document.querySelectorAll('[data-pn]').forEach(b => b.onclick = () => { POL.persona = b.dataset.pn; renderPol(); });

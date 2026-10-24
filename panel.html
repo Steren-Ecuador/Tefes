@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (bf729841cbe6). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (957aa419021f). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -931,6 +931,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
     <button data-v="inventario">Inventario<span class="n bad" id="nInv"></span></button>
     <button data-v="vivo">En vivo</button>
     <button data-v="politicas">Políticas<span class="n" id="nPol"></span></button>
+    <button data-v="guias">Manuales y guías</button>
     <button data-v="contactos">Contactos</button>
   </nav>
 </div></header>
@@ -1007,6 +1008,10 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
 
   <div class="view" data-view="politicas" hidden>
     <div id="polBody"><div class="skeleton">Cargando políticas…</div></div>
+  </div>
+
+  <div class="view" data-view="guias" hidden>
+    <div id="guiBody"><div class="skeleton">Cargando manuales y guías…</div></div>
   </div>
 
   <div class="view" data-view="contactos" hidden>
@@ -1095,6 +1100,7 @@ async function cargar(liviano){
     api('apiVentasPanel').then(v => { st.ventas = v; guardarPanel({v: v}); render(); }).catch(() => {});
     api('apiInventarioPanel').then(x => { st.inv = x; renderInventario(); }).catch(() => { st.inv = null; renderInventario(); });
     api('apiPoliticasPanel').then(x => { st.pol = x; renderPoliticas(); }).catch(() => { st.pol = null; renderPoliticas(); });
+    api('apiGuiasPanel').then(x => { st.gui = x; renderGuias(); }).catch(() => { st.gui = null; renderGuias(); });
     if (liviano && st.avisos !== undefined) return;
     api('apiAvisosPanel').then(a => { st.avisos = a; renderAvisos(); }).catch(() => {});
     api('apiPoliticasTextoPanel').then(x => { st.polTx = x; renderPoliticas(); }).catch(() => { st.polTx = null; renderPoliticas(); });
@@ -1308,6 +1314,7 @@ function render(){
   renderSupervision();
   renderInventario();
   renderPoliticas();
+  renderGuias();
 }
 
 /* ---------- avisos semanales a las tiendas (pestaña Anuncios de la Base, vía apiAvisosPanel; solo lectura) ---------- */
@@ -1739,7 +1746,7 @@ function pintarMapa(todas){
 
 
 /* ---------- pestañas ---------- */
-const VISTAS = ['hoy','pendientes','supervision','inventario','vivo','politicas','contactos'];
+const VISTAS = ['hoy','pendientes','supervision','inventario','vivo','politicas','guias','contactos'];
 function ir(v){
   if (VISTAS.indexOf(v) < 0) v = 'hoy';   // incluye 'avisos', que ahora está al final de Hoy
   try { const tb = document.querySelector('#tabs button[data-v="' + v + '"]'); if (tb) tb.scrollIntoView({block: 'nearest', inline: 'center'}); } catch (e) {}   // ux1
@@ -2215,6 +2222,40 @@ function invFormEventos(o){
 /* ux5: número de la pestaña = políticas que me faltan aprobar */
 function polBadge(){ const T = st.polTx, el = $('#nPol'); if (!el) return;
   el.textContent = (T && T.politicas && st.yo) ? (T.politicas.filter(p => ((T.sup || {})[p.id] || {})[st.yo.nombre] !== 'Aprobó').length || '') : ''; }
+
+/* ---------- manuales y guías: los de supervisores y quién leyó cada guía en las tiendas (vía apiGuiasPanel) ---------- */
+function renderGuias(){
+  const el = $('#guiBody'); if (!el || !st.d || st.gui === undefined) return;
+  const A = st.gui || [], cel = (g, btn) => `<div class="li pol-fila"><div><div class="store">${esc(g.titulo)}</div><div class="small faint">${g.tipo}${g.resumen ? ' · ' + esc(g.resumen) : ''}</div></div>
+      <span class="pol-acc">${btn || `<a class="btn" href="${esc(g.enlace)}" target="_blank" rel="noopener" data-gab="${esc(g.id)}">Abrir</a>`}</span></div>`;
+  const mios = A.filter(g => g.para !== 'Tiendas');
+  const G = A.filter(g => g.por).map(g => Object.assign({}, g, {por: g.por.filter(x => enCiudad(x.t))})).filter(g => g.por.length);
+  const M = A.filter(g => g.tipo === 'Manual' && g.para === 'Tiendas');
+  let h = `<div style="margin-bottom:22px"><div class="sec-h"><h2>Para supervisores</h2><span class="hint">Manuales y guías para tu trabajo.</span></div>
+    <div class="panel flush">${mios.map(g => cel(g)).join('')}${cel({titulo: 'Hoja de supervisión en papel', tipo: 'Manual', resumen: 'Los 41 puntos, para imprimir por si la app falla en el local'}, '<button class="btn" id="guHoja">Descargar PDF</button>')}</div></div>`;
+  if (!st.gui) h += `<section class="panel"><div class="empty">No se pudieron leer los manuales y guías. Pulsa Actualizar.</div></section>`;
+  if (G.length) {
+    G.forEach(g => { g.ok = g.por.reduce((s, x) => s + x.ok, 0); g.n = g.por.reduce((s, x) => s + x.total, 0); });
+    h += `<div style="margin-bottom:22px"><div class="sec-h"><h2>Guías en las tiendas</h2><span class="hint">Cada persona de la tienda abre la guía y confirma que la leyó.</span></div>
+    <div class="panel flush">${G.map(g => `<details class="li"><summary><div><div class="store">${esc(g.titulo)}</div><div class="small faint">${g.publicada ? 'Desde el ' + fmtF(g.publicada) + ' · ' : ''}${/^todas$/i.test(String(g.tiendas).trim()) ? 'Todas las tiendas' : esc(g.tiendas)} · <a href="${esc(g.enlace)}" target="_blank" rel="noopener" data-gab="${esc(g.id)}">Abrir</a></div></div>
+      <span class="pill p-${g.n && g.ok >= g.n ? 'good' : g.ok ? 'warn' : 'bad'}">${g.ok} de ${g.n} la leyeron</span></summary>
+      <div class="body">${g.por.map(x => `<span class="store">${esc(x.t)}</span><span class="${x.total && !x.faltan.length ? 'ok' : ''}">${x.ok} de ${x.total}</span><span class="faint">${x.faltan.length ? 'Falta: ' + x.faltan.map(esc).join(', ') : ''}</span>`).join('')}</div></details>`).join('')}</div></div>`;
+  }
+  if (M.length) h += `<div><div class="sec-h"><h2>Manuales de las tiendas</h2><span class="hint">Lo que las tiendas tienen para consultar.</span></div><div class="panel flush">${M.map(g => cel(g)).join('')}</div></div>`;
+  el.innerHTML = h;
+  document.querySelectorAll('[data-gab]').forEach(a => a.addEventListener('click', e => { e.stopPropagation(); try { REG.ev('Acción', 'Abrió ' + a.dataset.gab); } catch (x) {} }));
+  $('#guHoja').onclick = async e => {
+    const b = e.target, t = b.textContent; b.disabled = true; b.textContent = 'Preparando…';
+    try {
+      const r = await api('apiHojaManualPdf');
+      const bin = atob(r.b64), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([u8], {type: 'application/pdf'})); a.download = r.nombre;
+      document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+      try { REG.ev('Acción', 'Hoja manual PDF'); } catch (x) {}
+    } catch (x) { toast('No se pudo descargar: ' + x.message, 5000); }
+    b.disabled = false; b.textContent = t;
+  };
+}
 
 /* ---------- políticas: quién aprobó y quién falta (vía apiPoliticasPanel) ---------- */
 function renderPoliticas(){
