@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (5412c3a39ae8). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (6282ec09d6ec). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -377,6 +377,60 @@ nav button{flex:1 1 auto}
 .pol-res .big{font-size:40px;line-height:1;font-weight:800}
 @media(max-width:520px){.pol-2{grid-template-columns:1fr}.pol-flujo{grid-template-columns:1fr 1fr}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ux6: celular tipo redes sociales (barra de íconos abajo, perfil arriba, Leer, supervisión un punto por pantalla) */
+nav .ic,nav .lbl-m,#bLeer,.perfil,.leer-seg,.tk-sec{display:none}
+@media(max-width:700px){
+  header{padding-bottom:10px}
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:40;margin:0;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;padding:4px 2px calc(4px + env(safe-area-inset-bottom))}
+  nav button{color:var(--muted);border:0;padding:4px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:11px;letter-spacing:0;font-weight:600;position:relative;min-height:50px}
+  nav button.on{color:var(--brand);border:0;font-weight:800}
+  nav button[data-v=inicio]{order:1} nav button[data-v=pend]{order:2} nav button[data-v=sup]{order:3} nav button[data-v=inv]{order:4} nav button[data-v=pol]{order:5}
+  nav button[data-v=gui],nav #bPol{display:none}
+  nav .ic{display:block;width:26px;height:26px}
+  nav button.on .ic{stroke-width:2.3}
+  nav .lbl-d{display:none} nav .lbl-m{display:inline}
+  nav .badge{position:absolute;top:1px;left:50%;margin-left:5px;background:var(--bad);color:#fff;min-width:18px;padding:0 5px;line-height:18px;font-size:11px;border-radius:9px}
+  nav .dot,nav #bLeer{position:absolute;top:5px;left:50%;margin-left:9px;background:var(--bad);width:9px;height:9px}
+  nav #bLeer:not([hidden]){display:inline-block}
+  main{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+  .footer{bottom:calc(58px + env(safe-area-inset-bottom))}
+  .toast{bottom:calc(140px + env(safe-area-inset-bottom))}
+  .perfil{display:block;margin:-12px -12px 14px;background:#fff;border-bottom:1px solid var(--line);padding:14px 16px 12px}
+  .pf-top{display:flex;align-items:center;gap:16px}
+  .pf-logo{width:78px;height:78px;border-radius:50%;overflow:hidden;flex:none;border:1px solid var(--line);display:grid;place-items:center;background:#fff}
+  .pf-logo img{width:100%;height:100%;object-fit:contain}
+  .pf-num{flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));text-align:center}
+  .pf-num button{border:0;background:none;padding:4px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center}
+  .pf-num b{font-size:21px;line-height:1.2} .pf-num b.mal{color:var(--bad)} .pf-num b.warn{color:var(--warn)}
+  .pf-num span{font-size:13px;color:var(--muted)}
+  .pf-btns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:12px}
+  .pf-btns button{height:40px;border:0;border-radius:10px;background:var(--na-soft);font-weight:700;font-size:14px;cursor:pointer}
+  .pf-btns button.pri{background:var(--brand);color:#fff}
+  .pf-hist{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;margin:14px -16px 0;padding:0 16px 2px}
+  .pf-hist::-webkit-scrollbar{display:none}
+  .pf-hist button{border:0;background:none;padding:0;width:66px;flex:none;display:flex;flex-direction:column;align-items:center;gap:5px;font-size:12px;cursor:pointer;color:var(--ink)}
+  .pf-hist .aro{padding:3px;border-radius:50%;background:#d5dbe2;display:grid}
+  .pf-hist button.nuevo .aro{background:var(--brand)}
+  .pf-hist .cir{width:54px;height:54px;border-radius:50%;background:var(--bg);border:2px solid #fff;display:grid;place-items:center;color:var(--brand)}
+  .pf-hist .ic{display:block;width:24px;height:24px}
+  .pf-hist span:last-child{white-space:nowrap}
+  .leer-seg{display:flex;margin-bottom:12px}
+  .grid2>div,.grid3>div{min-width:0} .grid3 input{min-width:0;width:100%}
+  html.tk{scroll-snap-type:y mandatory}
+  html.tk .sec-h,html.tk .secbar{display:none}
+  html.tk .punto-w,html.tk .tk-snap{scroll-snap-align:start;scroll-margin-top:calc(var(--hh,60px) + 8px)}
+  html.tk .punto-w{min-height:calc(100svh - var(--hh,60px) - 150px - env(safe-area-inset-bottom));display:flex;padding-bottom:12px}
+  html.tk .punto-w>.punto{flex:1;display:flex;flex-direction:column;margin:0;font-size:17px;line-height:1.4;border-left:0;border-top:6px solid var(--line);padding:16px}
+  html.tk .punto.g0{border-top-color:var(--bad)} html.tk .punto.g1{border-top-color:var(--warn)} html.tk .punto.g2{border-top-color:var(--ok)} html.tk .punto.gna{border-top-color:var(--na)}
+  html.tk .punto .tk-sec{display:block;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+  html.tk .punto .pid{display:block;font-size:13px;margin-bottom:2px}
+  html.tk .punto .guia{display:block;font-size:14px;margin-top:10px}
+  html.tk .punto [data-guia]{display:none}
+  html.tk .punto .cal{margin-top:auto;padding-top:16px}
+  html.tk .cal button{min-height:74px;font-size:22px}
+  html.tk .tk-fin{display:block;text-align:center;font-size:12px;color:var(--muted);margin-top:8px}
+}
 .pv-op{display:block;width:100%;text-align:left;border:1.5px solid var(--line);background:var(--card,#fff);border-radius:8px;padding:8px 10px;margin-top:6px;font:inherit;color:inherit}
 .pv-res{font-weight:700;margin-top:6px}
 
@@ -593,12 +647,12 @@ function ipdfBajar(blob, nombre){
 <header>
   <div class="top"><div class="marca"><span class="logo" id="logo"><img src="data:image/png;base64,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" alt="Steren"></span><div style="min-width:0"><h1 id="hTienda"></h1><span class="sub">Portal Steren</span></div></div><span id="reloj"></span></div>
   <nav>
-    <button data-v="inicio" class="on">Hoy<span class="dot" id="bIni" hidden></span></button>
-    <button data-v="pend">Pendientes <span class="badge" id="bPend">·</span></button>
-    <button data-v="inv">Inventario</button>
-    <button data-v="pol">Políticas<span class="dot" id="bPol" hidden></span></button>
+    <button data-v="inicio" class="on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Hoy<span class="dot" id="bIni" hidden></span></button>
+    <button data-v="pend"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>Pendientes <span class="badge" id="bPend">·</span></button>
+    <button data-v="inv"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"/></svg>Inventario</button>
+    <button data-v="pol"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h7v14H4zM13 5h7v14h-7z"/></svg><span class="lbl-d">Políticas</span><span class="lbl-m">Leer</span><span class="dot" id="bPol" hidden></span><span class="dot" id="bLeer" hidden></span></button>
     <button data-v="gui">Guías<span class="dot" id="bGui" hidden></span></button>
-    <button data-v="sup">Supervisión</button>
+    <button data-v="sup"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6v3H9zM6 5h12v16H6zM9 12l2 2 4-4"/></svg><span class="lbl-d">Supervisión</span><span class="lbl-m">Supervisar</span></button>
   </nav>
 </header>
 <main id="main"><div class="loading"><span class="spin"></span> Cargando…</div></main>
@@ -735,13 +789,38 @@ function sugerencias(tipo, base, escrito, n){
     .filter(x => x.sc > 0 && x.t.texto !== String(escrito||'').trim()).sort((a, b) => b.sc - a.sc).slice(0, n || 3).map(x => x.t);
 }
 
+
+/* ux6: celular tipo redes sociales */
+const esCel = () => window.matchMedia && matchMedia('(max-width:700px)').matches;
+const ICO6 = {anuncio:'M3 11l18-5v12L3 14v-3zM11.6 16.8a3 3 0 1 1-5.8-1.6', politica:'M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z',
+  guia:'M4 5h7v14H4zM13 5h7v14h-7z', manual:'M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4zM5 17a3 3 0 0 1 3-3h11', vf:'M3 4h2l2.5 11h11L21 7H6.5M9 20h.01M18 20h.01'};
+const ico6 = d => '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + d + '"/></svg>';
+function perfilHtml(){
+  const D = S.data, abiertos = D.pendientes.filter(p => ABIERTOS.includes(p.estado)).length, porLeer = polPend().length + guiaPend().length;
+  const ult = (D.supervisiones || []).find(s => s.tipo !== 'Autosupervisión');
+  const anunNuevo = (D.anuncios || []).some(a => activo(a) && (faltan(a).length || !gente().length && !a.lecturas.length));
+  const circ = (lbl, d, ir, ancla, nuevo) => '<button class="' + (nuevo ? 'nuevo' : '') + '" data-ir="' + ir + '"' + (ancla ? ' data-ancla="' + ancla + '"' : '') + '><span class="aro"><span class="cir">' + ico6(d) + '</span></span><span>' + lbl + '</span></button>';
+  const logo = $('#logo') ? $('#logo').innerHTML : '';
+  return '<section class="perfil"><div class="pf-top"><span class="pf-logo">' + logo + '</span><div class="pf-num">' +
+    '<button data-ir="pend"><b class="' + (abiertos ? 'mal' : '') + '">' + abiertos + '</b><span>Pendientes</span></button>' +
+    '<button data-ir="pol"><b class="' + (porLeer ? 'warn' : '') + '">' + porLeer + '</b><span>Por leer</span></button>' +
+    '<button data-ir="sup"><b>' + (ult ? pct(ult.total) : '–') + '</b><span>Puntaje</span></button></div></div>' +
+    '<div class="pf-btns"><button class="pri" data-ir="sup">Supervisar</button><button data-ir="inv">Muestreo 50</button><button data-ir="inv">Venta futura</button></div>' +
+    '<div class="pf-hist">' + circ('Anuncios', ICO6.anuncio, 'inicio', 'anuncios', anunNuevo) + circ('Políticas', ICO6.politica, 'pol', '', polPend().length > 0) +
+      circ('Guías', ICO6.guia, 'gui', '', guiaPend().length > 0) + ((D.guias || []).some(g => g.tipo === 'Manual') ? circ('Manuales', ICO6.manual, 'gui', 'manuales', false) : '') +
+      circ('Ventas fut.', ICO6.vf, 'inv', '', false) + '</div></section>';
+}
+const leerSeg = v => '<div class="seg leer-seg">' + [['pol', 'Políticas'], ['gui', 'Manuales y guías']].map(([k, l]) => '<button data-leer="' + k + '" class="' + (k === v ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
+const leerWire = () => document.querySelectorAll('[data-leer]').forEach(b => b.onclick = () => irA(b.dataset.leer));
+function marcaLeer(){ const el = $('#bLeer'); if (el) el.hidden = !(polPend().length || guiaPend().length); }
+function modoTk(){ document.documentElement.classList.toggle('tk', S.vista === 'sup' && !!S.form && esCel()); }
 /* ---------- navegación ---------- */
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => irA(b.dataset.v));
 function irA(v){
   if (v === 'hist') v = 'sup';   // Historial ahora vive dentro de Supervisión
   S.vista = v;
   if (window.REG) REG.vista({inicio: 'Hoy', pend: 'Pendientes', inv: 'Inventario', sup: 'Supervisión', pol: 'Políticas', gui: 'Manuales y guías'}[v] || v);
-  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v || (v === 'gui' && b.dataset.v === 'pol' && esCel())));
   window.scrollTo(0,0); render();
 }
 function render(){
@@ -749,7 +828,7 @@ function render(){
   $('#bPend').textContent = S.data.pendientes.filter(p => ABIERTOS.includes(p.estado)).length;
   $('#footer').innerHTML = '';
   marcaInicio(); pintarLogo();
-  marcaPol(); marcaGui();
+  marcaPol(); marcaGui(); marcaLeer(); modoTk();
   if(S.vista === 'pol') renderPol();
   else if(S.vista === 'gui') renderGui();
   else if(S.vista === 'inicio') renderInicio();
@@ -1078,7 +1157,7 @@ function renderInicio(){
   const reab = abiertos.filter(p => p.estado === 'Reabierto').length;
   const auto = D.supervisiones.find(s => s.tipo === 'Autosupervisión' && String(s.fecha).slice(0, 10) >= sem[0]);
   const primera = !lsGet(INTRO_KEY); lsSet(INTRO_KEY, 1);
-  let h = '<div class="sec-t"><h3>Anuncios</h3><span class="tiny muted">Semana del ' + fechaCorta(sem[0]) + ' al ' + fechaCorta(sem[1]) + '</span></div>';
+  let h = '<div class="sec-t" id="anuncios"><h3>Anuncios</h3><span class="tiny muted">Semana del ' + fechaCorta(sem[0]) + ' al ' + fechaCorta(sem[1]) + '</span></div>';
   if (!act.length) h += '<div class="card muted small">No hay anuncios nuevos.</div>';
   h += act.map(anuncioHtml).join('');
   if (ant.length) h += '<details class="archivo"><summary>Anuncios anteriores (' + ant.length + ')</summary><div class="card">' +
@@ -1097,8 +1176,8 @@ function renderInicio(){
       '<li>En <b>Pendientes</b>, corrige lo que encontró el supervisor y envíalo con foto.</li>' +
       '<li>En <b>Inventario</b>, haz el Muestreo Top 50 con el teléfono y registra las ventas futuras: lo que un cliente pide y no tenemos.</li>' +
       '<li>En <b>Supervisión</b>, haz la autosupervisión una vez por semana y ve cómo te fue en cada supervisión.</li></ol></details></div></div>';
-  $('#main').innerHTML = h;
-  document.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => irA(b.dataset.ir));
+  $('#main').innerHTML = perfilHtml() + h;
+  document.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => { irA(b.dataset.ir); const an = b.dataset.ancla; if (an) setTimeout(() => { const x = document.getElementById(an); if (x) window.scrollTo(0, x.getBoundingClientRect().top + window.scrollY - (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hh')) || 0) - 8); }, 60); });
   document.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => modalConfirmar(A.find(x => x.id === b.closest('[data-an]').dataset.an)));
   confetiFx();
 }
@@ -1135,11 +1214,11 @@ function manualCard(g){
 }
 function renderGui(){
   const all = S.data.guias || [], G = guiasDe(), M = all.filter(g => g.tipo === 'Manual');
-  let h = '<div class="sec-t"><h3>Manuales y guías</h3><span class="tiny muted">Cómo hacer cada proceso</span></div>';
+  let h = leerSeg('gui') + '<div class="sec-t"><h3>Manuales y guías</h3><span class="tiny muted">Cómo hacer cada proceso</span></div>';
   if (!all.length) h += '<div class="card muted small">Todavía no hay manuales ni guías publicados.</div>';
   if (G.length) h += '<div class="sec-t" style="margin-top:6px"><h4>Guías</h4><span class="tiny muted">Cada persona la lee y confirma</span></div>' + G.map(guiaCard).join('');
-  if (M.length) h += '<div class="sec-t" style="margin-top:18px"><h4>Manuales</h4><span class="tiny muted">Para consultar cuando lo necesites</span></div>' + M.map(manualCard).join('');
-  $('#main').innerHTML = h;
+  if (M.length) h += '<div class="sec-t" id="manuales" style="margin-top:18px"><h4>Manuales</h4><span class="tiny muted">Para consultar cuando lo necesites</span></div>' + M.map(manualCard).join('');
+  $('#main').innerHTML = h; leerWire();
   document.querySelectorAll('[data-guia]').forEach(el => {
     const g = all.find(x => x.id === el.dataset.guia); if (!g) return;
     const a = el.classList.contains('manual') ? el : el.querySelector('.guia-abrir');
@@ -1183,7 +1262,7 @@ function renderPol(){
   let h = '';
   if (POL.paso === 'lista' || !p) {
     const pend = polPend();
-    h = '<div class="sec-t"><h3>Políticas de la tienda</h3></div>';
+    h = leerSeg('pol') + '<div class="sec-t"><h3>Políticas de la tienda</h3></div>';
     if (pend.length) h += '<div class="aviso" style="background:var(--warn-soft);color:var(--warn)"><div><b>' + (pend.length === 1 ? 'Hay una política nueva' : 'Hay ' + pend.length + ' políticas por leer') + '</b>Cada persona de la tienda la lee, elige su nombre y responde 3 preguntas.</div></div>';
     if (!P.length) h += '<div class="card muted small">Todavía no hay políticas publicadas.</div>';
     h += P.map(x => { const f = polFaltan(x), ok = n ? n - f.length : x.aprobados.length;
@@ -1219,7 +1298,7 @@ function renderPol(){
         POL.preguntas.map(q => { const b = (r.detalle.find(x => x.n === q.n) || {}).bien; return '<div class="card small"><b style="color:' + (b ? 'var(--ok)' : 'var(--bad)') + '">' + (b ? '✓ Bien' : '✗ Incorrecta') + '</b> · ' + esc(q.pregunta) + '</div>'; }).join('') +
         '<button class="btn primary block" data-pp="leer">Volver a leer la política</button>';
   }
-  $('#main').innerHTML = h;
+  $('#main').innerHTML = h; leerWire();
   document.querySelectorAll('[data-pol]').forEach(b => b.onclick = () => { POL.id = b.dataset.pol; POL.persona = ''; polIr('leer'); });
   document.querySelectorAll('[data-pp]').forEach(b => b.onclick = () => polIr(b.dataset.pp));
   document.querySelectorAll('[data-pn]').forEach(b => b.onclick = () => { POL.persona = b.dataset.pn; renderPol(); });
@@ -1449,6 +1528,7 @@ function faltaEn(p){
   return '';
 }
 function renderSup(){
+  modoTk();
   if(!S.form){
     $('#footer').innerHTML = '';
     const d = lsGet(DRAFT_KEY), d0 = d;
@@ -1469,7 +1549,7 @@ function renderSup(){
     return;
   }
   const F = S.form;
-  let h = '<div class="card">' +
+  let h = '<div class="card tk-snap">' +
     '<div class="seg" id="sTipo">' + ['Supervisión','Autosupervisión'].map(t => '<button data-t="' + t + '" class="' + (F.tipo===t?'on':'') + '">' + t + '</button>').join('') + '</div>' +
     '<label class="f">Realizada por *</label><input type="text" data-k="realizadaPor" list="dlPersonal" autocomplete="off" value="' + esc(F.realizadaPor) + '" placeholder="Nombre de quien supervisa">' +
     '<div class="grid2">' +
@@ -1485,7 +1565,7 @@ function renderSup(){
     h += '<div class="sec-h" id="sec-' + esc(s.cod) + '"><h2>' + esc(s.cod) + ') ' + esc(s.nombre) + '</h2><span class="tiny muted" id="secp-' + esc(s.cod) + '"></span></div>';
     S.data.puntos.filter(p => p.sec === s.cod).forEach(p => h += '<div id="pt-' + esc(p.id) + '"></div>');
   });
-  h += '<div class="card"><label class="f" style="margin-top:0">Comentario general (opcional)</label><textarea data-k="comentario">' + esc(F.comentario) + '</textarea></div>';
+  h += '<div class="card tk-snap"><label class="f" style="margin-top:0">Comentario general (opcional)</label><textarea data-k="comentario">' + esc(F.comentario) + '</textarea></div>';
   $('#main').innerHTML = h;
   S.data.puntos.forEach(p => pintarPunto(p));
   $('#footer').innerHTML = '<div class="footer"><div class="in"><div class="grow" style="min-width:0"><div class="small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span id="fN"></span> · <span class="score" id="fS"></span></div><div class="bar"><i id="fBar"></i></div></div>' +
@@ -1553,7 +1633,7 @@ function polVisitaWire(p, el){
 function puntoHtml(p){
   const it = S.form.items[p.id] || {}, F = S.form;
   const g = it.calif == null ? '' : 'g' + (it.calif === 'N/A' ? 'na' : it.calif);
-  if (it.calif != null && !it.abierto && !faltaEn(p) && (it.calif === '2' || it.calif === 'N/A')) {
+  if (it.calif != null && !it.abierto && !faltaEn(p) && (it.calif === '2' || it.calif === 'N/A') && !document.documentElement.classList.contains('tk')) {
     const nf = fotosDe(it).length + pendientesDe('P_' + p.id).length;
     return '<div class="card punto mini ' + g + '" data-abrir><span class="pid">' + esc(p.id) + '</span><span class="mtx">' + esc(p.texto) + '</span>' +
       (nf ? '<span class="tiny muted">📷 ' + nf + '</span>' : '') + '<span class="mres ' + (it.calif === '2' ? 'r2' : 'rna') + '">' + (it.calif === '2' ? '✓ Cumple' : 'N/A') + '</span></div>';
@@ -1564,7 +1644,8 @@ function puntoHtml(p){
   const cls = req ? (fs.length ? 'req ok' : 'req') : 'req opt';
   const verObs = pend || it.obs || it.verObs, verDato = p.datoReq || it.dato || it.verDato;
   const sugs = pend ? sugerencias('Acción correctiva', p.texto + ' ' + (it.obs || ''), it.accion, it.accion ? 2 : 3) : [];
-  return '<div class="card punto ' + g + '">' +
+  const sec6 = (S.data.secciones.find(s => s.cod === p.sec) || {}).nombre || '', n6 = S.data.puntos.indexOf(p) + 1;
+  return '<div class="card punto ' + g + '">' + '<div class="tk-sec">' + esc(p.sec + ') ' + sec6) + ' · ' + n6 + ' de ' + S.data.puntos.length + '</div>' +
     '<div><span class="pid">' + esc(p.id) + '</span>' + esc(p.texto) + '</div>' +
     '<div class="tools"><button class="link" data-guia>Ver criterio</button>' + (!verObs ? '<button class="link" data-ver="verObs">+ Observación</button>' : '') + (!verDato ? '<button class="link" data-ver="verDato">+ Dato</button>' : '') + (it.calif === '2' || it.calif === 'N/A' ? '<button class="link" data-cerrar>Listo ▲</button>' : '') + '</div>' +
     '<div class="guia">' + esc(p.criterio) + '</div>' + ventasHtml(p) + polVisitaHtml(p) +
