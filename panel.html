@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (ddeb5b22ced4). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (8294e675340b). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -715,6 +715,210 @@ function ipdfBajar(blob, nombre){
 }
 </script>
 
+<style>
+/* Pestaña "En vivo" del panel de supervisores (ConteoVivo.gs). Usa los colores del panel. */
+#cv{display:flex;flex-direction:column;gap:16px}
+.cv-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--na);flex:none}
+.cv-dot.on{background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:cvPulse 1.6s infinite}
+@keyframes cvPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+@media (prefers-reduced-motion:reduce){.cv-dot.on{animation:none}}
+#tabs .cv-tabdot{margin-left:6px;vertical-align:1px}
+.cv-chips{display:flex;gap:8px;flex-wrap:wrap}
+.cv-chip{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;font-size:13px;cursor:pointer}
+.cv-chip small{color:var(--fg-3);font-size:11.5px}
+.cv-chip[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.cv-hero{background:linear-gradient(135deg,#0f2747,#163a69);color:#f2f6fc;border-radius:var(--r,10px);padding:18px 20px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px 26px;align-items:center}
+@media (max-width:700px){.cv-hero{grid-template-columns:1fr;justify-items:center;text-align:center}}
+.cv-ring{position:relative;width:160px;height:160px}
+.cv-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.cv-ring .in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.cv-ring b{font-size:44px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.cv-ring small{color:#a9bbd6;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+.cv-eye{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#a9bbd6}
+.cv-h1{font-size:30px;font-weight:800;line-height:1.05;margin:2px 0 0}
+.cv-live{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border-radius:99px;background:rgba(255,255,255,.1);font-size:12px;font-weight:600}
+.cv-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+@media (max-width:900px){.cv-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.cv-kpi{background:rgba(255,255,255,.07);border-radius:9px;padding:9px 12px;text-align:left}
+.cv-kpi span{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#a9bbd6}
+.cv-kpi b{display:block;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.cv-kpi em{font-style:normal;font-size:11.5px;color:#a9bbd6}
+.cv-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+.cv-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r,10px);padding:14px 16px;min-width:0;display:flex;flex-direction:column;gap:8px}
+.cv-8{grid-column:span 8}.cv-4{grid-column:span 4}.cv-6{grid-column:span 6}
+@media (max-width:980px){.cv-8,.cv-4,.cv-6{grid-column:span 12}}
+.cv-card h3{margin:0;font-size:15px}
+.cv-card .sub{margin:-4px 0 0;color:var(--fg-3);font-size:12px}
+.cv-chart{width:100%;display:block}
+.cv-chart text{font-size:11px;fill:var(--fg-3);font-variant-numeric:tabular-nums}
+.cv-chart .lbl{fill:var(--fg);font-size:12px}
+.cv-leg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--fg-3)}
+.cv-leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.cv-feed{list-style:none;margin:0;padding:0;max-height:330px;overflow:auto}
+.cv-feed li{display:grid;grid-template-columns:44px 1fr auto;gap:0 10px;padding:7px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.cv-feed .h{font-size:11.5px;color:var(--fg-3);font-variant-numeric:tabular-nums}
+.cv-feed .p{font-weight:600;font-size:13px}
+.cv-feed .x{grid-column:2/4;font-size:12px;color:var(--fg-3)}
+.cv-tag{font-size:11px;padding:1px 8px;border-radius:99px;background:var(--surface-2);color:var(--fg-2);white-space:nowrap}
+.cv-tag.bad{color:var(--bad)}
+.cv-f{display:flex;gap:6px;flex-wrap:wrap}
+.cv-f button{font:inherit;font-size:12px;padding:4px 11px;border-radius:99px;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);cursor:pointer}
+.cv-f button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+#cv table td.n,#cv table th.n{text-align:right;font-variant-numeric:tabular-nums}
+#cv tr.pend td{opacity:.55}
+#cv .neg{color:var(--bad);font-weight:600}#cv .pos{color:var(--accent);font-weight:600}#cv .cero{color:var(--good)}
+#cvTip{position:fixed;pointer-events:none;background:var(--fg);color:var(--bg);font-size:12px;padding:6px 9px;border-radius:6px;max-width:260px;z-index:60;line-height:1.35}
+</style>
+<script>
+/* ---------- En vivo: conteo del Muestreo Top 50 mientras la tienda cuenta (apiConteoVivo) ---------- */
+const CV = {d: null, tienda: '', filtro: 'todos', timer: null, cargando: false, tipOk: false};
+const CV_MOT = ['Más vendido $', 'Más vendido unidades', 'Alto valor', 'Al azar'];
+const cvEsc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cvUsd = n => (n < 0 ? '−' : '') + '$' + Math.abs(n).toLocaleString('es-EC', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const cvF = s => { const m = String(s || '').match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?/); return m ? new Date(+m[1], m[2]-1, +m[3], +m[4], +m[5], +(m[6] || 0)) : null; };
+const cvHM = d => d ? String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') : '';
+const cvCorto = s => { const p = String(s || '').trim().split(/\s+/); return p.length > 1 ? p[0] + ' ' + p[1][0] + '.' : p[0] || ''; };
+const cvEl = (tag, a, txt) => '<' + tag + ' ' + Object.keys(a).map(k => k + '="' + cvEsc(a[k]) + '"').join(' ') + '>' + (txt == null ? '' : txt) + '</' + tag + '>';
+
+function cvTip(){
+  if (CV.tipOk) return; CV.tipOk = true;
+  const tip = document.createElement('div'); tip.id = 'cvTip'; tip.hidden = true; document.body.appendChild(tip);
+  document.addEventListener('pointermove', e => {
+    const t = e.target.closest && e.target.closest('#cv [data-tip]');
+    if (!t) { tip.hidden = true; return; }
+    tip.innerHTML = t.getAttribute('data-tip'); tip.hidden = false;
+    tip.style.left = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8) + 'px'; tip.style.top = (e.clientY + 16) + 'px';
+  });
+}
+
+async function cvCargar(){
+  const yo = window.cvCtx && cvCtx.yo(); if (CV.cargando || !yo) return; CV.cargando = true;
+  try { CV.d = await cvCtx.api('apiConteoVivo', yo.nombre, CV.tienda); CV.tienda = CV.d.tienda; CV.err = ''; }
+  catch (e) { CV.err = e.message; }
+  finally { CV.cargando = false; cvTab(); cvRender(); }
+}
+function cvTab(){
+  const b = document.querySelector('#tabs button[data-v="vivo"]'); if (!b) return;
+  let d = b.querySelector('.cv-tabdot'); const on = !!(CV.d && CV.d.tiendas.some(x => x.vivo));
+  if (on && !d) { d = document.createElement('span'); d.className = 'cv-dot on cv-tabdot'; d.title = 'Hay tiendas contando ahora'; b.appendChild(d); }
+  if (!on && d) d.remove();
+}
+function cvVisible(){ const v = document.querySelector('.view[data-view="vivo"]'); return v && !v.hidden && !document.hidden; }
+function cvIniciar(){
+  if (CV.timer) return;
+  cvCargar();
+  CV.timer = setInterval(() => { if (cvVisible()) cvCargar(); else if (Date.now() - (CV.ult || 0) > 120000) { CV.ult = Date.now(); cvCargar(); } }, 30000);
+}
+
+function cvRitmo(ev, total){
+  const W = 720, H = 230, L = 36, R = 14, T = 12, B = 26;
+  if (!ev.length) return cvEl('svg', {class: 'cv-chart', viewBox: '0 0 720 120'}, cvEl('text', {x: 360, y: 60, 'text-anchor': 'middle'}, 'La curva aparece con el primer producto contado'));
+  const t0 = ev[0].t, last = ev[ev.length - 1].t, t1 = Math.max(last, t0 + 600000, Date.now() - last < 3 * 3600000 ? Date.now() : 0);
+  const x = t => L + (W - L - R) * (t - t0) / (t1 - t0), y = v => T + (H - T - B) * (1 - v / total);
+  let s = '';
+  [0, .25, .5, .75, 1].forEach(f => { const v = Math.round(total * f); s += cvEl('line', {x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: 'var(--line)'}) + cvEl('text', {x: L - 7, y: y(v) + 4, 'text-anchor': 'end'}, v); });
+  for (let i = 0; i <= 5; i++) { const t = t0 + (t1 - t0) * i / 5; s += cvEl('text', {x: x(t), y: H - 7, 'text-anchor': i === 0 ? 'start' : i === 5 ? 'end' : 'middle'}, cvHM(new Date(t))); }
+  const p = [[x(t0), y(0)]]; ev.forEach((e, i) => { p.push([x(e.t), p[p.length - 1][1]]); p.push([x(e.t), y(i + 1)]); }); p.push([x(t1), y(ev.length)]);
+  const d = p.map((q, i) => (i ? 'L' : 'M') + q[0].toFixed(1) + ' ' + q[1].toFixed(1)).join(' ');
+  s += '<defs><linearGradient id="cvAr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".28"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>';
+  s += cvEl('path', {d: d + ' L' + x(t1).toFixed(1) + ' ' + y(0) + ' L' + x(t0).toFixed(1) + ' ' + y(0) + ' Z', fill: 'url(#cvAr)'});
+  s += cvEl('path', {d: d, fill: 'none', stroke: 'var(--accent)', 'stroke-width': 2.2, 'stroke-linejoin': 'round'});
+  ev.forEach((e, i) => { s += cvEl('circle', {cx: x(e.t), cy: y(i + 1), r: 9, fill: 'transparent', 'data-tip': '<b>' + cvEsc(e.cod) + '</b><br>' + cvEsc(e.who) + ' · ' + cvHM(new Date(e.t)) + '<br>' + (i + 1) + ' de ' + total}); });
+  s += cvEl('circle', {cx: x(last), cy: y(ev.length), r: 5, fill: 'var(--accent)', stroke: 'var(--surface)', 'stroke-width': 2});
+  return cvEl('svg', {class: 'cv-chart', viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Productos contados en el tiempo'}, s);
+}
+function cvGente(gp){
+  const W = 340, rowH = 30, L = 96, R = 40;
+  if (!gp.length) return cvEl('svg', {class: 'cv-chart', viewBox: '0 0 340 100'}, cvEl('text', {x: 170, y: 50, 'text-anchor': 'middle'}, 'Nadie ha contado todavía'));
+  const H = gp.length * rowH + 12, max = Math.max.apply(null, gp.map(p => p[1].n)); let s = '';
+  gp.forEach((g, i) => { const y0 = 6 + i * rowH, w = Math.max(4, (W - L - R) * g[1].n / max);
+    s += cvEl('text', {x: L - 10, y: y0 + 15, 'text-anchor': 'end', class: 'lbl'}, cvCorto(g[0]));
+    s += cvEl('rect', {x: L, y: y0 + 4, width: W - L - R, height: 16, rx: 4, fill: 'var(--surface-2)'});
+    s += cvEl('rect', {x: L, y: y0 + 4, width: w, height: 16, rx: 4, fill: 'var(--accent)', 'data-tip': '<b>' + cvEsc(g[0]) + '</b><br>' + g[1].n + ' productos · ' + g[1].u + ' unidades<br>última: ' + cvHM(g[1].t)});
+    s += cvEl('text', {x: L + w + 6, y: y0 + 16}, g[1].n); });
+  return cvEl('svg', {class: 'cv-chart', viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Productos por persona'}, s);
+}
+function cvDif(filas){
+  const W = 560, L = 132, R = 16, rowH = 22;
+  const dif = filas.filter(f => f.contado && f.dif !== 0).sort((a, b) => Math.abs(b.dif * b.costo) - Math.abs(a.dif * a.costo)).slice(0, 20).sort((a, b) => a.dif - b.dif);
+  if (!dif.length) return cvEl('svg', {class: 'cv-chart', viewBox: '0 0 560 100'}, cvEl('text', {x: 280, y: 50, 'text-anchor': 'middle'}, filas.some(f => f.contado) ? 'Todo lo contado cuadra con el sistema' : 'Aún no hay productos contados'));
+  const H = dif.length * rowH + 28, m = Math.max.apply(null, dif.map(f => Math.abs(f.dif))), cx = L + (W - L - R) / 2, sc = ((W - L - R) / 2 - 30) / m;   // deja sitio para el número al final de la barra
+  let s = cvEl('line', {x1: cx, x2: cx, y1: 4, y2: H - 18, stroke: 'var(--fg-3)'});
+  dif.forEach((f, i) => { const y0 = 6 + i * rowH, w = Math.max(3, Math.abs(f.dif) * sc), neg = f.dif < 0;
+    s += cvEl('text', {x: L - 10, y: y0 + 13, 'text-anchor': 'end', class: 'lbl', style: 'font-size:11px'}, f.cod);
+    s += cvEl('rect', {x: neg ? cx - w : cx, y: y0 + 2, width: w, height: 14, rx: 3, fill: neg ? 'var(--bad)' : 'var(--accent)', 'data-tip': '<b>' + cvEsc(f.cod) + '</b> ' + cvEsc(f.desc) + '<br>Sistema ' + f.teo + ' · Contado ' + f.q + '<br>' + (f.dif > 0 ? '+' : '') + f.dif + ' u · ' + cvUsd(f.dif * f.costo) + ' a costo'});
+    s += cvEl('text', {x: neg ? cx - w - 5 : cx + w + 5, y: y0 + 13, 'text-anchor': neg ? 'end' : 'start'}, (f.dif > 0 ? '+' : '') + f.dif); });
+  s += cvEl('text', {x: cx, y: H - 5, 'text-anchor': 'middle'}, '0');
+  return cvEl('svg', {class: 'cv-chart', viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Diferencias por producto'}, s);
+}
+function cvMot(filas){
+  const W = 560, L = 150, R = 50, rowH = 42; let s = '';
+  CV_MOT.forEach((mo, i) => { const fs = filas.filter(f => f.mot === mo), tot = fs.length || 1, c = fs.filter(f => f.contado).length, d = fs.filter(f => f.contado && f.dif !== 0).length, y0 = 4 + i * rowH, full = W - L - R;
+    s += cvEl('text', {x: 0, y: y0 + 17, class: 'lbl'}, mo) + cvEl('text', {x: 0, y: y0 + 31}, fs.length + ' productos');
+    s += cvEl('rect', {x: L, y: y0 + 7, width: full, height: 18, rx: 4, fill: 'var(--surface-2)'});
+    if (c) s += cvEl('rect', {x: L, y: y0 + 7, width: Math.max(4, full * c / tot), height: 18, rx: 4, fill: 'var(--accent)', 'data-tip': '<b>' + cvEsc(mo) + '</b><br>' + c + ' de ' + fs.length + ' contados · ' + d + ' con diferencia'});
+    s += cvEl('text', {x: W - R + 8, y: y0 + 20}, Math.round(100 * c / tot) + '%'); });
+  return cvEl('svg', {class: 'cv-chart', viewBox: '0 0 ' + W + ' ' + (CV_MOT.length * rowH + 4), role: 'img', 'aria-label': 'Avance por tipo de producto'}, s);
+}
+function cvMet(met){
+  const cols = {'Cámara': 'var(--accent)', 'Digitado': 'var(--fg-3)', 'Foto': 'var(--warn)'};
+  const it = Object.keys(met).map(k => [k, cols[k] || 'var(--na)', met[k]]), tot = it.reduce((a, b) => a + b[2], 0);
+  if (!tot) return '<div class="small faint">Sin lecturas todavía.</div>';
+  let x = 0, s = ''; it.forEach((m, i) => { const w = 560 * m[2] / tot; s += cvEl('rect', {x: x + (i ? 1 : 0), y: 4, width: Math.max(2, w - (i ? 2 : 0)), height: 26, rx: 4, fill: m[1], 'data-tip': '<b>' + m[0] + '</b><br>' + m[2] + ' lecturas · ' + Math.round(100 * m[2] / tot) + '%'}); x += w; });
+  return cvEl('svg', {class: 'cv-chart', viewBox: '0 0 560 34', role: 'img', 'aria-label': 'Cómo se registra'}, s) +
+    '<div class="cv-leg">' + it.map(m => '<span><i style="background:' + m[1] + '"></i>' + cvEsc(m[0]) + ' ' + Math.round(100 * m[2] / tot) + '%</span>').join('') + '</div>';
+}
+
+function cvRender(){
+  const el = document.getElementById('vivoBody'); if (!el) return; cvTip();
+  if (!(window.cvCtx && cvCtx.yo())) { el.innerHTML = '<section class="panel"><div class="empty">Elige tu nombre arriba para ver los conteos de tus tiendas.</div></section>'; return; }
+  if (!CV.d) { el.innerHTML = CV.err ? '<div class="banner err">' + cvEsc(CV.err) + '</div>' : '<div class="skeleton">Cargando conteos…</div>'; return; }
+  const D = CV.d;
+  if (!D.tiendas.length) { el.innerHTML = '<section class="panel"><div class="empty">No tienes tiendas con Muestreo Top 50 esta semana.</div></section>'; return; }
+  const est = D.tiendas.find(x => x.t === D.tienda) || {}, ronda = D.conteo.reduce((m, r) => Math.max(m, r[0]), 0) || 1;
+  const porCod = {}, gente = {};
+  D.conteo.filter(r => r[0] === ronda).forEach(r => { const t = cvF(r[5]);
+    const x = porCod[r[2]] = porCod[r[2]] || {q: 0, who: [], t: null}; x.q += r[4]; if (x.who.indexOf(cvCorto(r[1])) < 0) x.who.push(cvCorto(r[1])); if (t && (!x.t || t < x.t)) x.t = t;
+    const g = gente[r[1]] = gente[r[1]] || {n: 0, u: 0, t: null}; g.n++; g.u += r[4]; if (t && (!g.t || t > g.t)) g.t = t; });
+  let nC = 0, uni = 0, uniS = 0, nD = 0, falt = 0, sobr = 0;
+  const filas = D.lista.map(l => { const k = porCod[l.cod], q = k ? k.q : null, dif = k ? q - l.teo : null; uniS += l.teo;
+    if (k) { nC++; uni += q; if (dif) { nD++; if (dif < 0) falt += dif * l.costo; else sobr += dif * l.costo; } }
+    return Object.assign({}, l, {contado: !!k, q: q, dif: dif, who: k ? k.who.join(', ') : '', t: k ? k.t : null}); });
+  const total = D.lista.length || 50, pc = Math.round(100 * nC / total);
+  const ev = filas.filter(f => f.t).map(f => ({t: f.t.getTime(), cod: f.cod, who: f.who})).sort((a, b) => a.t - b.t);
+  const ver = filas.filter(f => CV.filtro === 'todos' || (CV.filtro === 'cont' && f.contado) || (CV.filtro === 'pend' && !f.contado) || (CV.filtro === 'dif' && f.contado && f.dif !== 0));
+  const vivos = D.tiendas.filter(x => x.vivo).length;
+  el.innerHTML = '<div id="cv">' +
+    '<div class="sec-h"><h2>Conteos en vivo</h2><span class="hint">' + (vivos ? vivos + (vivos === 1 ? ' tienda contando ahora' : ' tiendas contando ahora') : 'Ninguna tienda contando ahora') + ' · actualizado ' + cvEsc(D.hora) + ' · cada 30 s</span></div>' +
+    '<div class="cv-chips" role="group" aria-label="Tiendas">' + D.tiendas.slice().sort((a, b) => b.vivo - a.vivo || a.t.localeCompare(b.t)).map(x =>
+      '<button type="button" class="cv-chip" data-cvt="' + cvEsc(x.t) + '" aria-pressed="' + (x.t === D.tienda) + '"><span class="cv-dot' + (x.vivo ? ' on' : '') + '"></span>' + cvEsc(x.t) + ' <small>' + cvEsc(x.fase) + '</small></button>').join('') + '</div>' +
+    '<div class="cv-hero"><div class="cv-ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="11"/><circle cx="60" cy="60" r="52" fill="none" stroke="#86b6ef" stroke-width="11" stroke-linecap="round" stroke-dasharray="' + (327 * nC / total).toFixed(1) + ' 327"/></svg><div class="in"><b>' + pc + '%</b><small>' + nC + ' de ' + total + '</small></div></div>' +
+    '<div style="min-width:0;width:100%"><div style="display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center"><div><div class="cv-eye">Muestreo Top 50 · ' + cvEsc(D.sem) + ' · ronda ' + ronda + '</div><div class="cv-h1">' + cvEsc(D.tienda) + '</div></div><span style="flex:1"></span><span class="cv-live"><span class="cv-dot' + (est.vivo ? ' on' : '') + '"></span>' + cvEsc(est.vivo ? 'Contando ahora' : est.fase || '') + '</span></div>' +
+    '<div class="cv-kpis"><div class="cv-kpi"><span>Unidades contadas</span><b>' + uni.toLocaleString('es-EC') + '</b><em>de ' + uniS.toLocaleString('es-EC') + ' en el sistema</em></div>' +
+    '<div class="cv-kpi"><span>Con diferencia</span><b>' + (nC ? nD : '–') + '</b><em>' + (nC ? 'de ' + nC + ' contados' : 'productos') + '</em></div>' +
+    '<div class="cv-kpi"><span>Diferencia a costo</span><b>' + (nC ? cvUsd(falt + sobr) : '–') + '</b><em>faltante ' + cvUsd(falt) + ' · sobrante ' + cvUsd(sobr) + '</em></div>' +
+    '<div class="cv-kpi"><span>Exactitud</span><b>' + (nC ? Math.round(100 * (nC - nD) / nC) + '%' : '–') + '</b><em>productos que cuadran</em></div></div></div></div>' +
+    '<div class="cv-grid">' +
+    '<div class="cv-card cv-8"><h3>Ritmo del conteo</h3><p class="sub">Productos contados acumulados en el tiempo</p>' + cvRitmo(ev, total) + '</div>' +
+    '<div class="cv-card cv-4"><h3>Equipo</h3><p class="sub">Productos que registró cada persona</p>' + cvGente(Object.keys(gente).map(k => [k, gente[k]]).sort((a, b) => b[1].n - a[1].n)) + '</div>' +
+    '<div class="cv-card cv-6"><h3>Diferencias por producto</h3><p class="sub">Contado menos sistema · las 20 de mayor valor</p><div class="cv-leg"><span><i style="background:var(--bad)"></i>Faltante</span><span><i style="background:var(--accent)"></i>Sobrante</span></div>' + cvDif(filas) + '</div>' +
+    '<div class="cv-card cv-6"><h3>Avance por tipo de producto</h3><p class="sub">Cómo se eligió cada producto de la lista</p>' + cvMot(filas) + '<h3 style="margin-top:6px">Cómo se registra</h3>' + cvMet(D.metodos || {}) + '</div>' +
+    '<div class="cv-card cv-8"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between"><h3>Lista de 50</h3><div class="cv-f" role="group" aria-label="Filtro">' +
+      [['todos','Todos'],['cont','Contados'],['pend','Por contar'],['dif','Con diferencia']].map(f => '<button type="button" data-cvf="' + f[0] + '" aria-pressed="' + (CV.filtro === f[0]) + '">' + f[1] + '</button>').join('') + '</div></div>' +
+      '<div class="scroll"><table class="exec"><thead><tr><th>#</th><th>Código</th><th>Descripción</th><th class="n">Sistema</th><th class="n">Contado</th><th class="n">Dif.</th><th class="hide-sm">Quién</th></tr></thead><tbody>' +
+      (ver.length ? ver.map(f => '<tr class="' + (f.contado ? '' : 'pend') + '"><td>' + cvEsc(f.n) + '</td><td>' + cvEsc(f.cod) + '</td><td class="small">' + cvEsc(f.desc) + '</td><td class="n">' + f.teo + '</td><td class="n">' + (f.contado ? f.q : '·') + '</td><td class="n ' + (f.dif == null ? '' : f.dif < 0 ? 'neg' : f.dif > 0 ? 'pos' : 'cero') + '">' + (f.dif == null ? '' : (f.dif > 0 ? '+' : '') + f.dif) + '</td><td class="hide-sm small">' + cvEsc(f.who) + '</td></tr>').join('')
+        : '<tr><td colspan="7" class="empty">Nada en este filtro.</td></tr>') + '</tbody></table></div></div>' +
+    '<div class="cv-card cv-4"><h3>Lecturas en vivo</h3><p class="sub">Lo último que escaneó o digitó el equipo</p><ul class="cv-feed">' +
+      (D.lect.length ? D.lect.slice().reverse().map(r => { const bad = /no est|error/i.test(r[6]);
+        return '<li><span class="h">' + cvEsc(cvHM(cvF(r[0])) || r[0]) + '</span><span class="p">' + cvEsc(cvCorto(r[1])) + '</span><span class="cv-tag' + (bad ? ' bad' : '') + '">' + cvEsc(r[6] || r[4]) + '</span><span class="x">' + cvEsc(r[3] || r[2]) + ' · ' + cvEsc(r[4]) + (r[5] !== '' ? ' · ' + cvEsc(r[5]) + ' u' : '') + '</span></li>'; }).join('')
+        : '<li class="small faint">Sin lecturas todavía.</li>') + '</ul></div>' +
+    '</div><p class="small faint" style="margin:0">Solo para supervisores: muestra las cantidades del sistema, que la tienda no ve porque cuenta a ciegas.</p></div>';
+  el.querySelectorAll('[data-cvt]').forEach(b => b.onclick = () => { CV.tienda = b.dataset.cvt; CV.d = Object.assign({}, CV.d, {tienda: CV.tienda}); el.querySelector('#cv').style.opacity = '.6'; cvCargar(); });
+  el.querySelectorAll('[data-cvf]').forEach(b => b.onclick = () => { CV.filtro = b.dataset.cvf; cvRender(); });
+}
+setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pestaña; luego cada 30 s (2 min si no está a la vista)
+</script>
+
 <header class="bar"><div class="gut">
   <div class="row1">
     <div class="brand"><h1>Portal Steren</h1><span class="eyebrow" id="eyebrow">Supervisores</span><span id="miUso"></span></div>
@@ -725,6 +929,7 @@ function ipdfBajar(blob, nombre){
     <button data-v="pendientes">Pendientes<span class="n bad" id="nPend"></span></button>
     <button data-v="supervision">Supervisión</button>
     <button data-v="inventario">Inventario<span class="n bad" id="nInv"></span></button>
+    <button data-v="vivo">En vivo</button>
     <button data-v="politicas">Políticas<span class="n" id="nPol"></span></button>
     <button data-v="contactos">Contactos</button>
   </nav>
@@ -795,6 +1000,7 @@ function ipdfBajar(blob, nombre){
     </section>
   </div>
 
+  <div class="view" data-view="vivo" hidden><div id="vivoBody"><div class="skeleton">Cargando conteos…</div></div></div>
   <div class="view" data-view="inventario" hidden>
     <div id="invBody"><div class="skeleton">Cargando inventario…</div></div>
   </div>
@@ -862,6 +1068,7 @@ function ventasCelda(nombre){
 
 /* ---------- datos ---------- */
 function api(fn){ const args = [].slice.call(arguments, 1); return new Promise((ok, ko) => google.script.run.withSuccessHandler(ok).withFailureHandler(e => ko(e && e.message ? e : new Error(String(e))))[fn].apply(null, [PTOKEN].concat(args))); }
+window.cvCtx = {api: api, yo: () => st.yo};   // para ConteoVivo.html (fuera de este bloque)
 // ux1: últimos datos guardados en este equipo, para abrir al instante
 const CACHE_P = 'panelDatos_' + PTOKEN;
 function ponerPanel(r){
@@ -1532,7 +1739,7 @@ function pintarMapa(todas){
 
 
 /* ---------- pestañas ---------- */
-const VISTAS = ['hoy','pendientes','supervision','inventario','politicas','contactos'];
+const VISTAS = ['hoy','pendientes','supervision','inventario','vivo','politicas','contactos'];
 function ir(v){
   if (VISTAS.indexOf(v) < 0) v = 'hoy';   // incluye 'avisos', que ahora está al final de Hoy
   try { const tb = document.querySelector('#tabs button[data-v="' + v + '"]'); if (tb) tb.scrollIntoView({block: 'nearest', inline: 'center'}); } catch (e) {}   // ux1
@@ -1541,6 +1748,7 @@ function ir(v){
   try { localStorage.setItem('tabSup', v); } catch (e) {}
   if (window.REG) REG.vista(v === 'hoy' ? 'Inicio' : v === 'supervision' ? 'Supervisión' : v.charAt(0).toUpperCase() + v.slice(1));
   if (v === 'hoy') requestAnimationFrame(() => { if (M.ok) mDraw(); });
+  if (v === 'vivo' && window.cvRender) { cvRender(); cvCargar(); }   // conteo en vivo
   window.scrollTo({top: 0});
 }
 document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => ir(b.dataset.v));
