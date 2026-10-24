@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (957aa419021f). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (fcba1245f560). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
 <meta charset="utf-8">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<title>Portal Steren · Supervisión</title>
+<title>TEFES · Supervisión</title>
 <script>
 /* Portal Steren — puente del sitio propio (lo inserta generar_sitio.py; no editar las páginas a mano).
    Las pantallas son las mismas de la app de Google. Aquí se reemplaza lo que en Google da Apps Script:
@@ -35,7 +35,7 @@
     if (fn === 'apiInitTienda' && r && r.tienda) {
       var h = document.getElementById('hTienda');
       if (h) h.textContent = r.tienda;
-      document.title = 'Portal Steren · ' + r.tienda;
+      document.title = r.tienda + ' · TEFES';
     }
     if (fn === 'apiEnlaceSupervision' && typeof r === 'string') r = r.replace(/^https:\/\/script\.google\.com\/macros\/s\/[^/?]+\/exec\?/, SITIO + '?');
     return r;
@@ -921,7 +921,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
 
 <header class="bar"><div class="gut">
   <div class="row1">
-    <div class="brand"><h1>Portal Steren</h1><span class="eyebrow" id="eyebrow">Supervisores</span><span id="miUso"></span></div>
+    <div class="brand"><h1>TEFES</h1><span class="eyebrow" id="eyebrow">Supervisores</span><span id="miUso"></span></div>
     <span class="status small" id="status">Cargando…</span><span id="yo"></span><a class="btn" id="inventario" href="https://script.google.com/macros/s/AKfycbxvxIW9iw7D6IyKTMx5Xyj9BW4d_u7G4BMVwRzaI9ug1MIB1tdfVCAWhu2iIWjbz0lgMA/exec?invp=__PTOKEN__" target="_top" style="display:none;text-decoration:none">Inventario</a><button class="btn" id="refresh">Actualizar</button>
   </div>
   <nav class="tabs" id="tabs" aria-label="Secciones del panel">
