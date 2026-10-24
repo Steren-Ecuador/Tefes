@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (b1b106544263). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (bf729841cbe6). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -2212,14 +2212,18 @@ function invFormEventos(o){
 }
 
 
+/* ux5: número de la pestaña = políticas que me faltan aprobar */
+function polBadge(){ const T = st.polTx, el = $('#nPol'); if (!el) return;
+  el.textContent = (T && T.politicas && st.yo) ? (T.politicas.filter(p => ((T.sup || {})[p.id] || {})[st.yo.nombre] !== 'Aprobó').length || '') : ''; }
+
 /* ---------- políticas: quién aprobó y quién falta (vía apiPoliticasPanel) ---------- */
 function renderPoliticas(){
+  polBadge();
   const el = $('#polBody'); if (!el || !st.d || st.pol === undefined) return;
   const P = (st.pol || []).map(p => Object.assign({}, p, {por: p.por.filter(x => enCiudad(x.t))})).filter(p => p.por.length);
-  if (!P.length) { $('#nPol').textContent = ''; el.innerHTML = polLeerHTML() + `<section class="panel"><h2>Políticas</h2><div class="empty">${st.pol ? 'Todavía no hay políticas publicadas para las tiendas.' : 'No se pudieron leer las políticas. Pulsa Actualizar.'}</div></section>`; polLeerWire(); return; }
+  if (!P.length) { el.innerHTML = polLeerHTML() + `<section class="panel"><h2>Políticas</h2><div class="empty">${st.pol ? 'Todavía no hay políticas publicadas para las tiendas.' : 'No se pudieron leer las políticas. Pulsa Actualizar.'}</div></section>`; polLeerWire(); return; }
   let tOk = 0, tN = 0, tF = 0;
   P.forEach(p => { p.ok = p.por.reduce((s, x) => s + x.ok, 0); p.n = p.por.reduce((s, x) => s + x.total, 0); p.fail = p.por.reduce((s, x) => s + x.fail, 0); tOk += p.ok; tN += p.n; tF += p.fail; });
-  $('#nPol').textContent = (tN - tOk) || '';
   el.innerHTML = polLeerHTML() + `<div><div class="sec-h"><h2>Avance en las tiendas</h2><span class="hint">Cada persona de la tienda lee la política y responde 3 preguntas. Aprueba con las 3 correctas.</span></div>
     <div class="kpis" style="margin-bottom:14px"><div class="kpi ${tN && tOk >= tN ? 'good' : ''}"><b>${tOk} de ${tN}</b><span>aprobaciones</span></div>
       <div class="kpi ${tN - tOk ? 'warn' : ''}"><b>${tN - tOk}</b><span>por leer</span></div><div class="kpi"><b>${tF}</b><span>intentos fallidos</span></div></div>
