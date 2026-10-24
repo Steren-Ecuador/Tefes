@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (edafa3db89c0). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (68ae2f2532ca). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -384,6 +384,9 @@ table.exec td{padding:10px 8px}
 .tabs .n{display:inline-block;min-width:18px;padding:0 5px;margin-left:5px;border-radius:9px;background:var(--head-line);color:var(--head-ink);font-size:11.5px;line-height:18px;text-align:center}
 .tabs .n.bad{background:#c0392b;color:#fff}
 .tabs .n:empty{display:none}
+/* ux1: en el celular se ve que el menú se desliza; filtros dentro de la tarjeta */
+@media(max-width:700px){.tabs{-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent);padding-right:24px}.tabs button{padding-left:9px;padding-right:9px}}
+.filters select,.filters input{max-width:100%;min-width:0}
 .wrap{gap:26px}
 #banner:empty{display:none}
 .view{display:flex;flex-direction:column;gap:26px;min-width:0}
@@ -856,22 +859,34 @@ function ventasCelda(nombre){
 
 /* ---------- datos ---------- */
 function api(fn){ const args = [].slice.call(arguments, 1); return new Promise((ok, ko) => google.script.run.withSuccessHandler(ok).withFailureHandler(e => ko(e && e.message ? e : new Error(String(e))))[fn].apply(null, [PTOKEN].concat(args))); }
-async function cargar(){
+// ux1: últimos datos guardados en este equipo, para abrir al instante
+const CACHE_P = 'panelDatos_' + PTOKEN;
+function ponerPanel(r){
+  st.d = modelar(r.ti, r.su, r.pe, r.co, null);
+  st.usuarios = r.us || [];
+  st.textos = (r.tx || []).slice(1).filter(x => x[1]).map(x => ({tipo: String(x[0] || '').trim(), texto: String(x[1]).trim()}));
+}
+function desdeGuardado(){
+  try { const c = JSON.parse(localStorage.getItem(CACHE_P) || 'null'); if (!c || !c.r || Date.now() - c.t > 3 * 864e5) return false;
+    ponerPanel(c.r); if (c.v) st.ventas = c.v; render(); $('#status').textContent = 'Actualizando…'; return true; } catch (e) { return false; }
+}
+function guardarPanel(){ try { const c = JSON.parse(localStorage.getItem(CACHE_P) || '{}'); Object.assign(c, arguments[0], {t: Date.now()}); localStorage.setItem(CACHE_P, JSON.stringify(c)); } catch (e) {} }
+// liviano = true: actualización automática o tras un cambio; no recarga lo que cambia poco (avisos, textos, contactos, uso)
+async function cargar(liviano){
   $('#status').textContent = 'Actualizando…';
   $('#refresh').disabled = true;
   try {
     const r = await api('apiPanel');
-    st.d = modelar(r.ti, r.su, r.pe, r.co, null);
-    st.usuarios = r.us || [];
-    st.textos = (r.tx || []).slice(1).filter(x => x[1]).map(x => ({tipo: String(x[0] || '').trim(), texto: String(x[1]).trim()}));
+    ponerPanel(r); guardarPanel({r: r});
     $('#banner').innerHTML = '';
     $('#status').textContent = 'Actualizado ' + fmtF(hoyISO(), new Date().toTimeString().slice(0,5));
-    miUso();
+    if (!liviano) miUso();
     render();
-    api('apiVentasPanel').then(v => { st.ventas = v; render(); }).catch(() => {});
-    api('apiAvisosPanel').then(a => { st.avisos = a; renderAvisos(); }).catch(() => {});
+    api('apiVentasPanel').then(v => { st.ventas = v; guardarPanel({v: v}); render(); }).catch(() => {});
     api('apiInventarioPanel').then(x => { st.inv = x; renderInventario(); }).catch(() => { st.inv = null; renderInventario(); });
     api('apiPoliticasPanel').then(x => { st.pol = x; renderPoliticas(); }).catch(() => { st.pol = null; renderPoliticas(); });
+    if (liviano && st.avisos !== undefined) return;
+    api('apiAvisosPanel').then(a => { st.avisos = a; renderAvisos(); }).catch(() => {});
     api('apiPoliticasTextoPanel').then(x => { st.polTx = x; renderPoliticas(); }).catch(() => { st.polTx = null; renderPoliticas(); });
     api('apiContactosPanel').then(c => { st.contactos = c; renderContactos(); }).catch(() => { st.contactos = []; renderContactos(); });
   } catch (e) {
@@ -1353,7 +1368,7 @@ async function guardarEstado(id, estado, comentario, btn){
     await api('apiAccion', st.yo.nombre, id, estado, comentario || '');
     toast({Mensaje:'Mensaje enviado', Pendiente:'Movido a Abierto', Cerrado:'Pendiente cerrado', Reabierto:'Pendiente reabierto, la tienda lo verá en su lista'}[estado] || 'Movido a ' + estado);
     $('#drawer').innerHTML = '';
-    await cargar();
+    await cargar(true);
     if (btn && estado === 'Mensaje') detalle(id);
   } catch (e) {
     toast(e.message, 7000);
@@ -1517,6 +1532,7 @@ function pintarMapa(todas){
 const VISTAS = ['hoy','pendientes','supervision','inventario','politicas','contactos'];
 function ir(v){
   if (VISTAS.indexOf(v) < 0) v = 'hoy';   // incluye 'avisos', que ahora está al final de Hoy
+  try { const tb = document.querySelector('#tabs button[data-v="' + v + '"]'); if (tb) tb.scrollIntoView({block: 'nearest', inline: 'center'}); } catch (e) {}   // ux1
   document.querySelectorAll('.view').forEach(x => x.hidden = x.dataset.view !== v);
   document.querySelectorAll('#tabs button').forEach(b => { b.classList.toggle('on', b.dataset.v === v); b.setAttribute('aria-current', b.dataset.v === v ? 'page' : 'false'); });
   try { localStorage.setItem('tabSup', v); } catch (e) {}
@@ -2084,10 +2100,11 @@ pintarYo();
   if (window.REG) { REG.iniciar('panel', PTOKEN); }
   let g = null; try { g = JSON.parse(localStorage.getItem('supTefes') || 'null'); } catch (e) {}
   // Identificación y datos a la vez (antes uno esperaba al otro)
+  desdeGuardado();   // ux1
   const carga = cargar();
   if (g && g.nombre) { try { st.yo = await api('apiLogin', g.nombre); } catch (e) { try { localStorage.removeItem('supTefes'); } catch (x) {} } pintarYo(); if (st.d) render(); }
   try { await carga; } finally { if (!st.yo) login(); }
-  setInterval(() => { if (document.visibilityState === 'visible') cargar(); }, 300000);
+  setInterval(() => { if (document.visibilityState === 'visible') cargar(true); }, 300000);
 })();
 })();
 </script>

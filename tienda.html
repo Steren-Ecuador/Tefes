@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (8bb10bff1a19). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (f8f8d0317bdf). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -334,6 +334,10 @@ nav .badge{min-width:18px;padding:0 5px;line-height:18px;font-size:11px}
 /* políticas */
 .dot[hidden]{display:none}
 @media(max-width:430px){nav{gap:0}nav button{font-size:12.5px;letter-spacing:-.1px}nav .badge{margin-left:2px}}
+/* ux1: cada pestaña del ancho de su texto (el número de Pendientes no se monta sobre Inventario) */
+nav button{flex:1 1 auto}
+.nuevos{position:sticky;top:calc(var(--hh,0px) + 6px);z-index:5;display:flex;gap:10px;align-items:center;justify-content:space-between;background:var(--brand);color:#fff;border-radius:10px;padding:8px 12px;margin:0 0 10px;font-size:14px}
+.nuevos button{background:#fff;color:var(--brand);border:0;border-radius:8px;padding:6px 12px;font-weight:600}
 .pol-card{display:block;width:100%;text-align:left;border:0;cursor:pointer;font:inherit;color:inherit}
 .pol-card.falta{border-left:4px solid var(--warn)}
 .pol-card h4{margin:0 0 2px;font-size:16px;text-wrap:balance}
@@ -870,7 +874,6 @@ function renderInicio(){
   const linea = (titulo, det, color, boton) => '<div class="toca"><div><b>' + titulo + '</b><span class="tiny" style="color:' + color + '">' + det + '</span></div>' + boton + '</div>';
   h += '<div class="card hoja" style="margin-top:16px"><div class="cuerpo">' +
     '<h2>Hoja de trabajo de ' + esc(D.tienda) + '</h2>' +
-    '<p>Aquí está lo que la tienda tiene que hacer: leer los anuncios, corregir sus pendientes y hacer la autosupervisión. Es la misma hoja para todas las tiendas Steren.</p>' +
     linea(abiertos.length ? abiertos.length + ' pendiente' + (abiertos.length > 1 ? 's' : '') + ' por corregir' : 'Sin pendientes abiertos',
       [vencidos ? vencidos + ' vencido' + (vencidos > 1 ? 's' : '') : '', reab ? reab + ' devuelto' + (reab > 1 ? 's' : '') + ' por el supervisor' : ''].filter(Boolean).join(' · ') || (abiertos.length ? 'Todos a tiempo' : '¡Bien!'),
       vencidos || reab ? 'var(--bad)' : 'var(--muted)', abiertos.length ? '<button class="btn" data-ir="pend">Ver</button>' : '') +
@@ -1434,7 +1437,7 @@ function confirmarGuardar(){
     try {
       const r = await api('apiGuardarSupervisionTienda', payload);
       lsSet('supSTEREN_nombre', F.realizadaPor); lsSet(DRAFT_KEY, null); S.form = null; pintarReloj();
-      S.data = await api('apiInitTienda'); if (!S.data) throw new Error('El servidor no devolvió datos de la tienda'); llenarPersonal();
+      S.data = await api('apiInitTienda'); if (!S.data) throw new Error('El servidor no devolvió datos de la tienda'); llenarPersonal(); lsSet('tiendaDatos_' + TOKEN, {t: Date.now(), d: S.data});
       closeModal();
       $('#footer').innerHTML = '';
       $('#main').innerHTML = '<div class="card" style="text-align:center;padding:28px 16px"><div style="font-size:40px">✅</div><h2 style="margin:6px 0">Supervisión guardada</h2>' +
@@ -1483,14 +1486,33 @@ setHH(); window.addEventListener('resize', setHH);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S.form) guardarBorrador(true); });
 window.addEventListener('beforeunload', e => { if (S.form) guardarBorrador(true); if (subiendoTotal()) { e.preventDefault(); e.returnValue = ''; } });
 if (window.REG) { REG.iniciar('tienda', TOKEN); REG.vista('Inicio'); }
+// ux1: abre al instante con los últimos datos guardados en este equipo y se actualiza en segundo plano
+const CACHE_KEY = 'tiendaDatos_' + TOKEN;
+function enlaceSup(){
+  // Enlace desde "Nueva supervisión" del panel (?sup=Nombre): abre Supervisar con ese nombre
+  try { google.script.url.getLocation(l => { try { const n = l && l.parameter && String(l.parameter.sup || '').trim(); if (!n) return;
+    lsSet('supSTEREN_nombre', n); const f = S.form || lsGet(DRAFT_KEY);
+    if (f) { f.tipo = 'Supervisión'; f.realizadaPor = n; if (S.form) guardarBorrador(true); else lsSet(DRAFT_KEY, f); }
+    irA('sup'); } catch(e){} }); } catch(e){}
+}
 (async function(){
-  try { S.data = await api('apiInitTienda'); if (!S.data) throw new Error('El servidor no devolvió datos de la tienda'); llenarPersonal(); render();
-    // Enlace desde "Nueva supervisión" del panel (?sup=Nombre): abre Supervisar con ese nombre
-    try { google.script.url.getLocation(l => { try { const n = l && l.parameter && String(l.parameter.sup || '').trim(); if (!n) return;
-      lsSet('supSTEREN_nombre', n); const f = S.form || lsGet(DRAFT_KEY);
-      if (f) { f.tipo = 'Supervisión'; f.realizadaPor = n; if (S.form) guardarBorrador(true); else lsSet(DRAFT_KEY, f); }
-      irA('sup'); } catch(e){} }); } catch(e){} }
-  catch(e){ $('#main').innerHTML = '<div class="empty">No se pudo cargar: ' + esc(e.message) + '<br><br><button class="btn primary" onclick="location.reload()">Reintentar</button></div>'; }
+  let guardado = null, toco = false;
+  try { const c = lsGet(CACHE_KEY); if (c && c.d && c.d.hoy && Date.now() - c.t < 3 * 864e5) guardado = c.d; } catch(e){}
+  if (guardado) { S.data = guardado; llenarPersonal(); render(); enlaceSup();
+    const marcar = () => { toco = true; }; ['input', 'click', 'change'].forEach(ev => document.addEventListener(ev, marcar, {capture: true, once: true})); }
+  try { const d = await api('apiInitTienda'); if (!d) throw new Error('El servidor no devolvió datos de la tienda');
+    lsSet(CACHE_KEY, {t: Date.now(), d: d});
+    if (!guardado) { S.data = d; llenarPersonal(); render(); enlaceSup(); return; }
+    if (JSON.stringify(d) === JSON.stringify(guardado)) return;
+    const poner = () => { S.data = d; llenarPersonal(); render(); };
+    if (!toco && !$('#modal').innerHTML && !S.form) { poner(); return; }
+    // Ya está trabajando: no le borramos lo que escribe; le ofrecemos actualizar
+    const b = document.createElement('div'); b.className = 'nuevos';
+    b.innerHTML = '<span>Hay cambios nuevos</span><button type="button">Actualizar</button>';
+    b.querySelector('button').onclick = () => { b.remove(); poner(); };
+    $('#main').prepend(b); }
+  catch(e){ if (guardado) toast('Sin conexión: se muestran los últimos datos guardados', 5000);
+    else $('#main').innerHTML = '<div class="empty">No se pudo cargar: ' + esc(e.message) + '<br><br><button class="btn primary" onclick="location.reload()">Reintentar</button></div>'; }
 })();
 setTimeout(() => { if (!S.data) $('#main').innerHTML = '<div class="empty">La conexión está tardando más de lo normal. Revisa tu internet y vuelve a intentar.<br><br><button class="btn primary" onclick="location.reload()">Reintentar</button></div>'; }, 30000);
 window.__S = S;
