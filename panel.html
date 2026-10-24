@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (68ae2f2532ca). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (ae4a498f45b0). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -1086,7 +1086,7 @@ function render(){
 
   const cnt = {}; pendC.forEach(p => { const k = p.punto + ' ' + (p.texto || ''); cnt[k] = (cnt[k] || 0) + 1; });
   const top = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 3);
-  $('#masFallan').textContent = top.length ? 'Más fallan' + (st.ciudad ? ' en ' + st.ciudad : '') + ': ' + top.map(([k, n]) => k.replace(/\s+/g, ' ').trim() + ' (' + n + ')').join(' · ') : '';
+  $('#masFallan').textContent = top.length ? 'Más fallan' + (st.ciudad ? ' en ' + st.ciudad : '') + ': ' + top.map(([k, n]) => { const c = k.replace(/\s+/g, ' ').trim(); return (c.length > 34 ? c.slice(0, 32) + '…' : c) + ' (' + n + ')'; })   /* ux2 */.join(' · ') : '';
 
   if (st.fTienda && !enCiudad(st.fTienda)) st.fTienda = '';
   const fT = $('#fTienda'), cur = st.fTienda;
