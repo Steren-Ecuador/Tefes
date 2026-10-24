@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (ae4a498f45b0). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (ddeb5b22ced4). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -586,7 +586,10 @@ details.li .body{margin-top:10px;font-size:13.5px;color:var(--fg-2);display:grid
     },
     quien(nombre){ const n = String(nombre || ''); if (n && n !== R.nombre) { enviar(); R.nombre = n; push('Ingreso', R.src || ''); setTimeout(enviar, 3000); } else if (!n) { enviar(); R.nombre = ''; } },
     vista(nombre){ nombre = String(nombre || ''); if (nombre === R.vistaAct) return; cerrarVista(true); R.vistaAct = nombre; },
-    ev(ev, det){ push(ev, det); }
+    ev(ev, det){ push(ev, det); },
+    /* ux4: una fila por apertura: cuándo vio algo y cuánto tardaron los datos del servidor */
+    carga(msPantalla, msDatos, guardado){ const s = ms => (Math.round(ms / 100) / 10).toFixed(1).replace('.', ',') + ' s';
+      push('Carga', 'pantalla ' + s(msPantalla) + ' · datos ' + (msDatos == null ? 'sin respuesta' : s(msDatos)) + ' · ' + (guardado ? 'con datos guardados' : 'sin datos guardados') + ' · ' + R.disp); }
   };
 })();
 </script>
@@ -2100,8 +2103,9 @@ pintarYo();
   if (window.REG) { REG.iniciar('panel', PTOKEN); }
   let g = null; try { g = JSON.parse(localStorage.getItem('supTefes') || 'null'); } catch (e) {}
   // Identificación y datos a la vez (antes uno esperaba al otro)
-  desdeGuardado();   // ux1
+  const t0 = performance.now(), hayG = desdeGuardado(), tPant = hayG ? performance.now() : null;   // ux1 + ux4
   const carga = cargar();
+  carga.then(() => { try { if (window.REG) REG.carga(tPant == null ? performance.now() : tPant, st.d ? performance.now() - t0 : null, hayG); } catch (e) {} });
   if (g && g.nombre) { try { st.yo = await api('apiLogin', g.nombre); } catch (e) { try { localStorage.removeItem('supTefes'); } catch (x) {} } pintarYo(); if (st.d) render(); }
   try { await carga; } finally { if (!st.yo) login(); }
   setInterval(() => { if (document.visibilityState === 'visible') cargar(true); }, 300000);

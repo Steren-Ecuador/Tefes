@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (86bfcabde860). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (2c328a0b3b62). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -379,6 +379,30 @@ nav button{flex:1 1 auto}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 .pv-op{display:block;width:100%;text-align:left;border:1.5px solid var(--line);background:var(--card,#fff);border-radius:8px;padding:8px 10px;margin-top:6px;font:inherit;color:inherit}
 .pv-res{font-weight:700;margin-top:6px}
+
+/* ventas futuras */
+input[type=tel],input[type=email]{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;font-size:16px;min-height:44px}
+.aviso.ok{background:var(--ok-soft);color:var(--ok)}
+.vf-it{padding:12px 0;border-top:1px solid var(--line)}
+.vf-it:first-child{border-top:0;padding-top:0}
+.vf-it:last-child{padding-bottom:0}
+.vf-h{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.vf-cod{font-weight:800;color:var(--brand)}
+.vf-cli{display:block;background:none;border:0;padding:4px 0 0;font-size:14px;text-align:left;cursor:pointer;color:inherit}
+.vf-obs{font-size:13px;background:var(--bg);border-radius:8px;padding:6px 8px;margin:4px 0;white-space:pre-wrap}
+.vf-acc{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.vf-acc .btn{flex:1;min-height:40px;padding:8px 10px;text-align:center;text-decoration:none;font-size:14px}
+.vf-acc .link{flex:none}
+.vf-acc a.btn{color:var(--brand)}
+.vf-esp{background:var(--na-soft);color:var(--na)} .vf-lle{background:var(--ok);color:#fff} .vf-avi{background:var(--brand-soft);color:var(--brand)}
+.vf-ven{background:var(--ok-soft);color:var(--ok)} .vf-no{background:var(--bad-soft);color:var(--bad)}
+.vf-sug{display:flex;flex-direction:column;gap:4px;margin-top:4px}
+.vf-sug button{text-align:left;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:8px 10px;font-size:13px;cursor:pointer}
+.vf-prod{background:var(--brand-soft);border-radius:10px;padding:8px 10px;margin-top:6px;font-size:13px}
+.vf-prod.ok{background:var(--ok-soft)}
+.vf-prod span{color:var(--muted)} .vf-prod.ok span{color:var(--ok);font-weight:600}
+.vf-chk{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14px;cursor:pointer}
+.vf-chk input{width:22px;height:22px;flex:none;margin:0}
 </style>
 </head>
 <body>
@@ -427,7 +451,10 @@ nav button{flex:1 1 auto}
     },
     quien(nombre){ const n = String(nombre || ''); if (n && n !== R.nombre) { enviar(); R.nombre = n; push('Ingreso', R.src || ''); setTimeout(enviar, 3000); } else if (!n) { enviar(); R.nombre = ''; } },
     vista(nombre){ nombre = String(nombre || ''); if (nombre === R.vistaAct) return; cerrarVista(true); R.vistaAct = nombre; },
-    ev(ev, det){ push(ev, det); }
+    ev(ev, det){ push(ev, det); },
+    /* ux4: una fila por apertura: cuándo vio algo y cuánto tardaron los datos del servidor */
+    carga(msPantalla, msDatos, guardado){ const s = ms => (Math.round(ms / 100) / 10).toFixed(1).replace('.', ',') + ' s';
+      push('Carga', 'pantalla ' + s(msPantalla) + ' · datos ' + (msDatos == null ? 'sin respuesta' : s(msDatos)) + ' · ' + (guardado ? 'con datos guardados' : 'sin datos guardados') + ' · ' + R.disp); }
   };
 })();
 </script>
@@ -847,8 +874,8 @@ function informesInvHtml(){
     '<button class="btn" data-infinv="' + esc(x.id) + '">PDF</button></div>').join('') + '</div>';
 }
 function renderInv(){
-  const h = inventarioHtml() + informesInvHtml();
-  $('#main').innerHTML = h || '<div class="card muted small">Todavía no hay inventario para esta tienda.</div>';
+  $('#main').innerHTML = vfHtml() + inventarioHtml() + informesInvHtml();
+  vfEnlazar();
 }
 document.addEventListener('click', async e => {
   const b = e.target.closest && e.target.closest('[data-infinv]'); if (!b) return;
@@ -865,6 +892,172 @@ document.addEventListener('click', async e => {
   } catch (x) { toast('No se pudo descargar: ' + x.message, 5000); }
   finally { b.disabled = false; b.textContent = t; }
 });
+/* ---------- VENTAS FUTURAS: el cliente pide algo que no hay; se avisa cuando llega ---------- */
+const VFS = {lista: null, cargando: false, error: '', cat: null, catCarga: null, abiertos: {}};
+const VF_TAG = {'Esperando': 'vf-esp', 'Llegó': 'vf-lle', 'Avisado': 'vf-avi', 'Compró': 'vf-ven', 'No compró': 'vf-no', 'Cancelado': 'vf-no'};
+const VF_ABIERTOS = ['Esperando', 'Llegó', 'Avisado'];
+function vfToca(linea){
+  const r = S.data.ventasFuturas; if (!r) return '';
+  if (r.llego) return linea(r.llego === 1 ? 'Llegó un producto que espera un cliente' : 'Llegaron ' + r.llego + ' productos que esperan clientes',
+    'Contacta al cliente hoy', 'var(--ok)', '<button class="btn primary" data-ir="inv">Ver</button>');
+  if (r.viejos) return linea(r.viejos === 1 ? 'Un cliente espera hace más de 60 días' : r.viejos + ' clientes esperan hace más de 60 días',
+    'Llámalo y ofrécele una alternativa', 'var(--warn)', '<button class="btn" data-ir="inv">Ver</button>');
+  return '';
+}
+function vfCargar(){
+  if (VFS.cargando) return; VFS.cargando = true; VFS.error = '';
+  api('apiVFLista').then(L => { VFS.lista = L || []; }).catch(e => { VFS.error = e.message || 'No se pudo cargar.'; })
+    .finally(() => { VFS.cargando = false; if (S.vista === 'inv') renderInv(); });
+}
+const vfCel = c => String(c || '').replace(/\D/g, '');
+const vfOculto = c => { const d = vfCel(c); return d.length > 6 ? d.slice(0, 3) + ' *** ' + d.slice(-4) : d; };
+function vfItemHtml(v){
+  const ab = VF_ABIERTOS.includes(v.estado), ver = VFS.abiertos[v.id], d = vfCel(v.celular);
+  const wa = 'https://wa.me/' + (d.charAt(0) === '0' ? '593' + d.slice(1) : d);
+  let acc = '';
+  if (v.estado === 'Llegó') acc = '<button class="btn primary" data-vfe="Avisado">Ya le avisé</button><button class="btn" data-vfe="Compró">Compró</button><button class="btn" data-vfe="No compró">No compró</button>';
+  else if (v.estado === 'Avisado') acc = '<button class="btn" data-vfe="Compró">Compró</button><button class="btn" data-vfe="No compró">No compró</button>';
+  else if (v.estado === 'Esperando') acc = '<button class="link" data-vfe="Cancelado">Cerrar sin venta</button>';
+  return '<div class="vf-it" data-vf="' + esc(v.id) + '"><div class="vf-h"><b><span class="vf-cod">' + esc(v.cod) + '</span> ' + esc(v.prod || '') + '</b>' +
+    '<span class="tag ' + VF_TAG[v.estado] + '">' + esc(v.estado) + '</span></div>' +
+    '<button class="vf-cli" data-vfver>' + esc(v.cliente) + ' · ' + esc(ver ? v.celular : vfOculto(v.celular)) + ' · ' + esc(v.contacto) + (ver || !ab ? '' : ' <span class="tiny">(ver)</span>') + '</button>' +
+    (ver && v.correo ? '<div class="tiny muted">' + esc(v.correo) + '</div>' : '') +
+    (v.obs ? '<div class="vf-obs">' + esc(v.obs) + '</div>' : '') +
+    '<div class="tiny muted">' + (v.cant > 1 ? v.cant + ' unidades' : '1 unidad') + ' · registró ' + esc(v.asesor) + ' el ' + fechaCorta(v.fecha) +
+      (v.avisado ? ' · avisado el ' + fechaCorta(v.avisado) + (v.avisoPor ? ' por ' + esc(v.avisoPor) : '') : '') + (v.nota ? ' · ' + esc(v.nota) : '') + '</div>' +
+    (ab && (v.estado !== 'Esperando') ? '<div class="vf-acc"><a class="btn ghost" href="tel:' + esc(d) + '" target="_top">Llamar</a><a class="btn ghost" href="' + esc(wa) + '" target="_blank" rel="noopener">WhatsApp</a></div>' : '') +
+    (acc ? '<div class="vf-acc">' + acc + '</div>' : '') + '</div>';
+}
+function vfHtml(){
+  if (VFS.lista === null && !VFS.error) vfCargar();
+  const L = VFS.lista || [], ab = L.filter(v => VF_ABIERTOS.includes(v.estado)), ce = L.filter(v => !VF_ABIERTOS.includes(v.estado));
+  const orden = {'Llegó': 0, 'Avisado': 1, 'Esperando': 2};
+  ab.sort((a, b) => orden[a.estado] - orden[b.estado]);
+  const lle = ab.filter(v => v.estado === 'Llegó').length;
+  let h = '<div class="sec-t"><h3>Ventas futuras</h3><span class="tiny muted">' + (VFS.lista ? ab.length + ' por atender' : '') + '</span></div>';
+  if (lle) h += '<div class="aviso ok"><div><b>' + (lle === 1 ? 'Llegó un producto que espera un cliente' : 'Llegaron ' + lle + ' productos que esperan clientes') + '</b>Contáctalo hoy y sepárale la unidad.</div></div>';
+  h += '<button class="btn primary block" id="vfNuevo">+ Registrar venta futura</button>';
+  if (VFS.error) h += '<div class="card small" style="margin-top:10px">' + esc(VFS.error) + ' <button class="link" id="vfRe">Reintentar</button></div>';
+  else if (VFS.lista === null) h += '<div class="card muted small" style="margin-top:10px"><span class="spin"></span> Cargando…</div>';
+  else if (!L.length) h += '<p class="tiny muted" style="margin:8px 2px 0">Cuando un cliente pida algo que no tenemos, regístralo aquí con su celular. Te avisamos cuando llegue.</p>';
+  if (ab.length) h += '<div class="card" style="margin-top:10px">' + ab.map(vfItemHtml).join('') + '</div>';
+  if (ce.length) h += '<details class="archivo"><summary>Cerrados en los últimos 30 días (' + ce.length + ')</summary><div class="card">' + ce.map(vfItemHtml).join('') + '</div></details>';
+  return h;
+}
+function vfEnlazar(){
+  const n = $('#vfNuevo'); if (n) n.onclick = vfFormulario;
+  const re = $('#vfRe'); if (re) re.onclick = () => { VFS.error = ''; VFS.lista = null; renderInv(); };
+  document.querySelectorAll('[data-vf]').forEach(el => {
+    const v = (VFS.lista || []).find(x => x.id === el.dataset.vf); if (!v) return;
+    const b = el.querySelector('[data-vfver]'); if (b) b.onclick = () => { VFS.abiertos[v.id] = !VFS.abiertos[v.id]; renderInv(); };
+    el.querySelectorAll('[data-vfe]').forEach(x => x.onclick = () => vfModalEstado(v, x.dataset.vfe));
+  });
+}
+function vfQuien(id){
+  const g = gente();
+  return g.length ? '<select id="' + id + '"><option value="">Elige tu nombre</option>' + g.map(n => '<option>' + esc(n) + '</option>').join('') + '</select>'
+    : '<input type="text" id="' + id + '" autocomplete="off" placeholder="Tu nombre y apellido">';
+}
+function vfModalEstado(v, estado){
+  const txt = {'Avisado': ['Ya le avisé', 'Queda registrado que avisaste a ' + v.cliente + '.'], 'Compró': ['Compró', '¡Bien! Se cierra como venta.'],
+    'No compró': ['No compró', 'Cuéntanos por qué, para mejorar.'], 'Cancelado': ['Cerrar sin venta', 'Por ejemplo: el cliente ya no lo quiere o lo compró en otro lado.']}[estado];
+  openModal('<h3>' + txt[0] + '</h3><p class="small muted" style="margin:0">' + esc(v.cod) + ' · ' + esc(v.cliente) + '</p><p class="small">' + txt[1] + '</p>' +
+    '<label class="f">¿Quién eres?</label>' + vfQuien('vfQ') +
+    (estado === 'No compró' || estado === 'Cancelado' ? '<label class="f">Motivo</label><input type="text" id="vfNota" maxlength="200" placeholder="Ej.: compró otro modelo">' : '') +
+    '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="vfNo">Volver</button><button class="btn primary grow" id="vfSi">Guardar</button></div>');
+  $('#vfNo').onclick = closeModal;
+  $('#vfSi').onclick = async () => {
+    const q = $('#vfQ').value.trim(), nota = $('#vfNota') ? $('#vfNota').value.trim() : '';
+    if (!q) { toast('Elige tu nombre.'); return; }
+    if ((estado === 'No compró' || estado === 'Cancelado') && nota.length < 3) { toast('Escribe el motivo.'); return; }
+    const b = $('#vfSi'); b.disabled = true; b.textContent = 'Guardando…';
+    try {
+      const r = await api('apiVFEstado', v.id, estado, q, nota);
+      Object.assign(v, r); if (window.REG) REG.ev('Venta futura', v.id + ' · ' + estado);
+      vfResumenLocal(); closeModal(); toast('Guardado: ' + estado); renderInv();
+    } catch (e) { b.disabled = false; b.textContent = 'Guardar'; toast(e.message || 'No se pudo guardar. Revisa tu internet.'); }
+  };
+}
+function vfResumenLocal(){
+  const L = VFS.lista || [], r = S.data.ventasFuturas || {};
+  r.llego = L.filter(v => v.estado === 'Llegó').length; r.esperando = L.filter(v => v.estado === 'Esperando').length;
+  S.data.ventasFuturas = r;
+}
+function vfCatalogo(){
+  if (VFS.cat) return Promise.resolve(VFS.cat);
+  const k = 'vfCat_' + TOKEN, g = lsGet(k);
+  if (g && g.d === S.data.hoy && g.c && g.c.p) { VFS.cat = g.c; return Promise.resolve(VFS.cat); }
+  if (!VFS.catCarga) VFS.catCarga = api('apiVFCatalogo').then(c => { VFS.cat = c; try { lsSet(k, {d: S.data.hoy, c: c}); } catch (e) {} return c; })
+    .catch(() => { VFS.catCarga = null; return null; });
+  return VFS.catCarga;
+}
+const vfNorm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+function vfBuscar(q){
+  const c = VFS.cat; q = vfNorm(q).trim(); if (!c || q.length < 2) return [];
+  const cod = q.toUpperCase(), pal = q.split(/\s+/).filter(Boolean), out = [];
+  for (const p of c.p) {
+    const pc = p[0].toUpperCase(), d = vfNorm(p[1]);
+    let sc = pc === cod ? 100 : pc.indexOf(cod) === 0 ? 50 : 0;
+    if (!sc && pal.every(w => d.indexOf(w) >= 0 || pc.toLowerCase().indexOf(w) >= 0)) sc = 10;
+    if (sc) out.push([sc + (p[3] + p[4] + p[5] > 0 ? 1 : 0), p]);
+  }
+  return out.sort((a, b) => b[0] - a[0]).slice(0, 6).map(x => x[1]);
+}
+function vfStockHtml(p){
+  if (!p) return '';
+  const est = p[2] && p[2] !== 'ERP' ? ' · ' + esc(p[2]) : '';
+  let msg, cls = '';
+  if (p[3] > 0) { msg = 'Hay ' + p[3] + ' en tu tienda: búscalo y véndelo ahora.'; cls = ' ok'; }
+  else if (p[4] > 0) msg = 'Hay ' + p[4] + ' en otras tiendas' + (p[5] > 0 ? ' y ' + p[5] + ' en CEDIS' : '') + '. Regístralo para pedirlo.';
+  else if (p[5] > 0) msg = 'No hay en tiendas; hay ' + p[5] + ' en CEDIS. Regístralo para pedirlo.';
+  else msg = 'No hay en tiendas ni en CEDIS.';
+  return '<div class="vf-prod' + cls + '"><b>' + esc(p[0]) + '</b> ' + esc(p[1]) + est + '<br><span>' + msg + '</span></div>';
+}
+function vfFormulario(){
+  let prod = null;
+  openModal('<h3>Registrar venta futura</h3>' +
+    '<label class="f">Producto (código o nombre)</label><input type="text" id="vfCod" autocomplete="off" autocapitalize="characters" placeholder="Ej.: CAR-150 o adaptador carplay">' +
+    '<div id="vfSug" class="vf-sug"></div><div id="vfSel"></div>' +
+    '<div class="grid2"><div><label class="f">Cantidad</label><input type="number" id="vfCant" min="1" value="1" inputmode="numeric"></div>' +
+    '<div><label class="f">Asesor que atiende</label>' + vfQuien('vfAse') + '</div></div>' +
+    '<label class="f">Nombre del cliente</label><input type="text" id="vfCli" autocomplete="off" autocapitalize="words">' +
+    '<label class="f">Celular</label><input type="tel" id="vfCel" inputmode="tel" autocomplete="off" placeholder="09...">' +
+    '<label class="f">Correo (opcional)</label><input type="email" id="vfMail" autocomplete="off" inputmode="email">' +
+    '<label class="f">¿Cómo prefiere que le avisemos?</label><div class="seg" id="vfCont"><button class="on" data-c="WhatsApp">WhatsApp</button><button data-c="Llamada">Llamada</button></div>' +
+    '<label class="f">Observaciones para recordar al cliente</label><textarea id="vfObs" maxlength="500" placeholder="Para qué lo quiere, qué modelo tiene, a qué hora llamarlo…"></textarea>' +
+    '<label class="vf-chk"><input type="checkbox" id="vfAcepta"> <span>El cliente acepta que lo contactemos solo para avisarle de este producto.</span></label>' +
+    '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="vfNo">Cancelar</button><button class="btn primary grow" id="vfSi">Guardar</button></div>');
+  const inp = $('#vfCod'), sug = $('#vfSug'), sel = $('#vfSel');
+  let contacto = 'WhatsApp';
+  document.querySelectorAll('#vfCont button').forEach(b => b.onclick = () => { contacto = b.dataset.c; document.querySelectorAll('#vfCont button').forEach(x => x.classList.toggle('on', x === b)); });
+  const elegir = p => { prod = p; inp.value = p[0]; sug.innerHTML = ''; sel.innerHTML = vfStockHtml(p); };
+  const pintar = () => {
+    prod = null; sel.innerHTML = '';
+    const R = vfBuscar(inp.value);
+    sug.innerHTML = R.map((p, i) => '<button data-i="' + i + '"><b>' + esc(p[0]) + '</b> ' + esc(p[1]) + '</button>').join('') +
+      (!VFS.cat && inp.value.trim().length > 1 ? '<div class="tiny muted">Cargando productos…</div>' : '');
+    sug.querySelectorAll('[data-i]').forEach(b => b.onclick = () => elegir(R[+b.dataset.i]));
+    const exacto = R.find(p => p[0].toUpperCase() === inp.value.trim().toUpperCase()); if (exacto && R.length === 1) elegir(exacto);
+  };
+  inp.oninput = pintar;
+  vfCatalogo().then(() => { if (inp.value.trim()) pintar(); });
+  $('#vfNo').onclick = closeModal;
+  $('#vfSi').onclick = async () => {
+    const d = {cod: prod ? prod[0] : inp.value.trim(), prod: prod ? prod[1] : inp.value.trim(), cant: $('#vfCant').value, asesor: $('#vfAse').value.trim(),
+      cliente: $('#vfCli').value.trim(), celular: $('#vfCel').value.trim(), correo: $('#vfMail').value.trim(), contacto: contacto,
+      obs: $('#vfObs').value.trim(), acepta: $('#vfAcepta').checked};
+    const falta = !d.cod ? 'Escribe el producto.' : !d.asesor ? 'Elige tu nombre.' : d.cliente.length < 3 ? 'Escribe el nombre del cliente.' :
+      vfCel(d.celular).length < 9 ? 'Revisa el celular (al menos 9 números).' : !d.acepta ? 'Pregunta al cliente si acepta que lo contactemos y marca la casilla.' : '';
+    if (falta) { toast(falta, 3500); return; }
+    const b = $('#vfSi'); b.disabled = true; b.textContent = 'Guardando…';
+    try {
+      const r = await api('apiVFRegistrar', d);
+      (VFS.lista = VFS.lista || []).unshift(r); vfResumenLocal();
+      if (window.REG) REG.ev('Venta futura', r.id + ' · ' + r.cod);
+      closeModal(); toast('Registrado. Te avisamos cuando llegue ' + r.cod + '.', 3500); renderInv();
+    } catch (e) { b.disabled = false; b.textContent = 'Guardar'; toast(e.message || 'No se pudo guardar. Revisa tu internet.', 4000); }
+  };
+}
 function renderInicio(){
   const D = S.data, A = D.anuncios || [], hoy = D.hoy, sem = semanaDe(hoy);
   const act = A.filter(activo), ant = A.filter(a => !activo(a));
@@ -887,10 +1080,10 @@ function renderInicio(){
     linea('Autosupervisión de la semana', auto ? 'Hecha el ' + fechaCorta(auto.fecha) + ' · ' + pct(auto.total) : 'Todavía no se hace',
       auto ? 'var(--muted)' : 'var(--warn)', auto ? '' : '<button class="btn primary" data-ir="sup">Hacer</button>') +
     (D.inventario ? linea('Muestreo Top 50', esc(invTexto(D.inventario)), D.inventario.fase && D.inventario.fase !== 'Enviado' ? 'var(--warn)' : 'var(--muted)', '<button class="btn" data-ir="inv">Ver</button>') : '') +
-    polToca(linea) + '<details' + (primera ? ' open' : '') + '><summary>¿Cómo funciona?</summary><ol class="pasos">' +
+    vfToca(linea) + polToca(linea) + '<details' + (primera ? ' open' : '') + '><summary>¿Cómo funciona?</summary><ol class="pasos">' +
       '<li>Cada persona lee los anuncios y confirma con su nombre.</li>' +
       '<li>En <b>Pendientes</b>, corrige lo que encontró el supervisor y envíalo con foto.</li>' +
-      '<li>En <b>Inventario</b>, haz el Muestreo Top 50 con el teléfono.</li>' +
+      '<li>En <b>Inventario</b>, haz el Muestreo Top 50 con el teléfono y registra las ventas futuras: lo que un cliente pide y no tenemos.</li>' +
       '<li>En <b>Supervisión</b>, haz la autosupervisión una vez por semana y ve cómo te fue en cada supervisión.</li></ol></details></div></div>';
   $('#main').innerHTML = h;
   document.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => irA(b.dataset.ir));
@@ -1505,10 +1698,12 @@ function enlaceSup(){
 (async function(){
   let guardado = null, toco = false;
   try { const c = lsGet(CACHE_KEY); if (c && c.d && c.d.hoy && Date.now() - c.t < 3 * 864e5) guardado = c.d; } catch(e){}
-  if (guardado) { S.data = guardado; llenarPersonal(); render(); enlaceSup();
+  const t0 = performance.now(); let tPant = null;   // ux4: medición de la carga
+  const medir = ok => { try { if (window.REG) REG.carga(tPant == null ? performance.now() : tPant, ok ? performance.now() - t0 : null, !!guardado); } catch(e){} };
+  if (guardado) { S.data = guardado; llenarPersonal(); render(); enlaceSup(); tPant = performance.now();
     const marcar = () => { toco = true; }; ['input', 'click', 'change'].forEach(ev => document.addEventListener(ev, marcar, {capture: true, once: true})); }
   try { const d = await api('apiInitTienda'); if (!d) throw new Error('El servidor no devolvió datos de la tienda');
-    lsSet(CACHE_KEY, {t: Date.now(), d: d});
+    lsSet(CACHE_KEY, {t: Date.now(), d: d}); medir(true);
     if (!guardado) { S.data = d; llenarPersonal(); render(); enlaceSup(); return; }
     if (JSON.stringify(d) === JSON.stringify(guardado)) return;
     const poner = () => { S.data = d; llenarPersonal(); render(); };
@@ -1518,7 +1713,7 @@ function enlaceSup(){
     b.innerHTML = '<span>Hay cambios nuevos</span><button type="button">Actualizar</button>';
     b.querySelector('button').onclick = () => { b.remove(); poner(); };
     $('#main').prepend(b); }
-  catch(e){ if (guardado) toast('Sin conexión: se muestran los últimos datos guardados', 5000);
+  catch(e){ medir(false); if (guardado) toast('Sin conexión: se muestran los últimos datos guardados', 5000);
     else $('#main').innerHTML = '<div class="empty">No se pudo cargar: ' + esc(e.message) + '<br><br><button class="btn primary" onclick="location.reload()">Reintentar</button></div>'; }
 })();
 setTimeout(() => { if (!S.data) $('#main').innerHTML = '<div class="empty">La conexión está tardando más de lo normal. Revisa tu internet y vuelve a intentar.<br><br><button class="btn primary" onclick="location.reload()">Reintentar</button></div>'; }, 30000);
