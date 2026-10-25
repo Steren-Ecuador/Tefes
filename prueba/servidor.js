@@ -81,7 +81,9 @@
   }
 
   /* ---------- guías ---------- */
-  function guias() { return F('Guías').filter(function (r) { return r[0] && !/^no$/i.test(S(r[6])); }).map(function (r) { return {id: S(r[0]), titulo: S(r[1]), resumen: S(r[2]), enlace: S(r[3]), publicada: S(r[4]), tiendas: S(r[5]) || 'Todas', tipo: S(r[7]) || 'Guía', para: S(r[8]) || 'Tiendas'}; }); }
+  function guias() { return F('Guías').filter(function (r) { return r[0] && !/^no$/i.test(S(r[6])); }).map(function (r) { return {id: S(r[0]), titulo: S(r[1]), resumen: S(r[2]), enlace: S(r[3]), publicada: S(r[4]), tiendas: S(r[5]) || 'Todas', tipo: S(r[7]) || 'Guía', para: S(r[8]) || 'Tiendas', preguntas: (S(r[7]) || 'Guía') === 'Guía' && bancoGuia(S(r[0])).length >= 5 ? 5 : 0}; }); }
+  function bancoGuia(id) { return F('Preguntas de guías').filter(function (r) { return S(r[0]) === id && r[2] && r[3] && r[4] && r[5]; }); }
+  function barajar(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = a[i]; a[i] = a[j]; a[j] = x; } return a; }
   function lecturasDe(tab, id, t) { return F(tab).filter(function (r) { return r[2] === id && r[3] === t; }).map(function (r) { return {persona: S(r[4]), fecha: S(r[0]), hora: S(r[1])}; }); }
   function cargoDe(t, n) { var g = gente(t).filter(function (x) { return x.nombre === n; })[0]; return g ? g.cargo : ''; }
 
@@ -140,10 +142,20 @@
     DB.agregar('Lecturas de anuncios', [f, h, id, t, persona, cargoDe(t, persona)]);
     return {persona: persona, fecha: f, hora: h};
   };
-  API.apiConfirmarGuia = function (tok, id, persona) {
-    var t = tiendaDe(tok), d = new Date(), f = DB.isoDe(d), h = DB.hm(d);
-    DB.agregar('Lecturas de guías', [f, h, id, t, persona, cargoDe(t, persona)]);
-    return {persona: persona, fecha: f, hora: h};
+  API.apiPreguntasGuia = function (tok, id) { tiendaDe(tok); return barajar(bancoGuia(id)).slice(0, 5).map(function (r) { return {n: S(r[1]), pregunta: S(r[2]), opciones: barajar([S(r[3]), S(r[4]), S(r[5])])}; }); };
+  API.apiConfirmarGuia = function (tok, id, persona, resp) {
+    var t = tiendaDe(tok), d = new Date(), f = DB.isoDe(d), h = DB.hm(d), cargo = cargoDe(t, persona), resultado = '';
+    var g = guias().filter(function (x) { return x.id === id; })[0];
+    if (g && g.preguntas && /gerente de tienda/i.test(cargo)) {
+      var banco = bancoGuia(id), ns = Object.keys(resp || {});
+      if (ns.length < g.preguntas) throw new Error('Responde las ' + g.preguntas + ' preguntas.');
+      var det = ns.map(function (n) { var r = banco.filter(function (x) { return S(x[1]) === n; })[0]; return {n: n, pregunta: r ? S(r[2]) : '', bien: !!r && S(resp[n]) === S(r[3 + 'ABC'.indexOf(S(r[6]).toUpperCase())])}; });
+      var ok = det.filter(function (x) { return x.bien; }).length;
+      if (ok < ns.length) return {aprobado: false, detalle: det, persona: persona};
+      resultado = ok + ' de ' + ns.length;
+    }
+    DB.agregar('Lecturas de guías', [f, h, id, t, persona, cargo, resultado]);
+    return {aprobado: true, persona: persona, fecha: f, hora: h};
   };
   API.apiPreguntasPolitica = function (tok, id) { tiendaDe(tok); return preguntas(id).map(function (q) { return {n: q.n, pregunta: q.pregunta, opciones: q.opciones}; }); };
   API.apiResponderPolitica = function (tok, id, persona, resp) {

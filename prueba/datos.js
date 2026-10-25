@@ -234,9 +234,23 @@
     POLITICAS.slice(0, 4).forEach(function (p) { SUPERVISORES.slice(0, 2).forEach(function (s) { T['Lecturas de políticas supervisores'].push([sumar(hoy, p[2] + 1), '10:00', p[0], s[0], 'Aprobó']); }); });
     T['Guías'] = [['ID', 'Título', 'Resumen', 'Enlace', 'Publicada', 'Tiendas', 'Activo', 'Tipo', 'Para'],
       ['G001', 'Ventas futuras', 'Qué hacer cuando un cliente pide un producto que no tenemos: registrarlo y avisarle cuando llegue.', GUIA_VF, sumar(hoy, -3), 'Todas', 'Sí', 'Guía', 'Tiendas'],
-      ['G002', 'Apertura y cierre de la tienda', 'Lista de pasos de ejemplo para abrir y cerrar el local.', GUIA_VF, sumar(hoy, -10), 'Todas', 'Sí', 'Manual', 'Tiendas'],
+      ['G004', 'Apertura y cierre de la tienda', 'Lista de pasos de ejemplo para abrir y cerrar el local.', GUIA_VF, sumar(hoy, -10), 'Todas', 'Sí', 'Manual', 'Tiendas'],
+      ['G002', 'Manual de procesos de tienda', 'Recepción del CEDIS, transferencias, revisión en MB51 y órdenes de trabajo (RPC, PND, G50). Gerentes y subgerentes responden 5 preguntas.', GUIA_MPT, sumar(hoy, -1), 'Todas', 'Sí', 'Guía', 'Tiendas'],
       ['G003', 'Cómo hacer una supervisión', 'Manual de ejemplo para supervisores.', HOJA_PDF, sumar(hoy, -12), 'Todas', 'Sí', 'Manual', 'Supervisores']];
-    T['Lecturas de guías'] = [['Fecha', 'Hora', 'Guía', 'Tienda', 'Persona', 'Cargo']];
+    T['Preguntas de guías'] = [["Guía", "N°", "Pregunta", "Opción A", "Opción B", "Opción C", "Correcta"],
+      ["G002", "1", "¿Quién puede hacer una transferencia o recibir mercadería en el sistema?", "Cualquier asesor que tenga tiempo", "Solo el gerente o el subgerente con su propia clave", "El asesor con la clave prestada del gerente", "B"],
+      ["G002", "2", "¿Qué referencia se pone en el MIGO al sacar un PND o un G50 hacia revisión?", "ST en mayúsculas", "El nombre del cliente", "TR y el mandante de Quito", "A"],
+      ["G002", "3", "En una orden de Reparación de producto (RPC) del cliente ¿se hace MIGO?", "Sí siempre una salida 502", "Sí pero solo si vale más de $50", "No nunca: la tienda solo custodia el producto", "C"],
+      ["G002", "4", "¿A dónde se despacha un Producto nuevo defectuoso (PND)?", "A Revisión y Desperfectos", "A la misma tienda que lo vendió", "Se queda en la bodega de la tienda", "A"],
+      ["G002", "5", "Tienes tres audífonos iguales dañados para enviar como PND. ¿Cómo se registran en el MIGO?", "Una línea con cantidad 3", "Una unidad por línea y una orden por línea", "No se registran porque son del mismo código", "B"],
+      ["G002", "6", "Un cliente trae un producto de $35 con factura a consumidor final. ¿Se puede hacer un G50?", "Sí porque vale menos de $50", "Sí si el gerente lo autoriza por WhatsApp", "No: G50 y RPC piden factura a nombre del cliente", "C"],
+      ["G002", "7", "Tienes una orden RPC una PND y una G50 listas. ¿Cómo las despachas?", "En una sola caja con una guía", "En tres guías y tres cajas separadas por tipo", "PND y G50 juntas y RPC aparte", "B"],
+      ["G002", "8", "Detectas 20 regletas iguales dañadas en la tienda. ¿Qué haces?", "Reportas a Diego y van a desperfectos con una TR autorizada sin órdenes de trabajo", "Haces 20 órdenes de trabajo PND", "Las devuelves a la percha hasta el próximo conteo", "A"],
+      ["G002", "9", "En una transferencia de salida escribes 1 en Cantidad sin borrar el cero. ¿Qué pasa?", "Nada el sistema lo corrige", "Se registra 10 en lugar de 1", "El sistema no deja guardar", "B"],
+      ["G002", "10", "¿Qué transacción del POS muestra todos los movimientos de un código para revisar que quedaron bien?", "MIGO", "MB51", "TRU-1", "B"],
+      ["G002", "11", "Llega una caja dañada desde el CEDIS. ¿Qué haces?", "La recibes y lo comentas en la próxima visita", "La reportas el mismo día con fotos a la bodega que la despachó", "La devuelves al transportista sin avisar", "B"],
+      ["G002", "12", "Hiciste por error una salida de 2 unidades. ¿Cómo se corrige?", "Haces una entrada de 2 y luego la salida correcta", "Pides que lo borren del sistema", "Lo dejas así y lo explicas en el muestreo", "A"]];
+    T['Lecturas de guías'] = [['Fecha', 'Hora', 'Guía', 'Tienda', 'Persona', 'Cargo', 'Resultado']];
     lecturas('Lecturas de guías', 'G001', sumar(hoy, -3), 0.45);
     var mes = hoy.slice(0, 7);
     T['Actividades'] = [['ID', 'Actividad', 'Cómo', 'Día límite', 'Tiendas', 'Desde', 'Activo'], ['CC', 'Reporte de caja chica de {mes}', 'Sobre a la administración con los recibos y facturas originales. Solo facturas de {mes}.', '5', 'Todas', mes, 'Sí']];
@@ -342,6 +356,7 @@
   /* ---------- guardar / leer ---------- */
   var SITIO = location.href.replace(/[?#].*$/, '').replace(/[^/]*$/, '');
   var GUIA_VF = SITIO.replace(/prueba\/$/, '') + 'guias/ventas-futuras.html';
+  var GUIA_MPT = SITIO.replace(/prueba\/$/, '') + 'guias/manual-procesos-tienda.html';
   var HOJA_PDF = 'https://github.com/diegorevelom/politicas-tefes/raw/main/supervision/Hoja%20de%20supervision%20de%20tienda.pdf';
   var FOTO = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240"><rect width="320" height="240" fill="#dfe7f0"/><text x="160" y="126" font-family="Arial" font-size="18" text-anchor="middle" fill="#4a5866">Foto de ejemplo</text></svg>');
   var DB = null;
