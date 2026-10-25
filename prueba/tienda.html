@@ -1332,25 +1332,60 @@ function renderGui(){
 }
 function modalGuia(g){
   const f = guiaFaltan(g), cargo = {}; (S.data.personal || []).forEach(p => cargo[p.nombre] = p.cargo);
+  const conPreg = n => g.preguntas && /gerente de tienda/i.test(cargo[n] || '');
   let elegido = '';
   openModal('<h3>Confirmar lectura</h3><p class="small muted" style="margin:0">' + esc(g.titulo) + '</p>' +
     '<label class="f">¿Quién eres?</label>' +
     (f.length ? '<div class="quien">' + f.map(x => '<button data-n="' + esc(x) + '">' + esc(x) + (cargo[x] ? '<small>' + esc(cargo[x]) + '</small>' : '') + '</button>').join('') + '</div>'
       : '<input type="text" id="gNom" autocomplete="off" placeholder="Tu nombre y apellido">') +
-    '<p class="small" style="margin:12px 0 0">Al confirmar declaro que leí la guía y sé cómo hacer este proceso. Queda registrado con mi nombre, la fecha y la hora.</p>' +
+    '<p class="small" style="margin:12px 0 0">Al confirmar declaro que leí la guía y sé cómo hacer este proceso. Queda registrado con mi nombre, la fecha y la hora.' +
+      (g.preguntas ? ' El gerente y el subgerente responden ' + g.preguntas + ' preguntas.' : '') + '</p>' +
     '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="gNo">Cancelar</button><button class="btn primary grow" id="gSi" disabled>Confirmar</button></div>');
   const si = $('#gSi');
-  document.querySelectorAll('.quien [data-n]').forEach(b => b.onclick = () => { elegido = b.dataset.n; document.querySelectorAll('.quien [data-n]').forEach(x => x.classList.toggle('on', x === b)); si.disabled = false; si.textContent = 'Confirmar como ' + elegido.split(' ')[0]; });
+  document.querySelectorAll('.quien [data-n]').forEach(b => b.onclick = () => { elegido = b.dataset.n; document.querySelectorAll('.quien [data-n]').forEach(x => x.classList.toggle('on', x === b)); si.disabled = false;
+    si.textContent = conPreg(elegido) ? 'Responder ' + g.preguntas + ' preguntas' : 'Confirmar como ' + elegido.split(' ')[0]; });
   const inp = $('#gNom'); if (inp) inp.oninput = () => { elegido = inp.value.trim(); si.disabled = elegido.length < 3; };
   $('#gNo').onclick = closeModal;
+  const listo = r => {
+    if (!g.lecturas.some(l => l.persona === r.persona)) g.lecturas.push({persona: r.persona, fecha: r.fecha, hora: r.hora});
+    if (window.REG) REG.ev('Lectura de guía', g.id + ' · ' + r.persona);
+    closeModal(); toast('Lectura registrada: ' + r.persona, 3500); render();
+  };
   si.onclick = async () => {
+    if (conPreg(elegido)) return preguntasGuia(g, elegido, listo);
     si.disabled = true; si.textContent = 'Guardando…';
+    try { listo(await api('apiConfirmarGuia', g.id, elegido)); }
+    catch(e){ si.disabled = false; si.textContent = 'Confirmar'; toast(e.message || 'No se pudo guardar. Revisa tu internet.'); }
+  };
+}
+/* Gerente y subgerente: 5 preguntas al azar del banco de la guía; con todas bien queda la lectura, si no vuelve a leer y salen otras */
+async function preguntasGuia(g, persona, listo){
+  const Q = {lista: null, resp: {}};
+  const pintar = () => {
+    $('#modal .gq').innerHTML = Q.lista.map((q, i) => '<div class="card pol-q"><div class="pol-qn">Pregunta ' + (i + 1) + ' de ' + Q.lista.length + '</div><b>' + esc(q.pregunta) + '</b>' +
+      q.opciones.map((o, j) => '<button class="pol-op' + (Q.resp[q.n] === o ? ' on' : '') + '" data-q="' + i + '" data-o="' + j + '"><span class="rd"></span><span>' + esc(o) + '</span></button>').join('') + '</div>').join('');
+    document.querySelectorAll('#modal .gq [data-q]').forEach(b => b.onclick = () => { const q = Q.lista[+b.dataset.q]; Q.resp[q.n] = q.opciones[+b.dataset.o]; pintar(); });
+    $('#gEnv').disabled = Object.keys(Q.resp).length < Q.lista.length;
+  };
+  openModal('<h3>' + esc(g.titulo) + '</h3><p class="small muted" style="margin:0">' + esc(persona) + ', responde las ' + g.preguntas + ' preguntas. Con todas bien queda registrada tu lectura.</p>' +
+    '<div class="gq" style="margin-top:10px"><div class="loading"><span class="spin"></span> Cargando preguntas…</div></div>' +
+    '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="gNo">Cancelar</button><button class="btn primary grow" id="gEnv" disabled>Enviar respuestas</button></div>');
+  $('#gNo').onclick = closeModal;
+  try { Q.lista = await api('apiPreguntasGuia', g.id); pintar(); }
+  catch(e){ toast(e.message || 'No se pudieron cargar las preguntas.'); closeModal(); return; }
+  $('#gEnv').onclick = async () => {
+    const b = $('#gEnv'); b.disabled = true; b.textContent = 'Revisando…';
     try {
-      const r = await api('apiConfirmarGuia', g.id, elegido);
-      if (!g.lecturas.some(l => l.persona === r.persona)) g.lecturas.push({persona: r.persona, fecha: r.fecha, hora: r.hora});
-      if (window.REG) REG.ev('Lectura de guía', g.id + ' · ' + r.persona);
-      closeModal(); toast('Lectura registrada: ' + r.persona, 3500); render();
-    } catch(e){ si.disabled = false; si.textContent = 'Confirmar'; toast(e.message || 'No se pudo guardar. Revisa tu internet.'); }
+      const r = await api('apiConfirmarGuia', g.id, persona, Q.resp);
+      if (r.aprobado) return listo(r);
+      if (window.REG) REG.ev('Guía no aprobada', g.id + ' · ' + persona);
+      const mal = r.detalle.filter(d => !d.bien).length;
+      $('#modal .gq').innerHTML = Q.lista.map(q => { const ok = (r.detalle.find(x => x.n === q.n) || {}).bien;
+        return '<div class="card small"><b style="color:' + (ok ? 'var(--ok)' : 'var(--bad)') + '">' + (ok ? '✓ Bien' : '✗ Incorrecta') + '</b> · ' + esc(q.pregunta) + '</div>'; }).join('') +
+        '<div class="aviso" style="background:var(--warn-soft);color:var(--warn)"><div><b>' + mal + (mal === 1 ? ' respuesta incorrecta' : ' respuestas incorrectas') + '</b>Vuelve a leer la guía y responde otra vez. Saldrán otras preguntas.</div></div>';
+      b.textContent = 'Intentar otra vez'; b.disabled = false;
+      b.onclick = () => preguntasGuia(g, persona, listo);
+    } catch(e){ b.disabled = false; b.textContent = 'Enviar respuestas'; toast(e.message || 'No se pudo guardar. Revisa tu internet.'); }
   };
 }
 function marcaPol(){ const el = $('#bPol'); if (el) el.hidden = !polPend().length; }
