@@ -124,6 +124,18 @@ a{color:var(--accent)}
 .linkrow .btns{display:flex;gap:6px}
 a.btn{text-decoration:none;color:var(--fg)}
 .btn.wa{text-decoration:none;display:inline-flex;align-items:center;color:var(--good);border-color:var(--good)}
+/* ct2: */
+.ct-city{margin-top:6px}.ct-city+.ct-city{margin-top:18px}
+.ct-ch{display:flex;align-items:baseline;gap:10px;border-bottom:2px solid var(--accent);padding-bottom:4px;margin-bottom:10px}
+.ct-ch h3{font-size:18px;color:var(--accent);margin:0}
+.ct-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.ct-card{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
+.ct-top{display:flex;flex-direction:column;gap:1px}
+.ct-nom{font-weight:700;font-size:17px}
+.ct-dl{display:grid;grid-template-columns:72px minmax(0,1fr);gap:3px 10px;margin:0;font-size:13.5px}
+.ct-dl dt{color:var(--fg-3);font-size:12px;padding-top:1px}.ct-dl dd{margin:0;overflow-wrap:anywhere}
+.ct-dl a{color:var(--fg);text-decoration:none}
+.ct-card .ct-btns{justify-content:flex-start;margin-top:auto}
 .ct-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line)}
 .ct-row:last-child{border-bottom:0}
 .ct-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
@@ -1443,19 +1455,22 @@ function renderAvisos(){
 /* ---------- contactos de tiendas (pestaña Contactos de la hoja privada, vía apiContactosPanel; solo canales de la tienda) ---------- */
 // Celular 09XXXXXXXX → 5939XXXXXXXX para WhatsApp; fijo 0X XXX XXXX → +593X... para llamar
 const telIntl = v => { let n = String(v || '').replace(/\D/g, ''); if (!n) return ''; if (n.startsWith('593')) return n; if (n.startsWith('0')) n = n.slice(1); return '593' + n; };
-function renderContactos(){
+function renderContactos(){   /* ct2: por ciudad, en tarjetas, con encargado y celular del gerente (igual al admin) */
   const el = $('#ctBody'); if (!el || !st.contactos) return;
   const L = st.contactos.filter(c => enCiudad(c.tienda));
-  el.innerHTML = !L.length ? '<div class="empty">Todavía no hay contactos cargados.</div>' : L.map(c => {
-    const b = [];
+  const cd = c => c.ciudad || CIUDAD[c.tienda] || 'Sin ciudad', cds = [...new Set(L.map(cd))].sort((a, b) => a.localeCompare(b));
+  const btns = c => { const b = [];
     if (c.tel) b.push(`<a class="btn" href="tel:+${telIntl(c.tel)}" data-ct="Llamar">Llamar</a>`);
     if (c.wa) b.push(`<a class="btn wa" href="https:\/\/wa.me/${telIntl(c.wa)}" target="_blank" rel="noopener" data-ct="WhatsApp">WhatsApp</a>`);
     if (c.correo) b.push(`<a class="btn" href="mailto:${esc(c.correo)}" data-ct="Correo">Correo</a>`);
-    b.push(`<a class="btn" href="https:\/\/www.google.com/maps/search/?api=1&query=${encodeURIComponent('Steren ' + (c.ubic || c.tienda + ', ' + (c.ciudad || CIUDAD[c.tienda] || '')))}" target="_blank" rel="noopener" data-ct="Cómo llegar">Cómo llegar</a>`);
-    const det = [c.correo, c.tel && 'Tel. ' + c.tel, c.wa && 'WhatsApp ' + c.wa, c.horario].filter(Boolean).map(esc).join(' · ');
-    return `<div class="ct-row"><div><span class="store">${esc(c.tienda)}</span> <span class="small faint">${esc(c.ciudad || CIUDAD[c.tienda] || '')}</span>
-      <div class="small faint">${det}</div>${c.ubic ? `<div class="small faint">${esc(c.ubic)}</div>` : ''}</div><div class="ct-btns" data-t="${esc(c.tienda)}">${b.join('')}</div></div>`;
-  }).join('');
+    b.push(`<a class="btn" href="https:\/\/www.google.com/maps/search/?api=1&query=${encodeURIComponent('Steren ' + (c.ubic || c.tienda + ', ' + cd(c)))}" target="_blank" rel="noopener" data-ct="Cómo llegar">Cómo llegar</a>`);
+    return b.join(''); };
+  el.innerHTML = !L.length ? '<div class="empty">Todavía no hay contactos cargados.</div>' : cds.map(k => { const T = L.filter(c => cd(c) === k);
+    return `<div class="ct-city"><div class="ct-ch"><h3>${esc(k)}</h3><span class="small faint">${T.length} tienda${T.length > 1 ? 's' : ''}</span></div><div class="ct-grid">${T.map(c => `<div class="ct-card">
+      <div class="ct-top"><span class="ct-nom">${esc(c.tienda)}</span>${c.enc ? `<span class="small faint">Encargado: ${esc(c.enc)}</span>` : ''}</div>
+      <dl class="ct-dl">${c.tel ? `<dt>Teléfono</dt><dd><a href="tel:+${telIntl(c.tel)}">${esc(c.tel)}</a></dd>` : ''}${c.gerCel ? `<dt>Gerente</dt><dd><a href="tel:+${telIntl(c.gerCel)}">${esc(c.gerCel)}</a></dd>` : ''}
+        ${c.correo ? `<dt>Correo</dt><dd><a href="mailto:${esc(c.correo)}">${esc(c.correo)}</a></dd>` : ''}${c.horario ? `<dt>Horario</dt><dd>${esc(c.horario)}</dd>` : ''}${c.ubic ? `<dt>Dirección</dt><dd>${esc(c.ubic)}</dd>` : ''}${c.nota ? `<dt>Nota</dt><dd>${esc(c.nota)}</dd>` : ''}</dl>
+      <div class="ct-btns" data-t="${esc(c.tienda)}">${btns(c)}</div></div>`).join('')}</div></div>`; }).join('');
   el.querySelectorAll('[data-ct]').forEach(a => a.addEventListener('click', () => { try { REG.ev('Acción', 'Contacto ' + a.dataset.ct + ' · ' + a.parentNode.dataset.t); } catch (e) {} }));
 }
 
@@ -2859,8 +2874,8 @@ pintarYo();
 <script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "¿Qué buscas? Inventario, Scala, política…",
-  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "clientes"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "supervision", "inventario"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Personas", "vistas": ["contactos"]}],
-  items: [{"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa, validar y anuncios", "kw": "inicio resumen mapa validar anuncios actividades caja chica avisos"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Clientes", "v": "clientes", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Supervisión", "v": "supervision", "sub": "Tiendas · hacer o revisar una supervisión", "kw": "supervisar visita checklist nueva supervision puntaje hoja"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Inventario en vivo", "v": "inventario", "sub": "Tiendas · quién está contando ahora", "kw": "conteo vivo contando ahora", "go": () => TEM_ABRIR("#cvBox")}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Contactos", "v": "contactos", "sub": "Personas", "kw": "telefono whatsapp correo llamar personas gerente tienda"}],
+  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "clientes"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "supervision", "inventario"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Contactos", "vistas": ["contactos"]}],
+  items: [{"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa, validar y anuncios", "kw": "inicio resumen mapa validar anuncios actividades caja chica avisos"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Clientes", "v": "clientes", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Supervisión", "v": "supervision", "sub": "Tiendas · hacer o revisar una supervisión", "kw": "supervisar visita checklist nueva supervision puntaje hoja"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Inventario en vivo", "v": "inventario", "sub": "Tiendas · quién está contando ahora", "kw": "conteo vivo contando ahora", "go": () => TEM_ABRIR("#cvBox")}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Contactos de tiendas", "v": "contactos", "sub": "Contactos · por ciudad, con encargado y celular del gerente", "kw": "telefono whatsapp correo llamar personas gerente tienda encargado celular ciudad contactos"}],
   extra: function(){
     const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
     (S.d.tiendas || []).filter(t => t.activa).forEach(t => out.push({grupo: 'Tiendas', t: t.nombre, sub: 'Pendientes de ' + t.nombre, kw: 'tienda local', v: 'pendientes',

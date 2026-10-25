@@ -121,6 +121,10 @@ a{color:var(--accent)}
 .linkrow code{font-size:12px;background:var(--surface-2);padding:4px 8px;border-radius:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
 @media(max-width:560px){.linkrow{grid-template-columns:1fr auto}.linkrow code{grid-column:1/-1;grid-row:2}}
 
+.lk-out{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.lk-out code{font-size:13px;background:var(--surface-2);padding:8px 10px;border-radius:8px;overflow-wrap:anywhere;display:block}
+.lk-out textarea{min-height:0;field-sizing:content;font-size:14px;line-height:1.45}
+.lk-out .actions{margin-top:0}
 .sharebox{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-top:10px}
 .linkrow .btns{display:flex;gap:6px}
 a.btn{text-decoration:none;color:var(--fg)}
@@ -292,6 +296,18 @@ table.exec td{padding:10px 8px}
 .m-row .c{font-size:12.5px;color:var(--fg-3);margin-left:6px;font-weight:400}
 .m-row .pend{font-size:13px;color:var(--fg-2);min-width:88px;text-align:right}
 .m-row .pend b{color:var(--fg)}
+.ct-city{margin-top:6px}.ct-city+.ct-city{margin-top:18px}
+.ct-ch{display:flex;align-items:baseline;gap:10px;border-bottom:2px solid var(--accent);padding-bottom:4px;margin-bottom:10px}
+.ct-ch h3{font-family:var(--f-display);font-size:18px;color:var(--accent)}
+.ct-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.ct-card{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
+.ct-top{display:flex;flex-direction:column;gap:1px}
+.ct-nom{font-family:var(--f-display);font-weight:700;font-size:17px}
+.ct-dl{display:grid;grid-template-columns:72px minmax(0,1fr);gap:3px 10px;margin:0;font-size:13.5px}
+.ct-dl dt{color:var(--fg-3);font-size:12px;padding-top:1px}.ct-dl dd{margin:0;overflow-wrap:anywhere}
+.ct-dl a{color:var(--fg);text-decoration:none}.ct-dl a:hover{color:var(--accent)}
+.ct-card .ct-btns{justify-content:flex-start;margin-top:auto}
+.ct-card .ct-form{margin-top:4px}
 .ct-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line)}
 .ct-row:last-child{border-bottom:0}
 .ct-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
@@ -614,7 +630,7 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
     <button data-v="guias">Manuales y guías</button>
     <button data-v="perchas" hidden title="Solo tú: layouts de exhibición y revisión por tienda">Perchas</button>
     <button data-v="equipo">Equipo</button>
-    <button data-v="enlaces">Ajustes</button>
+    <button data-v="enlaces">Contactos</button>
   </nav>
 </div></header>
 <div class="wrap">
@@ -717,10 +733,6 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
       <div class="sec-h"><h2>Supervisores</h2><span class="hint">Visitas, puntajes y validaciones de cada supervisor.</span></div>
       <div id="supBody"><div class="skeleton">Cargando supervisores…</div></div>
     </div>
-    <section class="panel" id="contactos">
-      <div class="panel-h"><h2>Contactos de tiendas</h2><span class="small faint" id="ctSub">Toca para llamar, escribir por WhatsApp o enviar un correo a la tienda.</span></div>
-      <div id="ctBody"><div class="skeleton">Cargando contactos…</div></div>
-    </section>
     <section class="panel" id="uso">
       <div class="panel-h"><h2>Uso de los paneles</h2><span class="small faint" id="usoSub">Ingresos, tiempo activo, acciones y correos de los últimos 7 días</span></div>
       <div id="usoBody"><div class="skeleton">Cargando registro…</div></div>
@@ -729,7 +741,17 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
   </div>
 
   <div class="view" data-view="enlaces" hidden>
-    <section class="panel" id="compartir">
+    <section class="panel" id="lkGit">
+      <div class="panel-h"><h2>Enlaces para compartir</h2><span class="small faint">Del sitio TEFES en GitHub, el más rápido. Elige el grupo y luego el enlace.</span></div>
+      <div class="filters" id="lkGrp" style="margin-bottom:8px"></div>
+      <select id="lkSel" aria-label="Enlace" style="width:100%;max-width:520px"></select>
+      <div id="lkOut"></div>
+    </section>
+    <section class="panel" id="contactos">
+      <div class="panel-h"><h2>Contactos de tiendas</h2><span class="small faint" id="ctSub">Toca para llamar, escribir por WhatsApp o enviar un correo a la tienda.</span></div>
+      <div id="ctBody"><div class="skeleton">Cargando contactos…</div></div>
+    </section>
+    <section class="panel" id="compartir" hidden>
       <div class="panel-h"><h2>Compartir con supervisores</h2><span class="small faint">Enlaces sin cuenta. Cópialos o envíalos por WhatsApp.</span></div>
       <div id="cfg"></div>
       <div class="sharebox">
@@ -1035,8 +1057,9 @@ async function cargar(fresh){
     ventas: Promise.all([g('Ventas!A1:G', CLAVES), g('Presupuesto!A1:F', CLAVES), g('Curva!A1:AF', CLAVES), g('Flash!A1:I', CLAVES).catch(() => [])]).then(([vv, pp, cc, ff]) => modeloVentas(vv, pp, cc, ff)),
     sv: g('Supervisores!A1:E', CLAVES),
     correos: g('Correos!A1:F', CLAVES),
-    contactos: g('Contactos!A1:H', CLAVES),
+    contactos: g('Contactos!A1:I', CLAVES),
     wa: g("'WhatsApp gerentes'!A1:D", CLAVES).catch(() => null),
+    aud: g('Auditores!A1:D', CLAVES).catch(() => null),
     act: Promise.all([g('Actividades!A1:G').catch(() => [[]]), g("'Actividades entregadas'!A1:H").catch(() => [[]])]).then(([de, en]) => ({de, en})),
     anun: Promise.all([g('Anuncios!A1:G'), g("'Lecturas de anuncios'!A1:F"), g('Personal!A1:G')]).then(([an, le, pe]) => ({an, le, pe})),
     mue: Promise.all([g('MueEstado!A1:E', CLAVES), g('MueLista!A1:S', CLAVES), g('MueCorrecciones!A1:M', CLAVES).catch(() => [[]]), g("'Informes de inventario'!A1:P", CLAVES).catch(() => [[]])]).then(([me, ml, co, inf]) => ({me, ml, co, inf})),
@@ -1405,12 +1428,12 @@ const telIntl = v => { let d = String(v || '').replace(/\D/g, ''); if (!d) retur
 const CT_COLS = ['Tienda','Ciudad','Correo','Teléfono','WhatsApp','Ubicación','Horario','Nota'];
 function contactos(){
   return (st.contactos || []).slice(1).map((r, i) => ({row: i + 2, tienda: r[0] || '', ciudad: r[1] || CIUDAD[r[0]] || '', correo: r[2] || '', tel: r[3] || '', wa: r[4] || '',
-    ubic: r[5] || '', horario: r[6] || '', nota: r[7] || ''})).filter(c => c.tienda);
+    ubic: r[5] || '', horario: r[6] || '', nota: r[7] || '', enc: r[8] || ''})).filter(c => c.tienda);
 }
 function ctBotones(c){
   const b = [];
   if (c.tel) b.push(`<a class="btn" href="tel:+${telIntl(c.tel)}">Llamar</a>`);
-  if (c.wa) b.push(`<a class="btn wa" href="https://wa.me/${telIntl(c.wa)}" target="_blank" rel="noopener">WhatsApp</a>`);
+  if (c.wa) b.push(`<button class="btn wa" data-wa="${telIntl(c.wa)}">WhatsApp</button>`);
   if (c.correo) b.push(`<a class="btn" href="mailto:${esc(c.correo)}">Correo</a>`);
   b.push(`<a class="btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('Steren ' + (c.ubic || c.tienda + ', ' + c.ciudad))}" target="_blank" rel="noopener">Cómo llegar</a>`);
   return b.join('');
@@ -1421,16 +1444,20 @@ function renderContactos(){
   if (st.contactos == null) { el.innerHTML = '<div class="empty">No se pudo leer la pestaña Contactos de la hoja privada.</div>'; return; }
   const L = contactos().filter(c => enCiudad(c.tienda));
   const falta = L.filter(c => !c.tel && !c.wa).length;
-  el.innerHTML = !L.length ? '<div class="empty">No hay contactos cargados.</div>' : L.map(c => {
-    const det = [c.correo, c.tel && 'Tel. ' + c.tel, c.wa && 'WhatsApp ' + c.wa, c.horario].filter(Boolean).map(esc).join(' · ');
-    return `<div class="ct-row" data-row="${c.row}"><div><span class="store">${esc(c.tienda)}</span> <span class="small faint">${esc(c.ciudad)}</span>
-      <div class="small faint">${det || 'Sin datos'}${!c.tel && !c.wa ? ' · <span class="cnt-warn">falta teléfono</span>' : ''}</div>${c.ubic ? `<div class="small faint">${esc(c.ubic)}</div>` : ''}</div>
-      <div class="ct-btns">${ctBotones(c)}<button class="btn" data-ed="${c.row}">Editar</button></div></div>`;
-  }).join('') + `<p class="small faint" style="margin:10px 0 0">${falta ? falta + ' tienda' + (falta > 1 ? 's' : '') + ' sin teléfono ni WhatsApp. ' : ''}Solo canales de la tienda, nunca el número personal de un colaborador. Los mismos datos salen en el panel de supervisores.</p>`;
+  const cds = [...new Set(L.map(c => c.ciudad || 'Sin ciudad'))].sort((a, b) => a.localeCompare(b)), GER = waGerentes();
+  el.innerHTML = !L.length ? '<div class="empty">No hay contactos cargados.</div>' : cds.map(cd => { const T = L.filter(c => (c.ciudad || 'Sin ciudad') === cd);
+    return `<div class="ct-city"><div class="ct-ch"><h3>${esc(cd)}</h3><span class="small faint">${T.length} tienda${T.length > 1 ? 's' : ''}</span></div><div class="ct-grid">${T.map(c => `<div class="ct-card" data-row="${c.row}">
+      <div class="ct-top"><span class="ct-nom">${esc(WA_VIS[c.tienda] || c.tienda)}</span>${c.enc ? `<span class="small faint">Encargado: ${esc(c.enc)}</span>` : ''}</div>
+      <dl class="ct-dl">${c.tel ? `<dt>Teléfono</dt><dd><a href="tel:+${telIntl(c.tel)}">${esc(c.tel)}</a></dd>` : '<dt>Teléfono</dt><dd class="cnt-warn">Falta</dd>'}${(GER[c.tienda] || {}).cel ? `<dt>Gerente</dt><dd><a href="tel:+${telIntl(GER[c.tienda].cel)}">${esc(GER[c.tienda].cel)}</a></dd>` : ''}
+        ${c.correo ? `<dt>Correo</dt><dd><a href="mailto:${esc(c.correo)}">${esc(c.correo)}</a></dd>` : ''}
+        ${c.horario ? `<dt>Horario</dt><dd>${esc(c.horario)}</dd>` : ''}${c.ubic ? `<dt>Dirección</dt><dd>${esc(c.ubic)}</dd>` : ''}${c.nota ? `<dt>Nota</dt><dd>${esc(c.nota)}</dd>` : ''}</dl>
+      <div class="ct-btns">${ctBotones(c)}<button class="btn" data-ed="${c.row}">Editar</button></div></div>`).join('')}</div></div>`; }).join('')
+    + `<p class="small faint" style="margin:12px 0 0">${falta ? falta + ' tienda' + (falta > 1 ? 's' : '') + ' sin teléfono ni WhatsApp. ' : ''}Datos del archivo "Detalles de Tiendas Steren Quito y Guayaquil". El celular del gerente sale de la pestaña "WhatsApp gerentes" y solo se ve en tu panel.</p>`;
+  el.querySelectorAll('[data-wa]').forEach(b => b.onclick = () => abrirWA(b.dataset.wa, ''));
   el.querySelectorAll('[data-ed]').forEach(b => b.onclick = () => editarContacto(+b.dataset.ed));
 }
 function editarContacto(row){
-  const c = contactos().find(x => x.row === row), r = $(`.ct-row[data-row="${row}"]`); if (!c || !r) return;
+  const c = contactos().find(x => x.row === row), r = $(`.ct-card[data-row="${row}"]`); if (!c || !r) return;
   if (r.querySelector('.ct-form')) return;
   const f = document.createElement('div'); f.className = 'ct-form';
   const campo = (k, l, ph) => `<label>${l}<input type="text" data-k="${k}" value="${esc(c[k])}" placeholder="${ph}"></label>`;
@@ -1582,6 +1609,64 @@ function renderLinks(){
   $('#copyAll').onclick = () => copiar(todo, $('#copyAll'), 'Enlaces copiados');
   const w = $('#waAll'); if (hay) w.href = wa(todo); else w.removeAttribute('href');
   document.querySelectorAll('#compartir [data-l]').forEach(b => b.onclick = () => copiar(b.dataset.l, b, 'Enlace copiado'));
+  renderLkGit();
+}
+
+/* ---------- Ajustes: enlaces del sitio de GitHub por grupo (Diego 2026-10-25) ---------- */
+// WhatsApp bloquea su página web (api.whatsapp.com) abierta desde el panel: se abre la app con whatsapp:// y el mensaje queda copiado por si acaso
+function abrirWA(tel, txt){
+  try { navigator.clipboard.writeText(txt); } catch (e) {}
+  // en una ventana aparte: si el navegador lo bloquea, el panel no se pierde (navegar el propio panel a whatsapp:// lo dejaba en blanco)
+  try { window.open('whatsapp://send?' + (tel ? 'phone=' + tel + '&' : '') + 'text=' + encodeURIComponent(txt), '_blank'); } catch (e) {}
+  toast('Mensaje copiado. Si WhatsApp no se abre solo, ábrelo' + (tel ? ' en el chat de +' + tel : '') + ' y pega.', 7000);
+}
+const GH_TEFES = 'https://steren-ecuador.github.io/Tefes/', GH_MUE = 'https://diegorevelom.github.io/Muestreo/';
+const LK_GRUPOS = [['ger', 'Gerentes de tienda'], ['sup', 'Supervisores'], ['otr', 'Demás']];
+const LK_AUDITOR = false;   // borrador: el acceso del auditor externo no se muestra hasta que Diego lo pida
+function lkItems(g){
+  const d = st.d, act = d.tiendas.filter(t => t.activa && t.token), vis = n => WA_VIS[n] || n, G = waGerentes();
+  const tl = t => GH_TEFES + '?t=' + encodeURIComponent(t.token), pl = d.panelTok ? GH_TEFES + '?p=' + encodeURIComponent(d.panelTok) : '';
+  const pila = n => String(n || '').trim().split(/\s+/)[0];
+  if (g === 'ger') return act.map(t => { const ger = G[t.nombre] || {};
+    return {t: vis(t.nombre) + (ger.nombre ? ' · ' + ger.nombre : ''), l: tl(t), tel: ger.cel, d: 'Portal de la tienda: pendientes, anuncios, políticas, manuales, flash y Muestreo Top 50.',
+      m: `Hola${ger.nombre ? ' ' + pila(ger.nombre) : ''}, este es el portal de la tienda ${vis(t.nombre)}. Ahí están los pendientes, anuncios, políticas, manuales y el flash de ventas. Guárdalo en tu teléfono:\n` + tl(t)}; });
+  if (g === 'sup') { if (!pl) return [];
+    const sv = (st.sv || []).slice(1).filter(r => r[0] && /^s/i.test(String(r[4] || '').trim()) && !/^admin/i.test(String(r[3] || '').trim()));
+    const base = {l: pl, d: 'Panel de supervisores: todas las tiendas, pendientes, inventario, políticas y En vivo. Cada uno elige su nombre al entrar.'};
+    return [Object.assign({t: 'Panel de supervisores (mensaje general)', m: 'Panel de supervisores de TEFES. Entra, elige tu nombre y revisa tus tiendas:\n' + pl}, base)]
+      .concat(sv.map(r => Object.assign({t: String(r[0]).trim(), m: `Hola ${pila(r[0])}, este es tu panel de supervisor de TEFES. Entra, elige tu nombre y revisa tus tiendas:\n` + pl}, base))); }
+  if (g === 'tie') return [{t: 'Todas las tiendas (un solo mensaje)', l: '', d: 'Un mensaje con el portal de cada tienda.',
+      m: 'Portal de cada tienda TEFES:\n\n' + act.map(t => vis(t.nombre) + ': ' + tl(t)).join('\n')}]
+    .concat(act.map(t => ({t: vis(t.nombre), l: tl(t), d: 'El mismo portal que usa el gerente. Todo el equipo de la tienda entra con este enlace y elige su nombre.',
+      m: `Equipo ${vis(t.nombre)}: este es el portal de nuestra tienda. Entren, elijan su nombre y lean las políticas y anuncios pendientes:\n` + tl(t)})));
+  const hoy = hoyISO(), aud = (LK_AUDITOR ? st.aud || [] : []).slice(1).filter(r => r[0] && r[1] && /^s/i.test(String(r[3] || '').trim()) && (!r[2] || iso(r[2]) >= hoy));
+  return aud.map(r => ({t: 'Auditor externo · ' + String(r[0]).trim(), l: GH_MUE + 'auditor.html?a=' + encodeURIComponent(r[1]), d: 'Solo lectura de las tomas del Muestreo Top 50' + (r[2] ? ', vence el ' + fmtF(iso(r[2])) : '') + '.',
+      m: `Hola ${pila(r[0])}, este es tu acceso de solo lectura a los inventarios de TEFES:\n` + GH_MUE + 'auditor.html?a=' + encodeURIComponent(r[1])}))
+    .concat(act.map(t => ({t: 'Conteo Muestreo Top 50 · ' + vis(t.nombre), l: GH_MUE + '?m=' + encodeURIComponent(t.token), d: 'Pantalla de conteo con la cámara del teléfono, solo para esa tienda.',
+      m: `Conteo del Muestreo Top 50 de ${vis(t.nombre)}. Ábranlo en el teléfono para escanear:\n` + GH_MUE + '?m=' + encodeURIComponent(t.token)})))
+    .concat([{t: 'Entorno de pruebas (sin claves, datos de ejemplo)', l: GH_TEFES + 'prueba/', d: 'Los 3 niveles con datos ficticios, para enseñar o practicar sin tocar nada real.',
+      m: 'Entorno de pruebas de TEFES (datos de ejemplo, pueden tocar todo):\n' + GH_TEFES + 'prueba/'}]);
+}
+function renderLkGit(){
+  if (!$('#lkGrp')) return;
+  st.lkG = st.lkG || 'ger';
+  $('#lkGrp').innerHTML = LK_GRUPOS.map(([k, t]) => `<button class="chip${st.lkG === k ? ' on' : ''}" data-g="${k}">${t}</button>`).join('');
+  const L = lkItems(st.lkG); if (!(st.lkI < L.length)) st.lkI = 0;
+  $('#lkSel').innerHTML = L.length ? L.map((x, i) => `<option value="${i}"${i === st.lkI ? ' selected' : ''}>${esc(x.t)}</option>`).join('') : '<option>No hay enlaces en este grupo</option>';
+  $('#lkSel').disabled = !L.length;
+  const x = L[st.lkI], out = $('#lkOut');
+  if (!x) { out.innerHTML = ''; } else {
+    const tel = telIntl(x.tel);
+    out.innerHTML = `<div class="lk-out"><span class="small muted">${esc(x.d)}</span>${x.l ? `<code>${esc(x.l)}</code>` : ''}
+      <textarea id="lkMsg" rows="${x.m.split('\n').length + 1}" aria-label="Mensaje">${esc(x.m)}</textarea>
+      <div class="actions">${x.l ? '<button class="btn primary" id="lkCopL">Copiar enlace</button>' : ''}<button class="btn" id="lkCopM">Copiar mensaje</button>
+        <button class="btn wa" id="lkWa">${tel ? 'WhatsApp a ' + esc(x.tel) : 'Enviar por WhatsApp'}</button>${x.l ? `<a class="btn" href="${esc(x.l)}" target="_blank" rel="noopener">Abrir</a>` : ''}</div></div>`;
+    if ($('#lkCopL')) $('#lkCopL').onclick = e => copiar(x.l, e.target, 'Enlace copiado');
+    $('#lkCopM').onclick = e => copiar($('#lkMsg').value, e.target, 'Mensaje copiado');
+    $('#lkWa').onclick = () => abrirWA(tel, $('#lkMsg').value);
+  }
+  $('#lkGrp').querySelectorAll('[data-g]').forEach(b => b.onclick = () => { st.lkG = b.dataset.g; st.lkI = 0; renderLkGit(); });
+  $('#lkSel').onchange = e => { st.lkI = +e.target.value; renderLkGit(); };
 }
 
 async function copiar(txt, b, ok){
@@ -2408,7 +2493,7 @@ function renderWA(){
       toast('Mensaje copiado. Pégalo en el chat de ' + (ger.nombre || nombre) + '.'); marcar();
     };
     const w = box.querySelector('[data-a="wa"]');
-    if (w) w.onclick = () => { window.open('https://wa.me/' + telIntl(ger.cel) + '?text=' + encodeURIComponent(ta.value), '_blank', 'noopener'); marcar(); };
+    if (w) w.onclick = () => { abrirWA(telIntl(ger.cel), ta.value); marcar(); };
     box.querySelector('[data-a="editar"]').onclick = () => {
       if (box.querySelector('.wa-ed')) return;
       const f = document.createElement('div'); f.className = 'wa-ed';
@@ -3596,7 +3681,7 @@ if (typeof st !== 'undefined' && st.tab === 'perchas') peAbrir();
     reclamos: 'M3 4h2l2.5 11h11L21 7H6.5M9 20h.01M18 20h.01', equipo: 'M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6M21 19v-1a4 4 0 0 0-3-3.8M16 4.2a3 3 0 0 1 0 5.6',
     enlaces: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
     mas: 'M5 12h.01M12 12h.01M19 12h.01'};
-  const CORTO = {hoy: 'Hoy', flash: 'Flash', pendientes: 'Pendientes', supervision: 'Supervisar', inventario: 'Inventario', politicas: 'Políticas', guias: 'Manuales', contactos: 'Contactos', reclamos: 'Clientes', equipo: 'Equipo', enlaces: 'Ajustes'};
+  const CORTO = {hoy: 'Hoy', flash: 'Flash', pendientes: 'Pendientes', supervision: 'Supervisar', inventario: 'Inventario', politicas: 'Políticas', guias: 'Manuales', contactos: 'Contactos', reclamos: 'Clientes', equipo: 'Equipo', enlaces: 'Contactos'};
   const ORDEN = ['hoy', 'pendientes', 'supervision', 'inventario', 'flash'];
   const ico = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + (d || P.mas) + '"/></svg>';
   const nombre = b => CORTO[b.dataset.v] || b.textContent.trim();
@@ -3623,8 +3708,8 @@ if (typeof st !== 'undefined' && st.tab === 'perchas') peAbrir();
 <script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "Buscar: inventario, Mall Sol, caja chica, política…",
-  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "reclamos"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "whatsapp", "inventario", "perchas"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Personas", "vistas": ["equipo"]}, {"id": "ajustes", "nombre": "Ajustes", "vistas": ["enlaces"]}],
-  items: [{"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa, validar y anuncios", "kw": "inicio resumen mapa validar anuncios actividades caja chica avisos"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Inventario en vivo", "v": "inventario", "sub": "Tiendas · quién está contando ahora", "kw": "conteo vivo contando ahora", "go": () => TEM_ABRIR("#cvBox")}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Clientes", "v": "reclamos", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Garantías extendidas", "v": "flash", "sub": "Ventas", "kw": "garantia garantias extendidas", "go": () => TEM_ABRIR("#garBody")}, {"t": "WhatsApp a gerentes", "v": "whatsapp", "sub": "Tiendas · vencidos, vencen hoy y devueltos", "kw": "whatsapp mensajes avisos gerentes kapso"}, {"t": "Perchas", "v": "perchas", "sub": "Tiendas · exhibición", "kw": "perchas exhibicion layout planograma"}, {"t": "Equipo de supervisores", "v": "equipo", "sub": "Personas", "kw": "supervisores equipo visitas ranking personas"}, {"t": "Ajustes y enlaces", "v": "enlaces", "sub": "Ajustes", "kw": "enlaces links claves compartir uso ajustes configuracion"}, {"t": "Nueva supervisión", "sub": "Abrir el formulario", "kw": "supervisar visita checklist nueva supervision", "go": () => document.querySelector("#nuevaSup").click()}],
+  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "reclamos"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "whatsapp", "inventario", "perchas"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Personas", "vistas": ["equipo"]}, {"id": "ajustes", "nombre": "Contactos", "vistas": ["enlaces"]}],
+  items: [{"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa, validar y anuncios", "kw": "inicio resumen mapa validar anuncios actividades caja chica avisos"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Inventario en vivo", "v": "inventario", "sub": "Tiendas · quién está contando ahora", "kw": "conteo vivo contando ahora", "go": () => TEM_ABRIR("#cvBox")}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Clientes", "v": "reclamos", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Garantías extendidas", "v": "flash", "sub": "Ventas", "kw": "garantia garantias extendidas", "go": () => TEM_ABRIR("#garBody")}, {"t": "WhatsApp a gerentes", "v": "whatsapp", "sub": "Tiendas · vencidos, vencen hoy y devueltos", "kw": "whatsapp mensajes avisos gerentes kapso"}, {"t": "Perchas", "v": "perchas", "sub": "Tiendas · exhibición", "kw": "perchas exhibicion layout planograma"}, {"t": "Equipo de supervisores", "v": "equipo", "sub": "Personas", "kw": "supervisores equipo visitas ranking personas"}, {"t": "Contactos de tiendas", "v": "enlaces", "sub": "Contactos", "kw": "contactos telefono llamar whatsapp correo direccion horario tienda numero"}, {"t": "Enlaces para compartir", "v": "enlaces", "sub": "Contactos", "kw": "enlaces links claves compartir gerentes supervisores portal ajustes configuracion"}, {"t": "Nueva supervisión", "sub": "Abrir el formulario", "kw": "supervisar visita checklist nueva supervision", "go": () => document.querySelector("#nuevaSup").click()}],
   extra: function(){
     const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
     (S.d.tiendas || []).filter(t => t.activa).forEach(t => out.push({grupo: 'Tiendas', t: t.nombre, sub: 'Pendientes de ' + t.nombre, kw: 'tienda local', v: 'pendientes',
