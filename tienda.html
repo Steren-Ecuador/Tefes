@@ -431,6 +431,29 @@ nav .ic,nav .lbl-m,#bLeer,.perfil,.leer-seg,.tk-sec{display:none}
   html.tk .cal button{min-height:74px;font-size:22px}
   html.tk .tk-fin{display:block;text-align:center;font-size:12px;color:var(--muted);margin-top:8px}
 }
+/* cel1: supervisión con candado y sellos (solo celular) */
+.tk-lock,.sello,.tk-fiesta{display:none}
+@media(max-width:700px){
+  html.tk nav{display:none}
+  html.tk .footer{bottom:0}
+  html.tk main{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+  html.tk .toast{bottom:calc(84px + env(safe-area-inset-bottom))}
+  html.tk .punto-w{min-height:calc(100svh - var(--hh,60px) - 84px - env(safe-area-inset-bottom))}
+  html.tk .tk-bloq{display:none!important}
+  html.tk .punto{position:relative;overflow:hidden}
+  html.tk .tk-lock:not([hidden]){display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;min-height:45svh;padding:18px 16px;text-align:center;color:var(--muted);font-weight:700;font-size:15px}
+  html.tk .tk-lock .cand{font-size:34px;line-height:1}
+  html.tk #fSig.bloq{background:var(--na-soft,#eef1f4);color:var(--muted);font-size:13px;white-space:nowrap;max-width:46vw;overflow:hidden;text-overflow:ellipsis}
+  .sello{display:block;position:absolute;left:50%;top:38%;z-index:5;pointer-events:none;white-space:nowrap;font-weight:900;font-size:26px;letter-spacing:.5px;text-transform:uppercase;
+    padding:8px 16px;border:4px solid currentColor;border-radius:12px;background:rgba(255,255,255,.92);transform:translate(-50%,-50%) rotate(-11deg) scale(1);animation:selloIn 1.25s cubic-bezier(.2,1.4,.4,1) forwards}
+  .sello.s2{color:var(--ok)} .sello.s1{color:var(--warn)} .sello.s0{color:var(--bad)} .sello.sna{color:var(--na)}
+  .sello small{display:block;font-size:12px;font-weight:700;text-transform:none;letter-spacing:0;opacity:.85}
+  @keyframes selloIn{0%{opacity:0;transform:translate(-50%,-50%) rotate(-11deg) scale(2.4)}18%{opacity:1;transform:translate(-50%,-50%) rotate(-11deg) scale(.94)}28%{transform:translate(-50%,-50%) rotate(-11deg) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) rotate(-11deg) scale(1)}}
+  .tk-fiesta{display:block;position:fixed;inset:0;z-index:70;pointer-events:none;overflow:hidden}
+  .tk-fiesta i{position:absolute;top:-40px;font-style:normal;font-size:26px;animation:llueve 2.4s ease-in forwards}
+  @keyframes llueve{to{transform:translateY(110vh) rotate(260deg);opacity:.2}}
+}
+@media(prefers-reduced-motion:reduce){.sello,.tk-fiesta i{animation:none!important}.tk-fiesta{display:none!important}}
 .pv-op{display:block;width:100%;text-align:left;border:1.5px solid var(--line);background:var(--card,#fff);border-radius:8px;padding:8px 10px;margin-top:6px;font:inherit;color:inherit}
 .pv-res{font-weight:700;margin-top:6px}
 
@@ -838,7 +861,45 @@ function perfilHtml(){
 const leerSeg = v => '<div class="seg leer-seg">' + [['pol', 'Políticas'], ['gui', 'Manuales y guías']].map(([k, l]) => '<button data-leer="' + k + '" class="' + (k === v ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
 const leerWire = () => document.querySelectorAll('[data-leer]').forEach(b => b.onclick = () => irA(b.dataset.leer));
 function marcaLeer(){ const el = $('#bLeer'); if (el) el.hidden = !(polPend().length || guiaPend().length); }
-function modoTk(){ document.documentElement.classList.toggle('tk', S.vista === 'sup' && !!S.form && esCel()); }
+function modoTk(){ document.documentElement.classList.toggle('tk', S.vista === 'sup' && !!S.form && esCel()); tkGate(); }
+/* cel1: en el celular la supervisión va un punto a la vez: el siguiente aparece cuando el actual está completo */
+const tkOn = () => document.documentElement.classList.contains('tk');
+function tkGate(){
+  if (!S.form || !S.data) return;
+  const tk = tkOn(), L = S.data.puntos, sinQuien = !String(S.form.realizadaPor || '').trim();
+  const i0 = sinQuien ? 0 : L.findIndex(p => faltaEn(p)), corte = sinQuien ? -1 : (i0 < 0 ? L.length : i0);
+  L.forEach((p, i) => { const w = $('#pt-' + p.id); if (w) w.classList.toggle('tk-bloq', tk && i > corte); });
+  const fin = $('#tkFinal'); if (fin) fin.classList.toggle('tk-bloq', tk && (sinQuien || i0 >= 0));
+  const lk = $('#tkLock');
+  if (lk) { lk.hidden = !tk || (!sinQuien && i0 < 0);
+    lk.innerHTML = '<span class="cand">🔒</span>' + (sinQuien ? 'Elige arriba quién supervisa para empezar.' : i0 >= 0 ? 'Termina ' + esc(L[i0].id) + ' para ver el siguiente punto.<span class="tiny">Falta: ' + esc(faltaEn(L[i0])) + '</span>' : ''); }
+  const sg = $('#fSig');
+  if (sg) { const bl = tk && (sinQuien || i0 >= 0); sg.classList.toggle('bloq', bl);
+    sg.textContent = !tk ? 'Siguiente ↓' : sinQuien ? '🔒 Elige supervisor' : i0 >= 0 ? '🔒 Falta ' + faltaEn(L[i0]) : '🎉 Final ↓'; }
+  if (tk && !sinQuien && i0 < 0 && !S.tkFiesta) { S.tkFiesta = true; tkFiesta(); }
+  if (i0 >= 0) S.tkFiesta = false;
+}
+const SELLOS = {'2': ['¡Aprobado!', 'Like del jefe', '¡Impecable!', 'Nivel pro', '¡De 10!', '¡Eso es!'],
+  '1': ['Casi, casi', 'Va mejorando', 'A medio camino'], '0': ['A corregir', 'Ups', 'Toca mejorar'], 'N/A': ['No aplica', 'Pasamos']};
+const SELLO_ICO = {'2': ['👍', '❤️', '✨', '💪', '⭐', '🔥'], '1': ['🤏', '📈', '🚧'], '0': ['🛠️', '😬', '💪'], 'N/A': ['🤷', '👉']};
+const SELLO_SUB = {'2': 'Cumple', '1': 'Parcial · se crea pendiente', '0': 'Incumple · se crea pendiente', 'N/A': ''};
+function sello(p, c){
+  if (!tkOn() || !SELLOS[c]) return;
+  const card = $('#pt-' + p.id) && $('#pt-' + p.id).firstElementChild; if (!card) return;
+  const k = Math.floor(Math.random() * SELLOS[c].length), s = document.createElement('div');
+  s.className = 'sello s' + (c === 'N/A' ? 'na' : c);
+  s.innerHTML = esc(SELLOS[c][k]) + ' ' + SELLO_ICO[c][k] + (SELLO_SUB[c] ? '<small>' + SELLO_SUB[c] + '</small>' : '');
+  card.appendChild(s); setTimeout(() => s.remove(), 1300);
+  try { if (navigator.vibrate) navigator.vibrate(c === '2' ? 18 : [12, 50, 12]); } catch (e) {}
+}
+function tkFiesta(){
+  toast('¡Supervisión completa! 🎉 Revisa el comentario y toca Guardar.', 3500);
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  const f = document.createElement('div'); f.className = 'tk-fiesta';
+  const E = ['🎉', '⭐', '✨', '👏', '🏆', '💪'];
+  for (let i = 0; i < 26; i++) { const e = document.createElement('i'); e.textContent = E[i % E.length]; e.style.left = Math.random() * 100 + 'vw'; e.style.animationDelay = (Math.random() * .8) + 's'; f.appendChild(e); }
+  document.body.appendChild(f); setTimeout(() => f.remove(), 3400);
+}
 /* ---------- navegación ---------- */
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => irA(b.dataset.v));
 function irA(v){
@@ -1624,12 +1685,12 @@ function renderSup(){
     h += '<div class="sec-h" id="sec-' + esc(s.cod) + '"><h2>' + esc(s.cod) + ') ' + esc(s.nombre) + '</h2><span class="tiny muted" id="secp-' + esc(s.cod) + '"></span></div>';
     S.data.puntos.filter(p => p.sec === s.cod).forEach(p => h += '<div id="pt-' + esc(p.id) + '"></div>');
   });
-  h += '<div class="card tk-snap"><label class="f" style="margin-top:0">Comentario general (opcional)</label><textarea data-k="comentario">' + esc(F.comentario) + '</textarea></div>';
+  h += '<div class="tk-lock" id="tkLock" hidden></div><div class="card tk-snap" id="tkFinal"><label class="f" style="margin-top:0">Comentario general (opcional)</label><textarea data-k="comentario">' + esc(F.comentario) + '</textarea></div>';
   $('#main').innerHTML = h;
   S.data.puntos.forEach(p => pintarPunto(p));
   $('#footer').innerHTML = '<div class="footer"><div class="in"><div class="grow" style="min-width:0"><div class="small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span id="fN"></span> · <span class="score" id="fS"></span></div><div class="bar"><i id="fBar"></i></div></div>' +
     '<button class="btn" id="fSig">Siguiente ↓</button><button class="btn primary" id="fGuardar">Guardar</button></div></div>';
-  document.querySelectorAll('main [data-k]').forEach(i => i.oninput = () => { F[i.dataset.k] = i.value; guardarBorrador(); });
+  document.querySelectorAll('main [data-k]').forEach(i => i.oninput = () => { F[i.dataset.k] = i.value; guardarBorrador(); if (i.dataset.k === 'realizadaPor') tkGate(); });
   document.querySelectorAll('#sTipo button').forEach(b => b.onclick = () => { F.tipo = b.dataset.t; pintarRealiza(F); guardarBorrador(); document.querySelectorAll('#sTipo button').forEach(x => x.classList.toggle('on', x === b)); });
   $('#fSig').onclick = () => irSiguiente(null);
   $('#fGuardar').onclick = confirmarGuardar;
@@ -1649,7 +1710,7 @@ function campoRealizada(F){
 function pintarRealiza(F){
   const w = $('#wRealiza'); if (!w) return;
   w.innerHTML = campoRealizada(F);
-  const i = w.querySelector('[data-k]'); i.oninput = i.onchange = () => { F.realizadaPor = i.value; guardarBorrador(); };
+  const i = w.querySelector('[data-k]'); i.oninput = i.onchange = () => { F.realizadaPor = i.value; guardarBorrador(); tkGate(); };
 }
 function money(x){ return '$' + Math.round(x).toLocaleString('es-EC'); }
 /** Datos del reporte de ventas (C04 venta, C05 ticket, C06 artículos, B06/C08 impulso) y el texto sugerido para "Dato de apoyo" */
@@ -1763,12 +1824,12 @@ function bindPunto(p, cont){
       if(!x.responsable) x.responsable = F.gerente || '';
       x.prioridad = x.calif === '0' ? 'Alta' : 'Media';
     }
-    guardarBorrador(); pintarPunto(p); actualizarFooter();
-    if (!faltaEn(p)) setTimeout(() => irSiguiente(p.id), 180);
+    guardarBorrador(); pintarPunto(p); actualizarFooter(); sello(p, x.calif);
+    if (!faltaEn(p)) setTimeout(() => irSiguiente(p.id), tkOn() ? 900 : 180);
     else if (x.calif === '0' || x.calif === '1') { const o = cont.querySelector('[data-i=obs]'); if (o && !o.value) setTimeout(() => o.focus({preventScroll:true}), 50); }
   });
   el.querySelectorAll('[data-i]').forEach(i => {
-    i.oninput = () => { it()[i.dataset.i] = i.value; guardarBorrador(); if (i.dataset.i === 'accion') pintarSug(p, cont); };
+    i.oninput = () => { it()[i.dataset.i] = i.value; guardarBorrador(); if (i.dataset.i === 'accion') pintarSug(p, cont); tkGate(); };
     i.onchange = () => { it()[i.dataset.i] = i.value; guardarBorrador(); };
   });
   el.querySelectorAll('[data-prio] button').forEach(b => b.onclick = () => { it().prioridad = b.dataset.p; guardarBorrador(); el.querySelectorAll('[data-prio] button').forEach(x => x.classList.toggle('on', x === b)); });
@@ -1811,7 +1872,7 @@ function irSiguiente(desdeId){
   const L = S.data.puntos, i0 = desdeId ? L.findIndex(p => p.id === desdeId) + 1 : 0;
   const orden = L.slice(i0).concat(L.slice(0, i0));
   const sig = orden.find(p => !S.form.items[p.id] || S.form.items[p.id].calif == null) || orden.find(p => faltaEn(p));
-  if (!sig) { toast('Todo calificado. Revisa y toca Guardar.'); return; }
+  if (!sig) { const fin = tkOn() && $('#tkFinal'); if (fin) fin.scrollIntoView({behavior:'smooth', block:'start'}); else toast('Todo calificado. Revisa y toca Guardar.'); return; }
   const c = $('#pt-' + sig.id); if (!c) return;
   c.scrollIntoView({behavior:'smooth', block:'start'});
   const card = c.firstElementChild; if (card){ card.classList.add('foco'); setTimeout(() => card.classList.remove('foco'), 1200); }
@@ -1825,6 +1886,7 @@ function actualizarFooter(){
   $('#fS').className = 'score res-' + (c.total == null ? '' : resultado(c.total).split(' ')[0]);
   $('#fBar').style.width = (c.n / N * 100) + '%';
   S.data.secciones.forEach(s => { const e = $('#secp-' + s.cod); if(e) e.textContent = c.secs[s.cod] == null ? '' : pct(c.secs[s.cod]); });
+  tkGate();
   const bar = $('#secbar');
   if (bar) {
     bar.innerHTML = S.data.secciones.map(s => { const ps = S.data.puntos.filter(p => p.sec === s.cod), hechos = ps.filter(p => S.form.items[p.id] && S.form.items[p.id].calif != null).length;
