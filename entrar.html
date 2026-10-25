@@ -208,11 +208,15 @@ p .link{font-size:inherit;padding:6px 2px;margin:-6px 0}
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c)) { aviso('Escribe un correo válido.'); $('correo').focus(); return; }
     ocupado($('bPedir'), true, 'Enviando…');
     llamar('apiIngPedir', [c]).then(function () {
-      correoPedido = c; $('codigo').value = '';
+      correoPedido = c; $('codigo').value = ''; marcarCodigo();
       texto($('tRevisa'), 'Si ' + c + ' está registrado, en menos de un minuto te llega un botón para entrar. Vence en 15 minutos.');
       ver('vRevisa');
     }, function (e) { aviso(e.message); }).then(function () { ocupado($('bPedir'), false, 'Enviarme el enlace'); });
   });
+
+  // El botón se pone azul cuando ya están los 6 dígitos.
+  function marcarCodigo() { $('bCodigo').classList.toggle('sec', $('codigo').value.replace(/\D/g, '').length !== 6); }
+  $('codigo').addEventListener('input', marcarCodigo);
 
   $('fCodigo').addEventListener('submit', function (ev) {
     ev.preventDefault(); aviso('');
