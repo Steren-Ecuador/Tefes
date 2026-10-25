@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (a7e66d6d5eea). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (a6cb7026cb1f). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -557,6 +557,46 @@ details.li .body{margin-top:10px;font-size:13.5px;color:var(--fg-2);display:grid
 .fl-pct.ok{color:var(--good)} .fl-pct.bajo{color:var(--warn)}
 tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
 @media(max-width:620px){.fl-t .hide-sm{display:none}}
+#polPdf{position:fixed;left:-10000px;top:0}
+#polPdf .hoja{width:720px;background:#fff;color:#15202b;font:13px/1.45 Arial,sans-serif}
+#polPdf .cab{border-bottom:2px solid #c8102e;padding-bottom:6px;margin-bottom:12px;font-size:10px;color:#666}
+#polPdf h1{font:700 22px Arial,sans-serif;margin:0 0 8px}
+#polPdf .pol-txt{font-size:13px}#polPdf .pol-txt h5{color:#555}#polPdf .pol-tabla th{background:#eee;color:#15202b}#polPdf .pol-tabla th,#polPdf .pol-tabla td{border-color:#bbb}
+#polPdf li,#polPdf tr,#polPdf p{page-break-inside:avoid}
+.inf-t{font-size:13.5px}
+.inf-t th{white-space:normal;vertical-align:bottom}
+.inf-t td{padding:7px 8px}
+.inf-t td.c{text-align:center;white-space:nowrap}
+.inf-ok{color:var(--good);font-weight:600}.inf-no{color:var(--bad);font-weight:600}.inf-fail{color:var(--warn);font-weight:600}
+.inf-cab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;padding:12px 14px 4px}
+.inf-cab h3{font-family:var(--f-display);font-size:17px}
+.hoja{background:#fff;color:#15202b;font:13px/1.45 Arial,sans-serif}
+.hoja .inf-t{width:100%;border-collapse:collapse;font-size:11px}
+.hoja .inf-t th,.hoja .inf-t td{border:1px solid #bbb;padding:4px 6px;color:#15202b;text-transform:none;letter-spacing:0}
+.hoja .inf-t th{background:#eee}
+.hoja .inf-ok{color:#1d7a4a}.hoja .inf-no{color:#bf3328}.hoja .inf-fail{color:#a86300}
+.hoja .inf-blk{page-break-inside:avoid;margin-bottom:18px}
+.hoja .firma{margin-top:26px;display:flex;gap:40px;font-size:11px}.hoja .firma div{border-top:1px solid #333;padding-top:4px;width:240px}
+.rec-st{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.rec-it{padding:12px 14px;border-top:1px solid var(--line)}
+.rec-it:first-child{border-top:0}
+.rec-it .h{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.rec-it .t{font-weight:600}
+.rec-it p{margin:4px 0 0;font-size:14px}
+.rec-it .acc{color:var(--fg-2)}
+tr.on td{background:var(--accent-soft)}
+.vf-t td{font-size:14px;vertical-align:top}
+.vf-t .obs{font-size:12.5px;color:var(--fg-2);max-width:280px}
+.vf-cedis{background:var(--warn-soft);border-radius:10px;padding:10px 12px;font-size:14px}
+#vfBody .grid2>div,#recBody .grid2>div{min-width:0}
+.act-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.act-c{font-size:13px;border-radius:999px;padding:3px 10px;background:rgba(127,127,127,.14)}.act-c.si{background:#e5f5ec;color:#1a7f4b;font-weight:600}.act-c.tarde{background:#fde9e7;color:#c0352b;font-weight:600}.act-c a{color:inherit}
+/* cumplimiento de políticas por persona (2026-10-25) */
+.cum-g summary .cum-n{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cum-p{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:3px 12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.cum-p:last-child{border-bottom:0}
+.cum-p .faint{grid-column:1/-1;font-size:12.5px}
+.cum-bar{height:5px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:6px}
+.cum-bar i{display:block;height:100%;background:var(--good)}
 </style>
 
 </head>
@@ -959,6 +999,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
     <button data-v="supervision">Supervisión</button>
     <button data-v="inventario">Inventario<span class="n bad" id="nInv"></span></button>
     <button data-v="politicas">Políticas<span class="n" id="nPol"></span></button>
+    <button data-v="clientes" title="El número son los reclamos abiertos">Clientes<span class="n bad" id="nRec"></span></button>
     <button data-v="guias">Manuales y guías</button>
     <button data-v="contactos">Contactos</button>
   </nav>
@@ -1012,6 +1053,10 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
       <div class="panel-h"><h2>Avisos de la semana<span class="cfil"></span></h2><span class="small faint">Lo mismo que ve cada tienda en su Inicio. Para que estés enterado; no tienes que confirmar.</span></div>
       <div id="avBody"><div class="skeleton">Cargando avisos…</div></div>
     </section>
+    <section class="panel" id="actividades" hidden>
+      <div class="panel-h"><h2>Actividades del mes<span class="cfil"></span></h2><span class="small faint">Lo que cada tienda marca en su Inicio, como el sobre de caja chica. Solo para consultar.</span></div>
+      <div id="acBody"></div>
+    </section>
   </div>
 
   <div class="view" data-view="supervision" hidden>
@@ -1040,6 +1085,11 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
 
   <div class="view" data-view="politicas" hidden>
     <div id="polBody"><div class="skeleton">Cargando políticas…</div></div>
+  </div>
+
+  <div class="view" data-view="clientes" hidden>
+    <div id="vfBody"><div class="skeleton">Cargando ventas futuras…</div></div>
+    <div id="recBody" style="margin-top:26px"><div class="skeleton">Cargando reclamos…</div></div>
   </div>
 
   <div class="view" data-view="guias" hidden>
@@ -1134,8 +1184,11 @@ async function cargar(liviano){
     api('apiPoliticasPanel').then(x => { st.pol = x; renderPoliticas(); }).catch(() => { st.pol = null; renderPoliticas(); });
     api('apiGuiasPanel').then(x => { st.gui = x; renderGuias(); }).catch(() => { st.gui = null; renderGuias(); });
     api('apiFlashPanel').then(x => { st.flash = x; renderFlash(); }).catch(() => { st.flash = null; renderFlash(); });
+    api('apiClientesPanel').then(x => { st.vf = x.vf; st.rec = x.rec; renderVF(); renderReclamos(); }).catch(() => { st.vf = null; st.rec = null; renderVF(); renderReclamos(); });   // paneles-iguales-1
+    api('apiPoliticasInformePanel').then(x => { st.polInfD = x; renderPoliticas(); }).catch(() => { st.polInfD = null; renderPoliticas(); });
     if (liviano && st.avisos !== undefined) return;
     api('apiAvisosPanel').then(a => { st.avisos = a; renderAvisos(); }).catch(() => {});
+    api('apiActividadesPanel').then(a => { st.act = a; renderActividades(); }).catch(() => {});
     api('apiPoliticasTextoPanel').then(x => { st.polTx = x; renderPoliticas(); }).catch(() => { st.polTx = null; renderPoliticas(); });
     api('apiContactosPanel').then(c => { st.contactos = c; renderContactos(); }).catch(() => { st.contactos = []; renderContactos(); });
   } catch (e) {
@@ -1378,11 +1431,27 @@ function render(){
   $('#fSec').innerHTML = '<option value="">Todas las secciones</option>' + SECS.map(s => `<option value="${esc(SEC_NAMES[s])}" ${st.fSec === SEC_NAMES[s] ? 'selected' : ''}>${s}) ${esc(SEC_NAMES[s])}</option>`).join('');
   renderPend();
   renderContactos();
-  renderAvisos();
+  renderAvisos(); renderActividades();
   renderSupervision();
   renderInventario();
   renderPoliticas();
   renderGuias();
+  renderVF();
+  renderReclamos();
+}
+
+/* ---------- actividades del mes de las tiendas (actividades-mes, vía apiActividadesPanel; solo lectura) ---------- */
+function renderActividades(){
+  const sec = $('#actividades'), el = $('#acBody'); if (!sec || !st.act) return;
+  const hoy = new Date().toLocaleDateString('en-CA', {timeZone: 'America/Guayaquil'});
+  const fd = i => { const d = new Date(i + 'T12:00'); return DIAS_S[d.getDay()].toLowerCase() + ' ' + d.getDate() + ' ' + MESES_S[d.getMonth()]; };
+  const L = st.act.map(a => Object.assign({}, a, {tiendas: a.tiendas.filter(t => enCiudad(t.tienda))})).filter(a => a.tiendas.length);
+  sec.hidden = !L.length; if (!L.length) return;
+  el.innerHTML = L.map(a => {
+    const ok = a.tiendas.filter(t => t.hecho).length, tarde = hoy > a.vence;
+    return `<div class="av-item"><h3>${esc(a.titulo)}</h3><div class="small faint">Entregar hasta el ${fd(a.vence)} · entregaron ${ok} de ${a.tiendas.length}</div>
+      <div class="act-chips">${a.tiendas.map(t => `<span class="act-c ${t.hecho ? 'si' : tarde ? 'tarde' : 'no'}" title="${t.hecho ? esc(t.hecho.persona + ' · ' + t.hecho.fecha + ' ' + t.hecho.hora) : 'Falta'}">${t.hecho ? '✓ ' : ''}${esc(t.tienda)}${t.hecho && t.hecho.foto ? ` <a href="${esc(t.hecho.foto)}" target="_blank" rel="noopener">foto</a>` : ''}</span>`).join('')}</div></div>`;
+  }).join('');
 }
 
 /* ---------- avisos semanales a las tiendas (pestaña Anuncios de la Base, vía apiAvisosPanel; solo lectura) ---------- */
@@ -1869,7 +1938,7 @@ function renderFlash(){
 }
 
 /* ---------- pestañas ---------- */
-const VISTAS = ['hoy','flash','pendientes','supervision','inventario','vivo','politicas','guias','contactos'];
+const VISTAS = ['hoy','flash','pendientes','supervision','inventario','vivo','politicas','clientes','guias','contactos'];
 function ir(v){
   if (v === 'vivo') v = 'inventario';   // En vivo está arriba de Inventario
   if (VISTAS.indexOf(v) < 0) v = 'hoy';   // incluye 'avisos', que ahora está al final de Hoy
@@ -1957,7 +2026,8 @@ function renderInventario(){
   const th = (k, txt, cls, d0) => `<th class="${cls || ''}"><button type="button" class="iv-ord" data-ord="${k}" data-d0="${d0 || 1}" aria-sort="${ord.k === k ? (ord.d > 0 ? 'ascending' : 'descending') : 'none'}">${txt}${ord.k === k ? (ord.d > 0 ? ' ▲' : ' ▼') : ''}</button></th>`;
   const cic = T.filter(x => x.c);
   $('#nInv').textContent = atras.length || '';
-  el.innerHTML = `<div><div class="sec-h"><h2>Muestreo Top 50</h2><span class="hint">Semana del ${fd(lu)} · entrega hasta el ${fd(new Date(I.vence + 'T12:00'))}</span></div>
+  el.innerHTML = `<div class="iv-glob"><input type="search" id="invBusca" placeholder="Buscar un código en todas las tiendas" aria-label="Buscar un código en todas las tiendas" autocomplete="off" value="${esc(st.invQ || '')}"><div id="invBuscaRes"></div></div>
+<div><div class="sec-h"><h2>Muestreo Top 50</h2><span class="hint">Semana del ${fd(lu)} · entrega hasta el ${fd(new Date(I.vence + 'T12:00'))}</span></div>
     <div class="kpis" style="margin-bottom:14px"><div class="kpi ${env.length === T.length ? 'good' : ''}"><b>${env.length} de ${T.length}</b><span>enviados</span></div>
       <div class="kpi ${exB(exProm) === 'na' ? '' : exB(exProm)}"><b>${pct(exProm)}</b><span>exactitud promedio</span></div>
       <div class="kpi ${atras.length ? 'bad' : ''}"><b>${atras.length}</b><span>atrasadas</span></div></div>
@@ -1977,6 +2047,37 @@ function renderInventario(){
   el.querySelectorAll('[data-inv]').forEach(r => r.onclick = () => invAbrir(r.dataset.inv, I.sem, r.dataset.cic ? 'cic' : ''));
   el.querySelectorAll('[data-ord]').forEach(b => b.onclick = e => { e.stopPropagation(); const k = b.dataset.ord; st.invOrd = st.invOrd.k === k ? {k, d: -st.invOrd.d} : {k, d: +b.dataset.d0};
     try { localStorage.setItem('invOrdSup', JSON.stringify(st.invOrd)); } catch (x) {} renderInventario(); });
+  const bi = $('#invBusca'); bi.oninput = () => { st.invQ = bi.value; invBuscar(); }; invBuscar();
+}
+/* un código (o parte de él, o barras) en todas las tiendas y semanas, igual que el admin.
+   Las listas se leen la primera vez que se busca (apiInvLeer: solo las tiendas del supervisor). */
+async function invBuscarCargar(){
+  const res = $('#invBuscaRes'); if (st.mueCargando) return;
+  if (!st.yo) { if (res) res.innerHTML = '<div class="small faint">Identifícate para buscar en las listas de conteo.</div>'; return; }
+  st.mueCargando = true; if (res) res.innerHTML = '<div class="small faint">Buscando…</div>';
+  try {
+    const [me, ml, co, inf, pe] = await Promise.all(['MueEstado!A1:E', 'MueLista!A1:S', 'MueCorrecciones!A1:M', "'Informes de inventario'!A1:P", 'Personal!A1:G'].map(getRange));
+    st.mue = {me, ml, co, inf}; st.ivPe = pe; st.ivQ = st.ivQ || {};
+  } catch (e) { if (res) res.innerHTML = `<div class="small faint">No se pudo buscar: ${esc(errorCopy(e))}</div>`; return; }
+  finally { st.mueCargando = false; }
+  invBuscar();
+}
+function invBuscar(){
+  const res = $('#invBuscaRes'); if (!res) return;
+  const q = String(st.invQ || '').trim().toLowerCase();
+  if (q.length < 2) { res.innerHTML = ''; return; }
+  if (!st.mue) { invBuscarCargar(); return; }
+  const corrT = {};
+  const L = st.mue.ml.slice(1).filter(r => r[0] && r[1] && !ivExhib(r) && (sinApo(r[3]) + ' ' + r[7] + ' ' + r[4]).toLowerCase().indexOf(q) >= 0)
+    .map(r => { const k = r[0] + '|' + r[1]; corrT[k] = corrT[k] || invCorr(r[0], r[1]); return Object.assign(ivFila(r, corrT[k][sinApo(r[3])]), {sem: r[0], tienda: r[1]}); })
+    .sort((a, b) => b.sem.localeCompare(a.sem) || Math.abs(b.finp || 0) - Math.abs(a.finp || 0) || a.tienda.localeCompare(b.tienda));
+  res.innerHTML = !L.length ? '<div class="small faint">Ningún producto coincide.</div>' : `<div class="panel flush">` + L.slice(0, 40).map((o, i) => { const cont = o.fin != null ? o.teo + o.fin : o.contado;
+    return `<div class="li" data-bi="${i}" style="cursor:pointer"><div style="min-width:0"><div><b>${esc(o.tienda)}</b> <span class="small faint">${esc(o.cod)} · ${esc(o.sem)}${o.cic ? ' · cíclico' : ''}</span></div>
+      <div class="small faint" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(o.desc)}</div></div>
+      <div style="text-align:right;white-space:nowrap"><span class="small">${o.teo} → ${cont == null ? '–' : cont}</span> <b class="${o.fin < 0 ? 'bad-t' : ''}">${o.fin == null ? '' : ivSig(o.fin)}</b>
+      <div class="small ${o.finp < 0 ? 'bad-t' : 'faint'}">${o.finp ? ivDin(o.finp) : esc(o.estado || 'Pendiente')}</div></div></div>`; }).join('') +
+    (L.length > 40 ? `<div class="small faint" style="padding:8px 14px">${L.length - 40} más: escribe más del código.</div>` : '') + '</div>';
+  res.querySelectorAll('[data-bi]').forEach(d => d.onclick = () => { const o = L[+d.dataset.bi]; invDetalle(o.tienda, o.sem, o.cic ? 'cic' : '', o.cod); });
 }
 
 /* ---------- revisión e informe de inventario: mismo código que el panel de Diego.
@@ -2407,7 +2508,206 @@ function renderPoliticas(){
     <div class="panel flush">${P.map(p => `<details class="li"><summary><div><div class="store">${esc(p.titulo)}</div><div class="small faint">${p.desde ? 'Desde el ' + fmtF(p.desde) + ' · ' : ''}${/^todas$/i.test(String(p.tiendas).trim()) ? 'Todas las tiendas' : esc(p.tiendas)}${p.fail ? ' · ' + p.fail + ' intento' + (p.fail > 1 ? 's' : '') + ' fallido' + (p.fail > 1 ? 's' : '') : ''}</div></div>
       <span class="pill p-${p.n && p.ok >= p.n ? 'good' : p.ok ? 'warn' : 'bad'}">${p.ok} de ${p.n} aprobaron</span></summary>
       <div class="body">${p.por.map(x => `<span class="store">${esc(x.t)}</span><span class="${x.total && !x.faltan.length ? 'ok' : ''}">${x.ok} de ${x.total}</span><span class="faint">${x.faltan.length ? 'Falta: ' + x.faltan.map(esc).join(', ') : ''}${x.fail ? (x.faltan.length ? ' · ' : '') + x.fail + ' fallido' + (x.fail > 1 ? 's' : '') : ''}</span>`).join('')}</div></details>`).join('')}</div></div>`;
+  if (st.polInfD) { const D = st.polInfD, gente = {};
+    D.pe.slice(1).filter(r => r[0] && String(r[6] || 'Activo').trim() === 'Activo').forEach(r => (gente[r[1]] = gente[r[1]] || []).push(nombreCorto(r[0])));
+    el.insertAdjacentHTML('beforeend', polCumHTML((st.pol || []).map(p => [p.id, p.titulo, '', p.tiendas]), gente, D.lp.slice(1), st.d.tiendas.filter(x => x.activa).map(x => x.nombre))); polCumWire(); }
+  el.insertAdjacentHTML('beforeend', polInfHTML()); polInfWire();
   polLeerWire();
+}
+
+/* ---------- políticas: cumplimiento por persona (supervisores + cada tienda; % leído = con intento, % aprobado = aprobó) ---------- */
+function polCumHTML(P, gente, lect, activas){
+  const aplica = (r, t) => /^todas$/i.test(String(r[3] || 'Todas').trim()) || String(r[3]).split(',').map(x => x.trim()).indexOf(t) >= 0;
+  const persona = (nombre, cargo, tienda, pols) => {
+    const lt = lect.filter(x => x[3] === tienda && x[4] === nombre);
+    const ok = pols.filter(id => lt.some(x => x[2] === id && x[7] === 'Aprobó')), leyo = pols.filter(id => lt.some(x => x[2] === id));
+    return {nombre, cargo, n: pols.length, ok: ok.length, leyo: leyo.length, falta: pols.filter(id => ok.indexOf(id) < 0)};
+  };
+  const tit = {}; P.forEach(r => tit[String(r[0]).trim()] = r[1]);
+  const grupos = [];
+  if (st.usuarios && st.usuarios.length) {   // panel de supervisores: la lista activa viene de apiPanel
+    const todas = P.map(r => String(r[0]).trim());
+    grupos.push({k: 'Supervisores', gente: st.usuarios.map(n => persona(String(n).trim(), '', 'Supervisión', todas))});
+  }
+  activas.filter(enCiudad).forEach(t => {
+    const pols = P.filter(r => aplica(r, t)).map(r => String(r[0]).trim());
+    const cargo = {}; ((st.polInfD || {}).pe || [[]]).slice(1).filter(r => r[1] === t && String(r[6] || 'Activo').trim() === 'Activo').forEach(r => cargo[nombreCorto(r[0])] = String(r[4] || '').trim());
+    grupos.push({k: t, gente: (gente[t] || []).map(n => persona(n, cargo[n] || '', t, pols))});
+  });
+  grupos.forEach(g => { g.n = g.gente.reduce((s, x) => s + x.n, 0); g.ok = g.gente.reduce((s, x) => s + x.ok, 0); g.leyo = g.gente.reduce((s, x) => s + x.leyo, 0);
+    g.pctOk = g.n ? Math.round(g.ok * 100 / g.n) : 0; g.pctL = g.n ? Math.round(g.leyo * 100 / g.n) : 0; g.atras = g.gente.filter(x => x.ok < x.n).length;
+    g.gente.sort((a, b) => a.ok / (a.n || 1) - b.ok / (b.n || 1) || a.nombre.localeCompare(b.nombre)); });
+  const G = grupos.filter(g => g.gente.length), tn = G.reduce((s, g) => s + g.n, 0), tok = G.reduce((s, g) => s + g.ok, 0), tl = G.reduce((s, g) => s + g.leyo, 0);
+  const sinNada = G.reduce((s, g) => s + g.gente.filter(x => x.n && !x.leyo).length, 0), gp = G.reduce((s, g) => s + g.gente.length, 0);
+  const tono = v => v >= 100 ? 'good' : v >= 60 ? 'warn' : 'bad';
+  const cg = x => { const c = x.cargo.toLowerCase(); return c ? c.charAt(0).toUpperCase() + c.slice(1) : ''; };
+  st.cumOpen = st.cumOpen || {};
+  return `<div><div class="sec-h"><h2>Cumplimiento por persona</h2><span class="hint">% leído: políticas que la persona abrió y respondió. % aprobado: las que aprobó con 3 de 3. Toca un grupo para ver a cada persona; arriba van las más atrasadas.</span></div>
+    <div class="kpis" style="margin-bottom:14px"><div class="kpi ${tono(tn ? Math.round(tok * 100 / tn) : 0)}"><b>${tn ? Math.round(tok * 100 / tn) : 0}%</b><span>aprobado</span></div>
+      <div class="kpi"><b>${tn ? Math.round(tl * 100 / tn) : 0}%</b><span>leído</span></div>
+      <div class="kpi ${sinNada ? 'bad' : 'good'}"><b>${sinNada} de ${gp}</b><span>personas sin leer ninguna</span></div></div>
+    <div class="panel flush">${G.map(g => `<details class="li cum-g" data-cum="${esc(g.k)}"${st.cumOpen[g.k] ? ' open' : ''}><summary><div><div class="store">${esc(g.k)}</div>
+        <div class="small faint">${g.gente.length} persona${g.gente.length > 1 ? 's' : ''} · leído ${g.pctL}%${g.atras ? ' · ' + g.atras + ' con políticas pendientes' : ' · todos al día'}</div><div class="cum-bar"><i style="width:${g.pctOk}%"></i></div></div>
+        <span class="pill p-${tono(g.pctOk)}">${g.pctOk}% aprobado</span></summary>
+      <div style="margin-top:6px">${g.gente.map(x => { const po = x.n ? Math.round(x.ok * 100 / x.n) : 100, pl = x.n ? Math.round(x.leyo * 100 / x.n) : 100;
+        return `<div class="cum-p"><span class="store">${esc(x.nombre)}${cg(x) ? ` <span class="small faint">${esc(cg(x))}</span>` : ''}</span><span class="small">leído ${pl}%</span><span class="pill p-${tono(po)}">${po}% aprobado</span>
+          ${x.falta.length ? `<span class="faint">Le falta: ${x.falta.map(id => esc(tit[id] || id)).join(', ')}</span>` : ''}</div>`; }).join('')}</div></details>`).join('')}</div></div>`;
+}
+function polCumWire(){
+  document.querySelectorAll('details.cum-g').forEach(d => d.addEventListener('toggle', () => { st.cumOpen[d.dataset.cum] = d.open; }));
+}
+
+/* ---------- políticas: informe por tienda (Personal activo × políticas publicadas, según 'Lecturas de políticas'); igual que el admin ---------- */
+const polDeTienda = (p, tienda) => /^todas$/i.test(String(p.tiendas || 'Todas').trim()) || String(p.tiendas).split(',').map(x => x.trim()).indexOf(tienda) >= 0;
+function polInfDatos(tienda){
+  const D = st.polInfD || {pe: [[]], lp: [[]]};
+  const gente = D.pe.slice(1).filter(r => r[0] && r[1] === tienda && String(r[6] || 'Activo').trim() === 'Activo')
+    .map(r => ({nombre: nombreCorto(r[0]), cargo: String(r[4] || '').trim()}));
+  const lect = D.lp.slice(1).filter(r => r[3] === tienda);
+  const pols = (st.pol || []).filter(p => polDeTienda(p, tienda)).map(p => p.id);
+  const filas = gente.map(g => ({g, c: pols.map(id => {
+    const lt = lect.filter(x => x[2] === id && x[4] === g.nombre), ok = lt.find(x => x[7] === 'Aprobó');
+    return ok ? {e: 'ok', f: iso(ok[0])} : lt.length ? {e: 'fail', n: lt.length} : {e: 'no'};
+  })}));
+  const tot = filas.length * pols.length, ok = filas.reduce((s, f) => s + f.c.filter(c => c.e === 'ok').length, 0);
+  return {tienda, pols, filas, tot, ok, alDia: filas.filter(f => f.c.every(c => c.e === 'ok')).length};
+}
+const infCelda = c => c.e === 'ok' ? `<span class="inf-ok">✓ ${c.f.slice(8, 10)}/${c.f.slice(5, 7)}</span>` : c.e === 'fail' ? `<span class="inf-fail">Falló${c.n > 1 ? ' ×' + c.n : ''}</span>` : '<span class="inf-no">Falta</span>';
+function infTabla(D){
+  return `<table class="inf-t"><tr><th>Persona</th><th>Cargo</th>${D.pols.map(id => `<th class="c">${esc(id)}</th>`).join('')}</tr>
+    ${D.filas.map(f => `<tr><td class="store">${esc(f.g.nombre)}</td><td class="faint">${esc(f.g.cargo.charAt(0) + f.g.cargo.slice(1).toLowerCase())}</td>${f.c.map(c => `<td class="c">${infCelda(c)}</td>`).join('')}</tr>`).join('')}</table>`;
+}
+function polInfHTML(){
+  if (!st.pol || !st.pol.length) return '';
+  if (st.polInfD === undefined) return '<div class="skeleton">Cargando informe por tienda…</div>';
+  if (!st.polInfD) return '';
+  const ts = st.d.tiendas.filter(t => t.activa && enCiudad(t.nombre)).map(t => t.nombre);
+  if (st.polInf && ts.indexOf(st.polInf) < 0) st.polInf = '';
+  const D = (st.polInf ? [st.polInf] : ts).map(polInfDatos).filter(x => x.filas.length);
+  return `<div style="margin-top:26px"><div class="sec-h"><h2>Informe por tienda</h2><span class="hint">Cada persona activa del Personal y cada política publicada. ✓ con la fecha en que aprobó.</span></div>
+    <div class="filters"><select id="infT" aria-label="Tienda"><option value="">Todas las tiendas</option>${ts.map(t => `<option${t === st.polInf ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select>
+      <button class="btn primary" id="infPdf">Descargar PDF${st.polInf ? '' : ' de todas'}</button></div>
+    <div class="panel flush">${D.length ? D.map(x => `<div class="inf-blk"><div class="inf-cab"><h3>${esc(x.tienda)}</h3><span class="pill p-${x.tot && x.ok >= x.tot ? 'good' : x.ok ? 'warn' : 'bad'}">${x.alDia} de ${x.filas.length} personas al día · ${x.tot ? Math.round(x.ok * 100 / x.tot) : 0}%</span></div>
+      <div class="scroll">${infTabla(x)}</div></div>`).join('') : '<div class="empty">No hay personal activo cargado para esta selección.</div>'}</div></div>`;
+}
+function polInfWire(){
+  if ($('#infT')) $('#infT').onchange = e => { st.polInf = e.target.value; renderPoliticas(); };
+  if ($('#infPdf')) $('#infPdf').onclick = e => polInfPdf(e.target);
+}
+async function polInfPdf(btn){
+  const ts = st.polInf ? [st.polInf] : st.d.tiendas.filter(t => t.activa && enCiudad(t.nombre)).map(t => t.nombre);
+  const D = ts.map(polInfDatos).filter(x => x.filas.length); if (!D.length) return;
+  const tit = id => { const p = (st.pol || []).find(x => x.id === id); return p ? p.titulo : id; };
+  const ids = [...new Set(D.flatMap(x => x.pols))];
+  const txt = btn.textContent; btn.disabled = true; btn.textContent = 'Preparando…';
+  const box = document.createElement('div'); box.id = 'polPdf';
+  box.innerHTML = `<div class="hoja"><div class="cab">TEFES · Steren Ecuador · Constancia de lectura de políticas · ${fmtF(hoyISO(), new Date().toTimeString().slice(0, 5))}</div>
+    <h1>Lectura de políticas${D.length === 1 ? ' · ' + esc(D[0].tienda) : ''}</h1>
+    <p style="font-size:11px;color:#555;margin:0 0 12px">${ids.map(id => esc(id) + ' ' + esc(tit(id))).join(' · ')}. ✓ = leyó la política y respondió bien las 3 preguntas (fecha). Falta = no la ha aprobado.</p>
+    ${D.map(x => `<div class="inf-blk"><h3 style="font:700 15px Arial;margin:0 0 6px">${esc(x.tienda)} · ${x.alDia} de ${x.filas.length} personas al día</h3>${infTabla(x)}
+      ${D.length === 1 ? '<div class="firma"><div>Gerente de tienda</div><div>Gerencia del Proyecto</div></div>' : ''}</div>`).join('')}</div>`;
+  document.body.appendChild(box);
+  try {
+    const h2p = await ipdfH2p();
+    const blob = await h2p().set({margin: [10, 10, 12, 10], image: {type: 'jpeg', quality: 0.95}, html2canvas: {scale: 2, backgroundColor: '#ffffff'},
+      jsPDF: {unit: 'mm', format: 'a4'}, pagebreak: {mode: ['css', 'legacy'], avoid: '.inf-blk'}}).from(box.firstChild).outputPdf('blob');
+    ipdfBajar(blob, 'Lectura de políticas ' + (D.length === 1 ? D[0].tienda : 'todas las tiendas') + ' ' + hoyISO() + '.pdf');
+    try { REG.ev('Acción', 'Informe políticas PDF'); } catch (x) {}
+  } catch (e) { toast('No se pudo descargar: ' + (e && e.message || e), 5000); }
+  finally { box.remove(); btn.disabled = false; btn.textContent = txt; }
+}
+
+/* ---------- clientes: ventas futuras y reclamos (hoja privada, vía apiClientesPanel; solo lectura, igual que el admin) ---------- */
+const VF_PILL = {'Esperando': 'p-na', 'Llegó': 'p-good', 'Avisado': 'p-acc', 'Compró': 'p-good', 'No compró': 'p-bad', 'Cancelado': 'p-bad'};
+function renderVF(){
+  const el = $('#vfBody'); if (!el || !st.d) return;
+  if (st.vf === undefined) { el.innerHTML = '<div class="skeleton">Cargando ventas futuras…</div>'; return; }
+  if (!st.vf) { el.innerHTML = '<section class="panel"><h2>Ventas futuras</h2><div class="empty">No se pudieron leer las ventas futuras. Pulsa Actualizar.</div></section>'; return; }
+  const L = st.vf.slice(1).map(r => ({id: String(r[0] || '').trim(), fecha: iso(r[1]), tienda: String(r[3] || ''), asesor: String(r[4] || ''),
+    cod: String(r[5] || ''), prod: String(r[6] || ''), cant: num(r[7]) || 1, cli: String(r[8] || ''), cel: String(r[9] || ''), contacto: String(r[11] || ''),
+    obs: String(r[12] || ''), estado: String(r[14] || 'Esperando'), llego: iso(r[15]), aviso: iso(r[16]), cierre: iso(r[19]), nota: String(r[20] || ''), cedis: iso(r[21])}))
+    .filter(x => x.id && enCiudad(x.tienda));
+  const ABV = ['Esperando', 'Llegó', 'Avisado'], ab = L.filter(x => ABV.includes(x.estado));
+  const fd = f => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f); return m ? (+m[3]) + '/' + (+m[2]) : f; };
+  const dd = f => f ? Math.round((new Date(hoyISO() + 'T12:00') - new Date(f + 'T12:00')) / 864e5) : '';
+  if (!L.length) { el.innerHTML = '<section class="panel"><h2>Ventas futuras</h2><div class="empty">Todavía no hay registros. Las tiendas los hacen en Inventario → Registrar venta futura.</div></section>'; return; }
+  const porCod = {};
+  ab.forEach(x => { const p = porCod[x.cod] = porCod[x.cod] || {cod: x.cod, prod: x.prod, cli: 0, u: 0, t: new Set(), lle: 0, cedis: false};
+    p.cli++; p.u += x.cant; p.t.add(x.tienda); if (x.estado !== 'Esperando') p.lle++; if (x.cedis && x.estado === 'Esperando') p.cedis = true; });
+  const top = Object.values(porCod).sort((a, b) => b.cli - a.cli || b.u - a.u).slice(0, 15);
+  const cedis = ab.filter(x => x.estado === 'Esperando' && x.cedis);
+  const fE = st.vfE || 'abiertos', fT = st.vfT || '';
+  const V = L.filter(x => (fE === 'todos' || (fE === 'abiertos') === ABV.includes(x.estado)) && (!fT || x.tienda === fT))
+    .sort((a, b) => ABV.indexOf(b.estado) - ABV.indexOf(a.estado) || b.fecha.localeCompare(a.fecha));
+  const tiendas = [...new Set(L.map(x => x.tienda))].sort();
+  const chip = (k, t) => `<button class="chip${fE === k ? ' on' : ''}" data-vfe="${k}">${t}</button>`;
+  const vendidos = L.filter(x => x.estado === 'Compró').length, cerr = L.filter(x => ['Compró', 'No compró'].includes(x.estado)).length;
+  el.innerHTML = `<div class="sec-h"><h2>Ventas futuras<span class="cfil"></span></h2><span class="hint">Lo que piden los clientes y no tenemos. La app avisa al asesor y al gerente cuando llega a la tienda.</span></div>
+    <div class="kpis">
+      <div class="kpi acc"><b>${ab.filter(x => x.estado === 'Esperando').length}</b><span>clientes esperando</span></div>
+      <div class="kpi ${ab.some(x => x.estado === 'Llegó') ? 'warn' : ''}"><b>${ab.filter(x => x.estado === 'Llegó').length}</b><span>llegó, por avisar</span></div>
+      <div class="kpi"><b>${ab.filter(x => x.estado === 'Avisado').length}</b><span>avisados</span></div>
+      <div class="kpi good"><b>${cerr ? Math.round(vendidos / cerr * 100) + '%' : '–'}</b><span>compraron (${vendidos} de ${cerr} cerrados)</span></div>
+    </div>
+    ${cedis.length ? `<div class="vf-cedis" style="margin-top:14px"><b>Hay en CEDIS para ${cedis.length} cliente${cedis.length > 1 ? 's' : ''}:</b> ${[...new Set(cedis.map(x => x.cod + ' → ' + x.tienda))].map(esc).join(' · ')}. La transferencia la decide Diego; cuando llegue a la tienda se avisa solo.</div>` : ''}
+    <div class="grid2" style="margin-top:18px;align-items:start">
+      <div><div class="sec-h"><h2>Lo que más piden</h2><span class="hint">Abiertos</span></div>
+        <div class="panel flush scroll"><table class="exec"><thead><tr><th>Producto</th><th class="num">Clientes</th><th class="num">Unid.</th><th>Tiendas</th></tr></thead><tbody>
+        ${top.map(p => `<tr><td><b>${esc(p.cod)}</b> <span class="small faint">${esc(p.prod)}</span>${p.cedis ? ' <span class="pill p-warn">CEDIS</span>' : ''}${p.lle ? ' <span class="pill p-good">llegó</span>' : ''}</td><td class="num">${p.cli}</td><td class="num">${p.u}</td><td class="small">${esc([...p.t].join(', '))}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">Nada abierto.</td></tr>'}
+        </tbody></table></div></div>
+      <div><div class="sec-h"><h2>Registros${fT ? ' · ' + esc(fT) : ''}</h2>
+        <select id="vfT" aria-label="Tienda"><option value="">Todas las tiendas</option>${tiendas.map(t => `<option ${t === fT ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
+        <div class="rec-st">${chip('abiertos', 'Abiertos')}${chip('cerrados', 'Cerrados')}${chip('todos', 'Todos')}</div>
+        <div class="panel flush scroll"><table class="exec vf-t"><thead><tr><th>Fecha</th><th>Tienda</th><th>Producto</th><th>Cliente</th><th>Estado</th><th class="num">Días</th></tr></thead><tbody>
+        ${V.map(x => `<tr><td>${fd(x.fecha)}</td><td>${esc(x.tienda)}<div class="small faint">${esc(x.asesor)}</div></td>
+          <td><b>${esc(x.cod)}</b>${x.cant > 1 ? ' ×' + x.cant : ''}<div class="obs">${esc(x.prod)}</div></td>
+          <td>${esc(x.cli)}<div class="small faint">${esc(x.cel)} · ${esc(x.contacto)}</div>${x.obs ? `<div class="obs">${esc(x.obs)}</div>` : ''}${x.nota ? `<div class="obs">Cierre: ${esc(x.nota)}</div>` : ''}</td>
+          <td><span class="pill ${VF_PILL[x.estado] || 'p-na'}">${esc(x.estado)}</span>${x.estado === 'Llegó' && x.aviso ? `<div class="small faint">correo ${fd(x.aviso)}</div>` : ''}</td>
+          <td class="num">${ABV.includes(x.estado) ? dd(x.fecha) : ''}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Sin registros con este filtro.</td></tr>'}
+        </tbody></table></div></div>
+    </div>`;
+  el.querySelectorAll('[data-vfe]').forEach(b => b.onclick = () => { st.vfE = b.dataset.vfe; renderVF(); });
+  if ($('#vfT')) $('#vfT').onchange = e => { st.vfT = e.target.value; renderVF(); };
+}
+function renderReclamos(){
+  const el = $('#recBody'); if (!el || !st.d) return;
+  if (st.rec === undefined) { el.innerHTML = '<div class="skeleton">Cargando reclamos…</div>'; return; }
+  if (!st.rec) { el.innerHTML = '<section class="panel"><h2>Reclamos de clientes</h2><div class="empty">No se pudieron leer los reclamos. Pulsa Actualizar.</div></section>'; return; }
+  const L = st.rec.slice(1).filter(r => r[0]).map(r => ({id: String(r[0]).trim(), fecha: iso(r[1]) || String(r[1] || '').trim(), tienda: String(r[2] || '').trim() || 'Por definir',
+    tipo: String(r[3] || '').trim(), origen: String(r[4] || '').trim(), prod: String(r[5] || '').trim(), cli: String(r[6] || '').trim(), nov: String(r[7] || '').trim(),
+    acc: String(r[8] || '').trim(), abierto: !/^cerrad/i.test(String(r[9] || '').trim()), cierre: iso(r[10]) || String(r[10] || '').trim()})).filter(x => enCiudad(x.tienda) || x.tienda === 'Por definir');
+  const ab = L.filter(x => x.abierto).length;
+  $('#nRec').textContent = ab || '';
+  const fd = f => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f); return m ? (+m[3]) + '/' + (+m[2]) : f; };
+  if (!L.length) { el.innerHTML = '<section class="panel"><h2>Reclamos de clientes</h2><div class="empty">Todavía no hay reclamos registrados.</div></section>'; return; }
+  const fE = st.recE || 'todos', fT = st.recT || '';
+  const tiendas = [...new Set(st.d.tiendas.filter(t => t.activa).map(t => t.nombre).concat(L.map(x => x.tienda)))];
+  const filas = tiendas.map(t => ({t, a: L.filter(x => x.tienda === t && x.abierto).length, c: L.filter(x => x.tienda === t && !x.abierto).length}))
+    .filter(f => f.a + f.c).sort((a, b) => b.a - a.a || (b.a + b.c) - (a.a + a.c) || a.t.localeCompare(b.t));
+  const V = L.filter(x => (fE === 'todos' || (fE === 'abiertos') === x.abierto) && (!fT || x.tienda === fT))
+    .sort((a, b) => (b.abierto - a.abierto) || b.fecha.localeCompare(a.fecha));
+  const chip = (k, t) => `<button class="chip${fE === k ? ' on' : ''}" data-re="${k}">${t}</button>`;
+  el.innerHTML = `<div class="sec-h"><h2>Reclamos de clientes<span class="cfil"></span></h2><span class="hint">Los registra soporte; aquí solo se consultan.</span></div>
+    <div class="kpis">
+      <div class="kpi ${ab ? 'bad' : 'good'}"><b>${ab}</b><span>abiertos</span></div>
+      <div class="kpi good"><b>${L.length - ab}</b><span>cerrados</span></div>
+      <div class="kpi"><b>${filas.length}</b><span>locales con reclamos</span></div>
+    </div>
+    <div class="grid2" style="margin-top:22px;align-items:start">
+      <div><div class="sec-h"><h2>Por local</h2><span class="hint">Toca un local para filtrar</span></div>
+        <div class="panel flush"><table class="exec"><thead><tr><th>Local</th><th class="num">Abiertos</th><th class="num">Cerrados</th></tr></thead><tbody>
+        ${filas.map(f => `<tr class="click${fT === f.t ? ' on' : ''}" data-rt="${esc(f.t)}" style="cursor:pointer"><td class="store">${esc(f.t)}</td><td class="num">${f.a ? `<span class="cnt-bad">${f.a}</span>` : '<span class="zero">0</span>'}</td><td class="num">${f.c || '<span class="zero">0</span>'}</td></tr>`).join('')}
+        </tbody></table></div></div>
+      <div><div class="sec-h"><h2>Casos${fT ? ' · ' + esc(fT) : ''}</h2>${fT ? '<button class="kmas" id="recTodo">Ver todos los locales</button>' : ''}</div>
+        <div class="rec-st">${chip('todos', 'Todos')}${chip('abiertos', 'Abiertos')}${chip('cerrados', 'Cerrados')}</div>
+        <div class="panel flush">${V.length ? V.map(x => `<div class="rec-it"><div class="h"><span class="t">${esc(x.id)} · ${esc(x.tienda)} · ${esc(x.prod)}</span>
+          <span class="pill ${x.abierto ? 'p-bad' : 'p-good'}">${x.abierto ? 'Abierto' : 'Cerrado' + (x.cierre ? ' ' + fd(x.cierre) : '')}</span></div>
+          <div class="small faint">${fd(x.fecha)} · ${esc(x.tipo)}${x.origen ? ' · ' + esc(x.origen) : ''}${x.cli ? ' · ' + esc(x.cli) : ''}</div>
+          <p>${esc(x.nov)}</p>${x.acc ? `<p class="acc"><b>Acción:</b> ${esc(x.acc)}</p>` : ''}</div>`).join('') : '<div class="empty">Sin casos con este filtro.</div>'}</div></div>
+    </div>`;
+  el.querySelectorAll('[data-re]').forEach(b => b.onclick = () => { st.recE = b.dataset.re; renderReclamos(); });
+  el.querySelectorAll('[data-rt]').forEach(r => r.onclick = () => { st.recT = st.recT === r.dataset.rt ? '' : r.dataset.rt; renderReclamos(); });
+  if ($('#recTodo')) $('#recTodo').onclick = () => { st.recT = ''; renderReclamos(); };
 }
 
 /* ---------- políticas: leer, descargar y cuestionario del supervisor (vía PoliticasPanel.gs) ---------- */
@@ -2514,6 +2814,74 @@ pintarYo();
   walk(document.body); var t=fix(document.title); if(t!==document.title) document.title=t;
   new MutationObserver(function(ms){ ms.forEach(function(m){ if(m.type==='characterData') walk(m.target); else m.addedNodes.forEach(walk); }); })
     .observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+<style>
+/* cel1: panel en el celular — barra de íconos abajo (como la página de la tienda) y tablero en una columna */
+.bnav,.bmas-bg{display:none}
+@media(max-width:700px){
+  #tabs{display:none}
+  .bnav{display:grid;position:fixed;left:0;right:0;bottom:0;z-index:35;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--surface);border-top:1px solid var(--line);padding:4px 2px calc(4px + env(safe-area-inset-bottom,0px))}
+  .bnav button{border:0;background:none;color:var(--fg-3);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;font-weight:600;min-height:50px;position:relative;padding:4px 0;min-width:0}
+  .bnav button span.l{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
+  .bnav button.on{color:var(--accent);font-weight:800}
+  .bnav svg{width:25px;height:25px;flex:none}
+  .bnav button.on svg{stroke-width:2.3}
+  .bnav .n{position:absolute;top:1px;left:50%;margin-left:5px;min-width:18px;padding:0 5px;border-radius:9px;background:var(--head-line,#2c3a48);color:#fff;font-size:11px;line-height:18px;text-align:center}
+  .bnav .n.bad{background:#c0392b}
+  .bnav .n:empty{display:none}
+  .wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+  .toast{bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+  .board{grid-template-columns:minmax(0,1fr);overflow:visible}
+  .kcol{min-height:0}
+  .bmas-bg:not([hidden]){display:flex;position:fixed;inset:0;z-index:45;background:rgba(8,15,22,.45);align-items:flex-end}
+  .bmas{background:var(--surface);width:100%;border-radius:16px 16px 0 0;padding:6px 14px calc(14px + env(safe-area-inset-bottom,0px));animation:bmasIn .18s ease-out}
+  .bmas::before{content:"";display:block;width:40px;height:4px;border-radius:2px;background:var(--line);margin:4px auto 8px}
+  .bmas button{display:flex;width:100%;align-items:center;gap:14px;padding:14px 6px;border:0;border-bottom:1px solid var(--line);background:none;font-size:16px;font-weight:600;color:var(--fg);text-align:left}
+  .bmas button:last-child{border-bottom:0}
+  .bmas button.on{color:var(--accent)}
+  .bmas svg{width:24px;height:24px;flex:none;color:var(--fg-2)}
+  .bmas .n{margin-left:auto;min-width:20px;padding:0 6px;border-radius:10px;background:var(--surface-2);font-size:12px;line-height:20px;text-align:center}
+  .bmas .n.bad{background:#c0392b;color:#fff}
+  .bmas .n:empty{display:none}
+  @keyframes bmasIn{from{transform:translateY(40px);opacity:.4}}
+}
+</style>
+<div class="bnav" id="bnav" aria-label="Secciones"></div>
+<div class="bmas-bg" id="bmasBg" hidden><div class="bmas" id="bmas" role="menu"></div></div>
+<script>
+/* cel1: barra de íconos abajo en el celular. Usa los mismos botones de #tabs (un toque aquí = un toque en la pestaña). */
+(function(){
+  const tabs = document.getElementById('tabs'), bnav = document.getElementById('bnav'), bg = document.getElementById('bmasBg'), mas = document.getElementById('bmas');
+  if (!tabs || !bnav) return;
+  const P = {hoy: 'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z', pendientes: 'M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2',
+    supervision: 'M9 3h6v3H9zM6 5h12v16H6zM9 12l2 2 4-4', inventario: 'M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10', flash: 'M13 2L4 14h7l-1 8 9-12h-7z',
+    politicas: 'M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z', guias: 'M4 5h7v14H4zM13 5h7v14h-7z', contactos: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2',
+    reclamos: 'M3 4h2l2.5 11h11L21 7H6.5M9 20h.01M18 20h.01', equipo: 'M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6M21 19v-1a4 4 0 0 0-3-3.8M16 4.2a3 3 0 0 1 0 5.6',
+    enlaces: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+    mas: 'M5 12h.01M12 12h.01M19 12h.01'};
+  const CORTO = {hoy: 'Hoy', flash: 'Flash', pendientes: 'Pendientes', supervision: 'Supervisar', inventario: 'Inventario', politicas: 'Políticas', guias: 'Manuales', contactos: 'Contactos', reclamos: 'Clientes', equipo: 'Equipo', enlaces: 'Ajustes'};
+  const ORDEN = ['hoy', 'pendientes', 'supervision', 'inventario', 'flash'];
+  const ico = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + (d || P.mas) + '"/></svg>';
+  const nombre = b => CORTO[b.dataset.v] || b.textContent.trim();
+  const num = b => { const n = b.querySelector('.n'); return n ? '<span class="' + n.className + '">' + n.textContent + '</span>' : ''; };
+  let firma = '';
+  function pintar(){
+    const bs = [...tabs.querySelectorAll('button[data-v]')].filter(b => !b.hidden && b.style.display !== 'none');
+    const abajo = ORDEN.map(v => bs.find(b => b.dataset.v === v)).filter(Boolean).slice(0, 4), resto = bs.filter(b => !abajo.includes(b));
+    const on = bs.find(b => b.classList.contains('on')), masOn = on && resto.includes(on);
+    const f = bs.map(b => b.dataset.v + (b === on ? '*' : '') + num(b)).join('|');
+    if (f === firma) return; firma = f;
+    bnav.innerHTML = abajo.map(b => '<button data-v="' + b.dataset.v + '" class="' + (b === on ? 'on' : '') + '">' + ico(P[b.dataset.v]) + '<span class="l">' + nombre(b) + '</span>' + num(b) + '</button>').join('') +
+      (resto.length ? '<button data-mas class="' + (masOn ? 'on' : '') + '">' + ico(masOn ? P[on.dataset.v] : P.mas) + '<span class="l">' + (masOn ? nombre(on) : 'Más') + '</span>' + (resto.some(b => { const n = b.querySelector('.n.bad'); return n && n.textContent.trim(); }) ? '<span class="n bad">!</span>' : '') + '</button>' : '');
+    mas.innerHTML = resto.map(b => '<button data-v="' + b.dataset.v + '" class="' + (b === on ? 'on' : '') + '">' + ico(P[b.dataset.v]) + '<span>' + b.textContent.replace(/\d+$/, '').trim() + '</span>' + num(b) + '</button>').join('');
+    bnav.querySelectorAll('[data-v]').forEach(x => x.onclick = () => { const t = tabs.querySelector('button[data-v="' + x.dataset.v + '"]'); if (t) t.click(); window.scrollTo(0, 0); });
+    mas.querySelectorAll('[data-v]').forEach(x => x.onclick = () => { bg.hidden = true; const t = tabs.querySelector('button[data-v="' + x.dataset.v + '"]'); if (t) t.click(); window.scrollTo(0, 0); });
+    const m = bnav.querySelector('[data-mas]'); if (m) m.onclick = () => { bg.hidden = false; };
+  }
+  bg.onclick = e => { if (e.target === bg) bg.hidden = true; };
+  new MutationObserver(pintar).observe(tabs, {subtree: true, childList: true, attributes: true, characterData: true});
+  pintar();
 })();
 </script>
 </body>
