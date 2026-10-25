@@ -549,13 +549,56 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
 .gar-foco.tab{width:8px;height:8px;margin-right:7px;vertical-align:1px}
 @media (prefers-reduced-motion:reduce){.gar-foco{animation:none}}
 .gar-up{color:var(--good);font-weight:600} .gar-dn{color:var(--bad);font-weight:600}
+.wa-it{padding:14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.wa-it:first-child{border-top:0}
+.wa-it.env{opacity:.6}
+.wa-cab{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.wa-cab .pills{display:flex;gap:5px;flex-wrap:wrap;margin-left:auto}
+.wa-it textarea{min-height:0;field-sizing:content;font-size:14.5px;line-height:1.45}
+.wa-acc{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.wa-acc .btn.wa{background:var(--good);color:var(--surface)}
+.wa-ed{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;align-items:end}
+.wa-ed label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--fg-3)}
+.wa-aldia{padding:12px 14px;font-size:14px;color:var(--fg-2);border-top:1px solid var(--line)}
 .act-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.act-c{font-size:13px;border-radius:999px;padding:3px 10px;background:var(--na-soft)}.act-c.si{background:var(--good-soft);color:var(--good);font-weight:600}.act-c.tarde{background:var(--bad-soft);color:var(--bad);font-weight:600}.act-c a{color:inherit}
 
+
+/* tem1: temas arriba y buscador (2026-10-25) */
+.tem-nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tem-nav::-webkit-scrollbar{display:none}
+.tem-nav button{flex:none;border:0;background:none;color:var(--tem-2);padding:10px 16px 12px;font:inherit;font-weight:600;font-size:15px;border-bottom:3px solid transparent;white-space:nowrap;cursor:pointer}
+.tem-nav button:hover{color:var(--tem-ink)}
+.tem-nav button.on{color:var(--tem-ink);border-bottom-color:var(--tem-ink);font-weight:700}
+.tem-n{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;border-radius:9px;background:#c0392b;color:#fff;font-size:11.5px;line-height:18px;text-align:center;font-weight:700}
+.tem-sub{display:flex;gap:8px;flex-wrap:wrap;padding:4px 0 12px}
+.tem-sub[hidden]{display:none}
+.tem-sub button{border:0;border-radius:18px;padding:6px 14px;font:inherit;font-weight:600;font-size:14px;background:var(--tem-chip);color:var(--tem-ink);cursor:pointer}
+.tem-sub button.on{background:var(--tem-ink);color:var(--tem-head)}
+.tem-sub button b{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:9px;background:#c0392b;color:#fff;font-size:11.5px;line-height:18px;text-align:center}
+.tem-buscar{position:relative;flex:1 1 260px;max-width:480px;min-width:0}
+.tem-campo{display:flex;align-items:center;gap:8px;background:#fff;color:#4d6577;border-radius:20px;padding:0 14px;height:38px;margin:0}
+.tem-campo input{flex:1;min-width:0;border:0;background:none;outline:none;font:inherit;font-size:15px;color:#12212e;padding:0;height:36px}
+.tem-campo input::placeholder{color:#6b7f8f}
+.tem-campo:focus-within{box-shadow:0 0 0 3px rgba(124,200,240,.8)}
+.tem-res{position:absolute;left:0;right:0;top:44px;background:#fff;color:#12212e;border-radius:12px;box-shadow:0 14px 40px rgba(8,25,40,.28);padding:6px;z-index:60;max-height:70vh;overflow:auto;text-align:left}
+.tem-res[hidden]{display:none}
+.tem-g{font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:#5a6f80;font-weight:700;padding:8px 10px 4px}
+.tem-res button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;text-align:left;border:0;background:none;border-radius:8px;padding:8px 10px;cursor:pointer;color:#12212e;font:inherit;min-height:44px;justify-content:center}
+.tem-res button.on,.tem-res button:hover{background:#e6f2fa}
+.tem-res button b{font-size:15px;font-weight:600}
+.tem-res button span{font-size:12.5px;color:#5a6f80}
+.tem-vacio{padding:12px;font-size:14px;color:#5a6f80}
+.tem-logo{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#fff;flex:none;align-self:center}
+.tem-logo img{width:28px;height:28px;display:block}
+@media(min-width:701px){.tem-on{display:none!important}}
+@media(max-width:700px){.tem-nav,.tem-sub{display:none!important}.tem-buscar{flex-basis:100%;max-width:none;order:9;margin:4px 0 6px}}
+:root{--tem-head:var(--head);--tem-ink:var(--head-ink);--tem-2:var(--head-2);--tem-chip:rgba(255,255,255,.12)}
+.brand{align-items:center}
 </style>
 
 <header class="bar"><div class="gut">
   <div class="row1">
-    <div class="brand"><h1>TEFES</h1><span class="hide-sm">Admin · Pruebas</span></div>
+    <div class="brand"><span class="tem-logo"><img src="data:image/png;base64,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" alt="Steren"></span><h1>TEFES</h1><span class="hide-sm">Admin · Pruebas</span></div>
     <span class="status small" id="status">Conectando con Google Sheets…</span>
     <button class="hbtn pri" id="nuevaSup" disabled>Nueva supervisión</button>
     <button class="hbtn" id="refresh">Actualizar</button>
@@ -564,6 +607,7 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
     <button data-v="hoy">Hoy</button>
     <button data-v="flash" title="Venta del día y del mes contra presupuesto, desde el ERP"><span class="gar-foco tab" aria-hidden="true"></span>Flash de Ventas</button>
     <button data-v="pendientes" title="El número son los pendientes que esperan tu validación">Pendientes<span class="n bad" id="nPend"></span></button>
+    <button data-v="whatsapp" title="Mensajes listos para los gerentes: vencidos, vencen hoy, prioridad alta y devueltos">WhatsApp<span class="n bad" id="nWa"></span></button>
     <button data-v="inventario">Inventario<span class="n bad" id="nInv"></span></button>
     <button data-v="politicas" title="El número son las políticas activas">Políticas<span class="n" id="nPol"></span></button>
     <button data-v="reclamos" title="El número son los reclamos abiertos">Clientes<span class="n bad" id="nRec"></span></button>
@@ -638,6 +682,10 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
       </div>
       <div class="scroll" id="plist"></div>
     </section>
+  </div>
+
+  <div class="view" data-view="whatsapp" hidden>
+    <div id="waBody"><div class="skeleton">Armando mensajes…</div></div>
   </div>
 
   <div class="view" data-view="inventario" hidden>
@@ -988,6 +1036,7 @@ async function cargar(fresh){
     sv: g('Supervisores!A1:E', CLAVES),
     correos: g('Correos!A1:F', CLAVES),
     contactos: g('Contactos!A1:H', CLAVES),
+    wa: g("'WhatsApp gerentes'!A1:D", CLAVES).catch(() => null),
     act: Promise.all([g('Actividades!A1:G').catch(() => [[]]), g("'Actividades entregadas'!A1:H").catch(() => [[]])]).then(([de, en]) => ({de, en})),
     anun: Promise.all([g('Anuncios!A1:G'), g("'Lecturas de anuncios'!A1:F"), g('Personal!A1:G')]).then(([an, le, pe]) => ({an, le, pe})),
     mue: Promise.all([g('MueEstado!A1:E', CLAVES), g('MueLista!A1:S', CLAVES), g('MueCorrecciones!A1:M', CLAVES).catch(() => [[]]), g("'Informes de inventario'!A1:P", CLAVES).catch(() => [[]])]).then(([me, ml, co, inf]) => ({me, ml, co, inf})),
@@ -1199,6 +1248,7 @@ function render(){
   try { renderGar(); } catch (e) { console.error(e); }
   renderReclamos();
   try { renderGuias(); } catch (e) { console.error(e); }
+  try { renderWA(); } catch (e) { console.error(e); }
   try { renderSupervisores(); } catch (e) { console.error(e); }
 }
 
@@ -2242,7 +2292,7 @@ function renderReclamos(){
   el.querySelectorAll('[data-rt]').forEach(r => r.onclick = () => { st.recT = st.recT === r.dataset.rt ? '' : r.dataset.rt; renderReclamos(); });
   if ($('#recTodo')) $('#recTodo').onclick = () => { st.recT = ''; renderReclamos(); };
 }
-const VISTAS = ['hoy','flash','anuncios','pendientes','inventario','vivo','politicas','reclamos','guias','perchas','supervisores','equipo','enlaces'];
+const VISTAS = ['hoy','flash','anuncios','pendientes','whatsapp','inventario','vivo','politicas','reclamos','guias','perchas','supervisores','equipo','enlaces'];
 function ir(v){
   if (v === 'vivo') v = 'inventario';   // En vivo está arriba de Inventario
   if (v === 'supervisores') v = 'equipo';
@@ -2255,11 +2305,129 @@ function ir(v){
   if (TABS_REGISTRO.indexOf(v) >= 0 && st.mcp && (st.rg === undefined || Date.now() - (st.rgT || 0) > 180000)) cargarRegistro(st.rg !== undefined);
   if (v === 'hoy') requestAnimationFrame(() => { if (M.listo) mapaDibujar(); });
   if (v === 'inventario' && window.cvRender) { cvRender(); cvCargar(); }
+  if (v === 'whatsapp') requestAnimationFrame(() => document.querySelectorAll('.wa-it textarea').forEach(t => { t.style.height = 'auto'; t.style.height = t.scrollHeight + 2 + 'px'; }));
   if (v === 'perchas' && window.peAbrir) peAbrir();
   window.scrollTo({top: 0});
 }
 document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => ir(b.dataset.v));
 { let t = (location.hash || '').slice(1); if (VISTAS.indexOf(t) < 0) { try { t = localStorage.getItem('tabAdmin') || 'hoy'; } catch (e) { t = 'hoy'; } } ir(t); }
+
+/* ---------- enviar por WhatsApp (solo panel de Diego, 2026-10-25) ---------- */
+// Un mensaje por tienda para su gerente: claro, humano, concreto y cercano. Celulares en la hoja privada, pestaña "WhatsApp gerentes".
+const WA_VIS = {Megakywi: 'Megakywi-EloyAlfaro', Megamaxi: 'Megamaxi 6 Dic'};
+const waLS = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
+function waGerentes(){
+  const m = {}; (st.wa || []).slice(1).forEach((r, i) => { if (r[0]) m[String(r[0]).trim()] = {row: i + 2, nombre: String(r[1] || '').trim(), cel: String(r[2] || '').trim()}; });
+  return m;
+}
+const waFecha = f => { const d = new Date(f + 'T12:00'); return DIAS_S[d.getDay()].toLowerCase() + ' ' + d.getDate() + ' ' + MESES_S[d.getMonth()]; };
+function waTexto(p){
+  const limpia = (x, max) => { x = String(x || '').replace(/\s+/g, ' ').replace(/^\s*\d+[.)-]\s*/, '').trim().replace(/[.,;:\s]+$/, ''); return x.length > max ? x.slice(0, max).replace(/\s+\S*$/, '') + '…' : x; };
+  const h = limpia(p.hallazgo, 85), q = limpia(p.texto || p.punto, 50);
+  // Hallazgo corto o vago ("Estamos por debajo del parámetro"): se antepone el punto de control para que se entienda
+  let t = !h ? q : h.length < 35 && q ? q.replace(/…$/, '') + ': ' + h : h;
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+function waTemas(nombre, hoy){
+  const P = st.d.pend.filter(p => p.tienda === nombre && ABIERTOS.includes(p.estado));
+  const manana = new Date(hoy + 'T12:00'); manana.setDate(manana.getDate() + 1);
+  const g = {venc: [], hoy: [], dev: [], alta: []};
+  P.forEach(p => {
+    if (p.fcomp && p.fcomp < hoy) g.venc.push(p);
+    else if (p.fcomp === hoy) g.hoy.push(p);
+    else if (p.estado === 'Reabierto') g.dev.push(p);
+    else if (/^alta/i.test(p.prior || '')) g.alta.push(p);
+  });
+  ['venc', 'hoy', 'dev', 'alta'].forEach(k => g[k].sort((a, b) => String(a.fcomp).localeCompare(String(b.fcomp))));
+  const f = (st.filas || []).find(x => x.t.nombre === nombre), lim = Number(st.d.cfg.DIAS_AUTOSUPERVISION) || 7;
+  g.auto = waLS('waAuto') !== 'no' && f && (f.dAuto == null || f.dAuto > lim) ? {ult: f.ultA ? f.ultA.fecha : ''} : null;
+  g.n = g.venc.length + g.hoy.length + g.dev.length + g.alta.length;
+  return g;
+}
+function waMensaje(nombre, ger, g, enlace){
+  // Como lo escribiría Diego por WhatsApp: saludo por nombre, frases cortas, sin títulos ni firma (Diego 2026-10-25)
+  const L = [`Hola${ger ? ' ' + ger : ''}, ¿cómo vas?`];
+  let primero = true;
+  const bloque = (arr, uno, varios, cola) => {
+    if (!arr.length) return;
+    L.push(''); L.push((primero ? '' : 'Y ') + (arr.length === 1 ? uno : varios).replace(/^./, c => primero ? c.toUpperCase() : c.toLowerCase()) + ':');
+    arr.slice(0, 4).forEach(p => L.push('• ' + waTexto(p) + (cola ? cola(p) : '')));
+    if (arr.length > 4) L.push(`• y ${arr.length - 4} más que ves en la app`);
+    primero = false;
+  };
+  bloque(g.venc, 'Se nos pasó de fecha esto', 'Se nos pasaron de fecha estos temas', p => ` (era para el ${waFecha(p.fcomp)})`);
+  bloque(g.hoy, 'Hoy vence esto', 'Hoy vencen estos temas');
+  bloque(g.dev, 'Te devolví esto porque faltaba algo', 'Te devolví estos porque faltaba algo', p => p.fcomp ? ` (ahora para el ${waFecha(p.fcomp)})` : '');
+  bloque(g.alta, 'Esto es prioridad', 'Estos son prioridad', p => p.fcomp ? ` (para el ${waFecha(p.fcomp)})` : '');
+  const n = g.n, uno = n === 1;
+  if (g.auto) { L.push(''); L.push((n ? 'Ah, y nos falta' : 'Nos falta') + (g.auto.ult ? ` la autosupervisión de esta semana; la última fue el ${waFecha(g.auto.ult)}.` : ' la autosupervisión de la tienda, todavía no tenemos ninguna.')); }
+  L.push('');
+  L.push(n ? (g.venc.length || g.hoy.length ? `¿Me ayudas a cerrar${uno ? 'lo' : 'los'} hoy?` : `¿Me ayudas a que ${uno ? 'quede listo' : 'queden listos'} a tiempo?`) + ` Apenas ${uno ? 'esté, súbelo' : 'estén, súbelos'} con foto a la app y ${uno ? 'lo' : 'los'} reviso.`
+    : '¿Me ayudas a hacerla hoy?');
+  if (enlace) L.push(enlace);
+  return L.join('\n');
+}
+function renderWA(){
+  const el = $('#waBody'); if (!el || !st.d) return;
+  const hoy = st.d.hoy, url = String(st.d.cfg.URL_APP || '').trim(), G = waGerentes();
+  const todas = st.d.tiendas.filter(t => t.activa && enCiudad(t.nombre));
+  const L = [], aldia = [];
+  todas.forEach(t => { const g = waTemas(t.nombre, hoy); if (g.n || g.auto) L.push({t, g}); else aldia.push(WA_VIS[t.nombre] || t.nombre); });
+  L.sort((a, b) => b.g.venc.length - a.g.venc.length || b.g.hoy.length - a.g.hoy.length || b.g.n - a.g.n || a.t.nombre.localeCompare(b.t.nombre));
+  st.waMsg = {};
+  const pend = L.filter(x => !waLS('wa:' + hoy + ':' + x.t.nombre)).length;
+  const nb = $('#nWa'); if (nb) nb.textContent = pend || '';
+  const autoOn = waLS('waAuto') !== 'no';
+  el.innerHTML = `<div class="sec-h"><h2>Enviar por WhatsApp</h2><span class="hint">Solo tú ves esto. Se arma solo con los datos de hoy; puedes editar el texto antes de enviarlo.</span></div>
+    <div class="filters"><button class="chip${autoOn ? ' on' : ''}" id="waAuto">Incluir autosupervisión atrasada</button>
+      ${st.wa == null ? '<span class="cnt-warn small">No se pudo leer la pestaña "WhatsApp gerentes" de la hoja privada.</span>' : ''}</div>
+    <div class="panel flush">${!L.length ? '<div class="empty">Ninguna tienda tiene temas atrasados ni críticos hoy.</div>' : L.map(({t, g}) => {
+      const ger = G[t.nombre] || {}, tel = telIntl(ger.cel), env = waLS('wa:' + hoy + ':' + t.nombre);
+      const enlace = url && t.token ? url + '?t=' + encodeURIComponent(t.token) : '';
+      const msg = waMensaje(t.nombre, ger.nombre, g, enlace); st.waMsg[t.nombre] = msg;
+      const pills = [g.venc.length && `<span class="pill p-bad">${g.venc.length} vencido${g.venc.length > 1 ? 's' : ''}</span>`, g.hoy.length && `<span class="pill p-warn">${g.hoy.length} vence${g.hoy.length > 1 ? 'n' : ''} hoy</span>`,
+        g.dev.length && `<span class="pill p-warn">${g.dev.length} devuelto${g.dev.length > 1 ? 's' : ''}</span>`, g.alta.length && `<span class="pill p-acc">${g.alta.length} prioridad alta</span>`,
+        g.auto && '<span class="pill p-na">Autosupervisión</span>'].filter(Boolean).join('');
+      return `<div class="wa-it${env ? ' env' : ''}" data-t="${esc(t.nombre)}">
+        <div class="wa-cab"><span class="store">${esc(WA_VIS[t.nombre] || t.nombre)}</span><span class="small faint">${ger.nombre ? esc(ger.nombre) + (ger.cel ? ' · ' + esc(ger.cel) : ' · <span class="cnt-warn">falta celular</span>') : '<span class="cnt-warn">falta gerente y celular</span>'}</span>
+          ${env ? `<span class="pill p-good">Enviado hoy ${esc(env)}</span>` : ''}<span class="pills">${pills}</span></div>
+        <textarea rows="${msg.split('\n').length + 1}" aria-label="Mensaje para ${esc(t.nombre)}">${esc(msg)}</textarea>
+        <div class="wa-acc"><button class="btn" data-a="copiar">Copiar</button>
+          ${tel ? '<button class="btn wa" data-a="wa">Abrir WhatsApp</button>' : ''}
+          <button class="btn" data-a="editar" style="margin-left:auto">${ger.cel ? 'Cambiar gerente o celular' : 'Poner celular'}</button></div>
+      </div>`; }).join('')}
+      ${aldia.length ? `<div class="wa-aldia">Al día: ${aldia.map(esc).join(', ')}.</div>` : ''}</div>
+    <p class="small faint" style="margin:8px 2px 0">Entra lo vencido, lo que vence hoy, lo devuelto a la tienda y lo de prioridad alta, más la autosupervisión si pasó de ${Number(st.d.cfg.DIAS_AUTOSUPERVISION) || 7} días. Los celulares están en la hoja privada, pestaña "WhatsApp gerentes".</p>`;
+  $('#waAuto').onclick = () => { waLS('waAuto', autoOn ? 'no' : 'si'); renderWA(); };
+  el.querySelectorAll('.wa-it').forEach(box => {
+    const nombre = box.dataset.t, ta = box.querySelector('textarea'), ger = G[nombre] || {};
+    const alto = () => { if (!ta.offsetParent) return; ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 2 + 'px'; };   // con la pestaña oculta no se mide (quedaba aplastado) requestAnimationFrame(alto); ta.oninput = alto;
+    const marcar = () => { waLS('wa:' + hoy + ':' + nombre, new Date().toTimeString().slice(0, 5)); setTimeout(renderWA, 400); };
+    box.querySelector('[data-a="copiar"]').onclick = async () => {
+      try { await navigator.clipboard.writeText(ta.value); } catch (e) { ta.select(); try { document.execCommand('copy'); } catch (e2) {} }
+      toast('Mensaje copiado. Pégalo en el chat de ' + (ger.nombre || nombre) + '.'); marcar();
+    };
+    const w = box.querySelector('[data-a="wa"]');
+    if (w) w.onclick = () => { window.open('https://wa.me/' + telIntl(ger.cel) + '?text=' + encodeURIComponent(ta.value), '_blank', 'noopener'); marcar(); };
+    box.querySelector('[data-a="editar"]').onclick = () => {
+      if (box.querySelector('.wa-ed')) return;
+      const f = document.createElement('div'); f.className = 'wa-ed';
+      f.innerHTML = `<label>Nombre de pila<input type="text" value="${esc(ger.nombre || '')}" data-k="n"></label><label>Celular<input type="text" inputmode="tel" value="${esc(ger.cel || '')}" placeholder="09X XXX XXXX" data-k="c"></label>
+        <span class="wa-acc"><button class="btn primary">Guardar</button><button class="btn" data-x>Cancelar</button></span>`;
+      box.appendChild(f);
+      f.querySelector('[data-x]').onclick = () => f.remove();
+      f.querySelector('.primary').onclick = async ev => {
+        const n = f.querySelector('[data-k="n"]').value.trim(), c = f.querySelector('[data-k="c"]').value.replace(/[^\d ]/g, '').trim();
+        ev.target.disabled = true;
+        try {
+          const row = ger.row || ((st.wa || [[]]).length + 1);
+          await setRange(`'WhatsApp gerentes'!A${row}:C${row}`, [[nombre, safe(n), c]], CLAVES);
+          st.wa = await getRange("'WhatsApp gerentes'!A1:D", true, CLAVES); toast('Guardado.'); renderWA();
+        } catch (e) { ev.target.disabled = false; toast(errorCopy(e), 5000); }
+      };
+    };
+  });
+}
 
 /* ---------- esperan tu validación (Hoy) ---------- */
 function renderValidar(d){
@@ -3450,6 +3618,130 @@ if (typeof st !== 'undefined' && st.tab === 'perchas') peAbrir();
   bg.onclick = e => { if (e.target === bg) bg.hidden = true; };
   new MutationObserver(pintar).observe(tabs, {subtree: true, childList: true, attributes: true, characterData: true});
   pintar();
+})();
+</script>
+<script>
+window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
+window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "Buscar: inventario, Mall Sol, caja chica, política…",
+  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "reclamos"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "whatsapp", "inventario", "perchas"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Personas", "vistas": ["equipo"]}, {"id": "ajustes", "nombre": "Ajustes", "vistas": ["enlaces"]}],
+  items: [{"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa, validar y anuncios", "kw": "inicio resumen mapa validar anuncios actividades caja chica avisos"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Inventario en vivo", "v": "inventario", "sub": "Tiendas · quién está contando ahora", "kw": "conteo vivo contando ahora", "go": () => TEM_ABRIR("#cvBox")}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Clientes", "v": "reclamos", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Garantías extendidas", "v": "flash", "sub": "Ventas", "kw": "garantia garantias extendidas", "go": () => TEM_ABRIR("#garBody")}, {"t": "WhatsApp a gerentes", "v": "whatsapp", "sub": "Tiendas · vencidos, vencen hoy y devueltos", "kw": "whatsapp mensajes avisos gerentes kapso"}, {"t": "Perchas", "v": "perchas", "sub": "Tiendas · exhibición", "kw": "perchas exhibicion layout planograma"}, {"t": "Equipo de supervisores", "v": "equipo", "sub": "Personas", "kw": "supervisores equipo visitas ranking personas"}, {"t": "Ajustes y enlaces", "v": "enlaces", "sub": "Ajustes", "kw": "enlaces links claves compartir uso ajustes configuracion"}, {"t": "Nueva supervisión", "sub": "Abrir el formulario", "kw": "supervisar visita checklist nueva supervision", "go": () => document.querySelector("#nuevaSup").click()}],
+  extra: function(){
+    const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
+    (S.d.tiendas || []).filter(t => t.activa).forEach(t => out.push({grupo: 'Tiendas', t: t.nombre, sub: 'Pendientes de ' + t.nombre, kw: 'tienda local', v: 'pendientes',
+      go: () => { const f = document.getElementById('fTienda'); if (f) { f.value = t.nombre; f.dispatchEvent(new Event('change')); } }}));
+    if (Array.isArray(S.pol)) S.pol.forEach(p => out.push({grupo: 'Leer', t: p.titulo, sub: 'Cómo trabajamos › Políticas', kw: 'politica ' + (p.id || ''), v: 'politicas'}));
+    else if (S.pol && S.pol.po) S.pol.po.slice(1).filter(r => r[0] && r[1]).forEach(r => out.push({grupo: 'Leer', t: String(r[1]), sub: 'Cómo trabajamos › Políticas', kw: 'politica ' + r[0], v: 'politicas'}));
+    let G = Array.isArray(S.gui) ? S.gui : []; if (!G.length && typeof guiasModelo === 'function') { try { G = guiasModelo() || []; } catch (e) {} }
+    G.forEach(g => out.push({grupo: 'Leer', t: g.titulo, sub: 'Cómo trabajamos › ' + (g.tipo === 'Manual' ? 'Manuales' : 'Guías'), kw: (g.tipo || '') + ' ' + (g.resumen || ''), v: 'guias'}));
+    return out;
+  }};
+/* tem1: temas arriba (en vez de una pestaña por pantalla) y buscador "tipo Google" (Diego 2026-10-25).
+   No cambia las pantallas: usa los mismos botones de pestañas (un toque en un tema = un toque en su pestaña).
+   Cada página define window.TEM = {tabs, montarTemas, montarBuscar, temas, items, extra} antes de este script. */
+(function(){
+  const C = window.TEM; if (!C) return;
+  const tabs = document.querySelector(C.tabs); if (!tabs) return;
+  const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+  const btns = () => [...tabs.querySelectorAll('button[data-v]')].filter(b => !b.hidden && b.style.display !== 'none');
+  const btn = v => tabs.querySelector('button[data-v="' + v + '"]');
+  const texto = b => { const c = b.cloneNode(true); c.querySelectorAll('.n,.badge,.dot,.lbl-m,svg').forEach(x => x.remove()); return c.textContent.replace(/\s+/g, ' ').trim(); };
+  const cuenta = b => { let n = 0; b.querySelectorAll('.n.bad,.badge').forEach(x => { const k = parseInt(x.textContent, 10); if (k > 0 && !x.hidden) n += k; }); return n; };
+  const ultima = {};
+
+  /* ---------- temas (computadora) ---------- */
+  const nav = document.createElement('div'); nav.className = 'tem-nav'; nav.setAttribute('role', 'navigation'); nav.setAttribute('aria-label', 'Temas');
+  const sub = document.createElement('div'); sub.className = 'tem-sub';
+  tabs.classList.add('tem-on');
+  tabs.insertAdjacentElement('afterend', nav);
+  nav.insertAdjacentElement('afterend', sub);
+  const temaDe = v => C.temas.find(t => t.vistas.indexOf(v) >= 0);
+  function irTema(t){
+    const vs = btns().filter(b => t.vistas.indexOf(b.dataset.v) >= 0);
+    const b = vs.find(x => x.dataset.v === ultima[t.id]) || vs[0]; if (b) b.click();
+  }
+  let firma = '';
+  function pintar(){
+    const bs = btns(), on = bs.find(b => b.classList.contains('on')), tOn = on ? temaDe(on.dataset.v) : null;
+    if (on && tOn) ultima[tOn.id] = on.dataset.v;
+    const ts = C.temas.filter(t => bs.some(b => t.vistas.indexOf(b.dataset.v) >= 0));
+    const f = ts.map(t => t.id + (t === tOn ? '*' : '') + bs.filter(b => t.vistas.indexOf(b.dataset.v) >= 0).map(b => b.dataset.v + (b === on ? '*' : '') + cuenta(b)).join(',')).join('|');
+    if (f === firma) return; firma = f;
+    nav.innerHTML = ts.map(t => { const n = bs.filter(b => t.vistas.indexOf(b.dataset.v) >= 0).reduce((s, b) => s + cuenta(b), 0);
+      return '<button type="button" data-t="' + t.id + '" class="' + (t === tOn ? 'on' : '') + '"' + (t === tOn ? ' aria-current="page"' : '') + '>' + esc(t.nombre) + (n ? '<span class="tem-n">' + n + '</span>' : '') + '</button>'; }).join('');
+    nav.querySelectorAll('[data-t]').forEach(x => x.onclick = () => irTema(C.temas.find(t => t.id === x.dataset.t)));
+    const vs = tOn ? bs.filter(b => tOn.vistas.indexOf(b.dataset.v) >= 0) : [];
+    sub.hidden = vs.length < 2;
+    sub.innerHTML = vs.map(b => { const n = cuenta(b); return '<button type="button" data-v="' + b.dataset.v + '" class="' + (b === on ? 'on' : '') + '">' + esc((C.nombres || {})[b.dataset.v] || texto(b)) + (n ? ' <b>' + n + '</b>' : '') + '</button>'; }).join('');
+    sub.querySelectorAll('[data-v]').forEach(x => x.onclick = () => { const b = btn(x.dataset.v); if (b) b.click(); });
+  }
+  new MutationObserver(pintar).observe(tabs, {subtree: true, childList: true, attributes: true, characterData: true});
+  pintar();
+
+  /* ---------- buscador ---------- */
+  const caja = document.createElement('div'); caja.className = 'tem-buscar';
+  caja.innerHTML = '<label class="tem-campo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>' +
+    '<input type="search" autocomplete="off" aria-label="Buscar" placeholder="' + esc(C.placeholder || '¿Qué buscas?') + '"></label><div class="tem-res" role="listbox" hidden></div>';
+  const mb = document.querySelector(C.montarBuscar); if (mb) mb.insertAdjacentElement(C.dondeBuscar || 'afterend', caja);
+  const inp = caja.querySelector('input'), res = caja.querySelector('.tem-res');
+  const lev = (a, b) => { if (Math.abs(a.length - b.length) > 1) return 2; const m = a.length, n = b.length; let p = Array.from({length: n + 1}, (_, j) => j);
+    for (let i = 1; i <= m; i++) { const q = [i]; for (let j = 1; j <= n; j++) q[j] = Math.min(p[j] + 1, q[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); p = q; } return p[n]; };
+  function todos(){
+    const fijos = (C.items || []).filter(it => !it.v || btn(it.v) && !btn(it.v).hidden && btn(it.v).style.display !== 'none').map(it => Object.assign({grupo: 'Ir a'}, it));
+    let din = []; try { din = (C.extra && C.extra()) || []; } catch (e) {}
+    return fijos.concat(din).map(it => Object.assign(it, {_w: norm(it.t + ' ' + (it.kw || '') + ' ' + (it.sub || '')).split(/[^a-z0-9ñ]+/).filter(Boolean), _t: norm(it.t)}));
+  }
+  function puntaje(it, qs){
+    let s = 0;
+    for (const q of qs) {
+      let m = 0;
+      for (const w of it._w) {
+        if (w === q) { m = Math.max(m, 4); break; }
+        if (w.startsWith(q)) m = Math.max(m, 3);
+        else if (q.length >= 3 && w.includes(q)) m = Math.max(m, 2);
+        else if (q.length >= 4 && (lev(q, w) <= 1 || lev(q, w.slice(0, q.length)) <= 1)) m = Math.max(m, 1);
+      }
+      if (!m) return 0; s += m;
+    }
+    if (it._t.startsWith(qs[0])) s += 3;
+    return s + (it.peso || 0);
+  }
+  let lista = [], sel = 0;
+  function buscar(){
+    const q = norm(inp.value).trim(), qs = q.split(/\s+/).filter(Boolean);
+    if (!qs.length) { res.hidden = true; res.innerHTML = ''; lista = []; return; }
+    lista = todos().map(it => [puntaje(it, qs), it]).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0]).slice(0, 9).map(x => x[1]);
+    sel = 0;
+    if (!lista.length) { res.innerHTML = '<div class="tem-vacio">No encontré "' + esc(inp.value) + '". Prueba con otra palabra, por ejemplo inventario, políticas o pendientes.</div>'; res.hidden = false; return; }
+    const grupos = []; lista.forEach(it => { if (grupos.indexOf(it.grupo) < 0) grupos.push(it.grupo); });
+    const orden = grupos.reduce((a, g) => a.concat(lista.filter(it => it.grupo === g)), []); lista = orden;
+    let h = '', i = 0;
+    grupos.forEach(g => { h += '<div class="tem-g">' + esc(g) + '</div>';
+      lista.filter(it => it.grupo === g).forEach(it => { h += '<button type="button" role="option" data-i="' + i + '" class="' + (i === sel ? 'on' : '') + '"><b>' + esc(it.t) + '</b>' + (it.sub ? '<span>' + esc(it.sub) + '</span>' : '') + '</button>'; i++; }); });
+    res.innerHTML = h; res.hidden = false;
+    res.querySelectorAll('[data-i]').forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => abrir(lista[+b.dataset.i]); });
+  }
+  function abrir(it){
+    if (!it) return;
+    res.hidden = true; const q = inp.value; inp.value = ''; inp.blur();
+    try { if (window.REG) REG.ev('Buscar', q + ' → ' + it.t); } catch (e) {}
+    if (it.v) { const b = btn(it.v); if (b) b.click(); }
+    if (it.go) setTimeout(() => { try { it.go(); } catch (e) {} }, 60);
+  }
+  function marcar(){ res.querySelectorAll('[data-i]').forEach(b => b.classList.toggle('on', +b.dataset.i === sel)); const o = res.querySelector('[data-i="' + sel + '"]'); if (o) o.scrollIntoView({block: 'nearest'}); }
+  inp.addEventListener('input', buscar);
+  inp.addEventListener('focus', () => { if (inp.value) buscar(); });
+  inp.addEventListener('blur', () => setTimeout(() => { res.hidden = true; }, 150));
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, lista.length - 1); marcar(); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { sel = Math.max(sel - 1, 0); marcar(); e.preventDefault(); }
+    else if (e.key === 'Enter') { abrir(lista[sel]); e.preventDefault(); }
+    else if (e.key === 'Escape') { inp.value = ''; res.hidden = true; inp.blur(); }
+  });
+  document.addEventListener('keydown', e => {
+    const t = e.target, escribe = t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable);
+    if (e.key === '/' && !escribe && !e.metaKey && !e.ctrlKey) { e.preventDefault(); inp.focus(); }
+  });
 })();
 </script>
 </body></html>
