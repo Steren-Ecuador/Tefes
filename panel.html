@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (956dc8add503). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (a7e66d6d5eea). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -543,6 +543,20 @@ details.li .body{margin-top:10px;font-size:13.5px;color:var(--fg-2);display:grid
 .warn-t{color:var(--warn)}
 .iv-ord{border:0;background:none;padding:0;font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit;cursor:pointer}
 .iv-ord[aria-sort="ascending"],.iv-ord[aria-sort="descending"]{color:var(--accent)}
+/* Flash de Ventas, igual que en el panel admin (Diego 2026-10-25) */
+.fl-cab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.fl-cab h2{font-size:22px}
+.fl-t td,.fl-t th{white-space:nowrap}
+.fl-t td.store{white-space:normal}
+.fl-bar{display:flex;align-items:center;gap:10px;min-width:150px}
+.fl-track{position:relative;flex:1;height:14px;border-radius:7px;background:var(--surface-2)}
+.fl-fill{position:absolute;left:0;top:0;bottom:0;border-radius:7px;background:var(--accent);transition:width .6s ease-out}
+.fl-fill.bajo{background:var(--warn)}
+.fl-pace{position:absolute;top:-4px;bottom:-4px;border-left:2px dashed var(--fg-3)}
+.fl-pct{min-width:52px;text-align:right;font-weight:700}
+.fl-pct.ok{color:var(--good)} .fl-pct.bajo{color:var(--warn)}
+tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
+@media(max-width:620px){.fl-t .hide-sm{display:none}}
 </style>
 
 </head>
@@ -940,6 +954,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   </div>
   <nav class="tabs" id="tabs" aria-label="Secciones del panel">
     <button data-v="hoy">Hoy</button>
+    <button data-v="flash" title="Venta del día y del mes contra presupuesto, desde el ERP">Flash de Ventas</button>
     <button data-v="pendientes">Pendientes<span class="n bad" id="nPend"></span></button>
     <button data-v="supervision">Supervisión</button>
     <button data-v="inventario">Inventario<span class="n bad" id="nInv"></span></button>
@@ -950,6 +965,10 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
 </div></header>
 <div class="wrap">
   <div id="banner"></div>
+
+  <div class="view" data-view="flash" hidden>
+    <div id="flashBody"><div class="skeleton">Cargando Flash de Ventas…</div></div>
+  </div>
 
   <div class="view" data-view="hoy">
     <div class="kpis" id="kpis"></div>
@@ -1114,6 +1133,7 @@ async function cargar(liviano){
     api('apiInventarioPanel').then(x => { st.inv = x; renderInventario(); }).catch(() => { st.inv = null; renderInventario(); });
     api('apiPoliticasPanel').then(x => { st.pol = x; renderPoliticas(); }).catch(() => { st.pol = null; renderPoliticas(); });
     api('apiGuiasPanel').then(x => { st.gui = x; renderGuias(); }).catch(() => { st.gui = null; renderGuias(); });
+    api('apiFlashPanel').then(x => { st.flash = x; renderFlash(); }).catch(() => { st.flash = null; renderFlash(); });
     if (liviano && st.avisos !== undefined) return;
     api('apiAvisosPanel').then(a => { st.avisos = a; renderAvisos(); }).catch(() => {});
     api('apiPoliticasTextoPanel').then(x => { st.polTx = x; renderPoliticas(); }).catch(() => { st.polTx = null; renderPoliticas(); });
@@ -1813,8 +1833,43 @@ function pintarMapa(todas){
 }
 
 
+/* ---------- Flash de Ventas: venta del día y del mes contra presupuesto, desde el ERP (igual que el panel admin, Diego 2026-10-25) ---------- */
+function renderFlash(){
+  const el = $('#flashBody'); if (!el) return;
+  if (st.flash === undefined) { el.innerHTML = '<div class="skeleton">Cargando Flash de Ventas…</div>'; return; }
+  const R = (st.flash || [[]]).slice(1).filter(r => r[1]).map(r => ({local: String(r[1]), tipo: String(r[2] || ''), dia: num(r[3]) || 0, mes: num(r[4]) || 0, pres: num(r[5]),
+    fecha: iso(r[6]), consulta: String(r[7] || ''), erp: String(r[8] || '')}));
+  if (!R.length) { el.innerHTML = '<div class="panel empty">Todavía no hay datos del Flash de Ventas.</div>'; return; }
+  const usd = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const usd0 = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD', maximumFractionDigits: 0});
+  const p1 = x => (x * 100).toFixed(1).replace('.', ',') + '%';
+  const f = R[0].fecha, d = new Date(f + 'T12:00:00Z');
+  const ritmo = d.getUTCDate() / new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  const fechaTxt = new Intl.DateTimeFormat('es-EC', {weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC'}).format(d);
+  const c = new Date(R[0].consulta);
+  const consTxt = isNaN(c) ? R[0].consulta : new Intl.DateTimeFormat('es-EC', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Guayaquil'}).format(c);
+  const T = R.filter(x => x.tipo === 'Tienda'), C = R.filter(x => x.tipo !== 'Tienda');
+  const s = k => T.reduce((a, x) => a + (x[k] || 0), 0);
+  const tot = {dia: s('dia'), mes: s('mes'), pres: s('pres')}; tot.c = tot.pres ? tot.mes / tot.pres : 0;
+  const sobre = T.filter(x => x.pres && x.mes / x.pres >= ritmo).length;
+  const barra = (cu) => `<div class="fl-bar"><div class="fl-track"><div class="fl-fill${cu < ritmo ? ' bajo' : ''}" style="width:${Math.min(cu, 1) * 100}%"></div><div class="fl-pace" style="left:${ritmo * 100}%"></div></div><span class="fl-pct ${cu < ritmo ? 'bajo' : 'ok'}">${p1(cu)}</span></div>`;
+  const fila = x => { const cu = x.pres ? x.mes / x.pres : 0; return `<tr><td class="store">${esc(x.local)}</td><td class="num">${usd.format(x.dia)}</td><td class="num">${usd.format(x.mes)}</td><td class="num hide-sm">${x.pres ? usd0.format(x.pres) : '–'}</td><td>${barra(cu)}</td></tr>`; };
+  el.innerHTML = `<div class="fl-cab"><h2>Flash de Ventas · ${esc(fechaTxt)}</h2><span class="hint">Última actualización: ${esc(consTxt)} · ERP: ${esc(R[0].erp)}</span></div>
+    <div class="kpis" style="margin-top:12px">
+      <div class="kpi"><b>${usd.format(tot.dia)}</b><span>venta del día</span></div>
+      <div class="kpi"><b>${usd.format(tot.mes)}</b><span>venta del mes</span></div>
+      <div class="kpi acc"><b>${p1(tot.c)}</b><span>del presupuesto (${usd0.format(tot.pres)})</span></div>
+      <div class="kpi"><b>${sobre} de ${T.length}</b><span>tiendas sobre el ritmo</span></div>
+    </div>
+    <div style="margin-top:22px"><div class="sec-h"><h2>Tiendas</h2><span class="hint">En orden de apertura. La línea punteada es el ritmo esperado a la fecha (${p1(ritmo)} del mes).</span></div>
+    <div class="panel flush scroll"><table class="exec fl-t"><thead><tr><th>Tienda</th><th class="num">Venta día</th><th class="num">Venta mes</th><th class="num hide-sm">Presupuesto</th><th>Cumplimiento</th></tr></thead>
+      <tbody>${T.map(fila).join('')}<tr class="fl-tot"><td>Total tiendas</td><td class="num">${usd.format(tot.dia)}</td><td class="num">${usd.format(tot.mes)}</td><td class="num hide-sm">${usd0.format(tot.pres)}</td><td>${barra(tot.c)}</td></tr></tbody></table></div></div>
+    ${C.length ? `<div style="margin-top:22px"><div class="sec-h"><h2>CEDIS B2B</h2><span class="hint">Sin presupuesto; no suman al total de tiendas.</span></div>
+    <div class="panel flush scroll"><table class="exec fl-t"><thead><tr><th>Local</th><th class="num">Venta día</th><th class="num">Venta mes</th></tr></thead><tbody>${C.map(x => `<tr><td class="store">${esc(x.local)}</td><td class="num">${usd.format(x.dia)}</td><td class="num">${usd.format(x.mes)}</td></tr>`).join('')}</tbody></table></div></div>` : ''}`;
+}
+
 /* ---------- pestañas ---------- */
-const VISTAS = ['hoy','pendientes','supervision','inventario','vivo','politicas','guias','contactos'];
+const VISTAS = ['hoy','flash','pendientes','supervision','inventario','vivo','politicas','guias','contactos'];
 function ir(v){
   if (v === 'vivo') v = 'inventario';   // En vivo está arriba de Inventario
   if (VISTAS.indexOf(v) < 0) v = 'hoy';   // incluye 'avisos', que ahora está al final de Hoy
