@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="TEFES">
 <meta name="theme-color" content="#131c27">
-<title>Entrar · TEFES</title>
+<title>Entrar · TEFES - Steren - Ecuador</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
 <!-- PRUEBA del ingreso por cargo (25/10/2026). Habla con IngresoPrueba.gs por el doPost de la app. Los enlaces de siempre no cambian. -->
@@ -38,8 +38,8 @@ a{color:var(--accent)}
 .prueba{background:var(--warn-soft);border-bottom:1px solid var(--warn-line);padding:8px 16px;font-size:14px;text-align:center}
 header{background:var(--top);color:#fff;padding:28px 16px 24px}
 header .in,main{max-width:440px;margin:0 auto}
-.marca{font-family:var(--f-display);font-weight:700;font-size:40px;letter-spacing:1px;line-height:1}
-.sub{color:var(--top-2);font-size:15px;margin-top:4px}
+.marca{font-family:var(--f-display);font-weight:700;font-size:40px;letter-spacing:1px;line-height:1.05;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:8px}
+.marca span{font-size:24px;font-weight:600;letter-spacing:.5px;color:var(--top-2)}
 main{padding:24px 16px 40px;display:flex;flex-direction:column;gap:16px}
 .vista{display:flex;flex-direction:column;gap:16px}
 .vista[hidden]{display:none}
@@ -70,6 +70,9 @@ p .link{font-size:inherit;padding:6px 2px;margin:-6px 0}
 .perfil dt{color:var(--fg-3)}
 .perfil dd{margin:0}
 .dos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.puedes h2{font-size:20px}
+.puedes ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;color:var(--fg-2)}
+.puedes p{margin:0}
 .mini{background:var(--bg);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--fg-2)}
 .mini b{display:block;color:var(--fg);font-size:13px}
 .icono{width:64px;height:64px;border-radius:32px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
@@ -81,7 +84,7 @@ p .link{font-size:inherit;padding:6px 2px;margin:-6px 0}
 </head>
 <body>
 <div class="prueba">Prueba del ingreso por cargo. Los enlaces de siempre siguen igual.</div>
-<header><div class="in"><div class="marca">TEFES</div><div class="sub">Tiendas, supervisión e inventario</div></div></header>
+<header><div class="in"><div class="marca">TEFES <span>- Steren - Ecuador</span></div></div></header>
 <main>
   <div class="aviso" id="aviso" role="alert" hidden></div>
 
@@ -95,6 +98,17 @@ p .link{font-size:inherit;padding:6px 2px;margin:-6px 0}
       <button class="btn" id="bPedir" type="submit">Enviarme el enlace</button>
     </form>
     <p class="chico centro">Después de la primera vez, este equipo te recuerda 90 días.</p>
+    <div class="card puedes">
+      <h2>Qué puedes hacer aquí</h2>
+      <ul>
+        <li>Cerrar los pendientes de supervisión con foto</li>
+        <li>Contar el Muestreo Top 50 con el teléfono</li>
+        <li>Leer y confirmar políticas, guías y anuncios</li>
+        <li>Ver el flash de ventas de las tiendas</li>
+        <li>Anotar clientes que esperan un producto y avisarles cuando llega</li>
+      </ul>
+      <p class="chico">Cada persona ve solo lo de su cargo.</p>
+    </div>
   </section>
 
   <section class="vista" id="vRevisa" hidden>
