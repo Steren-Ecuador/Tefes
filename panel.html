@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (eef76eb245e0). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (d14a16f1e165). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -538,6 +538,11 @@ details.li .body{margin-top:10px;font-size:13.5px;color:var(--fg-2);display:grid
 .if-per{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 10px;align-items:center;padding:7px 2px;border-bottom:1px solid var(--line);font-size:14px}
 .if-per input{width:20px;height:20px}
 .r-fecha{display:block;width:100%;box-sizing:border-box;min-height:44px;margin:4px 0 8px;padding:8px 10px;font:inherit;border:1px solid var(--line,#ccd3db);border-radius:8px;background:var(--card,#fff);color:inherit}
+.iv-lista td{background:var(--good-soft)}
+.iv-ok{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--good);color:var(--surface);font-size:11px;font-weight:700;margin-right:7px;vertical-align:1px}
+.warn-t{color:var(--warn)}
+.iv-ord{border:0;background:none;padding:0;font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit;cursor:pointer}
+.iv-ord[aria-sort="ascending"],.iv-ord[aria-sort="descending"]{color:var(--accent)}
 </style>
 
 </head>
@@ -994,7 +999,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
       <div class="filters">
         <select id="fTienda" aria-label="Tienda"><option value="">Todas las tiendas</option></select>
         <select id="fSec" aria-label="Sección"><option value="">Todas las secciones</option></select>
-        <input type="search" id="fQ" placeholder="Buscar hallazgo o responsable" aria-label="Buscar">
+        <!-- sin buscador -->
         <span class="seg" id="vista"><button data-v="tablero">Tablero</button><button data-v="lista">Lista</button></span>
         <span id="fEstado"></span>
       </div>
@@ -1381,7 +1386,11 @@ function renderPend(){
     (!st.fQ || (p.hallazgo + ' ' + p.resp + ' ' + p.accion + ' ' + p.id).toLowerCase().includes(st.fQ.toLowerCase())));
   st.vista = 'tablero';
   document.querySelectorAll('#vista button').forEach(b => { b.className = b.dataset.v === st.vista ? 'on' : ''; b.onclick = () => { st.vista = b.dataset.v; if (window.REG) REG.vista(st.vista === 'tablero' ? 'Tablero' : 'Lista'); try { localStorage.setItem('vistaPend', st.vista); } catch (e) {} renderPend(); }; });
-  if (st.vista === 'tablero') { $('#fEstado').innerHTML = ''; $('#pcount').textContent = base.length + ' de ' + todosC.length; renderBoard(base, hoy); return; }
+  if (st.vista === 'tablero') {   // filtro "Vencidos": abiertos con la fecha límite ya pasada
+    const nV = base.filter(E.vencidos[1]).length, B = st.soloVenc ? base.filter(E.vencidos[1]) : base;
+    $('#fEstado').innerHTML = `<button class="chip ${st.soloVenc ? 'on' : ''}" id="fVenc" aria-pressed="${!!st.soloVenc}">Vencidos (${nV})</button>`;
+    $('#fVenc').onclick = () => { st.soloVenc = !st.soloVenc; renderPend(); };
+    $('#pcount').textContent = B.length + ' de ' + todosC.length; renderBoard(B, hoy); return; }
   $('#fEstado').innerHTML = Object.entries(E).map(([k, [l, f]]) => `<button class="chip ${st.fEstado === k ? 'on' : ''}" data-e="${k}">${l} (${base.filter(f).length})</button>`).join(' ');
   document.querySelectorAll('#fEstado .chip').forEach(c => c.onclick = () => { st.fEstado = c.dataset.e; renderPend(); });
   const L = base.filter(E[st.fEstado][1]).sort((a, b) => String(a.fcomp || '9').localeCompare(String(b.fcomp || '9')));
@@ -1823,9 +1832,12 @@ function renderInventario(){
   const I = st.inv, hoy = st.d.hoy, lu = new Date(I.vence + 'T12:00'); lu.setDate(lu.getDate() - 2);
   const fd = x => DIAS_S[x.getDay()].toLowerCase() + ' ' + x.getDate() + ' ' + MESES_S[x.getMonth()];
   const fase = {}; I.estados.forEach(e => fase[e.t] = e);
-  const resumen = rows => { const ok = rows.filter(r => /^OK/.test(r.estado)).length, cerr = rows.filter(r => /^OK|^Diferencia/.test(r.estado)).length;
-    return {n: rows.length, ok, cerr, dif: rows.filter(r => /^Diferencia/.test(r.estado)).length, ex: rows.length && cerr ? ok / rows.length : null,
-      falt: rows.reduce((s, r) => s + Math.min(0, r.difd), 0), sobr: rows.reduce((s, r) => s + Math.max(0, r.difd), 0)}; };
+  // cifras finales: con la revisión y los ajustes (igual que el detalle de la tienda); "con diferencia" sigue siendo lo que contó la tienda
+  const resumen = rows0 => { const rows = rows0.filter(r => !r.exh), cerrado = r => /^OK|^Diferencia/.test(r.estado);
+    const fin = r => r.fin != null ? r.fin : (/^OK/.test(r.estado) ? 0 : r.dif), find = r => r.fin != null ? Math.round(r.fin * r.costo * 100) / 100 : r.difd;
+    const cerr = rows.filter(cerrado).length, ok = rows.filter(r => cerrado(r) && fin(r) === 0).length, con = rows.filter(r => /^Diferencia/.test(r.estado));
+    return {n: rows.length, ok, cerr, dif: con.length, rvd: con.filter(r => r.rev).length, ex: rows.length && cerr ? ok / rows.length : null,
+      falt: rows.reduce((s, r) => s + (cerrado(r) ? Math.min(0, find(r)) : 0), 0), sobr: rows.reduce((s, r) => s + (cerrado(r) ? Math.max(0, find(r)) : 0), 0)}; };
   const din = x => '$' + Math.abs(Math.round(x)).toLocaleString('es-EC');
   const T = st.d.tiendas.filter(t => t.activa && enCiudad(t.nombre)).map(t => {
     const rows = I.filas.filter(r => r.t === t.nombre), m50 = rows.filter(r => !r.cic), cic = rows.filter(r => r.cic);
@@ -1836,26 +1848,35 @@ function renderInventario(){
   const exs = env.map(x => x.r.ex).filter(x => x != null), exProm = exs.length ? exs.reduce((a, b) => a + b, 0) / exs.length : null;
   const exB = x => x == null ? 'na' : x >= 0.98 ? 'good' : x >= 0.95 ? 'warn' : 'bad';
   const faseC = f => f === 'Enviado' ? 'p-good' : f === 'Segundo conteo' || f === 'Por enviar' ? 'p-acc' : f === 'Contando' ? 'p-warn' : f === 'Sin lista' ? 'p-na' : 'p-bad';
-  const orden = T.slice().sort((a, b) => (a.fz === 'Enviado') - (b.fz === 'Enviado') || (a.r.ex == null ? 9 : a.r.ex) - (b.r.ex == null ? 9 : b.r.ex) || a.t.localeCompare(b.t));
+  // orden: toca un título de columna; por defecto la peor exactitud primero. Las tiendas sin enviar van al final.
+  let ord = st.invOrd; if (!ord) { try { ord = JSON.parse(localStorage.getItem('invOrdSup') || 'null'); } catch (e) {} } if (!ord || !ord.k) ord = {k: 'ex', d: 1}; st.invOrd = ord;
+  const OK = {t: x => x.t, fz: x => x.fz, ex: x => x.r.ex, dif: x => x.r.dif, falt: x => x.r.falt, sobr: x => -x.r.sobr};
+  const orden = T.slice().sort((a, b) => { const ea = a.fz === 'Enviado', eb = b.fz === 'Enviado'; if (ea !== eb && ord.k !== 't' && ord.k !== 'fz') return eb - ea;
+    const va = OK[ord.k](a), vb = OK[ord.k](b); if (va == null || vb == null) return (va == null) - (vb == null) || a.t.localeCompare(b.t);
+    return (typeof va === 'string' ? va.localeCompare(vb) : va - vb) * ord.d || a.t.localeCompare(b.t); });
+  const th = (k, txt, cls, d0) => `<th class="${cls || ''}"><button type="button" class="iv-ord" data-ord="${k}" data-d0="${d0 || 1}" aria-sort="${ord.k === k ? (ord.d > 0 ? 'ascending' : 'descending') : 'none'}">${txt}${ord.k === k ? (ord.d > 0 ? ' ▲' : ' ▼') : ''}</button></th>`;
   const cic = T.filter(x => x.c);
   $('#nInv').textContent = atras.length || '';
   el.innerHTML = `<div><div class="sec-h"><h2>Muestreo Top 50</h2><span class="hint">Semana del ${fd(lu)} · entrega hasta el ${fd(new Date(I.vence + 'T12:00'))}</span></div>
     <div class="kpis" style="margin-bottom:14px"><div class="kpi ${env.length === T.length ? 'good' : ''}"><b>${env.length} de ${T.length}</b><span>enviados</span></div>
       <div class="kpi ${exB(exProm) === 'na' ? '' : exB(exProm)}"><b>${pct(exProm)}</b><span>exactitud promedio</span></div>
       <div class="kpi ${atras.length ? 'bad' : ''}"><b>${atras.length}</b><span>atrasadas</span></div></div>
-    <div class="panel flush scroll"><table class="exec"><thead><tr><th>Tienda</th><th>Estado</th><th class="num">Exactitud</th><th class="num">Diferencias</th><th class="num hide-sm">Faltante</th><th class="num hide-sm">Sobrante</th></tr></thead><tbody>` +
-    orden.map(x => `<tr data-inv="${esc(x.t)}" style="cursor:pointer"><td class="store">${esc(x.t)}${x.por && x.fz !== 'Por contar' ? `<div class="small faint">${esc(x.por)}</div>` : ''}</td>
-      <td><span class="pill ${faseC(x.fz)}">${esc(x.fz)}</span>${atras.indexOf(x) >= 0 ? ' <span class="venc small">atrasada</span>' : ''}</td>
+    <div class="panel flush scroll"><table class="exec"><thead><tr>${th('t', 'Tienda')}${th('fz', 'Estado')}${th('ex', 'Exactitud', 'num')}${th('dif', 'Diferencias', 'num', -1)}${th('falt', 'Faltante', 'num hide-sm')}${th('sobr', 'Sobrante', 'num hide-sm')}</tr></thead><tbody>` +
+    orden.map(x => { const lista = x.fz === 'Enviado' && x.r.dif > 0 && x.r.rvd >= x.r.dif;   // ya se revisaron todas sus diferencias
+      return `<tr class="${lista ? 'iv-lista' : ''}" data-inv="${esc(x.t)}" style="cursor:pointer"><td class="store">${lista ? '<span class="iv-ok" title="Revisada">✓</span>' : ''}${esc(x.t)}${x.por && x.fz !== 'Por contar' ? `<div class="small faint">${esc(x.por)}</div>` : ''}</td>
+      <td><span class="pill ${lista ? 'p-acc' : faseC(x.fz)}">${lista ? 'Revisada' : esc(x.fz)}</span>${atras.indexOf(x) >= 0 ? ' <span class="venc small">atrasada</span>' : ''}</td>
       <td class="num">${x.fz === 'Enviado' && x.r.ex != null ? `<span class="score ${exB(x.r.ex)}">${pct(x.r.ex)}</span>` : '<span class="zero">–</span>'}</td>
       <td class="num">${x.fz === 'Enviado' ? x.r.dif + ' de ' + x.r.n : '<span class="zero">–</span>'}</td>
       <td class="num hide-sm">${x.fz === 'Enviado' && x.r.falt ? '<span class="venc">−' + din(x.r.falt) + '</span>' : '<span class="zero">–</span>'}</td>
-      <td class="num hide-sm">${x.fz === 'Enviado' && x.r.sobr ? din(x.r.sobr) : '<span class="zero">–</span>'}</td></tr>`).join('') +
-    `</tbody></table><p class="small faint" style="margin:0;padding:10px 12px;border-top:1px solid var(--line)">Exactitud: productos que cuadran ÷ productos de la lista. Verde ≥ 98% · ámbar 95–97% · rojo &lt; 95% (es la nota F02 de la supervisión). Faltante y sobrante al costo. Al cerrar cada tienda te llega el correo con el reporte. Toca una tienda para ver producto por producto, registrar tu revisión y hacer el informe de inventario.</p></div></div>
+      <td class="num hide-sm">${x.fz === 'Enviado' && x.r.sobr ? din(x.r.sobr) : '<span class="zero">–</span>'}</td></tr>`; }).join('') +
+    `</tbody></table><p class="small faint" style="margin:0;padding:10px 12px;border-top:1px solid var(--line)">Exactitud: productos que cuadran ÷ productos de la lista. Verde ≥ 98% · ámbar 95–97% · rojo &lt; 95% (es la nota F02 de la supervisión). Exactitud, faltante y sobrante ya incluyen la revisión y los ajustes; faltante y sobrante al costo. Toca un título para ordenar. Al cerrar cada tienda te llega el correo con el reporte. Toca una tienda para ver producto por producto, registrar tu revisión y hacer el informe de inventario.</p></div></div>
     <div><div class="sec-h"><h2>Inventario cíclico</h2><span class="hint">8 semanas por valor</span></div>
     <div class="panel flush">${cic.length ? cic.map(x => `<div class="li" data-inv="${esc(x.t)}" data-cic="1" style="cursor:pointer"><div><div class="store">${esc(x.t)}</div><div class="small faint">${x.c.n} productos esta semana${x.c.cerr ? ' · ' + x.c.ok + ' cuadran, ' + x.c.dif + ' con diferencia' : ''}</div></div>
       ${x.c.cerr ? `<span class="score ${exB(x.c.ex)}">${pct(x.c.ex)}</span>` : `<span class="pill ${faseC(x.fz)}">${esc(x.fz)}</span>`}</div>`).join('') :
       '<div class="empty">Ninguna tienda tiene conteo cíclico esta semana.</div>'}</div></div>`;
   el.querySelectorAll('[data-inv]').forEach(r => r.onclick = () => invAbrir(r.dataset.inv, I.sem, r.dataset.cic ? 'cic' : ''));
+  el.querySelectorAll('[data-ord]').forEach(b => b.onclick = e => { e.stopPropagation(); const k = b.dataset.ord; st.invOrd = st.invOrd.k === k ? {k, d: -st.invOrd.d} : {k, d: +b.dataset.d0};
+    try { localStorage.setItem('invOrdSup', JSON.stringify(st.invOrd)); } catch (x) {} renderInventario(); });
 }
 
 /* ---------- revisión e informe de inventario: mismo código que el panel de Diego.
@@ -1949,10 +1970,10 @@ function invPintar(){
   const cambio = F.some(o => o.cr);
   const kp = (b, t, sub, cls) => `<div><b class="${cls || ''}">${b}</b><span>${t}</span>${sub ? `<small>${sub}</small>` : ''}</div>`;
   $('#ivKp').innerHTML = !cerr.length ? `<div class="banner">La tienda todavía no cierra este conteo: verás el sistema de cada producto, sin lo contado. Igual puedes registrar tu recuento.</div>` :
-    `<div class="iv-kp">${kp(pct(okA / n), 'exactitud de la tienda', cambio ? 'tras tu revisión: ' + pct(okD / n) : '', okA / n >= .98 ? 'good-t' : okA / n < .95 ? 'bad-t' : '')}
+    `<div class="iv-kp">${kp(pct(okD / n), 'exactitud' + (cambio ? ' tras la revisión' : ''), cambio ? 'conteo de la tienda: ' + pct(okA / n) : '', okD / n >= .98 ? 'good-t' : okD / n < .95 ? 'bad-t' : '')}
       ${kp(conDif.length + ' de ' + n, 'con diferencia', porRev ? porRev + ' sin revisar' : conDif.length ? 'todas revisadas' : '')}
-      ${kp(ivDin(sum('difp', -1)), 'faltante al PVP', (cambio ? 'tras revisión: ' + ivDin(sum('finp', -1)) + ' · ' : '') + 'costo ' + ivDin(sum('difd', -1)), sum('difp', -1) < 0 ? 'bad-t' : '')}
-      ${kp(ivDin(sum('difp', 1)), 'sobrante al PVP', (cambio ? 'tras revisión: ' + ivDin(sum('finp', 1)) + ' · ' : '') + 'costo ' + ivDin(sum('difd', 1)))}</div>`;
+      ${kp(ivDin(sum('finp', -1)), 'faltante al PVP', 'costo ' + ivDin(sum('find', -1)) + (cambio ? ' · conteo de la tienda: ' + ivDin(sum('difp', -1)) : ''), sum('finp', -1) < 0 ? 'bad-t' : '')}
+      ${kp(ivDin(sum('finp', 1)), 'sobrante al PVP', 'costo ' + ivDin(sum('find', 1)) + (cambio ? ' · conteo de la tienda: ' + ivDin(sum('difp', 1)) : ''))}</div>`;   // la cifra grande es la final (tras la revisión y ajustes)
   let L = F;
   const FIL = {dif: ['Con diferencia', o => (o.fin != null && o.fin !== 0) || o.estado === 'Reconteo'], falt: ['Faltantes', o => o.fin != null && o.fin < 0],
     sobr: ['Sobrantes', o => o.fin != null && o.fin > 0], sinrev: ['Sin revisar', o => o.cerrado && o.dif !== 0 && !o.cr], rev: ['Revisados', o => !!o.cr], todos: ['Todos', () => true]};
@@ -2360,7 +2381,7 @@ async function polQuiz(p){
 /* ---------- filtros ---------- */
 $('#fTienda').onchange = e => { st.fTienda = e.target.value; renderPend(); };
 $('#fSec').onchange = e => { st.fSec = e.target.value; renderPend(); };
-$('#fQ').oninput = e => { st.fQ = e.target.value; renderPend(); };
+if ($('#fQ')) $('#fQ').oninput = e => { st.fQ = e.target.value; renderPend(); };
 $('#refresh').onclick = () => cargar();
 $('#carpeta').href = CARPETA_URL;
 
