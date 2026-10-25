@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (2c9e1f8766bf). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (02fd4aea68bd). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -467,6 +467,31 @@ input[type=tel],input[type=email]{width:100%;border:1px solid var(--line);border
 .sec-t h4{margin:0;font-size:14px;color:var(--muted)}
 .card.manual{display:block;text-decoration:none;color:inherit}
 .manual h4{margin:0;font-size:16px}
+/* Flash de Ventas (Diego 2026-10-25) */
+.fl{padding:14px 14px 6px}
+.fl-cab{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.fl-cab h3{margin:0;font-size:17px}
+.fl-mia{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 4px}
+.fl-mia div{background:var(--brand-soft);border-radius:10px;padding:8px 10px}
+.fl-mia b{display:block;font-size:19px;line-height:1.2}
+.fl-bar{display:flex;align-items:center;gap:8px;min-width:96px}
+.fl-track{position:relative;flex:1;height:10px;border-radius:5px;background:var(--na-soft)}
+.fl-fill{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:var(--ok)}
+.fl-fill.bajo{background:var(--warn)}
+.fl-pace{position:absolute;top:-3px;bottom:-3px;border-left:2px dashed var(--muted)}
+.fl-pct{min-width:44px;text-align:right;font-weight:700;font-size:13px}
+.fl-pct.ok{color:var(--ok)} .fl-pct.bajo{color:var(--warn)}
+.fl-frase{margin:6px 0 2px}
+.fl-t{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+.fl-t th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;padding:6px 4px;border-bottom:1px solid var(--line)}
+.fl-t td{padding:7px 4px;border-bottom:1px solid var(--line);white-space:nowrap}
+.fl-t td:first-child{white-space:normal}
+.fl-t .n{text-align:right}
+.fl-t tr.yo td{background:var(--brand-soft);font-weight:700}
+.fl-t tr.tot td{font-weight:700;border-bottom:0;background:var(--na-soft)}
+.fl-t tr.sub td{color:var(--muted);font-size:12px;font-weight:600;padding-top:12px}
+.fl details summary{cursor:pointer;color:var(--brand);font-weight:600;font-size:14px;padding:6px 0}
+@media(max-width:420px){.fl-t .hs{display:none}.fl-mia b{font-size:16px}}
 </style>
 </head>
 <body>
@@ -1149,6 +1174,40 @@ function vfFormulario(){
     } catch (e) { b.disabled = false; b.textContent = 'Guardar'; toast(e.message || 'No se pudo guardar. Revisa tu internet.', 4000); }
   };
 }
+/* ---------- Flash de Ventas: venta del día y del mes de todas las tiendas, con la propia resaltada (Diego 2026-10-25) ---------- */
+function flashHtml(){
+  const F = S.data.flash; if (!F || !F.filas || F.filas.length < 2) return '';
+  const nm = v => { if (v === '' || v == null) return null; const n = typeof v === 'number' ? v : Number(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
+  const R = F.filas.slice(1).filter(r => r[1]).map(r => ({local: String(r[1]), tipo: String(r[2] || ''), dia: nm(r[3]) || 0, mes: nm(r[4]) || 0, pres: nm(r[5]), fecha: iso(r[6]), consulta: String(r[7] || '')}));
+  if (!R.length || !R[0].fecha) return '';
+  const usd = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const usd0 = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD', maximumFractionDigits: 0});
+  const p1 = x => (x * 100).toFixed(1).replace('.', ',') + '%';
+  const d = new Date(R[0].fecha + 'T12:00:00Z'), finMes = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  const ritmo = d.getUTCDate() / finMes;
+  const fechaTxt = new Intl.DateTimeFormat('es-EC', {weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC'}).format(d);
+  const c = new Date(R[0].consulta);
+  const consTxt = isNaN(c) ? '' : new Intl.DateTimeFormat('es-EC', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Guayaquil'}).format(c);
+  const T = R.filter(x => x.tipo === 'Tienda'), C = R.filter(x => x.tipo !== 'Tienda');
+  const s = k => T.reduce((a, x) => a + (x[k] || 0), 0), tot = {dia: s('dia'), mes: s('mes'), pres: s('pres')};
+  const barra = cu => '<div class="fl-bar"><div class="fl-track"><div class="fl-fill' + (cu < ritmo ? ' bajo' : '') + '" style="width:' + Math.min(cu, 1) * 100 + '%"></div><div class="fl-pace" style="left:' + ritmo * 100 + '%"></div></div><span class="fl-pct ' + (cu < ritmo ? 'bajo' : 'ok') + '">' + p1(cu) + '</span></div>';
+  const yo = R.find(x => x.local === F.mio);
+  let mia = '';
+  if (yo && yo.tipo === 'Tienda') {
+    const cu = yo.pres ? yo.mes / yo.pres : 0, falta = yo.pres ? Math.max(yo.pres - yo.mes, 0) : 0, quedan = finMes - d.getUTCDate();
+    mia = '<div class="fl-mia"><div><span class="tiny muted">Venta del día</span><b>' + usd0.format(yo.dia) + '</b></div><div><span class="tiny muted">Venta del mes</span><b>' + usd0.format(yo.mes) + '</b></div><div><span class="tiny muted">Presupuesto</span><b>' + (yo.pres ? p1(cu) : '–') + '</b></div></div>' +
+      (yo.pres ? barra(cu) + '<div class="small fl-frase" style="color:' + (cu < ritmo ? 'var(--warn)' : 'var(--ok)') + '">' +
+        (cu >= 1 ? '¡Meta del mes cumplida!' : (cu < ritmo ? 'Vas por debajo del ritmo del mes (' + p1(ritmo) + ').' : 'Vas sobre el ritmo del mes (' + p1(ritmo) + ').') +
+          ' Faltan ' + usd0.format(falta) + ' para la meta de ' + usd0.format(yo.pres) + (quedan > 0 ? ', unos ' + usd0.format(falta / quedan) + ' por día.' : '.')) + '</div>' : '');
+  }
+  const fila = x => { const cu = x.pres ? x.mes / x.pres : 0; return '<tr' + (x.local === F.mio ? ' class="yo"' : '') + '><td>' + esc(x.local) + '</td><td class="n hs">' + usd0.format(x.dia) + '</td><td class="n">' + usd0.format(x.mes) + '</td><td>' + (x.pres ? barra(cu) : '–') + '</td></tr>'; };
+  const tabla = '<table class="fl-t"><thead><tr><th>Tienda</th><th class="n hs">Día</th><th class="n">Mes</th><th>Presupuesto</th></tr></thead><tbody>' +
+    T.map(fila).join('') + '<tr class="tot"><td>Total tiendas</td><td class="n hs">' + usd0.format(tot.dia) + '</td><td class="n">' + usd0.format(tot.mes) + '</td><td>' + barra(tot.pres ? tot.mes / tot.pres : 0) + '</td></tr>' +
+    (C.length ? '<tr class="sub"><td colspan="4">CEDIS B2B (sin presupuesto, no suman al total)</td></tr>' + C.map(x => '<tr' + (x.local === F.mio ? ' class="yo"' : '') + '><td>' + esc(x.local) + '</td><td class="n hs">' + usd0.format(x.dia) + '</td><td class="n">' + usd0.format(x.mes) + '</td><td></td></tr>').join('') : '') + '</tbody></table>';
+  return '<div class="card fl" id="flash"><div class="fl-cab"><h3>Flash de Ventas</h3><span class="tiny muted">' + esc(fechaTxt) + (consTxt ? ' · actualizado ' + esc(consTxt) : '') + '</span></div>' + mia +
+    (mia ? '<details open><summary>Todas las tiendas</summary>' + tabla + '</details>' : tabla) +
+    '<div class="tiny muted" style="margin:6px 0 4px">La línea punteada es el ritmo esperado a la fecha: ' + p1(ritmo) + ' del mes.</div></div>';
+}
 function renderInicio(){
   const D = S.data, A = D.anuncios || [], hoy = D.hoy, sem = semanaDe(hoy);
   const act = A.filter(activo), ant = A.filter(a => !activo(a));
@@ -1176,7 +1235,7 @@ function renderInicio(){
       '<li>En <b>Pendientes</b>, corrige lo que encontró el supervisor y envíalo con foto.</li>' +
       '<li>En <b>Inventario</b>, haz el Muestreo Top 50 con el teléfono y registra las ventas futuras: lo que un cliente pide y no tenemos.</li>' +
       '<li>En <b>Supervisión</b>, haz la autosupervisión una vez por semana y ve cómo te fue en cada supervisión.</li></ol></details></div></div>';
-  $('#main').innerHTML = perfilHtml() + h;
+  $('#main').innerHTML = perfilHtml() + flashHtml() + h;
   document.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => { irA(b.dataset.ir); const an = b.dataset.ancla; if (an) setTimeout(() => { const x = document.getElementById(an); if (x) window.scrollTo(0, x.getBoundingClientRect().top + window.scrollY - (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hh')) || 0) - 8); }, 60); });
   document.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => modalConfirmar(A.find(x => x.id === b.closest('[data-an]').dataset.an)));
   confetiFx();
