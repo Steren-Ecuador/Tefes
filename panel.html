@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (d14a16f1e165). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (d3968a98fbb6). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -729,6 +729,7 @@ function ipdfBajar(blob, nombre){
 @keyframes cvPulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
 @media (prefers-reduced-motion:reduce){.cv-dot.on{animation:none}}
 #tabs .cv-tabdot{margin-left:6px;vertical-align:1px}
+.cv-box summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;font-size:16px}.cv-box summary::-webkit-details-marker{display:none}.cv-box summary b{font-family:var(--f-display);font-size:18px}.cv-box summary::after{content:"Ver";margin-left:auto;color:var(--accent);font-weight:600;font-size:13px}.cv-box[open] summary::after{content:"Ocultar"}
 .cv-chips{display:flex;gap:8px;flex-wrap:wrap}
 .cv-chip{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;font-size:13px;cursor:pointer}
 .cv-chip small{color:var(--fg-3);font-size:11.5px}
@@ -803,13 +804,20 @@ async function cvCargar(){
   catch (e) { CV.err = e.message; }
   finally { CV.cargando = false; cvTab(); cvRender(); }
 }
+// "En vivo" vive arriba de Inventario: luz encendida si alguna tienda cuenta ahora, apagada si no (Diego 2026-10-25)
 function cvTab(){
-  const b = document.querySelector('#tabs button[data-v="vivo"]'); if (!b) return;
-  let d = b.querySelector('.cv-tabdot'); const on = !!(CV.d && CV.d.tiendas.some(x => x.vivo));
-  if (on && !d) { d = document.createElement('span'); d.className = 'cv-dot on cv-tabdot'; d.title = 'Hay tiendas contando ahora'; b.appendChild(d); }
-  if (!on && d) d.remove();
+  const n = CV.d ? CV.d.tiendas.filter(x => x.vivo).length : 0, on = n > 0;
+  const b = document.querySelector('#tabs button[data-v="inventario"]');
+  if (b) { let d = b.querySelector('.cv-tabdot');
+    if (on && !d) { d = document.createElement('span'); d.className = 'cv-dot on cv-tabdot'; d.title = 'Hay tiendas contando ahora'; b.appendChild(d); }
+    if (!on && d) d.remove(); }
+  const luz = document.getElementById('cvLuz'), tx = document.getElementById('cvLuzTxt'), box = document.getElementById('cvBox');
+  if (luz) luz.classList.toggle('on', on);
+  if (tx) tx.textContent = !CV.d ? (CV.err ? 'Sin datos por ahora' : 'Revisando…') : on ? (n === 1 ? '1 tienda contando ahora' : n + ' tiendas contando ahora') : 'Apagado · ninguna tienda está contando';
+  if (box && CV.d && on !== CV.onAntes) box.open = on;
+  if (CV.d) CV.onAntes = on;
 }
-function cvVisible(){ const v = document.querySelector('.view[data-view="vivo"]'); return v && !v.hidden && !document.hidden; }
+function cvVisible(){ const v = document.querySelector('.view[data-view="inventario"]'), b = document.getElementById('cvBox'); return v && !v.hidden && b && b.open && !document.hidden; }
 function cvIniciar(){
   if (CV.timer) return;
   cvCargar();
@@ -935,7 +943,6 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
     <button data-v="pendientes">Pendientes<span class="n bad" id="nPend"></span></button>
     <button data-v="supervision">Supervisión</button>
     <button data-v="inventario">Inventario<span class="n bad" id="nInv"></span></button>
-    <button data-v="vivo">En vivo</button>
     <button data-v="politicas">Políticas<span class="n" id="nPol"></span></button>
     <button data-v="guias">Manuales y guías</button>
     <button data-v="contactos">Contactos</button>
@@ -1007,8 +1014,8 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
     </section>
   </div>
 
-  <div class="view" data-view="vivo" hidden><div id="vivoBody"><div class="skeleton">Cargando conteos…</div></div></div>
   <div class="view" data-view="inventario" hidden>
+    <details class="panel cv-box" id="cvBox" ontoggle="if(this.open&&window.cvRender){cvRender();cvCargar();}"><summary><span class="cv-dot" id="cvLuz"></span><b>En vivo</b><span class="hint" id="cvLuzTxt">Revisando…</span></summary><div id="vivoBody" style="margin-top:12px"><div class="skeleton">Cargando conteos…</div></div></details>
     <div id="invBody"><div class="skeleton">Cargando inventario…</div></div>
   </div>
 
@@ -1119,7 +1126,26 @@ async function cargar(liviano){
 
 /* ---------- identificación del supervisor ---------- */
 const lista = v => String(v || '').split(',').map(x => x.trim()).filter(Boolean);
-function puede(p){ const y = st.yo; return !!y && y.permiso === 'Seguimiento' && (/^todas$/i.test(y.tiendas) || lista(y.tiendas).indexOf(p.tienda) >= 0); }
+/* ---------- quién revisa cada pendiente: el supervisor que hizo la supervisión (Diego 2026-10-25) ---------- */
+const normN = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+function revisores(p){
+  const s = st.d && st.d.sups.find(x => x.id === p.sup); if (!s || !s.por) return [];
+  const N = (st.usuarios || []).map(n => ({n, k: normN(n)})), out = [];
+  String(s.por).split(/\s*(?:\/|,|;|&|\+|\sy\s)\s*/i).map(normN).filter(Boolean).forEach(x => { const w = x.split(' ');
+    const m = N.find(o => o.k === x || o.k.split(' ').every(t => w.indexOf(t) >= 0) || (w.length > 1 && w.every(t => o.k.split(' ').indexOf(t) >= 0)));
+    if (m && out.indexOf(m.n) < 0) out.push(m.n); });
+  return out;
+}
+const unirN = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' y ' + a[a.length - 1];
+function revTxt(p){ const r = revisores(p); return r.length && p.estado !== 'Cerrado' ? `<div class="small faint">Revisa: ${esc(unirN(r))}</div>` : ''; }
+function revDet(p){ const r = revisores(p); return `<div class="small">Revisa: <b>${r.length ? esc(unirN(r)) : 'cualquier supervisor'}</b>${r.length ? '' : ' <span class="faint">(no la hizo un supervisor de la lista)</span>'}</div>`; }
+// Actúa quien hizo la supervisión; si no fue un supervisor de la lista, cualquiera de la tienda; el administrador, todos
+function puede(p){ const y = st.yo; if (!y || y.permiso !== 'Seguimiento') return false; if (y.admin) return true;
+  const r = revisores(p); return r.length ? r.indexOf(y.nombre) >= 0 : (/^todas$/i.test(y.tiendas) || lista(y.tiendas).indexOf(p.tienda) >= 0); }
+function filtraMios(){ return !!st.yo && !st.yo.admin && st.soloMios !== false; }
+function chipMios(b){ if (!st.yo || st.yo.admin) return ''; const on = st.soloMios !== false;
+  return `<button class="chip ${on ? 'on' : ''}" id="fMios" aria-pressed="${on}">Solo los míos (${b.filter(puede).length})</button> `; }
+function bindMios(){ const b = $('#fMios'); if (b) b.onclick = () => { st.soloMios = st.soloMios === false; renderPend(); }; }
 // Tiempo propio en el panel (semana y mes), para animar a usarlo; si falla no se muestra nada
 function miUso(){
   const el = $('#miUso'); if (!el) return;
@@ -1188,7 +1214,7 @@ function pintarYo(){
   const eb = $('#eyebrow'); if (eb) eb.textContent = 'Supervisores' + (st.yo ? ' · ' + st.yo.nombre : '');
   if (window.REG) REG.quien(st.yo ? st.yo.nombre : '');
   miUso();
-  $('#yo').innerHTML = st.yo ? (st.yo.permiso === 'Seguimiento' ? '<button class="btn" id="nuevaSup">+ <span class="ns-l">Nueva </span>supervisión</button> ' : '') + `<span class="yo-chip">${esc(st.yo.nombre)}${st.yo.permiso === 'Seguimiento' ? '' : ' · solo lectura'}</span> <button class="btn" id="salir">Salir</button>` : '';
+  $('#yo').innerHTML = st.yo ? (st.yo.permiso === 'Seguimiento' ? '<button class="btn" id="nuevaSup">+ <span class="ns-l">Nueva </span>supervisión</button> ' : '') + `<span class="yo-chip">${esc(st.yo.nombre)}${st.yo.admin ? ' · administrador' : st.yo.permiso === 'Seguimiento' ? '' : ' · solo lectura'}</span> <button class="btn" id="salir">Salir</button>` : '';
   if ($('#nuevaSup')) $('#nuevaSup').onclick = nuevaSupervision;
   renderSupervision();
   if ($('#salir')) $('#salir').onclick = () => { st.yo = null; try { localStorage.removeItem('supTefes'); } catch (e) {} pintarYo(); if (st.d) render(); login(); };
@@ -1294,8 +1320,8 @@ function render(){
         <td><div class="pcell">${pend}</div></td></tr>`;
     }).join('') + `</tbody></table><p class="small faint" style="margin:0;padding:10px 12px;border-top:1px solid var(--line)">${hayV && alDia ? `Ventas al ${alDia.slice(8, 10)}/${alDia.slice(5, 7)}. Proyección del mes contra la meta: verde ≥ 100%, ámbar 90–99%, rojo &lt; 90%. ` : ''}Puntaje: última evaluación, supervisión o autosupervisión. Verde ≥ 90% · ámbar 71–89% · rojo ≤ 70%.</p>`;
   document.querySelectorAll('#stores tr.click').forEach(tr => tr.onclick = () => detalleTienda(tr.dataset.t));
-  renderValidar(pendC, hoy);
-  $('#nPend').textContent = val || '';
+  renderValidar(filtraMios() ? pendC.filter(puede) : pendC, hoy);
+  $('#nPend').textContent = (filtraMios() ? pendC.filter(p => p.estado === 'Por validar' && puede(p)).length : val) || '';
 
   const cell = (s, dd, n, lim, falta) => s ? `<span class="pill p-${band(s.total)}">${pct(s.total)}</span> ${fmtF(s.fecha)}
       <div class="small faint">hace ${dd} días${lim && dd > lim ? ' <span class="venc">atrasada</span>' : ''} · ${esc(s.por || '')} · ${n} en total</div>` : `<span class="pill p-na">${falta}</span>`;
@@ -1382,17 +1408,18 @@ function renderPend(){
   const E = {abiertos:['Abiertos', p => ABIERTOS.includes(p.estado)], vencidos:['Vencidos', p => ABIERTOS.includes(p.estado) && p.fcomp && p.fcomp < hoy],
     validar:['Por validar', p => p.estado === 'Por validar'], cerrados:['Cerrados', p => p.estado === 'Cerrado'], todos:['Todos', () => true]};
   const todosC = d.pend.filter(p => enCiudad(p.tienda));
-  const base = todosC.filter(p => (!st.fTienda || p.tienda === st.fTienda) && (!st.fSec || p.seccion === st.fSec) &&
+  const base0 = todosC.filter(p => (!st.fTienda || p.tienda === st.fTienda) && (!st.fSec || p.seccion === st.fSec) &&
     (!st.fQ || (p.hallazgo + ' ' + p.resp + ' ' + p.accion + ' ' + p.id).toLowerCase().includes(st.fQ.toLowerCase())));
+  const base = filtraMios() ? base0.filter(puede) : base0, chM = chipMios(base0);
   st.vista = 'tablero';
   document.querySelectorAll('#vista button').forEach(b => { b.className = b.dataset.v === st.vista ? 'on' : ''; b.onclick = () => { st.vista = b.dataset.v; if (window.REG) REG.vista(st.vista === 'tablero' ? 'Tablero' : 'Lista'); try { localStorage.setItem('vistaPend', st.vista); } catch (e) {} renderPend(); }; });
   if (st.vista === 'tablero') {   // filtro "Vencidos": abiertos con la fecha límite ya pasada
     const nV = base.filter(E.vencidos[1]).length, B = st.soloVenc ? base.filter(E.vencidos[1]) : base;
-    $('#fEstado').innerHTML = `<button class="chip ${st.soloVenc ? 'on' : ''}" id="fVenc" aria-pressed="${!!st.soloVenc}">Vencidos (${nV})</button>`;
-    $('#fVenc').onclick = () => { st.soloVenc = !st.soloVenc; renderPend(); };
+    $('#fEstado').innerHTML = chM + `<button class="chip ${st.soloVenc ? 'on' : ''}" id="fVenc" aria-pressed="${!!st.soloVenc}">Vencidos (${nV})</button>`;
+    $('#fVenc').onclick = () => { st.soloVenc = !st.soloVenc; renderPend(); }; bindMios();
     $('#pcount').textContent = B.length + ' de ' + todosC.length; renderBoard(B, hoy); return; }
-  $('#fEstado').innerHTML = Object.entries(E).map(([k, [l, f]]) => `<button class="chip ${st.fEstado === k ? 'on' : ''}" data-e="${k}">${l} (${base.filter(f).length})</button>`).join(' ');
-  document.querySelectorAll('#fEstado .chip').forEach(c => c.onclick = () => { st.fEstado = c.dataset.e; renderPend(); });
+  $('#fEstado').innerHTML = chM + Object.entries(E).map(([k, [l, f]]) => `<button class="chip ${st.fEstado === k ? 'on' : ''}" data-e="${k}">${l} (${base.filter(f).length})</button>`).join(' ');
+  document.querySelectorAll('#fEstado .chip[data-e]').forEach(c => c.onclick = () => { st.fEstado = c.dataset.e; renderPend(); }); bindMios();
   const L = base.filter(E[st.fEstado][1]).sort((a, b) => String(a.fcomp || '9').localeCompare(String(b.fcomp || '9')));
   $('#pcount').textContent = L.length + ' de ' + todosC.length;
   $('#plist').innerHTML = !L.length ? '<div class="empty">No hay pendientes con estos filtros.</div>' :
@@ -1418,7 +1445,7 @@ function tarjeta(p, hoy){
     <div class="kt">${p.estado === 'Cerrado' ? '<span class="kok" aria-label="Cerrado">✓</span>' : ''}${esc(p.hallazgo || p.texto)}</div>
     <div class="kmeta">${p.prior ? `<span class="pill ${p.prior === 'Alta' ? 'p-bad' : p.prior === 'Media' ? 'p-warn' : 'p-na'}">${esc(p.prior)}</span>` : ''}
       <span class="small ${v ? 'venc' : 'faint'}">${p.fcomp ? (v ? 'Venció ' : '') + fmtF(p.fcomp) : 'Sin fecha'}</span>
-      <span class="small faint kresp">${esc(p.resp || '')}</span></div>
+      <span class="small faint kresp">${esc(p.resp || '')}</span></div>${revTxt(p)}
     ${puede(p) ? '' : '<!--'}<select class="mv" aria-label="Mover ${esc(p.id)} a"><option value="">Mover a…</option>${COLS.filter(c => !c.f(p)).map(c => `<option value="${c.k}">${c.t}</option>`).join('')}</select>${puede(p) ? '' : '-->'}
   </div>`;
 }
@@ -1529,7 +1556,7 @@ function opcionesSup(p){
 function turnoHTML(p){
   const R = opcionesSup(p), paso = {ab:0, pv:1, ce:3}[R.g];
   return `<div class="r-camino" aria-label="En qué paso va">${['La tienda corrige', 'El supervisor valida', 'Cerrado'].map((l, i) => `<div class="r-paso ${i < paso ? 'hecho' : i === paso ? 'ahora' : ''}">${i + 1}. ${l}</div>`).join('')}</div>
-    <div class="r-turno ${R.tuya ? 'tu' : R.fin ? 'fin' : 'otro'}">${R.turno}<span> · ${R.sub}</span></div>`;
+    ${R.tuya && st.yo && !puede(p) ? `<div class="r-turno otro">Le toca a ${esc(unirN(revisores(p)) || 'otro supervisor')}<span> · ${R.sub}</span></div>` : `<div class="r-turno ${R.tuya ? 'tu' : R.fin ? 'fin' : 'otro'}">${R.turno}<span> · ${R.sub}</span></div>`}`;
 }
 function respHTML(p){
   const R = opcionesSup(p);
@@ -1577,6 +1604,7 @@ function detalle(id){
     <div style="display:flex;justify-content:space-between;align-items:center"><span class="small faint">${esc(p.id)} · ${esc(p.tienda)}</span><button class="btn" id="dClose">Cerrar panel</button></div>
     <div class="d-punto"><span class="d-cod">${esc(p.punto)}</span><div><div class="d-sec">${esc(p.seccion || '')}</div><h2>${esc(p.texto || p.punto)}</h2></div></div>
     ${turnoHTML(p)}
+    ${revDet(p)}
     <div>${puede(p) ? '' : tagEstado(p.estado) + ' '}${p.prior ? `<span class="pill ${p.prior === 'Alta' ? 'p-bad' : p.prior === 'Media' ? 'p-warn' : 'p-na'}">Prioridad ${esc(p.prior)}</span>` : ''} <span class="small faint">${esc(p.origen)} del ${fmtF(p.fechaSup)} · calificación ${esc(p.calif)}</span></div>
     ${p.hallazgo ? `<div class="lbl">Lo que se encontró</div><div>${esc(p.hallazgo)}</div>` : ''}
     <div class="lbl">Acción correctiva</div><div class="d-acc">${esc(p.accion || 'Sin acción correctiva definida')}</div>
@@ -1584,7 +1612,7 @@ function detalle(id){
     ${p.fotoA.length || p.fotoD.length ? `<div class="links">${fotoLinks(p.fotoA, 'Foto antes')}${fotoLinks(p.fotoD, 'Foto después')}</div>` : ''}
     <div class="d-resp"><div><div class="lbl">Responsable</div><div>${esc(p.resp || '–')}</div></div><div><div class="lbl">Fecha de compromiso</div><div class="${ABIERTOS.includes(p.estado) && p.fcomp && p.fcomp < st.d.hoy ? 'venc' : ''}">${fmtF(p.fcomp) || 'Sin fecha'}</div></div></div>
     
-    ${puede(p) ? `${respHTML(p)}` : `<div class="banner small">${st.yo ? 'Puedes ver este pendiente, pero no tienes permiso para comentar en esta tienda.' : 'Identifícate para comentar, cerrar o reabrir este pendiente.'} ${st.yo ? '' : '<button class="btn primary" id="dLogin" style="margin-left:6px">Identificarme</button>'}</div>`}
+    ${puede(p) ? `${respHTML(p)}` : `<div class="banner small">${st.yo ? (revisores(p).length ? 'Este pendiente lo revisa ' + esc(unirN(revisores(p))) + '. Puedes verlo, pero no actuar sobre él.' : 'Puedes ver este pendiente, pero no tienes permiso para comentar en esta tienda.') : 'Identifícate para comentar, cerrar o reabrir este pendiente.'} ${st.yo ? '' : '<button class="btn primary" id="dLogin" style="margin-left:6px">Identificarme</button>'}</div>`}
     <div class="lbl">Lo que ha pasado</div><div class="tl-box" id="dChat">${chat(p.hist)}</div>
   </div></div>`;
   $('#dClose').onclick = () => $('#drawer').innerHTML = '';
@@ -1772,6 +1800,7 @@ function pintarMapa(todas){
 /* ---------- pestañas ---------- */
 const VISTAS = ['hoy','pendientes','supervision','inventario','vivo','politicas','guias','contactos'];
 function ir(v){
+  if (v === 'vivo') v = 'inventario';   // En vivo está arriba de Inventario
   if (VISTAS.indexOf(v) < 0) v = 'hoy';   // incluye 'avisos', que ahora está al final de Hoy
   try { const tb = document.querySelector('#tabs button[data-v="' + v + '"]'); if (tb) tb.scrollIntoView({block: 'nearest', inline: 'center'}); } catch (e) {}   // ux1
   document.querySelectorAll('.view').forEach(x => x.hidden = x.dataset.view !== v);
@@ -1779,7 +1808,7 @@ function ir(v){
   try { localStorage.setItem('tabSup', v); } catch (e) {}
   if (window.REG) REG.vista(v === 'hoy' ? 'Inicio' : v === 'supervision' ? 'Supervisión' : v.charAt(0).toUpperCase() + v.slice(1));
   if (v === 'hoy') requestAnimationFrame(() => { if (M.ok) mDraw(); });
-  if (v === 'vivo' && window.cvRender) { cvRender(); cvCargar(); }   // conteo en vivo
+  if (v === 'inventario' && window.cvRender) { cvRender(); cvCargar(); }   // conteo en vivo
   window.scrollTo({top: 0});
 }
 document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => ir(b.dataset.v));
