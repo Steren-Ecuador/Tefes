@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (fcba1245f560). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (eef76eb245e0). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -35,7 +35,7 @@
     if (fn === 'apiInitTienda' && r && r.tienda) {
       var h = document.getElementById('hTienda');
       if (h) h.textContent = r.tienda;
-      document.title = r.tienda + ' · TEFES';
+      document.title = r.tienda.replace(/\bMegakywi\b(?!-EloyAlfaro)/, 'Megakywi-EloyAlfaro').replace(/\bMegamaxi\b(?! 6 Dic)/, 'Megamaxi 6 Dic') + ' · TEFES';   // nombre visible (2026-10-24)
     }
     if (fn === 'apiEnlaceSupervision' && typeof r === 'string') r = r.replace(/^https:\/\/script\.google\.com\/macros\/s\/[^/?]+\/exec\?/, SITIO + '?');
     return r;
@@ -537,6 +537,7 @@ details.li .body{margin-top:10px;font-size:13.5px;color:var(--fg-2);display:grid
 .if-tot b{text-align:right}
 .if-per{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 10px;align-items:center;padding:7px 2px;border-bottom:1px solid var(--line);font-size:14px}
 .if-per input{width:20px;height:20px}
+.r-fecha{display:block;width:100%;box-sizing:border-box;min-height:44px;margin:4px 0 8px;padding:8px 10px;font:inherit;border:1px solid var(--line,#ccd3db);border-radius:8px;background:var(--card,#fff);color:inherit}
 </style>
 
 </head>
@@ -892,7 +893,7 @@ function cvRender(){
     '<div class="sec-h"><h2>Conteos en vivo</h2><span class="hint">' + (vivos ? vivos + (vivos === 1 ? ' tienda contando ahora' : ' tiendas contando ahora') : 'Ninguna tienda contando ahora') + ' · actualizado ' + cvEsc(D.hora) + ' · cada 30 s</span></div>' +
     '<div class="cv-chips" role="group" aria-label="Tiendas">' + D.tiendas.slice().sort((a, b) => b.vivo - a.vivo || a.t.localeCompare(b.t)).map(x =>
       '<button type="button" class="cv-chip" data-cvt="' + cvEsc(x.t) + '" aria-pressed="' + (x.t === D.tienda) + '"><span class="cv-dot' + (x.vivo ? ' on' : '') + '"></span>' + cvEsc(x.t) + ' <small>' + cvEsc(x.fase) + '</small></button>').join('') + '</div>' +
-    '<div class="cv-hero"><div class="cv-ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="11"/><circle cx="60" cy="60" r="52" fill="none" stroke="#86b6ef" stroke-width="11" stroke-linecap="round" stroke-dasharray="' + (327 * nC / total).toFixed(1) + ' 327"/></svg><div class="in"><b>' + pc + '%</b><small>' + nC + ' de ' + total + '</small></div></div>' +
+    '<div class="cv-hero"><div class="cv-ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="11"/><circle cx="60" cy="60" r="52" fill="none" stroke="#86b6ef" stroke-width="11" stroke-linecap="round" stroke-dasharray="' + (327 * nC / total).toFixed(1) + ' 327"/></svg><div class="in"><b>' + nC + '<span style="font-size:.55em;opacity:.7">/' + total + '</span></b><small>contados</small></div></div>' +
     '<div style="min-width:0;width:100%"><div style="display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center"><div><div class="cv-eye">Muestreo Top 50 · ' + cvEsc(D.sem) + ' · ronda ' + ronda + '</div><div class="cv-h1">' + cvEsc(D.tienda) + '</div></div><span style="flex:1"></span><span class="cv-live"><span class="cv-dot' + (est.vivo ? ' on' : '') + '"></span>' + cvEsc(est.vivo ? 'Contando ahora' : est.fase || '') + '</span></div>' +
     '<div class="cv-kpis"><div class="cv-kpi"><span>Unidades contadas</span><b>' + uni.toLocaleString('es-EC') + '</b><em>de ' + uniS.toLocaleString('es-EC') + ' en el sistema</em></div>' +
     '<div class="cv-kpi"><span>Con diferencia</span><b>' + (nC ? nD : '–') + '</b><em>' + (nC ? 'de ' + nC + ' contados' : 'productos') + '</em></div>' +
@@ -1536,15 +1537,29 @@ function elegirResp(p, k){
   $('#rForm').innerHTML = `<div class="r-form"><label class="r-lbl" for="dCom">Mensaje para la tienda <span class="faint">· ${o.texto === 'obl' ? 'obligatorio' : 'opcional'}</span></label>
     <div class="ac"><textarea id="dCom" rows="3" placeholder="${esc(o.ph)}" autocomplete="off"></textarea><div class="ac-list" id="acList" hidden></div></div>
     <div class="ac-chips" id="acChips"></div>
+    ${o.est === 'Reabierto' ? `<label class="r-lbl" for="dFecha">Nueva fecha límite <span class="faint">· obligatoria</span></label>
+    <input type="date" id="dFecha" class="r-fecha" min="${st.d.hoy}" value="${fechaSug(p)}">` : ''}
     <p class="r-falta" id="rFalta" hidden></p>
     <button class="r-cta ${o.cls || ''}" id="rOk">${o.boton}${o.nota ? `<small>${o.nota}</small>` : ''}</button></div>`;
   autocompletar(p);
-  const ta = $('#dCom'), ok = $('#rOk');
-  RESP.revisar = () => { const falta = o.texto === 'obl' && !ta.value.trim(); ok.disabled = falta; $('#rFalta').hidden = !falta; $('#rFalta').textContent = falta ? 'Escribe el mensaje para poder enviarlo.' : ''; };
-  ta.addEventListener('input', RESP.revisar); RESP.revisar();
-  ok.onclick = () => guardarEstado(p.id, o.est, ta.value.trim(), ok);
+  const ta = $('#dCom'), ok = $('#rOk'), fe = $('#dFecha');
+  RESP.revisar = () => {
+    const fm = o.texto === 'obl' && !ta.value.trim(), ff = fe && (!fe.value || fe.value < st.d.hoy);
+    ok.disabled = fm || ff; $('#rFalta').hidden = !(fm || ff);
+    $('#rFalta').textContent = fm ? 'Escribe el mensaje para poder enviarlo.' : ff ? 'Pon la nueva fecha límite (hoy o después).' : '';
+  };
+  ta.addEventListener('input', RESP.revisar); if (fe) fe.addEventListener('input', RESP.revisar); RESP.revisar();
+  ok.onclick = () => guardarEstado(p.id, o.est, conFecha(ta.value.trim(), fe && fe.value), ok, fe && fe.value);
   $('#rForm').scrollIntoView({block:'nearest', behavior:'smooth'});
 }
+
+/* Nueva fecha límite al devolver: sugiere la actual si sigue vigente, si no hoy + 3 días */
+function fechaSug(p){
+  if (p.fcomp && p.fcomp > st.d.hoy) return p.fcomp;
+  const d = new Date(st.d.hoy + 'T12:00:00'); d.setDate(d.getDate() + 3);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+const conFecha = (txt, f) => f ? (txt ? txt + ' · ' : '') + 'Nueva fecha límite: ' + fmtF(f) : txt;
 
 function detalle(id){
   const p = st.d.pend.find(x => x.id === id); if (!p) return;
@@ -1576,13 +1591,13 @@ function accion(id, a){
   guardarEstado(id, 'Cerrado', '', b);
 }
 
-async function guardarEstado(id, estado, comentario, btn){
+async function guardarEstado(id, estado, comentario, btn, fecha){
   const p = st.d.pend.find(x => x.id === id);
   if (!p || !puede(p)) { toast('Identifícate para hacer cambios.'); if (!st.yo) login(); return; }
   if (estado === 'Mensaje' && !comentario) { toast('Escribe el mensaje para la tienda'); return; }
   if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
   try {
-    await api('apiAccion', st.yo.nombre, id, estado, comentario || '');
+    await api('apiAccion', st.yo.nombre, id, estado, comentario || '', fecha || '');
     toast({Mensaje:'Mensaje enviado', Pendiente:'Movido a Abierto', Cerrado:'Pendiente cerrado', Reabierto:'Pendiente reabierto, la tienda lo verá en su lista'}[estado] || 'Movido a ' + estado);
     $('#drawer').innerHTML = '';
     await cargar(true);
@@ -2363,6 +2378,21 @@ pintarYo();
   try { await carga; } finally { if (!st.yo) login(); }
   setInterval(() => { if (document.visibilityState === 'visible') cargar(true); }, 300000);
 })();
+})();
+</script>
+<script>/* etiquetas de tiendas (Diego 2026-10-24): solo el nombre visible, la clave interna sigue igual */
+(function(){
+  var R=[[/\bMegakywi\b(?!-EloyAlfaro)/g,'Megakywi-EloyAlfaro'],[/\bMegamaxi\b(?! 6 Dic)/g,'Megamaxi 6 Dic']];
+  var fix=function(s){return R.reduce(function(a,r){return a.replace(r[0],r[1]);},s);};
+  var SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1};
+  function walk(n){
+    if(n.nodeType===3){ if(/Mega(kywi|maxi)/.test(n.nodeValue)){var v=fix(n.nodeValue); if(v!==n.nodeValue) n.nodeValue=v;} return; }
+    if(n.nodeType!==1||SKIP[n.nodeName]) return;
+    for(var c=n.firstChild;c;c=c.nextSibling) walk(c);
+  }
+  walk(document.body); var t=fix(document.title); if(t!==document.title) document.title=t;
+  new MutationObserver(function(ms){ ms.forEach(function(m){ if(m.type==='characterData') walk(m.target); else m.addedNodes.forEach(walk); }); })
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
 })();
 </script>
 </body>
