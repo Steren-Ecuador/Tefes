@@ -314,6 +314,8 @@ nav button{flex:1 1 auto}
 .pol-res{text-align:center;padding:22px 14px}
 .pol-res .big{font-size:40px;line-height:1;font-weight:800}
 @media(max-width:520px){.pol-2{grid-template-columns:1fr}.pol-flujo{grid-template-columns:1fr 1fr}}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:8px 0;font-size:14px;cursor:pointer}
+.chk input{width:20px;height:20px;flex:none;margin-top:1px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
 /* ux6: celular tipo redes sociales (barra de íconos abajo, perfil arriba, Leer, supervisión un punto por pantalla) */
@@ -369,12 +371,36 @@ nav .ic,nav .lbl-m,#bLeer,.perfil,.leer-seg,.tk-sec{display:none}
   html.tk .cal button{min-height:74px;font-size:22px}
   html.tk .tk-fin{display:block;text-align:center;font-size:12px;color:var(--muted);margin-top:8px}
 }
+/* cel1: supervisión con candado y sellos (solo celular) */
+.tk-lock,.sello,.tk-fiesta{display:none}
+@media(max-width:700px){
+  html.tk nav{display:none}
+  html.tk .footer{bottom:0}
+  html.tk main{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+  html.tk .toast{bottom:calc(84px + env(safe-area-inset-bottom))}
+  html.tk .punto-w{min-height:calc(100svh - var(--hh,60px) - 84px - env(safe-area-inset-bottom))}
+  html.tk .tk-bloq{display:none!important}
+  html.tk .punto{position:relative;overflow:hidden}
+  html.tk .tk-lock:not([hidden]){display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;min-height:45svh;padding:18px 16px;text-align:center;color:var(--muted);font-weight:700;font-size:15px}
+  html.tk .tk-lock .cand{font-size:34px;line-height:1}
+  html.tk #fSig.bloq{background:var(--na-soft,#eef1f4);color:var(--muted);font-size:13px;white-space:nowrap;max-width:46vw;overflow:hidden;text-overflow:ellipsis}
+  .sello{display:block;position:absolute;left:50%;top:38%;z-index:5;pointer-events:none;white-space:nowrap;font-weight:900;font-size:26px;letter-spacing:.5px;text-transform:uppercase;
+    padding:8px 16px;border:4px solid currentColor;border-radius:12px;background:rgba(255,255,255,.92);transform:translate(-50%,-50%) rotate(-11deg) scale(1);animation:selloIn 1.25s cubic-bezier(.2,1.4,.4,1) forwards}
+  .sello.s2{color:var(--ok)} .sello.s1{color:var(--warn)} .sello.s0{color:var(--bad)} .sello.sna{color:var(--na)}
+  .sello small{display:block;font-size:12px;font-weight:700;text-transform:none;letter-spacing:0;opacity:.85}
+  @keyframes selloIn{0%{opacity:0;transform:translate(-50%,-50%) rotate(-11deg) scale(2.4)}18%{opacity:1;transform:translate(-50%,-50%) rotate(-11deg) scale(.94)}28%{transform:translate(-50%,-50%) rotate(-11deg) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) rotate(-11deg) scale(1)}}
+  .tk-fiesta{display:block;position:fixed;inset:0;z-index:70;pointer-events:none;overflow:hidden}
+  .tk-fiesta i{position:absolute;top:-40px;font-style:normal;font-size:26px;animation:llueve 2.4s ease-in forwards}
+  @keyframes llueve{to{transform:translateY(110vh) rotate(260deg);opacity:.2}}
+}
+@media(prefers-reduced-motion:reduce){.sello,.tk-fiesta i{animation:none!important}.tk-fiesta{display:none!important}}
 .pv-op{display:block;width:100%;text-align:left;border:1.5px solid var(--line);background:var(--card,#fff);border-radius:8px;padding:8px 10px;margin-top:6px;font:inherit;color:inherit}
 .pv-res{font-weight:700;margin-top:6px}
 
 /* ventas futuras */
 input[type=tel],input[type=email]{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;font-size:16px;min-height:44px}
 .aviso.ok{background:var(--ok-soft);color:var(--ok)}
+.aviso.warn{background:var(--warn-soft);color:var(--warn)} .vf-bod{background:var(--warn-soft);color:var(--warn)}
 .vf-it{padding:12px 0;border-top:1px solid var(--line)}
 .vf-it:first-child{border-top:0;padding-top:0}
 .vf-it:last-child{padding-bottom:0}
@@ -776,7 +802,45 @@ function perfilHtml(){
 const leerSeg = v => '<div class="seg leer-seg">' + [['pol', 'Políticas'], ['gui', 'Manuales y guías']].map(([k, l]) => '<button data-leer="' + k + '" class="' + (k === v ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
 const leerWire = () => document.querySelectorAll('[data-leer]').forEach(b => b.onclick = () => irA(b.dataset.leer));
 function marcaLeer(){ const el = $('#bLeer'); if (el) el.hidden = !(polPend().length || guiaPend().length); }
-function modoTk(){ document.documentElement.classList.toggle('tk', S.vista === 'sup' && !!S.form && esCel()); }
+function modoTk(){ document.documentElement.classList.toggle('tk', S.vista === 'sup' && !!S.form && esCel()); tkGate(); }
+/* cel1: en el celular la supervisión va un punto a la vez: el siguiente aparece cuando el actual está completo */
+const tkOn = () => document.documentElement.classList.contains('tk');
+function tkGate(){
+  if (!S.form || !S.data) return;
+  const tk = tkOn(), L = S.data.puntos, sinQuien = !String(S.form.realizadaPor || '').trim();
+  const i0 = sinQuien ? 0 : L.findIndex(p => faltaEn(p)), corte = sinQuien ? -1 : (i0 < 0 ? L.length : i0);
+  L.forEach((p, i) => { const w = $('#pt-' + p.id); if (w) w.classList.toggle('tk-bloq', tk && i > corte); });
+  const fin = $('#tkFinal'); if (fin) fin.classList.toggle('tk-bloq', tk && (sinQuien || i0 >= 0));
+  const lk = $('#tkLock');
+  if (lk) { lk.hidden = !tk || (!sinQuien && i0 < 0);
+    lk.innerHTML = '<span class="cand">🔒</span>' + (sinQuien ? 'Elige arriba quién supervisa para empezar.' : i0 >= 0 ? 'Termina ' + esc(L[i0].id) + ' para ver el siguiente punto.<span class="tiny">Falta: ' + esc(faltaEn(L[i0])) + '</span>' : ''); }
+  const sg = $('#fSig');
+  if (sg) { const bl = tk && (sinQuien || i0 >= 0); sg.classList.toggle('bloq', bl);
+    sg.textContent = !tk ? 'Siguiente ↓' : sinQuien ? '🔒 Elige supervisor' : i0 >= 0 ? '🔒 Falta ' + faltaEn(L[i0]) : '🎉 Final ↓'; }
+  if (tk && !sinQuien && i0 < 0 && !S.tkFiesta) { S.tkFiesta = true; tkFiesta(); }
+  if (i0 >= 0) S.tkFiesta = false;
+}
+const SELLOS = {'2': ['¡Aprobado!', 'Like del jefe', '¡Impecable!', 'Nivel pro', '¡De 10!', '¡Eso es!'],
+  '1': ['Casi, casi', 'Va mejorando', 'A medio camino'], '0': ['A corregir', 'Ups', 'Toca mejorar'], 'N/A': ['No aplica', 'Pasamos']};
+const SELLO_ICO = {'2': ['👍', '❤️', '✨', '💪', '⭐', '🔥'], '1': ['🤏', '📈', '🚧'], '0': ['🛠️', '😬', '💪'], 'N/A': ['🤷', '👉']};
+const SELLO_SUB = {'2': 'Cumple', '1': 'Parcial · se crea pendiente', '0': 'Incumple · se crea pendiente', 'N/A': ''};
+function sello(p, c){
+  if (!tkOn() || !SELLOS[c]) return;
+  const card = $('#pt-' + p.id) && $('#pt-' + p.id).firstElementChild; if (!card) return;
+  const k = Math.floor(Math.random() * SELLOS[c].length), s = document.createElement('div');
+  s.className = 'sello s' + (c === 'N/A' ? 'na' : c);
+  s.innerHTML = esc(SELLOS[c][k]) + ' ' + SELLO_ICO[c][k] + (SELLO_SUB[c] ? '<small>' + SELLO_SUB[c] + '</small>' : '');
+  card.appendChild(s); setTimeout(() => s.remove(), 1300);
+  try { if (navigator.vibrate) navigator.vibrate(c === '2' ? 18 : [12, 50, 12]); } catch (e) {}
+}
+function tkFiesta(){
+  toast('¡Supervisión completa! 🎉 Revisa el comentario y toca Guardar.', 3500);
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  const f = document.createElement('div'); f.className = 'tk-fiesta';
+  const E = ['🎉', '⭐', '✨', '👏', '🏆', '💪'];
+  for (let i = 0; i < 26; i++) { const e = document.createElement('i'); e.textContent = E[i % E.length]; e.style.left = Math.random() * 100 + 'vw'; e.style.animationDelay = (Math.random() * .8) + 's'; f.appendChild(e); }
+  document.body.appendChild(f); setTimeout(() => f.remove(), 3400);
+}
 /* ---------- navegación ---------- */
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => irA(b.dataset.v));
 function irA(v){
@@ -954,6 +1018,8 @@ function vfToca(linea){
   const r = S.data.ventasFuturas; if (!r) return '';
   if (r.llego) return linea(r.llego === 1 ? 'Llegó un producto que espera un cliente' : 'Llegaron ' + r.llego + ' productos que esperan clientes',
     'Contacta al cliente hoy', 'var(--ok)', '<button class="btn primary" data-ir="inv">Ver</button>');
+  if (r.bodega) return linea(r.bodega === 1 ? 'Hay en otras tiendas un producto que espera un cliente' : 'Hay en otras tiendas ' + r.bodega + ' productos que esperan clientes',
+    'Pide la transferencia a tu tienda', 'var(--warn)', '<button class="btn" data-ir="inv">Ver</button>');
   if (r.viejos) return linea(r.viejos === 1 ? 'Un cliente espera hace más de 60 días' : r.viejos + ' clientes esperan hace más de 60 días',
     'Llámalo y ofrécele una alternativa', 'var(--warn)', '<button class="btn" data-ir="inv">Ver</button>');
   return '';
@@ -973,7 +1039,8 @@ function vfItemHtml(v){
   else if (v.estado === 'Avisado') acc = '<button class="btn" data-vfe="Compró">Compró</button><button class="btn" data-vfe="No compró">No compró</button>';
   else if (v.estado === 'Esperando') acc = '<button class="link" data-vfe="Cancelado">Cerrar sin venta</button>';
   return '<div class="vf-it" data-vf="' + esc(v.id) + '"><div class="vf-h"><b><span class="vf-cod">' + esc(v.cod) + '</span> ' + esc(v.prod || '') + '</b>' +
-    '<span class="tag ' + VF_TAG[v.estado] + '">' + esc(v.estado) + '</span></div>' +
+    '<span class="tag ' + (v.estado === 'Esperando' && v.cedis ? 'vf-bod' : VF_TAG[v.estado]) + '">' + esc(v.estado === 'Esperando' && v.cedis ? 'Hay en otras' : v.estado) + '</span></div>' +
+    (v.estado === 'Esperando' && v.cedis ? '<div class="small" style="color:var(--warn)">Hay en ' + esc(v.bodega || 'bodega') + ' (al ' + fechaCorta(v.cedis) + '). Pide la transferencia a tu tienda.</div>' : '') +
     '<button class="vf-cli" data-vfver>' + esc(v.cliente) + ' · ' + esc(ver ? v.celular : vfOculto(v.celular)) + ' · ' + esc(v.contacto) + (ver || !ab ? '' : ' <span class="tiny">(ver)</span>') + '</button>' +
     (ver && v.correo ? '<div class="tiny muted">' + esc(v.correo) + '</div>' : '') +
     (v.obs ? '<div class="vf-obs">' + esc(v.obs) + '</div>' : '') +
@@ -990,6 +1057,8 @@ function vfHtml(){
   const lle = ab.filter(v => v.estado === 'Llegó').length;
   let h = '<div class="sec-t"><h3>Ventas futuras</h3><span class="tiny muted">' + (VFS.lista ? ab.length + ' por atender' : '') + '</span></div>';
   if (lle) h += '<div class="aviso ok"><div><b>' + (lle === 1 ? 'Llegó un producto que espera un cliente' : 'Llegaron ' + lle + ' productos que esperan clientes') + '</b>Contáctalo hoy y sepárale la unidad.</div></div>';
+  const bod = ab.filter(v => v.estado === 'Esperando' && v.cedis).length;
+  if (bod) h += '<div class="aviso warn"><div><b>' + (bod === 1 ? 'Un producto que espera un cliente está en otra tienda o en bodega' : bod + ' productos que esperan clientes están en otras tiendas o en bodega') + '</b>Pide la transferencia a tu tienda.</div></div>';
   h += '<button class="btn primary block" id="vfNuevo">+ Registrar venta futura</button>';
   if (VFS.error) h += '<div class="card small" style="margin-top:10px">' + esc(VFS.error) + ' <button class="link" id="vfRe">Reintentar</button></div>';
   else if (VFS.lista === null) h += '<div class="card muted small" style="margin-top:10px"><span class="spin"></span> Cargando…</div>';
@@ -1034,7 +1103,7 @@ function vfModalEstado(v, estado){
 }
 function vfResumenLocal(){
   const L = VFS.lista || [], r = S.data.ventasFuturas || {};
-  r.llego = L.filter(v => v.estado === 'Llegó').length; r.esperando = L.filter(v => v.estado === 'Esperando').length;
+  r.llego = L.filter(v => v.estado === 'Llegó').length; r.esperando = L.filter(v => v.estado === 'Esperando').length; r.bodega = L.filter(v => v.estado === 'Esperando' && v.cedis).length;
   S.data.ventasFuturas = r;
 }
 function vfCatalogo(){
@@ -1146,6 +1215,44 @@ function flashHtml(){
     (mia ? '<details open><summary>Todas las tiendas</summary>' + tabla + '</details>' : tabla) +
     '<div class="tiny muted" style="margin:6px 0 4px">La línea punteada es el ritmo esperado a la fecha: ' + p1(ritmo) + ' del mes.</div></div>';
 }
+/* ---------- ACTIVIDADES DEL MES (actividades-mes): caja chica y otras, Actividades.gs ---------- */
+const diasHasta = i => Math.round((new Date(i + 'T12:00:00') - new Date(S.data.hoy + 'T12:00:00')) / 864e5);
+function actToca(linea){
+  return (S.data.actividades || []).filter(a => !a.hecho).map(a => {
+    const d = diasHasta(a.vence);
+    const det = d < 0 ? 'Vencido el ' + fechaCorta(a.vence) : d === 0 ? 'Vence hoy' : 'Entregar hasta el ' + fechaCorta(a.vence) + ' · faltan ' + d + ' día' + (d === 1 ? '' : 's');
+    return linea(esc(a.titulo), det, d <= 0 ? 'var(--bad)' : d <= 5 ? 'var(--warn)' : 'var(--muted)',
+      '<button class="btn primary" data-actv="' + esc(a.id + '|' + a.periodo) + '">Ya entregué</button>');
+  }).join('');
+}
+function modalActividad(a){
+  const P = S.data.personal || [], jefes = P.filter(p => /gerente|subadmin|jefe|encargad/i.test(p.cargo)), L = jefes.length ? jefes : P;
+  let quien = '', foto = null;
+  openModal('<h3>' + esc(a.titulo) + '</h3><p class="small muted" style="margin:0">' + esc(a.como) + '</p>' +
+    '<label class="f">¿Quién entrega?</label><div class="quien">' + L.map(p => '<button data-n="' + esc(p.nombre) + '">' + esc(p.nombre) + (p.cargo ? '<small>' + esc(p.cargo) + '</small>' : '') + '</button>').join('') + '</div>' +
+    '<label class="chk"><input type="checkbox" class="acc"> Todas las facturas son de ' + esc(a.mes) + '.</label>' +
+    '<label class="chk"><input type="checkbox" class="acc"> Van los recibos y facturas originales en el sobre.</label>' +
+    '<div class="phead"><span class="small"><b>Foto del sobre</b></span><span class="req opt">Opcional</span></div>' +
+    '<div class="ph" id="acFotos"><label class="add cam"><span class="ic">📷</span>Cámara<input type="file" accept="image/*" capture="environment"></label></div>' +
+    '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="acNo">Cancelar</button><button class="btn ok grow" id="acSi" disabled>Marcar entregado</button></div>');
+  const si = $('#acSi'), listo = () => si.disabled = !(quien && [...document.querySelectorAll('.acc')].every(c => c.checked));
+  document.querySelectorAll('.quien [data-n]').forEach(b => b.onclick = () => { quien = b.dataset.n; document.querySelectorAll('.quien [data-n]').forEach(x => x.classList.toggle('on', x === b)); listo(); });
+  document.querySelectorAll('.acc').forEach(c => c.onchange = listo);
+  const fi = $('#acFotos input');
+  fi.onchange = () => { const f = fi.files[0]; if (!f) return; foto = f; const d = $('#acFotos .t') || document.createElement('div'); d.className = 't'; d.innerHTML = '<img src="' + URL.createObjectURL(f) + '" alt="">'; $('#acFotos').prepend(d); };
+  $('#acNo').onclick = closeModal;
+  si.onclick = async () => {
+    si.disabled = true; si.textContent = 'Guardando…';
+    try {
+      let url = '';
+      if (foto) url = (await api('apiSubirFoto', await reducirFoto(foto, S.data.tienda + ' · ' + a.titulo + ' · ' + fmtDT(new Date())), 'Actividad ' + a.id + ' ' + a.periodo)).url;
+      a.hecho = await api('apiMarcarActividad', a.id, a.periodo, quien, url);
+      if (window.REG) REG.ev('Acción', 'Actividad entregada · ' + a.titulo);
+      closeModal(); toast('Registrado: ' + quien + ' entregó el ' + a.titulo.toLowerCase(), 3500); render();
+    } catch(e){ si.disabled = false; si.textContent = 'Marcar entregado'; toast(e.message || 'No se pudo guardar. Revisa tu internet.'); }
+  };
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-actv]'); if (!b) return; const k = b.dataset.actv; const a = (S.data.actividades || []).find(x => x.id + '|' + x.periodo === k); if (a) modalActividad(a); });
 function renderInicio(){
   const D = S.data, A = D.anuncios || [], hoy = D.hoy, sem = semanaDe(hoy);
   const act = A.filter(activo), ant = A.filter(a => !activo(a));
@@ -1168,7 +1275,7 @@ function renderInicio(){
     linea('Autosupervisión de la semana', auto ? 'Hecha el ' + fechaCorta(auto.fecha) + ' · ' + pct(auto.total) : 'Todavía no se hace',
       auto ? 'var(--muted)' : 'var(--warn)', auto ? '' : '<button class="btn primary" data-ir="sup">Hacer</button>') +
     (D.inventario ? linea('Muestreo Top 50', esc(invTexto(D.inventario)), D.inventario.fase && D.inventario.fase !== 'Enviado' ? 'var(--warn)' : 'var(--muted)', '<button class="btn" data-ir="inv">Ver</button>') : '') +
-    vfToca(linea) + polToca(linea) + guiaToca(linea) + '<details' + (primera ? ' open' : '') + '><summary>¿Cómo funciona?</summary><ol class="pasos">' +
+    actToca(linea) + vfToca(linea) + polToca(linea) + guiaToca(linea) + '<details' + (primera ? ' open' : '') + '><summary>¿Cómo funciona?</summary><ol class="pasos">' +
       '<li>Cada persona lee los anuncios y confirma con su nombre.</li>' +
       '<li>En <b>Pendientes</b>, corrige lo que encontró el supervisor y envíalo con foto.</li>' +
       '<li>En <b>Inventario</b>, haz el Muestreo Top 50 con el teléfono y registra las ventas futuras: lo que un cliente pide y no tenemos.</li>' +
@@ -1225,25 +1332,60 @@ function renderGui(){
 }
 function modalGuia(g){
   const f = guiaFaltan(g), cargo = {}; (S.data.personal || []).forEach(p => cargo[p.nombre] = p.cargo);
+  const conPreg = n => g.preguntas && /gerente de tienda/i.test(cargo[n] || '');
   let elegido = '';
   openModal('<h3>Confirmar lectura</h3><p class="small muted" style="margin:0">' + esc(g.titulo) + '</p>' +
     '<label class="f">¿Quién eres?</label>' +
     (f.length ? '<div class="quien">' + f.map(x => '<button data-n="' + esc(x) + '">' + esc(x) + (cargo[x] ? '<small>' + esc(cargo[x]) + '</small>' : '') + '</button>').join('') + '</div>'
       : '<input type="text" id="gNom" autocomplete="off" placeholder="Tu nombre y apellido">') +
-    '<p class="small" style="margin:12px 0 0">Al confirmar declaro que leí la guía y sé cómo hacer este proceso. Queda registrado con mi nombre, la fecha y la hora.</p>' +
+    '<p class="small" style="margin:12px 0 0">Al confirmar declaro que leí la guía y sé cómo hacer este proceso. Queda registrado con mi nombre, la fecha y la hora.' +
+      (g.preguntas ? ' El gerente y el subgerente responden ' + g.preguntas + ' preguntas.' : '') + '</p>' +
     '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="gNo">Cancelar</button><button class="btn primary grow" id="gSi" disabled>Confirmar</button></div>');
   const si = $('#gSi');
-  document.querySelectorAll('.quien [data-n]').forEach(b => b.onclick = () => { elegido = b.dataset.n; document.querySelectorAll('.quien [data-n]').forEach(x => x.classList.toggle('on', x === b)); si.disabled = false; si.textContent = 'Confirmar como ' + elegido.split(' ')[0]; });
+  document.querySelectorAll('.quien [data-n]').forEach(b => b.onclick = () => { elegido = b.dataset.n; document.querySelectorAll('.quien [data-n]').forEach(x => x.classList.toggle('on', x === b)); si.disabled = false;
+    si.textContent = conPreg(elegido) ? 'Responder ' + g.preguntas + ' preguntas' : 'Confirmar como ' + elegido.split(' ')[0]; });
   const inp = $('#gNom'); if (inp) inp.oninput = () => { elegido = inp.value.trim(); si.disabled = elegido.length < 3; };
   $('#gNo').onclick = closeModal;
+  const listo = r => {
+    if (!g.lecturas.some(l => l.persona === r.persona)) g.lecturas.push({persona: r.persona, fecha: r.fecha, hora: r.hora});
+    if (window.REG) REG.ev('Lectura de guía', g.id + ' · ' + r.persona);
+    closeModal(); toast('Lectura registrada: ' + r.persona, 3500); render();
+  };
   si.onclick = async () => {
+    if (conPreg(elegido)) return preguntasGuia(g, elegido, listo);
     si.disabled = true; si.textContent = 'Guardando…';
+    try { listo(await api('apiConfirmarGuia', g.id, elegido)); }
+    catch(e){ si.disabled = false; si.textContent = 'Confirmar'; toast(e.message || 'No se pudo guardar. Revisa tu internet.'); }
+  };
+}
+/* Gerente y subgerente: 5 preguntas al azar del banco de la guía; con todas bien queda la lectura, si no vuelve a leer y salen otras */
+async function preguntasGuia(g, persona, listo){
+  const Q = {lista: null, resp: {}};
+  const pintar = () => {
+    $('#modal .gq').innerHTML = Q.lista.map((q, i) => '<div class="card pol-q"><div class="pol-qn">Pregunta ' + (i + 1) + ' de ' + Q.lista.length + '</div><b>' + esc(q.pregunta) + '</b>' +
+      q.opciones.map((o, j) => '<button class="pol-op' + (Q.resp[q.n] === o ? ' on' : '') + '" data-q="' + i + '" data-o="' + j + '"><span class="rd"></span><span>' + esc(o) + '</span></button>').join('') + '</div>').join('');
+    document.querySelectorAll('#modal .gq [data-q]').forEach(b => b.onclick = () => { const q = Q.lista[+b.dataset.q]; Q.resp[q.n] = q.opciones[+b.dataset.o]; pintar(); });
+    $('#gEnv').disabled = Object.keys(Q.resp).length < Q.lista.length;
+  };
+  openModal('<h3>' + esc(g.titulo) + '</h3><p class="small muted" style="margin:0">' + esc(persona) + ', responde las ' + g.preguntas + ' preguntas. Con todas bien queda registrada tu lectura.</p>' +
+    '<div class="gq" style="margin-top:10px"><div class="loading"><span class="spin"></span> Cargando preguntas…</div></div>' +
+    '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="gNo">Cancelar</button><button class="btn primary grow" id="gEnv" disabled>Enviar respuestas</button></div>');
+  $('#gNo').onclick = closeModal;
+  try { Q.lista = await api('apiPreguntasGuia', g.id); pintar(); }
+  catch(e){ toast(e.message || 'No se pudieron cargar las preguntas.'); closeModal(); return; }
+  $('#gEnv').onclick = async () => {
+    const b = $('#gEnv'); b.disabled = true; b.textContent = 'Revisando…';
     try {
-      const r = await api('apiConfirmarGuia', g.id, elegido);
-      if (!g.lecturas.some(l => l.persona === r.persona)) g.lecturas.push({persona: r.persona, fecha: r.fecha, hora: r.hora});
-      if (window.REG) REG.ev('Lectura de guía', g.id + ' · ' + r.persona);
-      closeModal(); toast('Lectura registrada: ' + r.persona, 3500); render();
-    } catch(e){ si.disabled = false; si.textContent = 'Confirmar'; toast(e.message || 'No se pudo guardar. Revisa tu internet.'); }
+      const r = await api('apiConfirmarGuia', g.id, persona, Q.resp);
+      if (r.aprobado) return listo(r);
+      if (window.REG) REG.ev('Guía no aprobada', g.id + ' · ' + persona);
+      const mal = r.detalle.filter(d => !d.bien).length;
+      $('#modal .gq').innerHTML = Q.lista.map(q => { const ok = (r.detalle.find(x => x.n === q.n) || {}).bien;
+        return '<div class="card small"><b style="color:' + (ok ? 'var(--ok)' : 'var(--bad)') + '">' + (ok ? '✓ Bien' : '✗ Incorrecta') + '</b> · ' + esc(q.pregunta) + '</div>'; }).join('') +
+        '<div class="aviso" style="background:var(--warn-soft);color:var(--warn)"><div><b>' + mal + (mal === 1 ? ' respuesta incorrecta' : ' respuestas incorrectas') + '</b>Vuelve a leer la guía y responde otra vez. Saldrán otras preguntas.</div></div>';
+      b.textContent = 'Intentar otra vez'; b.disabled = false;
+      b.onclick = () => preguntasGuia(g, persona, listo);
+    } catch(e){ b.disabled = false; b.textContent = 'Enviar respuestas'; toast(e.message || 'No se pudo guardar. Revisa tu internet.'); }
   };
 }
 function marcaPol(){ const el = $('#bPol'); if (el) el.hidden = !polPend().length; }
@@ -1562,12 +1704,12 @@ function renderSup(){
     h += '<div class="sec-h" id="sec-' + esc(s.cod) + '"><h2>' + esc(s.cod) + ') ' + esc(s.nombre) + '</h2><span class="tiny muted" id="secp-' + esc(s.cod) + '"></span></div>';
     S.data.puntos.filter(p => p.sec === s.cod).forEach(p => h += '<div id="pt-' + esc(p.id) + '"></div>');
   });
-  h += '<div class="card tk-snap"><label class="f" style="margin-top:0">Comentario general (opcional)</label><textarea data-k="comentario">' + esc(F.comentario) + '</textarea></div>';
+  h += '<div class="tk-lock" id="tkLock" hidden></div><div class="card tk-snap" id="tkFinal"><label class="f" style="margin-top:0">Comentario general (opcional)</label><textarea data-k="comentario">' + esc(F.comentario) + '</textarea></div>';
   $('#main').innerHTML = h;
   S.data.puntos.forEach(p => pintarPunto(p));
   $('#footer').innerHTML = '<div class="footer"><div class="in"><div class="grow" style="min-width:0"><div class="small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span id="fN"></span> · <span class="score" id="fS"></span></div><div class="bar"><i id="fBar"></i></div></div>' +
     '<button class="btn" id="fSig">Siguiente ↓</button><button class="btn primary" id="fGuardar">Guardar</button></div></div>';
-  document.querySelectorAll('main [data-k]').forEach(i => i.oninput = () => { F[i.dataset.k] = i.value; guardarBorrador(); });
+  document.querySelectorAll('main [data-k]').forEach(i => i.oninput = () => { F[i.dataset.k] = i.value; guardarBorrador(); if (i.dataset.k === 'realizadaPor') tkGate(); });
   document.querySelectorAll('#sTipo button').forEach(b => b.onclick = () => { F.tipo = b.dataset.t; pintarRealiza(F); guardarBorrador(); document.querySelectorAll('#sTipo button').forEach(x => x.classList.toggle('on', x === b)); });
   $('#fSig').onclick = () => irSiguiente(null);
   $('#fGuardar').onclick = confirmarGuardar;
@@ -1587,7 +1729,7 @@ function campoRealizada(F){
 function pintarRealiza(F){
   const w = $('#wRealiza'); if (!w) return;
   w.innerHTML = campoRealizada(F);
-  const i = w.querySelector('[data-k]'); i.oninput = i.onchange = () => { F.realizadaPor = i.value; guardarBorrador(); };
+  const i = w.querySelector('[data-k]'); i.oninput = i.onchange = () => { F.realizadaPor = i.value; guardarBorrador(); tkGate(); };
 }
 function money(x){ return '$' + Math.round(x).toLocaleString('es-EC'); }
 /** Datos del reporte de ventas (C04 venta, C05 ticket, C06 artículos, B06/C08 impulso) y el texto sugerido para "Dato de apoyo" */
@@ -1701,12 +1843,12 @@ function bindPunto(p, cont){
       if(!x.responsable) x.responsable = F.gerente || '';
       x.prioridad = x.calif === '0' ? 'Alta' : 'Media';
     }
-    guardarBorrador(); pintarPunto(p); actualizarFooter();
-    if (!faltaEn(p)) setTimeout(() => irSiguiente(p.id), 180);
+    guardarBorrador(); pintarPunto(p); actualizarFooter(); sello(p, x.calif);
+    if (!faltaEn(p)) setTimeout(() => irSiguiente(p.id), tkOn() ? 900 : 180);
     else if (x.calif === '0' || x.calif === '1') { const o = cont.querySelector('[data-i=obs]'); if (o && !o.value) setTimeout(() => o.focus({preventScroll:true}), 50); }
   });
   el.querySelectorAll('[data-i]').forEach(i => {
-    i.oninput = () => { it()[i.dataset.i] = i.value; guardarBorrador(); if (i.dataset.i === 'accion') pintarSug(p, cont); };
+    i.oninput = () => { it()[i.dataset.i] = i.value; guardarBorrador(); if (i.dataset.i === 'accion') pintarSug(p, cont); tkGate(); };
     i.onchange = () => { it()[i.dataset.i] = i.value; guardarBorrador(); };
   });
   el.querySelectorAll('[data-prio] button').forEach(b => b.onclick = () => { it().prioridad = b.dataset.p; guardarBorrador(); el.querySelectorAll('[data-prio] button').forEach(x => x.classList.toggle('on', x === b)); });
@@ -1749,7 +1891,7 @@ function irSiguiente(desdeId){
   const L = S.data.puntos, i0 = desdeId ? L.findIndex(p => p.id === desdeId) + 1 : 0;
   const orden = L.slice(i0).concat(L.slice(0, i0));
   const sig = orden.find(p => !S.form.items[p.id] || S.form.items[p.id].calif == null) || orden.find(p => faltaEn(p));
-  if (!sig) { toast('Todo calificado. Revisa y toca Guardar.'); return; }
+  if (!sig) { const fin = tkOn() && $('#tkFinal'); if (fin) fin.scrollIntoView({behavior:'smooth', block:'start'}); else toast('Todo calificado. Revisa y toca Guardar.'); return; }
   const c = $('#pt-' + sig.id); if (!c) return;
   c.scrollIntoView({behavior:'smooth', block:'start'});
   const card = c.firstElementChild; if (card){ card.classList.add('foco'); setTimeout(() => card.classList.remove('foco'), 1200); }
@@ -1763,6 +1905,7 @@ function actualizarFooter(){
   $('#fS').className = 'score res-' + (c.total == null ? '' : resultado(c.total).split(' ')[0]);
   $('#fBar').style.width = (c.n / N * 100) + '%';
   S.data.secciones.forEach(s => { const e = $('#secp-' + s.cod); if(e) e.textContent = c.secs[s.cod] == null ? '' : pct(c.secs[s.cod]); });
+  tkGate();
   const bar = $('#secbar');
   if (bar) {
     bar.innerHTML = S.data.secciones.map(s => { const ps = S.data.puntos.filter(p => p.sec === s.cod), hechos = ps.filter(p => S.form.items[p.id] && S.form.items[p.id].calif != null).length;

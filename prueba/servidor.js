@@ -248,6 +248,23 @@
       })};
     });
   };
+  API.apiPoliticasInformePanel = function (p) {   // informe y cumplimiento por persona: Personal y Lecturas tal cual (con encabezado)
+    panelOk(p); var pe = F('Personal'), lp = F('Lecturas de políticas');
+    return {pe: [['Nombre completo', 'Tienda', 'Departamento', 'Ciudad', 'Cargo', 'Ingreso', 'Estado']].concat(pe), lp: [['Fecha', 'Hora', 'Política', 'Tienda', 'Persona', 'Cargo', 'Correctas', 'Resultado']].concat(lp)};
+  };
+  API.apiClientesPanel = function (p) {   // pestaña Clientes del panel: sin datos de clientes en la prueba
+    panelOk(p);
+    return {vf: [['Fecha', 'Tienda', 'Código', 'Producto', 'Cantidad', 'Asesor', 'Cliente', 'Celular', 'Correo', 'Contacto', 'Nota', 'Consentimiento', 'Estado']], rec: [['Fecha', 'Tienda', 'Cliente', 'Reclamo', 'Estado']]};
+  };
+  API.apiActividadesPanel = function (p) {   // actividades del mes de ejemplo (sobre de caja chica)
+    panelOk(p); var mes = new Date().toISOString().slice(0, 7);
+    return [{id: 'A1', periodo: mes, titulo: 'Sobre de caja chica ' + mes, vence: mes + '-28',
+      tiendas: F('Tiendas').filter(function (r) { return r[0]; }).map(function (r, i) { return {tienda: S(r[0]), hecho: i % 2 ? null : {persona: 'Ejemplo', fecha: mes + '-05', hora: '10:15', foto: ''}}; })}];
+  };
+  API.apiMarcarActividad = function (tok, id, periodo, persona) {
+    tiendaDe(tok); if (!persona) throw new Error('Elige quién entrega.');
+    return {persona: persona, fecha: new Date().toISOString().slice(0, 10), hora: '10:00', foto: ''};
+  };
   API.apiPoliticasTextoPanel = function (p) {
     panelOk(p); var sup = {};
     F('Lecturas de políticas supervisores').forEach(function (r) { var m = sup[r[2]] = sup[r[2]] || {}; if (m[r[3]] !== 'Aprobó') m[r[3]] = r[4]; });
