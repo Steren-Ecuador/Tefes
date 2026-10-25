@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (d3968a98fbb6). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (956dc8add503). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -1085,13 +1085,13 @@ function ventasCelda(nombre){
 }
 
 /* ---------- datos ---------- */
-function api(fn){ const args = [].slice.call(arguments, 1); return new Promise((ok, ko) => google.script.run.withSuccessHandler(ok).withFailureHandler(e => ko(e && e.message ? e : new Error(String(e))))[fn].apply(null, [PTOKEN].concat(args))); }
+function api(fn){ const args = [].slice.call(arguments, 1); if (st.clave && st.yo && args[0] === st.yo.nombre) args[0] = st.yo.nombre + '#' + st.clave; return new Promise((ok, ko) => google.script.run.withSuccessHandler(ok).withFailureHandler(e => ko(e && e.message ? e : new Error(String(e))))[fn].apply(null, [PTOKEN].concat(args))); }
 window.cvCtx = {api: api, yo: () => st.yo};   // para ConteoVivo.html (fuera de este bloque)
 // ux1: últimos datos guardados en este equipo, para abrir al instante
 const CACHE_P = 'panelDatos_' + PTOKEN;
 function ponerPanel(r){
   st.d = modelar(r.ti, r.su, r.pe, r.co, null);
-  st.usuarios = r.us || [];
+  st.usuarios = r.us || []; st.admins = r.ad || [];
   st.textos = (r.tx || []).slice(1).filter(x => x[1]).map(x => ({tipo: String(x[0] || '').trim(), texto: String(x[1]).trim()}));
 }
 function desdeGuardado(){
@@ -1217,12 +1217,23 @@ function pintarYo(){
   $('#yo').innerHTML = st.yo ? (st.yo.permiso === 'Seguimiento' ? '<button class="btn" id="nuevaSup">+ <span class="ns-l">Nueva </span>supervisión</button> ' : '') + `<span class="yo-chip">${esc(st.yo.nombre)}${st.yo.admin ? ' · administrador' : st.yo.permiso === 'Seguimiento' ? '' : ' · solo lectura'}</span> <button class="btn" id="salir">Salir</button>` : '';
   if ($('#nuevaSup')) $('#nuevaSup').onclick = nuevaSupervision;
   renderSupervision();
-  if ($('#salir')) $('#salir').onclick = () => { st.yo = null; try { localStorage.removeItem('supTefes'); } catch (e) {} pintarYo(); if (st.d) render(); login(); };
+  if ($('#salir')) $('#salir').onclick = () => { st.yo = null; st.clave = ''; try { localStorage.removeItem('supTefes'); } catch (e) {} pintarYo(); if (st.d) render(); login(); };
+}
+// El Administrador aparece aparte, con clave, y al entrar va a su panel de administración (Diego 2026-10-25)
+function lgOpts(){ const A = st.admins || [], o = n => `<option value="${esc(n)}">${esc(n)}</option>`, S = (st.usuarios || []).filter(n => A.indexOf(n) < 0);
+  return A.length ? `<optgroup label="Administrador">${A.map(o).join('')}</optgroup><optgroup label="Supervisores">${S.map(o).join('')}</optgroup>` : S.map(o).join(''); }
+function irAdmin(url){
+  $('#drawer').innerHTML = `<div class="drawer-bg login-bg"><div class="login" role="dialog" aria-label="Panel de administración">
+    <h2>Hola, ${esc(st.yo.nombre)}</h2><p class="small muted" style="margin:0">Te llevo a tu panel de administración.</p>
+    <div class="actions"><a class="btn primary" href="${esc(url)}" target="_top" rel="noopener">Abrir mi panel de administración</a><button class="btn" id="adQuedar">Quedarme aquí</button></div></div></div>`;
+  $('#adQuedar').onclick = () => { $('#drawer').innerHTML = ''; };
+  try { window.open(url, '_top'); } catch (e) {}
 }
 function login(){
   $('#drawer').innerHTML = `<div class="drawer-bg login-bg"><div class="login" role="dialog" aria-label="Identificarme">
     <h2>¿Quién eres?</h2><p class="small muted" style="margin:0">Elige tu nombre y pulsa OK.</p>
-    <select id="lgSel"><option value="">Elige tu nombre…</option>${(st.usuarios || []).map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('')}</select>
+    <select id="lgSel"><option value="">Elige tu nombre…</option>${lgOpts()}</select>
+    <input type="password" id="lgClave" placeholder="Clave de administrador" autocomplete="current-password" hidden>
     <div class="small" id="lgErr" style="color:var(--bad)"></div>
     <div class="actions"><button class="btn primary" id="lgOk">OK</button></div>
   </div></div>`;
@@ -1231,13 +1242,18 @@ function login(){
     if (!n) { $('#lgErr').textContent = 'Elige tu nombre.'; return; }
     $('#lgOk').disabled = true; $('#lgErr').textContent = '';
     try {
-      const y = await api('apiLogin', n);
+      const c = $('#lgClave').hidden ? '' : $('#lgClave').value.trim();
+      const y = await api('apiLogin', c ? n + '#' + c : n);
+      st.clave = c;
       st.yo = y;
-      try { localStorage.setItem('supTefes', JSON.stringify({nombre: y.nombre})); } catch (e) {}
-      $('#drawer').innerHTML = ''; pintarYo(); if (st.d) render(); toast('Hola, ' + y.nombre);
+      try { localStorage.setItem('supTefes', JSON.stringify(c ? {nombre: y.nombre, clave: c} : {nombre: y.nombre})); } catch (e) {}
+      $('#drawer').innerHTML = ''; pintarYo(); if (st.d) render();
+      if (y.adminUrl) { irAdmin(y.adminUrl); return; }
+      toast('Hola, ' + y.nombre);
     } catch (e) { $('#lgErr').textContent = e.message; $('#lgOk').disabled = false; }
   };
   $('#lgOk').onclick = ir;
+  $('#lgSel').onchange = () => { $('#lgClave').hidden = (st.admins || []).indexOf($('#lgSel').value) < 0; };
   setTimeout(() => $('#lgSel').focus(), 50);
 }
 
@@ -2424,7 +2440,7 @@ pintarYo();
   const t0 = performance.now(), hayG = desdeGuardado(), tPant = hayG ? performance.now() : null;   // ux1 + ux4
   const carga = cargar();
   carga.then(() => { try { if (window.REG) REG.carga(tPant == null ? performance.now() : tPant, st.d ? performance.now() - t0 : null, hayG); } catch (e) {} });
-  if (g && g.nombre) { try { st.yo = await api('apiLogin', g.nombre); } catch (e) { try { localStorage.removeItem('supTefes'); } catch (x) {} } pintarYo(); if (st.d) render(); }
+  if (g && g.nombre) { try { st.yo = await api('apiLogin', g.clave ? g.nombre + '#' + g.clave : g.nombre); st.clave = g.clave || ''; } catch (e) { try { localStorage.removeItem('supTefes'); } catch (x) {} } pintarYo(); if (st.d) render(); }
   try { await carga; } finally { if (!st.yo) login(); }
   setInterval(() => { if (document.visibilityState === 'visible') cargar(true); }, 300000);
 })();
