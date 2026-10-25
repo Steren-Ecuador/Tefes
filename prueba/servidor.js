@@ -157,6 +157,12 @@
     DB.agregar('Lecturas de guías', [f, h, id, t, persona, cargo, resultado]);
     return {aprobado: true, persona: persona, fecha: f, hora: h};
   };
+  API.apiPreguntasGuia = function (tok, id) {   // guías con preguntas (Guias.gs); en la prueba no hay banco de preguntas de guías
+    tiendaDe(tok);
+    var q = DB.filas('Preguntas de guías').filter(function (r) { return r[0] === id; });
+    if (q.length < 5) throw new Error('Esta guía no tiene preguntas.');
+    return q.slice(0, 5).map(function (r) { return {n: S(r[1]), pregunta: S(r[2]), opciones: [r[3], r[4], r[5]].map(S)}; });
+  };
   API.apiPreguntasPolitica = function (tok, id) { tiendaDe(tok); return preguntas(id).map(function (q) { return {n: q.n, pregunta: q.pregunta, opciones: q.opciones}; }); };
   API.apiResponderPolitica = function (tok, id, persona, resp) {
     var t = tiendaDe(tok), det = corregir(id, resp || {}), ok = det.every(function (x) { return x.bien; }), d = new Date(), f = DB.isoDe(d), h = DB.hm(d);
