@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TEFES">
+<meta name="theme-color" content="#131c27">
+<title>Entrar · TEFES</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<!-- PRUEBA del ingreso por cargo (25/10/2026). Habla con IngresoPrueba.gs por el doPost de la app. Los enlaces de siempre no cambian. -->
+<style>
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --line:#d9e0e8; --line-2:#b9c4cf;
+  --fg:#15202b; --fg-2:#4a5866; --fg-3:#5f6b77;
+  --accent:#0b4f8a; --accent-ink:#ffffff; --accent-soft:#e3edf7; --accent-text:#0b3a66;
+  --top:#131c27; --top-2:#c7d2dd; --bad:#bf3328; --bad-soft:#fbe6e3; --warn-soft:#fdf0db; --warn-line:#f0d3a3;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Barlow",-apple-system,"Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f151c; --surface:#17202a; --line:#2b3846; --line-2:#3d4c5c;
+  --fg:#e7edf3; --fg-2:#aab6c2; --fg-3:#93a0ad;
+  --accent:#6fb0ec; --accent-ink:#0b1824; --accent-soft:#1a3149; --accent-text:#cfe3f7;
+  --top:#0b1016; --top-2:#aab6c2; --bad:#f0796d; --bad-soft:#3d1c19; --warn-soft:#3a2a12; --warn-line:#5a4220; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f151c; --surface:#17202a; --line:#2b3846; --line-2:#3d4c5c;
+  --fg:#e7edf3; --fg-2:#aab6c2; --fg-3:#93a0ad;
+  --accent:#6fb0ec; --accent-ink:#0b1824; --accent-soft:#1a3149; --accent-text:#cfe3f7;
+  --top:#0b1016; --top-2:#aab6c2; --bad:#f0796d; --bad-soft:#3d1c19; --warn-soft:#3a2a12; --warn-line:#5a4220; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+h1,h2{font-family:var(--f-display);font-weight:700;margin:0;text-wrap:balance}
+a{color:var(--accent)}
+.prueba{background:var(--warn-soft);border-bottom:1px solid var(--warn-line);padding:8px 16px;font-size:14px;text-align:center}
+header{background:var(--top);color:#fff;padding:28px 16px 24px}
+header .in,main{max-width:440px;margin:0 auto}
+.marca{font-family:var(--f-display);font-weight:700;font-size:40px;letter-spacing:1px;line-height:1}
+.sub{color:var(--top-2);font-size:15px;margin-top:4px}
+main{padding:24px 16px 40px;display:flex;flex-direction:column;gap:16px}
+.vista{display:flex;flex-direction:column;gap:16px}
+.vista[hidden]{display:none}
+h1{font-size:28px}
+p{margin:0}
+.suave{color:var(--fg-2)}
+.chico{font-size:14px;color:var(--fg-3)}
+.centro{text-align:center}
+label{font-size:14px;font-weight:600}
+.campo{display:flex;flex-direction:column;gap:6px}
+input{font:inherit;font-size:17px;height:50px;padding:0 14px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface);color:var(--fg);width:100%}
+input:focus{outline:2px solid var(--accent);outline-offset:1px}
+#codigo{font-family:var(--f-display);font-size:28px;letter-spacing:8px;text-align:center}
+.btn{font:inherit;font-size:17px;font-weight:600;min-height:52px;border-radius:10px;border:0;background:var(--accent);color:var(--accent-ink);padding:0 18px;width:100%;cursor:pointer}
+.btn.sec{background:var(--surface);color:var(--fg);border:1px solid var(--line-2)}
+.btn.mal{background:var(--surface);color:var(--bad);border:1px solid var(--bad)}
+.btn:disabled{opacity:.6;cursor:default}
+.link{font:inherit;font-size:15px;font-weight:600;background:none;border:0;color:var(--accent);padding:10px;cursor:pointer;text-decoration:underline}
+p .link{font-size:inherit;padding:6px 2px;margin:-6px 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.aviso{border-radius:10px;padding:12px 14px;background:var(--bad-soft);font-size:15px}
+.aviso[hidden]{display:none}
+.avatar{width:80px;height:80px;border-radius:40px;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-family:var(--f-display);font-weight:700;font-size:30px;margin:0 auto}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.chip{display:inline-block;padding:5px 12px;border-radius:999px;background:var(--accent-soft);color:var(--accent-text);font-size:15px;font-weight:600}
+.perfil h2{font-size:20px}
+.perfil dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:15px}
+.perfil dt{color:var(--fg-3)}
+.perfil dd{margin:0}
+.dos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mini{background:var(--bg);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--fg-2)}
+.mini b{display:block;color:var(--fg);font-size:13px}
+.icono{width:64px;height:64px;border-radius:32px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
+.cargando{display:flex;justify-content:center;padding:48px 0}
+.rueda{width:32px;height:32px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:g 0.9s linear infinite}
+@keyframes g{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.rueda{animation-duration:3s}}
+</style>
+</head>
+<body>
+<div class="prueba">Prueba del ingreso por cargo. Los enlaces de siempre siguen igual.</div>
+<header><div class="in"><div class="marca">TEFES</div><div class="sub">Tiendas, supervisión e inventario</div></div></header>
+<main>
+  <div class="aviso" id="aviso" role="alert" hidden></div>
+
+  <section class="vista" id="vCargando"><div class="cargando"><div class="rueda" aria-label="Cargando"></div></div></section>
+
+  <section class="vista" id="vPedir" hidden>
+    <div><h1>Entra con tu correo</h1><p class="suave">Sin claves. Te mandamos un enlace al correo, lo tocas y listo.</p></div>
+    <form id="fPedir" class="vista" novalidate>
+      <div class="campo"><label for="correo">Tu correo</label>
+        <input id="correo" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="nombre@correo.com" required></div>
+      <button class="btn" id="bPedir" type="submit">Enviarme el enlace</button>
+    </form>
+    <p class="chico centro">Después de la primera vez, este equipo te recuerda 90 días.</p>
+  </section>
+
+  <section class="vista" id="vRevisa" hidden>
+    <div class="icono" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+    <div><h1>Revisa tu correo</h1><p class="suave" id="tRevisa">Si tu correo está registrado, en menos de un minuto te llega un botón para entrar. Vence en 15 minutos.</p></div>
+    <form id="fCodigo" class="card" novalidate>
+      <b>¿Abriste el correo en otro equipo?</b>
+      <p class="suave">Escribe aquí el código de 6 dígitos que viene en el mismo correo.</p>
+      <label for="codigo" class="chico">Código</label>
+      <input id="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000 000">
+      <button class="btn sec" id="bCodigo" type="submit">Entrar con el código</button>
+    </form>
+    <p class="chico centro">¿No llegó? Mira en correo no deseado o <button class="link" id="bOtro" type="button">pide otro enlace</button>. El anterior deja de servir.</p>
+  </section>
+
+  <section class="vista" id="vLlegada" hidden>
+    <div class="avatar" id="lIni" aria-hidden="true"></div>
+    <h1 class="centro" id="lNombre"></h1>
+    <div class="chips" id="lChips"></div>
+    <p class="suave centro">Vas a entrar en este equipo. Te recordará 90 días y el plazo se renueva cada vez que lo usas.</p>
+    <button class="btn" id="bEntrar" type="button">Entrar en este dispositivo</button>
+    <button class="link" id="bNoSoy" type="button">No soy yo</button>
+  </section>
+
+  <section class="vista" id="vDentro" hidden>
+    <div><h1 id="dNombre"></h1><p class="suave" id="dDesde"></p></div>
+    <div id="dPerfiles" class="vista"></div>
+    <p class="chico" id="dNotas"></p>
+    <div class="card" id="dInicio">
+      <b>Agrega TEFES a tu pantalla de inicio</b>
+      <p class="suave">Se abre al instante con un ícono, como una app. En iPhone, después de agregarla, entra una vez más desde el ícono.</p>
+      <div class="dos">
+        <div class="mini"><b>iPhone</b>Compartir, luego Agregar a inicio</div>
+        <div class="mini"><b>Android</b>Menú, luego Agregar a la pantalla principal</div>
+      </div>
+    </div>
+    <button class="btn sec" id="bSalir" type="button">Salir de este equipo</button>
+    <button class="btn mal" id="bTodos" type="button">Cerrar sesión en todos mis equipos</button>
+  </section>
+</main>
+<script>
+(function () {
+  var APP = 'https://script.google.com/macros/s/AKfycbxvxIW9iw7D6IyKTMx5Xyj9BW4d_u7G4BMVwRzaI9ug1MIB1tdfVCAWhu2iIWjbz0lgMA/exec';
+  var LLAVE = 'tefes_ingreso_prueba';
+  var q = new URLSearchParams(location.search);
+  var $ = function (id) { return document.getElementById(id); };
+  var correoPedido = '';
+
+  function llamar(fn, args) {
+    return fetch(APP, {method: 'POST', body: JSON.stringify({fn: fn, args: args}), headers: {'Content-Type': 'text/plain;charset=utf-8'}})
+      .then(function (r) {
+        if (!r.ok) throw new Error('Sin conexión con el servidor (' + r.status + ').');
+        return r.json().catch(function () { throw new Error('El servidor respondió algo inesperado. Intenta de nuevo.'); });
+      }, function () { throw new Error('Sin conexión. Revisa el internet e intenta de nuevo.'); })
+      .then(function (j) {
+        if (!j || !j.ok) throw new Error((j && j.error) || 'Error del servidor.');
+        return j.r;
+      });
+  }
+  function leer() { try { return localStorage.getItem(LLAVE) || ''; } catch (e) { return ''; } }
+  function guardar(s) { try { if (s) localStorage.setItem(LLAVE, s); else localStorage.removeItem(LLAVE); } catch (e) {} }
+
+  function ver(id) {
+    ['vCargando', 'vPedir', 'vRevisa', 'vLlegada', 'vDentro'].forEach(function (v) { $(v).hidden = v !== id; });
+    window.scrollTo(0, 0);
+  }
+  function aviso(t, bien) { var a = $('aviso'); a.textContent = String(t || '').replace(/^SESION:\s*/, ''); a.hidden = !t; a.style.background = bien ? 'var(--accent-soft)' : ''; }
+  function ocupado(b, si, texto) { b.disabled = si; if (texto) { b.dataset.t = b.dataset.t || b.textContent; b.textContent = si ? texto : b.dataset.t; } }
+
+  function equipo() {
+    var u = navigator.userAgent, d = /iPhone/.test(u) ? 'iPhone' : /iPad/.test(u) ? 'iPad' : /Android/.test(u) ? 'Android' : /Mac/.test(u) ? 'Mac' : /Windows/.test(u) ? 'Windows' : 'Otro';
+    var n = /Edg\//.test(u) ? 'Edge' : /CriOS|Chrome\//.test(u) ? 'Chrome' : /FxiOS|Firefox\//.test(u) ? 'Firefox' : /Safari\//.test(u) ? 'Safari' : 'Navegador';
+    var app = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone ? ' · ícono de inicio' : '';
+    return d + ' · ' + n + app;
+  }
+  function iniciales(n) { var p = String(n).trim().split(/\s+/); return ((p[0] || '').charAt(0) + (p[1] || '').charAt(0)).toUpperCase(); }
+  function texto(el, t) { el.textContent = t; return el; }
+  function nuevo(tag, clase, t) { var e = document.createElement(tag); if (clase) e.className = clase; if (t != null) e.textContent = t; return e; }
+
+  function mostrarDentro(yo) {
+    texto($('dNombre'), 'Hola, ' + yo.nombre);
+    texto($('dDesde'), (yo.equipos ? 'Tienes sesión en ' + yo.equipos + (yo.equipos === 1 ? ' equipo' : ' equipos') : 'Sesión abierta en este equipo') + (yo.desde ? ' · aquí desde el ' + yo.desde : ''));
+    var c = $('dPerfiles'); c.textContent = '';
+    (yo.perfiles || []).forEach(function (p) {
+      var k = nuevo('div', 'card perfil');
+      k.appendChild(nuevo('h2', null, p.perfil));
+      if (p.detalle) k.appendChild(nuevo('p', 'suave', p.detalle));
+      var dl = nuevo('dl');
+      dl.appendChild(nuevo('dt', null, 'Ve')); dl.appendChild(nuevo('dd', null, p.ve || '—'));
+      dl.appendChild(nuevo('dt', null, 'Puede')); dl.appendChild(nuevo('dd', null, p.hace || '—'));
+      k.appendChild(dl);
+      c.appendChild(k);
+    });
+    texto($('dNotas'), (yo.notas || []).join(' '));
+    var instalada = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
+    $('dInicio').hidden = !!instalada;
+    ver('vDentro');
+  }
+
+  function conSesion(s) {
+    ver('vCargando');
+    llamar('apiIngSesion', [s]).then(mostrarDentro, function (e) {
+      if (/^SESION/.test(e.message)) guardar('');
+      aviso(e.message); ver('vPedir');
+    });
+  }
+
+  $('fPedir').addEventListener('submit', function (ev) {
+    ev.preventDefault(); aviso('');
+    var c = $('correo').value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c)) { aviso('Escribe un correo válido.'); $('correo').focus(); return; }
+    ocupado($('bPedir'), true, 'Enviando…');
+    llamar('apiIngPedir', [c]).then(function () {
+      correoPedido = c; $('codigo').value = '';
+      texto($('tRevisa'), 'Si ' + c + ' está registrado, en menos de un minuto te llega un botón para entrar. Vence en 15 minutos.');
+      ver('vRevisa');
+    }, function (e) { aviso(e.message); }).then(function () { ocupado($('bPedir'), false, 'Enviarme el enlace'); });
+  });
+
+  $('fCodigo').addEventListener('submit', function (ev) {
+    ev.preventDefault(); aviso('');
+    var cod = $('codigo').value.replace(/\D/g, '');
+    if (cod.length !== 6) { aviso('El código tiene 6 dígitos.'); $('codigo').focus(); return; }
+    ocupado($('bCodigo'), true, 'Entrando…');
+    llamar('apiIngEntrar', [{correo: correoPedido, codigo: cod}, equipo()]).then(function (r) {
+      guardar(r.sesion); mostrarDentro(r);
+    }, function (e) { aviso(e.message); }).then(function () { ocupado($('bCodigo'), false, 'Entrar con el código'); });
+  });
+
+  $('bOtro').addEventListener('click', function () { aviso(''); $('correo').value = correoPedido; ver('vPedir'); });
+
+  $('bEntrar').addEventListener('click', function () {
+    aviso(''); ocupado($('bEntrar'), true, 'Entrando…');
+    llamar('apiIngEntrar', [{l: q.get('l')}, equipo()]).then(function (r) {
+      guardar(r.sesion);
+      history.replaceState(null, '', location.pathname);
+      mostrarDentro(r);
+    }, function (e) { aviso(e.message); ocupado($('bEntrar'), false, 'Entrar en este dispositivo'); });
+  });
+  $('bNoSoy').addEventListener('click', function () { history.replaceState(null, '', location.pathname); aviso(''); ver('vPedir'); });
+
+  function salir(todos) {
+    var s = leer();
+    var b = todos ? $('bTodos') : $('bSalir');
+    ocupado(b, true, 'Cerrando…');
+    llamar('apiIngSalir', [s, !!todos]).then(function (r) {
+      guardar(''); ver('vPedir');
+      aviso(todos ? 'Cerraste la sesión en ' + r.cerradas + (r.cerradas === 1 ? ' equipo.' : ' equipos.') + ' Para volver, entra con tu correo.' : 'Saliste de este equipo.', true);
+    }, function (e) { aviso(e.message); }).then(function () { ocupado(b, false, todos ? 'Cerrar sesión en todos mis equipos' : 'Salir de este equipo'); });
+  }
+  $('bSalir').addEventListener('click', function () { salir(false); });
+  $('bTodos').addEventListener('click', function () { salir(true); });
+
+  var l = q.get('l');
+  if (l) {
+    ver('vCargando');
+    llamar('apiIngVer', [l]).then(function (yo) {
+      texto($('lIni'), iniciales(yo.nombre));
+      texto($('lNombre'), 'Hola, ' + yo.nombre);
+      var ch = $('lChips'); ch.textContent = '';
+      (yo.perfiles || []).forEach(function (p) { ch.appendChild(nuevo('span', 'chip', p.perfil + (p.detalle && !/^Tiendas:|^Todas/.test(p.detalle) ? ' · ' + p.detalle.split(' · ')[0] : ''))); });
+      ver('vLlegada');
+    }, function (e) {
+      history.replaceState(null, '', location.pathname);
+      aviso(e.message); ver('vPedir');
+    });
+  } else if (leer()) conSesion(leer());
+  else ver('vPedir');
+})();
+</script>
+</body>
+</html>
