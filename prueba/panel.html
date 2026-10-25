@@ -537,6 +537,39 @@ tr.on td{background:var(--accent-soft)}
 .cum-bar i{display:block;height:100%;background:var(--good)}
 </style>
 
+<style>
+:root:not(#tem-x){--head:#0078be;--head-ink:#ffffff;--head-2:#d6ecfa;--head-line:rgba(255,255,255,.32);--tem-head:#0078be;--tem-ink:#ffffff;--tem-2:#d6ecfa;--tem-chip:rgba(255,255,255,.16)}
+.brand{align-items:center}
+/* tem1: temas arriba y buscador (2026-10-25) */
+.tem-nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tem-nav::-webkit-scrollbar{display:none}
+.tem-nav button{flex:none;border:0;background:none;color:var(--tem-2);padding:10px 16px 12px;font:inherit;font-weight:600;font-size:15px;border-bottom:3px solid transparent;white-space:nowrap;cursor:pointer}
+.tem-nav button:hover{color:var(--tem-ink)}
+.tem-nav button.on{color:var(--tem-ink);border-bottom-color:var(--tem-ink);font-weight:700}
+.tem-n{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;border-radius:9px;background:#c0392b;color:#fff;font-size:11.5px;line-height:18px;text-align:center;font-weight:700}
+.tem-sub{display:flex;gap:8px;flex-wrap:wrap;padding:4px 0 12px}
+.tem-sub[hidden]{display:none}
+.tem-sub button{border:0;border-radius:18px;padding:6px 14px;font:inherit;font-weight:600;font-size:14px;background:var(--tem-chip);color:var(--tem-ink);cursor:pointer}
+.tem-sub button.on{background:var(--tem-ink);color:var(--tem-head)}
+.tem-sub button b{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:9px;background:#c0392b;color:#fff;font-size:11.5px;line-height:18px;text-align:center}
+.tem-buscar{position:relative;flex:1 1 260px;max-width:480px;min-width:0}
+.tem-campo{display:flex;align-items:center;gap:8px;background:#fff;color:#4d6577;border-radius:20px;padding:0 14px;height:38px;margin:0}
+.tem-campo input{flex:1;min-width:0;border:0;background:none;outline:none;font:inherit;font-size:15px;color:#12212e;padding:0;height:36px}
+.tem-campo input::placeholder{color:#6b7f8f}
+.tem-campo:focus-within{box-shadow:0 0 0 3px rgba(124,200,240,.8)}
+.tem-res{position:absolute;left:0;right:0;top:44px;background:#fff;color:#12212e;border-radius:12px;box-shadow:0 14px 40px rgba(8,25,40,.28);padding:6px;z-index:60;max-height:70vh;overflow:auto;text-align:left}
+.tem-res[hidden]{display:none}
+.tem-g{font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:#5a6f80;font-weight:700;padding:8px 10px 4px}
+.tem-res button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;text-align:left;border:0;background:none;border-radius:8px;padding:8px 10px;cursor:pointer;color:#12212e;font:inherit;min-height:44px;justify-content:center}
+.tem-res button.on,.tem-res button:hover{background:#e6f2fa}
+.tem-res button b{font-size:15px;font-weight:600}
+.tem-res button span{font-size:12.5px;color:#5a6f80}
+.tem-vacio{padding:12px;font-size:14px;color:#5a6f80}
+.tem-logo{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#fff;flex:none;align-self:center}
+.tem-logo img{width:28px;height:28px;display:block}
+@media(min-width:701px){.tem-on{display:none!important}}
+@media(max-width:700px){.tem-nav,.tem-sub{display:none!important}.tem-buscar{flex-basis:100%;max-width:none;order:9;margin:4px 0 6px}}
+</style>
 </head>
 <body>
 <script>
@@ -927,7 +960,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
 
 <header class="bar"><div class="gut">
   <div class="row1">
-    <div class="brand"><h1>TEFES</h1><span class="eyebrow" id="eyebrow">Supervisores</span><span id="miUso"></span></div>
+    <div class="brand"><span class="tem-logo"><img src="data:image/png;base64,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" alt="Steren"></span><h1>TEFES</h1><span class="eyebrow" id="eyebrow">Supervisores</span><span id="miUso"></span></div>
     <span class="status small" id="status">Cargando…</span><span id="yo"></span><a class="btn" id="inventario" href="./?invp=__PTOKEN__" target="_top" style="display:none;text-decoration:none">Inventario</a><button class="btn" id="refresh">Actualizar</button>
   </div>
   <nav class="tabs" id="tabs" aria-label="Secciones del panel">
@@ -1056,6 +1089,7 @@ const SECS = ['A','B','C','D','E','F'];
 const SEC_NAMES = {A:'Imagen, limpieza y mantenimiento',B:'Merchandising, exhibición y precios',C:'Ventas y productividad del equipo',D:'Servicio, personal y operación',E:'Inventarios, caja y control interno',F:'Muestreo Top 50'};
 const ABIERTOS = ['Pendiente','En proceso','Reabierto'];
 const SEC_CORTO = {A:'Imagen y limpieza',B:'Exhibición y precios',C:'Ventas y equipo',D:'Servicio y operación',E:'Inventario y caja',F:'Muestreo Top 50'};
+window.TEM_ST = () => st;   // tem1: el buscador lee tiendas, políticas y guías
 const st = {yo:null, d:null, fEstado:'abiertos', fTienda:'', fSec:'', fQ:'', vista:'tablero', ciudad:null};
 /* Ciudad de cada tienda (fija). Una tienda que no esté aquí no se dibuja en el mapa, pero sí sale en la lista y las tablas. */
 const CIUDAD = {Condado:'Quito', Portal:'Quito', Megakywi:'Quito', Megamaxi:'Quito', 'Mall Jardín':'Quito', Scala:'Quito', Tumbaco:'Quito',
@@ -2820,6 +2854,130 @@ pintarYo();
   bg.onclick = e => { if (e.target === bg) bg.hidden = true; };
   new MutationObserver(pintar).observe(tabs, {subtree: true, childList: true, attributes: true, characterData: true});
   pintar();
+})();
+</script>
+<script>
+window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
+window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "¿Qué buscas? Inventario, Scala, política…",
+  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "clientes"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "supervision", "inventario"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Personas", "vistas": ["contactos"]}],
+  items: [{"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa, validar y anuncios", "kw": "inicio resumen mapa validar anuncios actividades caja chica avisos"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Clientes", "v": "clientes", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Supervisión", "v": "supervision", "sub": "Tiendas · hacer o revisar una supervisión", "kw": "supervisar visita checklist nueva supervision puntaje hoja"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Inventario en vivo", "v": "inventario", "sub": "Tiendas · quién está contando ahora", "kw": "conteo vivo contando ahora", "go": () => TEM_ABRIR("#cvBox")}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Contactos", "v": "contactos", "sub": "Personas", "kw": "telefono whatsapp correo llamar personas gerente tienda"}],
+  extra: function(){
+    const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
+    (S.d.tiendas || []).filter(t => t.activa).forEach(t => out.push({grupo: 'Tiendas', t: t.nombre, sub: 'Pendientes de ' + t.nombre, kw: 'tienda local', v: 'pendientes',
+      go: () => { const f = document.getElementById('fTienda'); if (f) { f.value = t.nombre; f.dispatchEvent(new Event('change')); } }}));
+    if (Array.isArray(S.pol)) S.pol.forEach(p => out.push({grupo: 'Leer', t: p.titulo, sub: 'Cómo trabajamos › Políticas', kw: 'politica ' + (p.id || ''), v: 'politicas'}));
+    else if (S.pol && S.pol.po) S.pol.po.slice(1).filter(r => r[0] && r[1]).forEach(r => out.push({grupo: 'Leer', t: String(r[1]), sub: 'Cómo trabajamos › Políticas', kw: 'politica ' + r[0], v: 'politicas'}));
+    let G = Array.isArray(S.gui) ? S.gui : []; if (!G.length && typeof guiasModelo === 'function') { try { G = guiasModelo() || []; } catch (e) {} }
+    G.forEach(g => out.push({grupo: 'Leer', t: g.titulo, sub: 'Cómo trabajamos › ' + (g.tipo === 'Manual' ? 'Manuales' : 'Guías'), kw: (g.tipo || '') + ' ' + (g.resumen || ''), v: 'guias'}));
+    return out;
+  }};
+/* tem1: temas arriba (en vez de una pestaña por pantalla) y buscador "tipo Google" (Diego 2026-10-25).
+   No cambia las pantallas: usa los mismos botones de pestañas (un toque en un tema = un toque en su pestaña).
+   Cada página define window.TEM = {tabs, montarTemas, montarBuscar, temas, items, extra} antes de este script. */
+(function(){
+  const C = window.TEM; if (!C) return;
+  const tabs = document.querySelector(C.tabs); if (!tabs) return;
+  const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+  const btns = () => [...tabs.querySelectorAll('button[data-v]')].filter(b => !b.hidden && b.style.display !== 'none');
+  const btn = v => tabs.querySelector('button[data-v="' + v + '"]');
+  const texto = b => { const c = b.cloneNode(true); c.querySelectorAll('.n,.badge,.dot,.lbl-m,svg').forEach(x => x.remove()); return c.textContent.replace(/\s+/g, ' ').trim(); };
+  const cuenta = b => { let n = 0; b.querySelectorAll('.n.bad,.badge').forEach(x => { const k = parseInt(x.textContent, 10); if (k > 0 && !x.hidden) n += k; }); return n; };
+  const ultima = {};
+
+  /* ---------- temas (computadora) ---------- */
+  const nav = document.createElement('div'); nav.className = 'tem-nav'; nav.setAttribute('role', 'navigation'); nav.setAttribute('aria-label', 'Temas');
+  const sub = document.createElement('div'); sub.className = 'tem-sub';
+  tabs.classList.add('tem-on');
+  tabs.insertAdjacentElement('afterend', nav);
+  nav.insertAdjacentElement('afterend', sub);
+  const temaDe = v => C.temas.find(t => t.vistas.indexOf(v) >= 0);
+  function irTema(t){
+    const vs = btns().filter(b => t.vistas.indexOf(b.dataset.v) >= 0);
+    const b = vs.find(x => x.dataset.v === ultima[t.id]) || vs[0]; if (b) b.click();
+  }
+  let firma = '';
+  function pintar(){
+    const bs = btns(), on = bs.find(b => b.classList.contains('on')), tOn = on ? temaDe(on.dataset.v) : null;
+    if (on && tOn) ultima[tOn.id] = on.dataset.v;
+    const ts = C.temas.filter(t => bs.some(b => t.vistas.indexOf(b.dataset.v) >= 0));
+    const f = ts.map(t => t.id + (t === tOn ? '*' : '') + bs.filter(b => t.vistas.indexOf(b.dataset.v) >= 0).map(b => b.dataset.v + (b === on ? '*' : '') + cuenta(b)).join(',')).join('|');
+    if (f === firma) return; firma = f;
+    nav.innerHTML = ts.map(t => { const n = bs.filter(b => t.vistas.indexOf(b.dataset.v) >= 0).reduce((s, b) => s + cuenta(b), 0);
+      return '<button type="button" data-t="' + t.id + '" class="' + (t === tOn ? 'on' : '') + '"' + (t === tOn ? ' aria-current="page"' : '') + '>' + esc(t.nombre) + (n ? '<span class="tem-n">' + n + '</span>' : '') + '</button>'; }).join('');
+    nav.querySelectorAll('[data-t]').forEach(x => x.onclick = () => irTema(C.temas.find(t => t.id === x.dataset.t)));
+    const vs = tOn ? bs.filter(b => tOn.vistas.indexOf(b.dataset.v) >= 0) : [];
+    sub.hidden = vs.length < 2;
+    sub.innerHTML = vs.map(b => { const n = cuenta(b); return '<button type="button" data-v="' + b.dataset.v + '" class="' + (b === on ? 'on' : '') + '">' + esc((C.nombres || {})[b.dataset.v] || texto(b)) + (n ? ' <b>' + n + '</b>' : '') + '</button>'; }).join('');
+    sub.querySelectorAll('[data-v]').forEach(x => x.onclick = () => { const b = btn(x.dataset.v); if (b) b.click(); });
+  }
+  new MutationObserver(pintar).observe(tabs, {subtree: true, childList: true, attributes: true, characterData: true});
+  pintar();
+
+  /* ---------- buscador ---------- */
+  const caja = document.createElement('div'); caja.className = 'tem-buscar';
+  caja.innerHTML = '<label class="tem-campo"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>' +
+    '<input type="search" autocomplete="off" aria-label="Buscar" placeholder="' + esc(C.placeholder || '¿Qué buscas?') + '"></label><div class="tem-res" role="listbox" hidden></div>';
+  const mb = document.querySelector(C.montarBuscar); if (mb) mb.insertAdjacentElement(C.dondeBuscar || 'afterend', caja);
+  const inp = caja.querySelector('input'), res = caja.querySelector('.tem-res');
+  const lev = (a, b) => { if (Math.abs(a.length - b.length) > 1) return 2; const m = a.length, n = b.length; let p = Array.from({length: n + 1}, (_, j) => j);
+    for (let i = 1; i <= m; i++) { const q = [i]; for (let j = 1; j <= n; j++) q[j] = Math.min(p[j] + 1, q[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); p = q; } return p[n]; };
+  function todos(){
+    const fijos = (C.items || []).filter(it => !it.v || btn(it.v) && !btn(it.v).hidden && btn(it.v).style.display !== 'none').map(it => Object.assign({grupo: 'Ir a'}, it));
+    let din = []; try { din = (C.extra && C.extra()) || []; } catch (e) {}
+    return fijos.concat(din).map(it => Object.assign(it, {_w: norm(it.t + ' ' + (it.kw || '') + ' ' + (it.sub || '')).split(/[^a-z0-9ñ]+/).filter(Boolean), _t: norm(it.t)}));
+  }
+  function puntaje(it, qs){
+    let s = 0;
+    for (const q of qs) {
+      let m = 0;
+      for (const w of it._w) {
+        if (w === q) { m = Math.max(m, 4); break; }
+        if (w.startsWith(q)) m = Math.max(m, 3);
+        else if (q.length >= 3 && w.includes(q)) m = Math.max(m, 2);
+        else if (q.length >= 4 && (lev(q, w) <= 1 || lev(q, w.slice(0, q.length)) <= 1)) m = Math.max(m, 1);
+      }
+      if (!m) return 0; s += m;
+    }
+    if (it._t.startsWith(qs[0])) s += 3;
+    return s + (it.peso || 0);
+  }
+  let lista = [], sel = 0;
+  function buscar(){
+    const q = norm(inp.value).trim(), qs = q.split(/\s+/).filter(Boolean);
+    if (!qs.length) { res.hidden = true; res.innerHTML = ''; lista = []; return; }
+    lista = todos().map(it => [puntaje(it, qs), it]).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0]).slice(0, 9).map(x => x[1]);
+    sel = 0;
+    if (!lista.length) { res.innerHTML = '<div class="tem-vacio">No encontré "' + esc(inp.value) + '". Prueba con otra palabra, por ejemplo inventario, políticas o pendientes.</div>'; res.hidden = false; return; }
+    const grupos = []; lista.forEach(it => { if (grupos.indexOf(it.grupo) < 0) grupos.push(it.grupo); });
+    const orden = grupos.reduce((a, g) => a.concat(lista.filter(it => it.grupo === g)), []); lista = orden;
+    let h = '', i = 0;
+    grupos.forEach(g => { h += '<div class="tem-g">' + esc(g) + '</div>';
+      lista.filter(it => it.grupo === g).forEach(it => { h += '<button type="button" role="option" data-i="' + i + '" class="' + (i === sel ? 'on' : '') + '"><b>' + esc(it.t) + '</b>' + (it.sub ? '<span>' + esc(it.sub) + '</span>' : '') + '</button>'; i++; }); });
+    res.innerHTML = h; res.hidden = false;
+    res.querySelectorAll('[data-i]').forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => abrir(lista[+b.dataset.i]); });
+  }
+  function abrir(it){
+    if (!it) return;
+    res.hidden = true; const q = inp.value; inp.value = ''; inp.blur();
+    try { if (window.REG) REG.ev('Buscar', q + ' → ' + it.t); } catch (e) {}
+    if (it.v) { const b = btn(it.v); if (b) b.click(); }
+    if (it.go) setTimeout(() => { try { it.go(); } catch (e) {} }, 60);
+  }
+  function marcar(){ res.querySelectorAll('[data-i]').forEach(b => b.classList.toggle('on', +b.dataset.i === sel)); const o = res.querySelector('[data-i="' + sel + '"]'); if (o) o.scrollIntoView({block: 'nearest'}); }
+  inp.addEventListener('input', buscar);
+  inp.addEventListener('focus', () => { if (inp.value) buscar(); });
+  inp.addEventListener('blur', () => setTimeout(() => { res.hidden = true; }, 150));
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, lista.length - 1); marcar(); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { sel = Math.max(sel - 1, 0); marcar(); e.preventDefault(); }
+    else if (e.key === 'Enter') { abrir(lista[sel]); e.preventDefault(); }
+    else if (e.key === 'Escape') { inp.value = ''; res.hidden = true; inp.blur(); }
+  });
+  document.addEventListener('keydown', e => {
+    const t = e.target, escribe = t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable);
+    if (e.key === '/' && !escribe && !e.metaKey && !e.ctrlKey) { e.preventDefault(); inp.focus(); }
+  });
 })();
 </script>
 </body>
