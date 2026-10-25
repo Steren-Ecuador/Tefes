@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (a97c8906081c). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (eef76eb245e0). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -537,6 +537,7 @@ details.li .body{margin-top:10px;font-size:13.5px;color:var(--fg-2);display:grid
 .if-tot b{text-align:right}
 .if-per{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:2px 10px;align-items:center;padding:7px 2px;border-bottom:1px solid var(--line);font-size:14px}
 .if-per input{width:20px;height:20px}
+.r-fecha{display:block;width:100%;box-sizing:border-box;min-height:44px;margin:4px 0 8px;padding:8px 10px;font:inherit;border:1px solid var(--line,#ccd3db);border-radius:8px;background:var(--card,#fff);color:inherit}
 </style>
 
 </head>
@@ -1536,15 +1537,29 @@ function elegirResp(p, k){
   $('#rForm').innerHTML = `<div class="r-form"><label class="r-lbl" for="dCom">Mensaje para la tienda <span class="faint">· ${o.texto === 'obl' ? 'obligatorio' : 'opcional'}</span></label>
     <div class="ac"><textarea id="dCom" rows="3" placeholder="${esc(o.ph)}" autocomplete="off"></textarea><div class="ac-list" id="acList" hidden></div></div>
     <div class="ac-chips" id="acChips"></div>
+    ${o.est === 'Reabierto' ? `<label class="r-lbl" for="dFecha">Nueva fecha límite <span class="faint">· obligatoria</span></label>
+    <input type="date" id="dFecha" class="r-fecha" min="${st.d.hoy}" value="${fechaSug(p)}">` : ''}
     <p class="r-falta" id="rFalta" hidden></p>
     <button class="r-cta ${o.cls || ''}" id="rOk">${o.boton}${o.nota ? `<small>${o.nota}</small>` : ''}</button></div>`;
   autocompletar(p);
-  const ta = $('#dCom'), ok = $('#rOk');
-  RESP.revisar = () => { const falta = o.texto === 'obl' && !ta.value.trim(); ok.disabled = falta; $('#rFalta').hidden = !falta; $('#rFalta').textContent = falta ? 'Escribe el mensaje para poder enviarlo.' : ''; };
-  ta.addEventListener('input', RESP.revisar); RESP.revisar();
-  ok.onclick = () => guardarEstado(p.id, o.est, ta.value.trim(), ok);
+  const ta = $('#dCom'), ok = $('#rOk'), fe = $('#dFecha');
+  RESP.revisar = () => {
+    const fm = o.texto === 'obl' && !ta.value.trim(), ff = fe && (!fe.value || fe.value < st.d.hoy);
+    ok.disabled = fm || ff; $('#rFalta').hidden = !(fm || ff);
+    $('#rFalta').textContent = fm ? 'Escribe el mensaje para poder enviarlo.' : ff ? 'Pon la nueva fecha límite (hoy o después).' : '';
+  };
+  ta.addEventListener('input', RESP.revisar); if (fe) fe.addEventListener('input', RESP.revisar); RESP.revisar();
+  ok.onclick = () => guardarEstado(p.id, o.est, conFecha(ta.value.trim(), fe && fe.value), ok, fe && fe.value);
   $('#rForm').scrollIntoView({block:'nearest', behavior:'smooth'});
 }
+
+/* Nueva fecha límite al devolver: sugiere la actual si sigue vigente, si no hoy + 3 días */
+function fechaSug(p){
+  if (p.fcomp && p.fcomp > st.d.hoy) return p.fcomp;
+  const d = new Date(st.d.hoy + 'T12:00:00'); d.setDate(d.getDate() + 3);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+const conFecha = (txt, f) => f ? (txt ? txt + ' · ' : '') + 'Nueva fecha límite: ' + fmtF(f) : txt;
 
 function detalle(id){
   const p = st.d.pend.find(x => x.id === id); if (!p) return;
@@ -1576,13 +1591,13 @@ function accion(id, a){
   guardarEstado(id, 'Cerrado', '', b);
 }
 
-async function guardarEstado(id, estado, comentario, btn){
+async function guardarEstado(id, estado, comentario, btn, fecha){
   const p = st.d.pend.find(x => x.id === id);
   if (!p || !puede(p)) { toast('Identifícate para hacer cambios.'); if (!st.yo) login(); return; }
   if (estado === 'Mensaje' && !comentario) { toast('Escribe el mensaje para la tienda'); return; }
   if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
   try {
-    await api('apiAccion', st.yo.nombre, id, estado, comentario || '');
+    await api('apiAccion', st.yo.nombre, id, estado, comentario || '', fecha || '');
     toast({Mensaje:'Mensaje enviado', Pendiente:'Movido a Abierto', Cerrado:'Pendiente cerrado', Reabierto:'Pendiente reabierto, la tienda lo verá en su lista'}[estado] || 'Movido a ' + estado);
     $('#drawer').innerHTML = '';
     await cargar(true);
