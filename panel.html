@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (d3968a98fbb6). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (240ed4c434ff). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -1091,7 +1091,7 @@ window.cvCtx = {api: api, yo: () => st.yo};   // para ConteoVivo.html (fuera de 
 const CACHE_P = 'panelDatos_' + PTOKEN;
 function ponerPanel(r){
   st.d = modelar(r.ti, r.su, r.pe, r.co, null);
-  st.usuarios = r.us || [];
+  st.usuarios = r.us || []; st.admins = r.ad || [];
   st.textos = (r.tx || []).slice(1).filter(x => x[1]).map(x => ({tipo: String(x[0] || '').trim(), texto: String(x[1]).trim()}));
 }
 function desdeGuardado(){
@@ -1219,10 +1219,13 @@ function pintarYo(){
   renderSupervision();
   if ($('#salir')) $('#salir').onclick = () => { st.yo = null; try { localStorage.removeItem('supTefes'); } catch (e) {} pintarYo(); if (st.d) render(); login(); };
 }
+// El Administrador aparece aparte de los supervisores (Diego 2026-10-25)
+function lgOpts(){ const A = st.admins || [], o = n => `<option value="${esc(n)}">${esc(n)}</option>`, S = (st.usuarios || []).filter(n => A.indexOf(n) < 0);
+  return A.length ? `<optgroup label="Administrador">${A.map(o).join('')}</optgroup><optgroup label="Supervisores">${S.map(o).join('')}</optgroup>` : S.map(o).join(''); }
 function login(){
   $('#drawer').innerHTML = `<div class="drawer-bg login-bg"><div class="login" role="dialog" aria-label="Identificarme">
     <h2>¿Quién eres?</h2><p class="small muted" style="margin:0">Elige tu nombre y pulsa OK.</p>
-    <select id="lgSel"><option value="">Elige tu nombre…</option>${(st.usuarios || []).map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('')}</select>
+    <select id="lgSel"><option value="">Elige tu nombre…</option>${lgOpts()}</select>
     <div class="small" id="lgErr" style="color:var(--bad)"></div>
     <div class="actions"><button class="btn primary" id="lgOk">OK</button></div>
   </div></div>`;
