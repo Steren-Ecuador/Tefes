@@ -235,7 +235,7 @@
     T['Guías'] = [['ID', 'Título', 'Resumen', 'Enlace', 'Publicada', 'Tiendas', 'Activo', 'Tipo', 'Para'],
       ['G001', 'Ventas futuras', 'Qué hacer cuando un cliente pide un producto que no tenemos: registrarlo y avisarle cuando llegue.', GUIA_VF, sumar(hoy, -3), 'Todas', 'Sí', 'Guía', 'Tiendas'],
       ['G004', 'Apertura y cierre de la tienda', 'Lista de pasos de ejemplo para abrir y cerrar el local.', GUIA_VF, sumar(hoy, -10), 'Todas', 'Sí', 'Manual', 'Tiendas'],
-      ['G002', 'Manual de procesos de tienda', 'Recepción del CEDIS, transferencias, revisión en MB51 y órdenes de trabajo (RPC, PND, G50). Gerentes y subgerentes responden 5 preguntas.', GUIA_MPT, sumar(hoy, -1), 'Todas', 'Sí', 'Guía', 'Tiendas'],
+      ['G002', 'Manual de procesos de Servicio Técnico', 'Recepción del CEDIS, transferencias, revisión en MB51 y órdenes de trabajo (RPC, PND, G50). Gerentes y subgerentes responden 5 preguntas.', GUIA_MPT, sumar(hoy, -1), 'Todas', 'Sí', 'Guía', 'Tiendas'],
       ['G003', 'Cómo hacer una supervisión', 'Manual de ejemplo para supervisores.', HOJA_PDF, sumar(hoy, -12), 'Todas', 'Sí', 'Manual', 'Supervisores']];
     T['Preguntas de guías'] = [["Guía", "N°", "Pregunta", "Opción A", "Opción B", "Opción C", "Correcta"],
       ["G002", "1", "¿Quién puede hacer una transferencia o recibir mercadería en el sistema?", "Cualquier asesor que tenga tiempo", "Solo el gerente o el subgerente con su propia clave", "El asesor con la clave prestada del gerente", "B"],
