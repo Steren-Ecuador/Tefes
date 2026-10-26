@@ -359,6 +359,17 @@ table.exec td{padding:10px 8px}
 .an-it{padding:12px 2px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
 .an-it:last-child{border-bottom:0}
 .an-it.off{opacity:.6}
+/* anuncio adelanto difuminado (Efecto con 🔒) */
+.velo{position:relative;margin:10px 0 12px;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#111,#2b2b2b)}
+.velo-in{filter:blur(7px);padding:16px;color:#fff;user-select:none;display:flex;flex-direction:column;gap:4px}
+.velo-in small{font-size:12px;opacity:.8}
+.velo-in b{font-size:30px;color:#f5b301;line-height:1.1}
+.velo-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+.velo-g i{font-style:normal;background:rgba(255,255,255,.1);border-radius:8px;padding:8px;font-size:13px}
+.velo-tapa{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.2)}
+.velo-tapa span{background:rgba(0,0,0,.6);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:9px 16px;font-weight:800;font-size:15px;letter-spacing:.3px;animation:veloLatido 1.6s ease-in-out infinite}
+@keyframes veloLatido{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@media (prefers-reduced-motion:reduce){.velo-tapa span{animation:none}}
 .an-cab{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
 .an-txt{white-space:pre-wrap;overflow-wrap:anywhere}
 .an-st{display:grid;grid-template-columns:minmax(90px,140px) 64px minmax(0,1fr);gap:5px 10px;font-size:13px;margin-top:6px}
@@ -1083,6 +1094,7 @@ function errorCopy(e){
   if (c === 'blocked_by_policy' || c === 'approval_required') return 'La política de tu organización bloquea este acceso a Google Sheets.';
   if (c === 'server_unavailable' || c === 'rate_limited') return 'Google Sheets no respondió a tiempo. Pulsa Actualizar en un momento.';
   if (c === 'tool_error') return 'Google Sheets devolvió un error: ' + (e.message || '');
+  if (c === 'upstream_error') return 'Google Sheets falló por un momento. El panel se vuelve a conectar solo cada minuto; también puedes pulsar Actualizar.';
   return 'No se pudo leer Google Sheets (' + (c || 'error') + '). ' + (e && e.message ? e.message : '');
 }
 
@@ -1121,7 +1133,7 @@ async function cargar(fresh){
     wa: g("'WhatsApp gerentes'!A1:D", CLAVES).catch(() => null),
     aud: g('Auditores!A1:D', CLAVES).catch(() => null),
     act: Promise.all([g('Actividades!A1:G').catch(() => [[]]), g("'Actividades entregadas'!A1:H").catch(() => [[]])]).then(([de, en]) => ({de, en})),
-    anun: Promise.all([g('Anuncios!A1:G'), g("'Lecturas de anuncios'!A1:F"), g('Personal!A1:G')]).then(([an, le, pe]) => ({an, le, pe})),
+    anun: Promise.all([g('Anuncios!A1:I'), g("'Lecturas de anuncios'!A1:F"), g('Personal!A1:G')]).then(([an, le, pe]) => ({an, le, pe})),
     mue: Promise.all([g('MueEstado!A1:E', CLAVES), g('MueLista!A1:S', CLAVES), g('MueCorrecciones!A1:M', CLAVES).catch(() => [[]]), g("'Informes de inventario'!A1:P", CLAVES).catch(() => [[]])]).then(([me, ml, co, inf]) => ({me, ml, co, inf})),
     pol: Promise.all([g('Políticas!A1:F'), g("'Lecturas de políticas'!A1:H")]).then(([po, lp]) => ({po, lp})),
     polTx: g("'Textos de políticas'!A1:C"),
@@ -1139,13 +1151,17 @@ async function cargar(fresh){
       g('Claves!A1:B', CLAVES).catch(() => null), g('Textos!A1:B').catch(() => [])]);
     st.d = modelar(ti, su, pe, co, cl); { const u = String(st.d.cfg.URL_APP || '').trim(), k = st.d.invTok, a = $('#invLink') || document.createElement('a'); st.invUrl = u && k ? u + '?mue=' + encodeURIComponent(k) : ''; if (u && k) { a.href = u + '?mue=' + encodeURIComponent(k); a.hidden = false; const lu = new Date(); lu.setDate(lu.getDate() - (lu.getDay() + 6) % 7); const mi = new Date(lu); mi.setDate(lu.getDate() + 2); a.textContent = 'Muestreo Top 50 · ' + DIAS_S[lu.getDay()].toLowerCase() + ' ' + lu.getDate() + ' ' + MESES_S[lu.getMonth()]; a.title = 'Muestreo Top 50 de la semana del ' + lu.getDate() + ' ' + MESES_S[lu.getMonth()] + ' (entrega hasta el mié ' + mi.getDate() + ' ' + MESES_S[mi.getMonth()] + '): avance de todas las tiendas y carga de archivos del POS'; } }
     st.textos = tx.slice(1).filter(r => r[1]).map(r => ({tipo: String(r[0] || '').trim(), texto: String(r[1]).trim()}));
+    st.intentos = 0; clearTimeout(st.reintento);
     $('#banner').innerHTML = ''; $('#nuevaSup').disabled = false;
     $('#status').textContent = 'Actualizado ' + fmtF(hoyISO(), new Date().toTimeString().slice(0,5));
     render();
   } catch (e) {
-    if (e && e.retryable && !fresh) { setTimeout(() => cargar(true), (e.retryAfterMs || 1500) + Math.random()*800); return; }
-    $('#banner').innerHTML = `<div class="banner err">${esc(errorCopy(e))}</div>`;
-    $('#status').textContent = st.d ? 'Mostrando los últimos datos cargados' : 'Sin datos';
+    const fijo = ['needs_reauth','server_not_connected','selection_required','not_in_manifest','not_granted','consent_required','blocked_by_policy','approval_required'].includes(e && e.code);
+    st.intentos = (st.intentos || 0) + 1;
+    if (!fijo && st.intentos <= 3) { $('#status').textContent = 'Google Sheets tardó en responder, reintentando…'; setTimeout(() => cargar(true), (e && e.retryAfterMs) || [2000, 5000, 12000][st.intentos - 1]); return; }
+    if (!fijo) { st.intentos = 0; clearTimeout(st.reintento); st.reintento = setTimeout(() => cargar(true), 60000); }
+    $('#banner').innerHTML = fijo || !st.d ? `<div class="banner err">${esc(errorCopy(e))}</div>` : '';
+    $('#status').textContent = st.d ? (fijo ? 'Mostrando los últimos datos cargados' : 'Sin conexión con Google Sheets; se reintenta en 1 min') : 'Sin datos';
     if (!st.d) ['#stores'].forEach(s => $(s).innerHTML = '<div class="empty">Sin conexión con la base de datos.</div>');
     return;
   } finally { $('#refresh').disabled = false; }
@@ -1573,7 +1589,7 @@ function anuncios(){
   const gente = {}; A.pe.slice(1).filter(r => r[1] && String(r[6] || 'Activo').trim() === 'Activo').forEach(r => (gente[r[1]] = gente[r[1]] || []).push(nombreCorto(r[0])));
   const lect = {}; A.le.slice(1).forEach(r => { const k = r[2] + '|' + r[3]; (lect[k] = lect[k] || []).push({p: r[4], f: iso(r[0]), h: r[1]}); });
   const activas = st.d.tiendas.filter(t => t.activa).map(t => t.nombre);
-  return A.an.slice(1).map((r, i) => ({row: i + 2, id: String(r[0] || '').trim(), desde: iso(r[1]), hasta: iso(r[2]), tiendasTxt: String(r[3] || 'Todas').trim(), titulo: r[4] || '', texto: r[5] || '', activo: !/^no$/i.test(String(r[6] || '').trim())}))
+  return A.an.slice(1).map((r, i) => ({row: i + 2, id: String(r[0] || '').trim(), desde: iso(r[1]), hasta: iso(r[2]), tiendasTxt: String(r[3] || 'Todas').trim(), titulo: r[4] || '', texto: r[5] || '', activo: !/^no$/i.test(String(r[6] || '').trim()), efecto: String(r[7] || '').trim(), cuenta: iso(r[8])}))
     .filter(a => a.id && a.titulo).map(a => {
       if (!a.hasta && a.desde) a.hasta = sumarD(a.desde, 6);
       const ts = /^todas$/i.test(a.tiendasTxt) ? activas : a.tiendasTxt.split(',').map(s => s.trim()).filter(Boolean);
@@ -1581,6 +1597,14 @@ function anuncios(){
       a.ok = a.porTienda.reduce((s, x) => s + x.leyeron.length, 0); a.tot = a.porTienda.reduce((s, x) => s + x.total, 0);
       return a;
     }).sort((a, b) => a.desde < b.desde ? 1 : a.desde > b.desde ? -1 : b.row - a.row);
+}
+/* Anuncio adelanto (Efecto que empieza con 🔒): tarjeta borrosa con relleno, nunca el texto real, y cuenta regresiva */
+function veloHtml(a, hoy){
+  const q = Math.round((new Date((a.cuenta || a.hasta) + 'T12:00:00') - new Date(hoy + 'T12:00:00')) / 864e5);
+  const tapa = q > 1 ? 'Faltan ' + q + ' días' : q === 1 ? 'Falta 1 día' : q === 0 ? '¡Es hoy!' : 'Muy pronto';
+  return '<div class="velo" aria-hidden="true"><div class="velo-in"><small>CAMPAÑA ESPECIAL</small><b>$XX de xxxxxxxx</b>' +
+    '<span>xxxxxx xxx xxxxx xxxxxxx xx $xxx</span><div class="velo-g"><i>xx xx xxx</i><i>x xxx xxx</i><i>xxxxx xxxxxx</i></div></div>' +
+    '<div class="velo-tapa"><span>🔒 ' + tapa + '</span></div></div>';
 }
 function renderAnuncios(){
   const el = $('#anBody'); if (!el) return;
@@ -1601,7 +1625,7 @@ function renderAnuncios(){
       return `<div class="an-it ${a.activo ? '' : 'off'}"><div class="an-cab"><div><b>${esc(a.titulo)}</b>
           <div class="small faint">${fmtF(a.desde)} al ${fmtF(a.hasta)} · ${/^todas$/i.test(a.tiendasTxt) ? 'Todas las tiendas' : esc(a.tiendasTxt)} · ${!a.activo ? 'oculto' : futuro ? 'programado' : vig ? 'vigente' : 'terminó'}</div></div>
           <span class="pill p-${c}">${a.ok} de ${a.tot} leyeron</span></div>
-        ${a.texto ? `<div class="small muted an-txt">${esc(a.texto)}</div>` : ''}
+        ${/^🔒/.test(a.efecto || '') && hoy <= a.hasta ? veloHtml(a, hoy) : ''}${a.texto ? `<div class="small muted an-txt">${esc(a.texto)}</div>` : ''}
         <details ${vig && a.activo ? 'open' : ''}><summary>Lectura por tienda</summary><div class="an-st">${filas}</div></details>
         <div class="actions" style="margin:0"><button class="btn" data-an="${a.row}" data-act="${a.activo ? 1 : 0}">${a.activo ? 'Ocultar en las tiendas' : 'Volver a mostrar'}</button></div></div>`;
     }).join('')}</div>`;
@@ -1847,9 +1871,37 @@ function autocompletar(p){
 /* det1: iniciales para el avatar y fotos como miniaturas (Drive) */
 const iniciales = t => String(t || '?').replace(/[^\p{L}\s]/gu, ' ').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
 const driveId = u => { const m = String(u || '').match(/\/d\/([\w-]{20,})|[?&]id=([\w-]{20,})/); return m ? (m[1] || m[2]) : ''; };
+/* det2: */
+/* det2: si una miniatura no carga se prueba la siguiente fuente; al final queda "Ver foto" (el toque abre la foto completa) */
+function fotoFalla(img){
+  const a = img.parentNode, id = a && a.dataset.fid, n = +(img.dataset.n || 0);
+  const sin = () => { if (a) a.classList.add('sin'); img.remove(); };
+  if (!id) return sin();
+  if (n === 0) { img.dataset.n = 1; img.src = 'https://drive.google.com/thumbnail?id=' + id + '&sz=w600'; return; }
+  if (n === 1 && typeof window.fotoMcp === 'function') { img.dataset.n = 2; window.fotoMcp(id).then(u => { if (u) img.src = u; else sin(); }, sin); return; }
+  sin();
+}
+window.fotoFalla = fotoFalla;
+
+/* det2: en el panel admin las imágenes externas pueden estar bloqueadas; se piden al conector de Google Drive */
+const FOTO_CACHE = {};
+function buscarB64(v, d){
+  d = d || 0; if (v == null || d > 5) return '';
+  if (typeof v === 'string') { const s = v.replace(/^data:[^,]+,/, '').replace(/\s/g, ''); return s.length > 1500 && /^[A-Za-z0-9+/=_-]+$/.test(s.slice(0, 3000)) ? s.replace(/-/g, '+').replace(/_/g, '/') : ''; }
+  if (typeof v === 'object') for (const k of Object.keys(v)) { const r = buscarB64(v[k], d + 1); if (r) return r; }
+  return '';
+}
+window.fotoMcp = id => FOTO_CACHE[id] || (FOTO_CACHE[id] = (async () => {
+  const mcp = st.mcp || (window.claude && window.claude.use ? await window.claude.use('mcp') : null); if (!mcp) return '';
+  const r = await mcp.callTool('Google Drive', 'download_file_content', {fileId: id}, {cache: {staleTime: 864e5}});
+  const b = buscarB64(r && r.payload) || buscarB64(r && r.structuredContent) || buscarB64(r && r.content);
+  if (!b) return '';
+  const tipo = b.startsWith('/9j/') ? 'image/jpeg' : b.startsWith('iVBOR') ? 'image/png' : b.startsWith('UklG') ? 'image/webp' : 'image/jpeg';
+  return 'data:' + tipo + ';base64,' + b;
+})().catch(() => { delete FOTO_CACHE[id]; return ''; }));
 function fotoThumbs(p){
   const g = (arr, l) => arr.map((u, i) => { const id = driveId(u), t = l + (arr.length > 1 ? ' ' + (i + 1) : '');
-    return `<a class="d-foto${id ? '' : ' sin'}" href="${esc(u)}" target="_blank" rel="noopener">${id ? `<img src="https://drive.google.com/thumbnail?id=${id}&sz=w600" alt="Foto ${esc(t)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('sin');this.remove()">` : ''}<span>${esc(t)}</span></a>`; }).join('');
+    return `<a class="d-foto${id ? '' : ' sin'}" href="${esc(u)}" target="_blank" rel="noopener" data-fid="${esc(id)}">${id ? `<img src="https://lh3.googleusercontent.com/d/${id}=w600" alt="Foto ${esc(t)}" loading="lazy" referrerpolicy="no-referrer" onerror="fotoFalla(this)">` : ''}<span>${esc(t)}</span></a>`; }).join('');
   return p.fotoA.length || p.fotoD.length ? `<div class="d-fotos">${g(p.fotoA, 'Antes')}${g(p.fotoD, 'Después')}</div>` : '';
 }
 /* det1: recordatorios cuando le toca a la tienda y todavía no responde */
@@ -3782,52 +3834,104 @@ if (typeof st !== 'undefined' && st.tab === 'perchas') peAbrir();
 </script>
 
 <style>
-/* ---------- Mis pendientes con otras áreas (solo Diego, 2026-10-26) ---------- */
-#mpBody{display:flex;flex-direction:column;gap:18px}
+/* ---------- Mis pendientes con otras áreas (solo Diego, 2026-10-26; v2 estilo Asana) ---------- */
+#mpBody{display:flex;flex-direction:column;gap:16px}
+.mp-cab{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.mp-cab h2{font-size:19px;font-weight:600}
 .mp-add{display:grid;grid-template-columns:minmax(0,1fr) 170px 150px 200px auto;gap:8px;align-items:center}
 .mp-add input,.mp-add select{width:100%;min-width:0;font-size:15px}
 .mp-dl{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg-3);min-width:0}
 @media(max-width:820px){.mp-add{grid-template-columns:1fr 1fr}.mp-add .mp-q{grid-column:1/-1}.mp-add .btn{grid-column:1/-1;padding:10px}}
-.mp-fil{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.mp-fil{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;align-items:center}
 .mp-fil::-webkit-scrollbar{display:none}
 .mp-fil .chip{white-space:nowrap;font-weight:600;font-size:13.5px}
 .mp-fil .chip b{margin-left:4px}
+.mp-mail{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--accent-soft);border-radius:10px;padding:10px 12px;font-size:14px}
+.mp-mail b{margin-right:auto}
+.mp-sec{font-size:12px;text-transform:uppercase;letter-spacing:.7px;font-weight:700;color:var(--fg-3);padding:14px 2px 6px;display:flex;gap:6px}
+.mp-sec.venc{color:var(--bad)}
 .mp-list{padding:0;overflow:hidden}
 .mp-it{border-top:1px solid var(--line)}
 .mp-it:first-child{border-top:0}
-.mp-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:4px 10px;align-items:start;padding:11px 14px}
+.mp-row{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:4px 10px;align-items:start;padding:11px 12px 11px 14px}
 .mp-ok{width:22px;height:22px;border-radius:50%;border:2px solid var(--fg-3);background:none;padding:0;margin-top:1px;display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--surface)}
-.mp-ok:hover{border-color:var(--good)}
+.mp-ok:hover{border-color:var(--good);background:var(--good-soft)}
 .mp-it.hecho .mp-ok{background:var(--good);border-color:var(--good)}
 .mp-it.hecho .mp-t{text-decoration:line-through;color:var(--fg-3)}
 .mp-main{min-width:0;cursor:pointer;border:0;background:none;text-align:left;padding:0;font:inherit;color:inherit}
 .mp-t{font-weight:500;overflow-wrap:anywhere}
-.mp-m{display:flex;gap:6px 10px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--fg-2);margin-top:3px}
+.mp-m{display:flex;gap:6px 10px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--fg-2);margin-top:4px}
 .mp-m .pill{font-size:12px;padding:1px 8px}
-.mp-f{font-size:13px;white-space:nowrap;color:var(--fg-2);margin-top:2px}
+.mp-est{border:0;cursor:pointer;font:inherit;font-weight:600;font-size:12px;padding:2px 9px;border-radius:999px}
+.mp-est:hover{filter:brightness(.95)}
+.mp-der{display:flex;align-items:center;gap:6px}
+.mp-f{font-size:13px;white-space:nowrap;color:var(--fg-2)}
 .mp-f.venc{color:var(--bad);font-weight:700}
 .mp-f.hoy{color:var(--warn);font-weight:700}
-.mp-ed{display:flex;flex-direction:column;gap:8px;padding:0 14px 14px 52px}
+.mp-star{border:0;background:none;padding:2px 4px;font-size:18px;line-height:1;color:var(--line);cursor:pointer}
+.mp-star.on{color:#e0a100}
+.mp-star:hover{color:#e0a100}
+.mp-ed{display:flex;flex-direction:column;gap:10px;padding:2px 14px 16px 48px}
 @media(max-width:560px){.mp-ed{padding-left:14px}}
 .mp-ed .fila{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
 .mp-ed label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--fg-3)}
-.mp-ed input,.mp-ed select,.mp-ed textarea{font-size:15px;width:100%}
-.mp-ed textarea{min-height:0;field-sizing:content}
+.mp-ed input,.mp-ed select{font-size:15px;width:100%}
+.mp-ed .seg button{font-size:13px;padding:6px 10px}
+.mp-q2{display:flex;gap:5px;flex-wrap:wrap}
+.mp-q2 button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:600}
+.mp-q2 button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.mp-seg{display:flex;flex-direction:column;gap:8px}
+.mp-c{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 8px;font-size:14px}
+.mp-c i{width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:7px}
+.mp-c small{display:block;color:var(--fg-3);font-size:12px}
+.mp-c div{white-space:pre-wrap;overflow-wrap:anywhere}
+.mp-nc{display:flex;gap:8px}
+.mp-nc input{flex:1;min-width:0;border-radius:18px;padding:8px 14px;background:var(--surface-2);border-color:transparent;font-size:15px}
+.mp-nc input:focus{background:var(--surface);border-color:var(--accent)}
 .mp-ed .acc{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .mp-ed .acc .faint{margin-left:auto;font-size:12px}
+.mp-guard{font-size:12px;color:var(--good);font-weight:600;opacity:0;transition:opacity .3s}
+.mp-guard.on{opacity:1}
 .mp-vacio{padding:22px 14px;text-align:center;color:var(--fg-2)}
+.mp-board{display:grid;grid-template-columns:repeat(4,minmax(230px,1fr));gap:10px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}
+@media(max-width:820px){.mp-board{grid-template-columns:repeat(4,82%)}}
+.mp-col{background:var(--surface-2);border-radius:var(--r);padding:8px;display:flex;flex-direction:column;gap:8px;min-height:180px;border:2px solid transparent;scroll-snap-align:start}
+.mp-col.over{border-color:var(--accent);background:var(--accent-soft)}
+.mp-col h3{font-family:var(--f-display);font-size:15px;font-weight:600;display:flex;justify-content:space-between;padding:2px 4px 4px;border-bottom:2px solid var(--line)}
+.mp-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 10px;display:flex;flex-direction:column;gap:6px;cursor:grab}
+.mp-card:hover{border-color:var(--accent)}
+.mp-card.drag{opacity:.4}
+.mp-card.imp{border-left:3px solid #e0a100}
+.mp-card .mp-t{font-size:14px}
+.mp-card .mp-m{margin-top:0}
+.mp-mv{display:flex;gap:4px}
+.mp-mv button{border:1px solid var(--line);background:none;border-radius:6px;font-size:12px;padding:2px 8px}
+@media(hover:hover) and (pointer:fine){.mp-mv{display:none}}
 </style>
 <script>
-/* Mis pendientes con otras áreas: lista de tareas personal de Diego con Bodega/CEDIS, Contabilidad, Talento Humano, etc.
-   Solo el dueño del artefacto. Datos en db, colección "areas" (reglas read/write owner). Claude también puede agregar filas. */
-const MP = {db: null, L: [], fil: 'abiertos', area: '', abierto: '', listo: false, sub: null};
+/* Mis pendientes con otras áreas: lista personal de Diego con Bodega/CEDIS, Contabilidad, Talento Humano, etc.
+   Solo el dueño del artefacto. Datos en db, colección "areas" (reglas read/write owner). Claude también agrega filas.
+   v2 (2026-10-26, "algo como Asana pero fluido"): lista por secciones o tablero, estado y fecha en un toque, guardado automático,
+   seguimiento con fecha (campo seg: [{t, txt}]), estrella (imp) y correo por área con lo que falta pedir. */
+const MP = {db: null, L: [], fil: 'abiertos', area: '', abierto: '', listo: false, sub: null, pend: false, vista: 'lista'};
 const MP_AREAS = ['Bodega / CEDIS', 'Compras', 'Contabilidad', 'Talento Humano', 'Sistemas', 'Gerencia', 'Marketing', 'Servicio técnico', 'Web / Contact Center', 'Steren México', 'Otra'];
 const MP_EST = ['Por solicitar', 'Solicitado', 'En proceso', 'Entregado'];
 const MP_PILL = {'Por solicitar': 'p-na', 'Solicitado': 'p-acc', 'En proceso': 'p-warn', 'Entregado': 'p-good'};
+const mpLS = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } };
+MP.vista = mpLS('mpVista') === 'tablero' ? 'tablero' : 'lista';
 const mpEsc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
-const mpHoy = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const mpISO = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const mpHoy = () => mpISO(new Date());
+const mpMas = n => { const d = new Date(); d.setDate(d.getDate() + n); return mpISO(d); };
+const mpViernes = () => { const d = new Date(), k = (5 - d.getDay() + 7) % 7 || 7; d.setDate(d.getDate() + k); return mpISO(d); };
+const mpDomingo = () => { const d = new Date(), k = (7 - d.getDay()) % 7; d.setDate(d.getDate() + k); return mpISO(d); };
+const MP_DIA = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 const mpFecha = f => { if (!f) return ''; const [y, m, d] = f.split('-'); return d + '/' + m; };
+const mpFechaC = f => { if (!f) return ''; if (f === mpHoy()) return 'hoy'; if (f === mpMas(1)) return 'mañana';
+  const d = new Date(f + 'T12:00:00'); return (f > mpHoy() && f <= mpMas(6) ? MP_DIA[d.getDay()] + ' ' : '') + mpFecha(f); };
+const mpHora = iso => { const d = new Date(iso); return isNaN(d) ? '' : mpFecha(mpISO(d)) + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
 const mpVenc = t => t.estado !== 'Entregado' && t.fecha && t.fecha < mpHoy();
+const mpArea = t => t.area || 'Otra';
 function mpBadge(){
   const n = document.getElementById('nMp'); if (!n) return;
   const v = MP.L.filter(mpVenc).length; n.textContent = v || '';
@@ -3835,19 +3939,97 @@ function mpBadge(){
 function mpOrden(a, b){
   const h = (a.estado === 'Entregado') - (b.estado === 'Entregado'); if (h) return h;
   if (a.estado === 'Entregado') return String(b.hecho || '').localeCompare(String(a.hecho || ''));
-  return String(a.fecha || '9999').localeCompare(String(b.fecha || '9999')) || String(a.creado).localeCompare(String(b.creado));
+  return (!!b.imp - !!a.imp) || String(a.fecha || '9999').localeCompare(String(b.fecha || '9999')) || String(a.creado).localeCompare(String(b.creado));
+}
+function mpSeccion(t){
+  const f = t.fecha, h = mpHoy();
+  if (!f) return 'Sin fecha'; if (f < h) return 'Vencidos'; if (f === h) return 'Hoy'; if (f <= mpDomingo()) return 'Esta semana'; return 'Más adelante';
+}
+const mpRef = id => MP.db.collection('areas').doc(id);
+async function mpGuardar(id, u, it){
+  try { await mpRef(id).update(u); const g = it && it.querySelector('.mp-guard'); if (g) { g.classList.add('on'); setTimeout(() => g.classList.remove('on'), 1200); } }
+  catch (x) { alert('No se pudo guardar: ' + (x.message || x.code || x)); }
+}
+function mpCambioEstado(t, e){
+  const u = {estado: e};
+  if (e === 'Entregado') u.hecho = new Date().toISOString(); else u.hecho = '';
+  if (e === 'Solicitado' && !t.solicitado) u.solicitado = mpHoy();
+  return u;
+}
+function mpFila(t){
+  const v = mpVenc(t), h = t.estado !== 'Entregado' && t.fecha === mpHoy(), on = MP.abierto === t.id, n = (t.seg || []).length + (t.nota ? 1 : 0);
+  const fec = t.estado === 'Entregado' ? 'Entregado ' + mpFecha(String(t.hecho || '').slice(0, 10)) : t.fecha ? (v ? 'Venció ' + mpFecha(t.fecha) : mpFechaC(t.fecha)) : '';
+  return `<div class="mp-it${t.estado === 'Entregado' ? ' hecho' : ''}" data-id="${t.id}">
+    <div class="mp-row">
+      <button class="mp-ok" data-mpok title="${t.estado === 'Entregado' ? 'Volver a abrir' : 'Marcar entregado'}" aria-label="Marcar entregado">${t.estado === 'Entregado' ? '✓' : ''}</button>
+      <button class="mp-main" data-mpab><div class="mp-t">${mpEsc(t.tarea)}</div></button>
+      <span class="mp-der"><span class="mp-f${v ? ' venc' : h ? ' hoy' : ''}">${fec}</span><button class="mp-star${t.imp ? ' on' : ''}" data-mpstar title="Importante" aria-label="Importante">★</button></span>
+      <span></span>
+      <div class="mp-m"><span class="pill p-acc">${mpEsc(mpArea(t))}</span><button class="mp-est ${MP_PILL[t.estado] || 'p-na'}" data-mpest title="Tocar para pasar al siguiente estado">${mpEsc(t.estado || 'Por solicitar')} ›</button>${t.quien ? '<span>' + mpEsc(t.quien) + '</span>' : ''}${n ? '<span class="faint">💬 ' + n + '</span>' : ''}</div>
+    </div>
+    ${on ? mpDetalle(t) : ''}
+  </div>`;
+}
+function mpDetalle(t){
+  const q = [['Hoy', mpHoy()], ['Mañana', mpMas(1)], ['Viernes', mpViernes()], ['+1 semana', mpMas(7)], ['Sin fecha', '']];
+  const seg = (t.nota ? [{t: t.creado, txt: t.nota, nota: 1}] : []).concat(t.seg || []);
+  return `<div class="mp-ed">
+    <label>Qué<input data-k="tarea" type="text" value="${mpEsc(t.tarea)}" maxlength="300"></label>
+    <span class="seg">${MP_EST.map(e => `<button type="button" data-mpe="${e}" class="${e === t.estado ? 'on' : ''}">${e}</button>`).join('')}</span>
+    <div class="fila">
+      <label>Área<select data-k="area">${MP_AREAS.concat(MP_AREAS.includes(t.area) || !t.area ? [] : [t.area]).map(a => `<option${a === mpArea(t) ? ' selected' : ''}>${mpEsc(a)}</option>`).join('')}</select></label>
+      <label>Con quién<input data-k="quien" type="text" value="${mpEsc(t.quien)}" maxlength="80"></label>
+      <label>Fecha de solicitud<input data-k="solicitado" type="date" value="${mpEsc(t.solicitado)}"></label>
+      <label>Fecha de entrega<input data-k="fecha" type="date" value="${mpEsc(t.fecha)}"></label>
+    </div>
+    <div class="mp-q2">${q.map(([l, f]) => `<button type="button" data-mpq="${f}" class="${(t.fecha || '') === f ? 'on' : ''}">${l}</button>`).join('')}</div>
+    <div class="mp-seg"><div class="eyebrow">Seguimiento</div>
+      ${seg.map((c, i) => `<div class="mp-c"><i></i><div><small>${c.nota ? 'Nota' : mpHora(c.t)}</small>${mpEsc(c.txt)}</div></div>`).join('')}
+      <form class="mp-nc" data-mpnc autocomplete="off"><input name="c" type="text" placeholder="Escribe un avance (queda con fecha y hora)…" maxlength="1000"><button class="btn" type="submit">Agregar</button></form>
+    </div>
+    <div class="acc"><button class="btn" data-mpcerrar>Cerrar</button><button class="btn bad" data-mpdel>Borrar</button><span class="mp-guard">Guardado ✓</span>
+      <span class="faint">Anotado ${mpFecha(String(t.creado || '').slice(0, 10))}${t.estado === 'Entregado' && t.hecho ? ' · entregado ' + mpFecha(String(t.hecho).slice(0, 10)) : ''}</span></div>
+  </div>`;
+}
+function mpTarjeta(t){
+  const v = mpVenc(t);
+  return `<div class="mp-card${t.imp ? ' imp' : ''}" draggable="true" data-id="${t.id}">
+    <div class="mp-t">${t.imp ? '★ ' : ''}${mpEsc(t.tarea)}</div>
+    <div class="mp-m"><span class="pill p-acc">${mpEsc(mpArea(t))}</span>${t.fecha && t.estado !== 'Entregado' ? `<span class="mp-f${v ? ' venc' : t.fecha === mpHoy() ? ' hoy' : ''}">${v ? 'Venció ' + mpFecha(t.fecha) : mpFechaC(t.fecha)}</span>` : ''}${t.quien ? '<span>' + mpEsc(t.quien) + '</span>' : ''}</div>
+    <div class="mp-mv">${MP_EST.indexOf(t.estado) > 0 ? '<button data-mpmv="-1">‹</button>' : ''}${MP_EST.indexOf(t.estado) < 3 ? '<button data-mpmv="1">›</button>' : ''}</div>
+  </div>`;
+}
+function mpCorreo(area, ts){
+  const asunto = 'Pedidos de ' + (area === 'Otra' ? 'Diego' : area) + ' – ' + mpFecha(mpHoy());
+  const cuerpo = 'Hola, ¿me ayudas con lo siguiente?\n\n' + ts.map((t, i) => (i + 1) + '. ' + t.tarea + (t.fecha ? ' (para el ' + mpFecha(t.fecha) + ')' : '')).join('\n') + '\n\nGracias.';
+  return {asunto, cuerpo};
 }
 function mpPintar(){
   const el = document.getElementById('mpBody'); if (!el) return;
   if (!MP.db) { el.innerHTML = '<div class="banner">No se pudo abrir tu lista. Abre el panel con tu cuenta de claude.ai.</div>'; return; }
-  const hoy = mpHoy(), ab = MP.L.filter(t => t.estado !== 'Entregado');
-  const F = {abiertos: ['Abiertos', t => t.estado !== 'Entregado'], vencidos: ['Vencidos', mpVenc], porsol: ['Por solicitar', t => t.estado === 'Por solicitar'], sol: ['Solicitados', t => t.estado === 'Solicitado'], proc: ['En proceso', t => t.estado === 'En proceso'], hechos: ['Entregados', t => t.estado === 'Entregado']};
-  const areas = [...new Set(ab.map(t => t.area).filter(Boolean))].sort();
-  if (MP.area && !areas.includes(MP.area) && MP.fil !== 'hechos') MP.area = '';
-  const ver = MP.L.filter(F[MP.fil][1]).filter(t => !MP.area || t.area === MP.area).sort(mpOrden);
-  const lista = MP.fil === 'hechos' ? ver.slice(0, 40) : ver;
+  MP.pend = false;
+  const F = {abiertos: ['Abiertos', t => t.estado !== 'Entregado'], vencidos: ['Vencidos', mpVenc], imp: ['★ Importantes', t => t.imp && t.estado !== 'Entregado'], porsol: ['Por solicitar', t => t.estado === 'Por solicitar'], sol: ['Solicitados', t => t.estado === 'Solicitado'], proc: ['En proceso', t => t.estado === 'En proceso'], hechos: ['Entregados', t => t.estado === 'Entregado']};
+  const tab = MP.vista === 'tablero';
+  // los dos filtros se combinan: cada número cuenta dentro del otro filtro activo
+  const base = tab ? MP.L : MP.L.filter(F[MP.fil][1]), areas = [...new Set(base.filter(t => !tab || t.estado !== 'Entregado' || mpArea(t) === MP.area).map(mpArea))].sort();
+  if (MP.area && !areas.includes(MP.area)) MP.area = '';
+  const enArea = t => !MP.area || mpArea(t) === MP.area;
+  const ver = base.filter(enArea).sort(mpOrden);
+  const porPedir = MP.area ? MP.L.filter(t => mpArea(t) === MP.area && t.estado === 'Por solicitar').sort(mpOrden) : [];
+  let cuerpo;
+  if (tab) {
+    cuerpo = `<div class="mp-board">${MP_EST.map(e => { const ts = ver.filter(t => (t.estado || 'Por solicitar') === e); const vis = e === 'Entregado' ? ts.slice(0, 10) : ts;
+      return `<div class="mp-col" data-col="${e}"><h3>${e}<span class="faint">${ts.length}</span></h3>${vis.map(mpTarjeta).join('') || '<div class="kempty">Arrastra aquí</div>'}</div>`; }).join('')}</div>`;
+  } else if (!ver.length) {
+    cuerpo = `<div class="panel mp-list"><div class="mp-vacio">${MP.L.length ? 'Nada en este filtro.' : 'Aún no tienes pendientes con otras áreas. Escribe el primero arriba, o pídemelo en el chat.'}</div></div>`;
+  } else if (MP.fil === 'hechos') {
+    cuerpo = `<div class="panel mp-list">${ver.slice(0, 40).map(mpFila).join('')}</div>`;
+  } else {
+    const SEC = ['Vencidos', 'Hoy', 'Esta semana', 'Más adelante', 'Sin fecha'];
+    cuerpo = SEC.map(s => { const ts = ver.filter(t => mpSeccion(t) === s); return ts.length ? `<div><div class="mp-sec${s === 'Vencidos' ? ' venc' : ''}">${s}<span>${ts.length}</span></div><div class="panel mp-list">${ts.map(mpFila).join('')}</div></div>` : ''; }).join('');
+  }
   el.innerHTML = `
-    <div class="sec-h"><h2>Mis pendientes con otras áreas</h2><span class="hint">Solo tú los ves</span></div>
+    <div class="mp-cab"><h2>Mis pendientes con otras áreas</h2><span class="seg" id="mpVista"><button data-mpv="lista" class="${tab ? '' : 'on'}">Lista</button><button data-mpv="tablero" class="${tab ? 'on' : ''}">Tablero</button></span></div>
     <form class="mp-add" id="mpAdd" autocomplete="off">
       <input class="mp-q" name="tarea" type="text" placeholder="¿Qué hay que resolver?" required maxlength="300">
       <select name="area" aria-label="Área">${MP_AREAS.map(a => `<option>${a}</option>`).join('')}</select>
@@ -3855,58 +4037,64 @@ function mpPintar(){
       <label class="mp-dl">Entrega<input name="fecha" type="date" aria-label="Fecha de entrega"></label>
       <button class="btn primary" type="submit">Agregar</button>
     </form>
-    <div class="mp-fil">${Object.keys(F).filter(k => k === 'abiertos' || k === MP.fil || MP.L.some(F[k][1])).map(k => `<button class="chip${MP.fil === k ? ' on' : ''}" data-mpf="${k}">${F[k][0]}<b>${MP.L.filter(F[k][1]).length}</b></button>`).join('')}
-      ${areas.length > 1 ? '<span style="width:10px;flex:none"></span>' + areas.map(a => `<button class="chip${MP.area === a ? ' on' : ''}" data-mpa="${mpEsc(a)}">${mpEsc(a)}<b>${ab.filter(t => t.area === a).length}</b></button>`).join('') : ''}</div>
-    <div class="panel mp-list">${lista.length ? lista.map(t => {
-      const v = mpVenc(t), h = t.estado !== 'Entregado' && t.fecha === hoy, on = MP.abierto === t.id;
-      return `<div class="mp-it${t.estado === 'Entregado' ? ' hecho' : ''}" data-id="${t.id}">
-        <div class="mp-row">
-          <button class="mp-ok" data-mpok title="${t.estado === 'Entregado' ? 'Volver a abrir' : 'Marcar entregado'}" aria-label="Marcar entregado">${t.estado === 'Entregado' ? '✓' : ''}</button>
-          <button class="mp-main" data-mpab><div class="mp-t">${mpEsc(t.tarea)}</div>
-            <div class="mp-m"><span class="pill p-acc">${mpEsc(t.area || 'Otra')}</span>${t.quien ? '<span>' + mpEsc(t.quien) + '</span>' : ''}<span class="pill ${MP_PILL[t.estado] || 'p-na'}">${mpEsc(t.estado || 'Por solicitar')}</span>${t.solicitado ? '<span class="faint">Solicitado ' + mpFecha(t.solicitado) + '</span>' : ''}${t.nota ? '<span class="faint">· nota</span>' : ''}</div></button>
-          <span class="mp-f${v ? ' venc' : h ? ' hoy' : ''}">${t.estado === 'Entregado' ? 'Entregado ' + mpFecha(String(t.hecho || '').slice(0, 10)) : t.fecha ? (v ? 'Venció ' : h ? 'Entrega hoy ' : 'Entrega ') + mpFecha(t.fecha) : 'Sin fecha'}</span>
-        </div>
-        ${on ? `<div class="mp-ed">
-          <label>Qué<input data-k="tarea" type="text" value="${mpEsc(t.tarea)}" maxlength="300"></label>
-          <div class="fila">
-            <label>Área<select data-k="area">${MP_AREAS.concat(MP_AREAS.includes(t.area) || !t.area ? [] : [t.area]).map(a => `<option${a === t.area ? ' selected' : ''}>${mpEsc(a)}</option>`).join('')}</select></label>
-            <label>Con quién<input data-k="quien" type="text" value="${mpEsc(t.quien)}" maxlength="80"></label>
-            <label>Fecha de solicitud<input data-k="solicitado" type="date" value="${mpEsc(t.solicitado)}"></label>
-            <label>Fecha de entrega<input data-k="fecha" type="date" value="${mpEsc(t.fecha)}"></label>
-            <label>Estado<select data-k="estado">${MP_EST.map(e => `<option${e === t.estado ? ' selected' : ''}>${e}</option>`).join('')}</select></label>
-          </div>
-          <label>Nota (qué se habló, próximo paso)<textarea data-k="nota" rows="2" maxlength="2000">${mpEsc(t.nota)}</textarea></label>
-          <div class="acc"><button class="btn primary" data-mpsave>Guardar</button><button class="btn" data-mpcerrar>Cerrar</button><button class="btn bad" data-mpdel>Borrar</button>
-            <span class="faint">Anotado ${mpFecha(String(t.creado || '').slice(0, 10))}${t.estado === 'Entregado' && t.hecho ? ' · entregado ' + mpFecha(String(t.hecho).slice(0, 10)) : ''}</span></div>
-        </div>` : ''}
-      </div>`; }).join('') : `<div class="mp-vacio">${MP.L.length ? 'Nada en este filtro.' : 'Aún no tienes pendientes con otras áreas. Escribe el primero arriba, o pídemelo en el chat.'}</div>`}</div>`;
+    <div class="mp-fil">${tab ? '' : Object.keys(F).filter(k => k === 'abiertos' || k === MP.fil || MP.L.some(F[k][1])).map(k => `<button class="chip${MP.fil === k ? ' on' : ''}" data-mpf="${k}">${F[k][0]}<b>${MP.L.filter(F[k][1]).filter(enArea).length}</b></button>`).join('') + '<span style="width:10px;flex:none"></span>'}
+      ${areas.length > 1 || MP.area ? areas.map(a => `<button class="chip${MP.area === a ? ' on' : ''}" data-mpa="${mpEsc(a)}">${mpEsc(a)}<b>${base.filter(t => mpArea(t) === a && (tab ? t.estado !== 'Entregado' : true)).length}</b></button>`).join('') : ''}</div>
+    ${porPedir.length ? `<div class="mp-mail"><b>${porPedir.length} por pedir a ${mpEsc(MP.area)}</b><button class="btn" data-mpmail="abrir">✉ Armar correo</button><button class="btn" data-mpmail="copiar">Copiar texto</button><button class="btn" data-mpmail="marcar">Marcar como solicitados</button></div>` : ''}
+    ${cuerpo}`;
   mpBadge();
   const f = document.getElementById('mpAdd');
   f.onsubmit = async e => { e.preventDefault(); const d = new FormData(f), tarea = String(d.get('tarea') || '').trim(); if (!tarea) return;
     const b = f.querySelector('button'); b.disabled = true;
-    try { await MP.db.collection('areas').add({tarea, area: d.get('area'), quien: String(d.get('quien') || '').trim(), solicitado: mpHoy(), fecha: d.get('fecha') || '', estado: 'Solicitado', nota: '', creado: new Date().toISOString()});
-      try { localStorage.setItem('mpArea', d.get('area')); } catch (x) {}
-      MP.fil = MP.fil === 'hechos' ? 'abiertos' : MP.fil; }
+    try { await MP.db.collection('areas').add({tarea, area: d.get('area'), quien: String(d.get('quien') || '').trim(), solicitado: mpHoy(), fecha: d.get('fecha') || '', estado: 'Solicitado', nota: '', seg: [], imp: false, creado: new Date().toISOString()});
+      mpLS('mpArea', d.get('area')); if (MP.fil === 'hechos') MP.fil = 'abiertos'; }
     catch (x) { alert('No se pudo guardar: ' + (x.message || x.code || x)); b.disabled = false; } };
-  try { const a = localStorage.getItem('mpArea'); if (a) f.area.value = a; } catch (x) {}
+  { const a = mpLS('mpArea'); if (a) f.area.value = a; }
+  el.querySelectorAll('[data-mpv]').forEach(b => b.onclick = () => { MP.vista = b.dataset.mpv; mpLS('mpVista', MP.vista); MP.abierto = ''; mpPintar(); });
   el.querySelectorAll('[data-mpf]').forEach(b => b.onclick = () => { MP.fil = b.dataset.mpf; mpPintar(); });
   el.querySelectorAll('[data-mpa]').forEach(b => b.onclick = () => { MP.area = MP.area === b.dataset.mpa ? '' : b.dataset.mpa; mpPintar(); });
+  el.querySelectorAll('[data-mpmail]').forEach(b => b.onclick = async () => {
+    const {asunto, cuerpo} = mpCorreo(MP.area, porPedir), a = b.dataset.mpmail;
+    if (a === 'abrir') window.open('mailto:?subject=' + encodeURIComponent(asunto) + '&body=' + encodeURIComponent(cuerpo), '_blank');
+    else if (a === 'copiar') { try { await navigator.clipboard.writeText(asunto + '\n\n' + cuerpo); b.textContent = 'Copiado ✓'; } catch (x) { prompt('Copia el texto:', cuerpo); } }
+    else { if (!confirm('¿Marcar ' + porPedir.length + ' pendientes como solicitados hoy?')) return;
+      for (const t of porPedir) await mpGuardar(t.id, {estado: 'Solicitado', solicitado: mpHoy()}); }
+  });
+  // lista
   el.querySelectorAll('.mp-it').forEach(it => {
-    const id = it.dataset.id, t = MP.L.find(x => x.id === id), ref = MP.db.collection('areas').doc(id);
-    it.querySelector('[data-mpok]').onclick = async () => { const hecho = t.estado !== 'Entregado';
-      try { await ref.update(hecho ? {estado: 'Entregado', hecho: new Date().toISOString()} : {estado: 'Solicitado', hecho: ''}); } catch (x) { alert('No se pudo guardar.'); } };
+    const id = it.dataset.id, t = MP.L.find(x => x.id === id);
+    it.querySelector('[data-mpok]').onclick = () => mpGuardar(id, mpCambioEstado(t, t.estado === 'Entregado' ? 'Solicitado' : 'Entregado'));
     it.querySelector('[data-mpab]').onclick = () => { MP.abierto = MP.abierto === id ? '' : id; mpPintar(); };
-    const s = it.querySelector('[data-mpsave]'); if (!s) return;
-    s.onclick = async () => { const u = {}; it.querySelectorAll('.mp-ed [data-k]').forEach(x => u[x.dataset.k] = x.value.trim());
-      if (!u.tarea) return alert('Escribe qué hay que resolver.');
-      if (u.estado === 'Entregado' && t.estado !== 'Entregado') u.hecho = new Date().toISOString();
-      if (u.estado !== 'Entregado') u.hecho = '';
-      s.disabled = true; try { MP.abierto = ''; await ref.update(u); } catch (x) { s.disabled = false; alert('No se pudo guardar.'); } };
-    it.querySelector('[data-mpcerrar]').onclick = () => { MP.abierto = ''; mpPintar(); };
-    it.querySelector('[data-mpdel]').onclick = async () => { if (!confirm('¿Borrar este pendiente?')) return; MP.abierto = ''; try { await ref.delete(); } catch (x) { alert('No se pudo borrar.'); } };
+    it.querySelector('[data-mpstar]').onclick = () => mpGuardar(id, {imp: !t.imp});
+    it.querySelector('[data-mpest]').onclick = () => { const i = MP_EST.indexOf(t.estado); mpGuardar(id, mpCambioEstado(t, MP_EST[(i + 1) % MP_EST.length])); };
+    const ed = it.querySelector('.mp-ed'); if (!ed) return;
+    ed.querySelectorAll('[data-k]').forEach(x => x.onchange = () => { const v = x.value.trim(); if (x.dataset.k === 'tarea' && !v) { x.value = t.tarea; return; } mpGuardar(id, {[x.dataset.k]: v}, it); });
+    ed.querySelectorAll('[data-mpe]').forEach(b => b.onclick = () => mpGuardar(id, mpCambioEstado(t, b.dataset.mpe), it));
+    ed.querySelectorAll('[data-mpq]').forEach(b => b.onclick = () => mpGuardar(id, {fecha: b.dataset.mpq}, it));
+    const nc = ed.querySelector('[data-mpnc]');
+    nc.onsubmit = async e => { e.preventDefault(); const txt = nc.c.value.trim(); if (!txt) return; nc.c.value = '';
+      await mpGuardar(id, {seg: (t.seg || []).concat([{t: new Date().toISOString(), txt}])}, it); nc.c.blur(); };
+    ed.querySelector('[data-mpcerrar]').onclick = () => { MP.abierto = ''; mpPintar(); };
+    ed.querySelector('[data-mpdel]').onclick = async () => { if (!confirm('¿Borrar este pendiente?')) return; MP.abierto = ''; try { await mpRef(id).delete(); } catch (x) { alert('No se pudo borrar.'); } };
+  });
+  // tablero: arrastrar entre columnas (computadora) o flechas ‹ › (celular); tocar abre la lista en ese pendiente
+  let arr = null;
+  el.querySelectorAll('.mp-card').forEach(c => {
+    const t = MP.L.find(x => x.id === c.dataset.id);
+    c.ondragstart = e => { arr = t; c.classList.add('drag'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', t.id); } catch (x) {} };
+    c.ondragend = () => { c.classList.remove('drag'); arr = null; };
+    c.onclick = e => { const m = e.target.closest('[data-mpmv]'); if (m) { e.stopPropagation(); return mpGuardar(t.id, mpCambioEstado(t, MP_EST[MP_EST.indexOf(t.estado) + +m.dataset.mpmv])); }
+      MP.vista = 'lista'; mpLS('mpVista', 'lista'); MP.fil = t.estado === 'Entregado' ? 'hechos' : 'abiertos'; MP.abierto = t.id; mpPintar();
+      const r = document.querySelector('.mp-it[data-id="' + t.id + '"]'); if (r) r.scrollIntoView({block: 'center'}); };
+  });
+  el.querySelectorAll('.mp-col').forEach(col => {
+    col.ondragover = e => { if (!arr) return; e.preventDefault(); col.classList.add('over'); };
+    col.ondragleave = () => col.classList.remove('over');
+    col.ondrop = e => { e.preventDefault(); col.classList.remove('over'); if (arr && arr.estado !== col.dataset.col) mpGuardar(arr.id, mpCambioEstado(arr, col.dataset.col)); };
   });
 }
 window.mpAbrir = () => mpPintar();
+document.addEventListener('focusout', () => setTimeout(() => {
+  const a = document.activeElement; if (MP.pend && !(a && a.closest && a.closest('.mp-ed'))) mpPintar(); }, 0));
 (async () => {
   const u = await window.claude?.use?.('user'); const b = document.querySelector('#tabs button[data-v="mispendientes"]');
   if (!(u && await u.isOwner().catch(() => false))) return;
@@ -3914,7 +4102,7 @@ window.mpAbrir = () => mpPintar();
   MP.db = await window.claude?.use?.('db').catch(() => null);
   if (!MP.db) return mpPintar();
   MP.sub = MP.db.collection('areas').onSnapshot(s => { MP.L = s.docs.map(d => ({id: d.id, ...d.data()})); MP.listo = true;
-    if (typeof st !== 'undefined' && st.tab === 'mispendientes') { if (!document.activeElement || !document.activeElement.closest || !document.activeElement.closest('.mp-ed')) mpPintar(); } else mpBadge(); },
+    if (typeof st !== 'undefined' && st.tab === 'mispendientes') { const a = document.activeElement; if (a && a.closest && a.closest('.mp-ed') && a.matches('input[type=text],input[type=date],select')) { MP.pend = true; mpBadge(); } else mpPintar(); } else mpBadge(); },
     () => { MP.db = null; mpPintar(); });
 })();
 if (typeof st !== 'undefined' && st.tab === 'mispendientes') mpAbrir();

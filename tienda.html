@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (93cd503c48d4). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (37c82116f782). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -306,6 +306,17 @@ nav .badge{min-width:18px;padding:0 5px;line-height:18px;font-size:11px}
 @keyframes fxLatido{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 @keyframes fxCae{to{transform:translateY(105vh) rotate(720deg)}}
 @media (prefers-reduced-motion:reduce){.anuncio.fx,.fx-cinta::after,.fx-cuenta{animation:none}.fx-conf{display:none}}
+/* anuncio adelanto difuminado (Efecto con 🔒) */
+.velo{position:relative;margin:10px 0 12px;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#111,#2b2b2b)}
+.velo-in{filter:blur(7px);padding:16px;color:#fff;user-select:none;display:flex;flex-direction:column;gap:4px}
+.velo-in small{font-size:12px;opacity:.8}
+.velo-in b{font-size:30px;color:#f5b301;line-height:1.1}
+.velo-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+.velo-g i{font-style:normal;background:rgba(255,255,255,.1);border-radius:8px;padding:8px;font-size:13px}
+.velo-tapa{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.2)}
+.velo-tapa span{background:rgba(0,0,0,.6);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:9px 16px;font-weight:800;font-size:15px;letter-spacing:.3px;animation:veloLatido 1.6s ease-in-out infinite}
+@keyframes veloLatido{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@media (prefers-reduced-motion:reduce){.velo-tapa span{animation:none}}
 .conf{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
 .conf-h{font-size:14px;margin-bottom:6px}
 .conf-h.ok{color:var(--ok)}
@@ -1008,11 +1019,21 @@ function anuncioHtmlBase(a){
 }
 function anuncioHtml(a){ return a.efecto ? anuncioFx(a) : anuncioHtmlBase(a); }
 /* Anuncio destacado: cinta con el texto de la columna Efecto, cuenta regresiva y confeti una vez por teléfono */
+/* Anuncio adelanto (Efecto que empieza con 🔒): tarjeta borrosa con relleno, nunca el texto real, y cuenta regresiva */
+function veloHtml(a, hoy){
+  const q = Math.round((new Date((a.cuenta || a.hasta) + 'T12:00:00') - new Date(hoy + 'T12:00:00')) / 864e5);
+  const tapa = q > 1 ? 'Faltan ' + q + ' días' : q === 1 ? 'Falta 1 día' : q === 0 ? '¡Es hoy!' : 'Muy pronto';
+  return '<div class="velo" aria-hidden="true"><div class="velo-in"><small>CAMPAÑA ESPECIAL</small><b>$XX de xxxxxxxx</b>' +
+    '<span>xxxxxx xxx xxxxx xxxxxxx xx $xxx</span><div class="velo-g"><i>xx xx xxx</i><i>x xxx xxx</i><i>xxxxx xxxxxx</i></div></div>' +
+    '<div class="velo-tapa"><span>🔒 ' + tapa + '</span></div></div>';
+}
 function anuncioFx(a){
+  if (/^🔒/.test(a.efecto) && S.data.hoy <= a.hasta) return anuncioHtmlBase(a).replace('<div class="card anuncio', '<div class="card anuncio fx').replace(/(data-an="[^"]*">)/,
+    '$1<div class="fx-in"><div class="fx-cinta"><span>' + esc(a.efecto.replace(/^🔒\s*/, '')) + '</span></div>').replace('</h4>', '</h4>' + veloHtml(a, S.data.hoy)) + '</div>';
   const q = Math.round((new Date(a.hasta + 'T12:00:00') - new Date(S.data.hoy + 'T12:00:00')) / 864e5);
   const cuenta = q > 1 ? 'Quedan ' + q + ' días' : q === 1 ? 'Termina mañana' : q === 0 ? 'Último día' : 'Terminó';
   return anuncioHtmlBase(a).replace('<div class="card anuncio', '<div class="card anuncio fx').replace(/(data-an="[^"]*">)/,
-    '$1<div class="fx-in"><div class="fx-cinta"><span>' + esc(a.efecto) + '</span><span class="fx-cuenta">' + cuenta + '</span></div>') + '</div>';
+    '$1<div class="fx-in"><div class="fx-cinta"><span>' + esc(a.efecto.replace(/^🔒\s*/, '')) + '</span><span class="fx-cuenta">' + cuenta + '</span></div>') + '</div>';
 }
 function confetiFx(){
   const A = (S.data.anuncios || []).filter(a => a.efecto && activo(a));
