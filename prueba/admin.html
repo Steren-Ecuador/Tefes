@@ -1094,6 +1094,7 @@ function errorCopy(e){
   if (c === 'blocked_by_policy' || c === 'approval_required') return 'La política de tu organización bloquea este acceso a Google Sheets.';
   if (c === 'server_unavailable' || c === 'rate_limited') return 'Google Sheets no respondió a tiempo. Pulsa Actualizar en un momento.';
   if (c === 'tool_error') return 'Google Sheets devolvió un error: ' + (e.message || '');
+  if (c === 'upstream_error') return 'Google Sheets falló por un momento. El panel se vuelve a conectar solo cada minuto; también puedes pulsar Actualizar.';
   return 'No se pudo leer Google Sheets (' + (c || 'error') + '). ' + (e && e.message ? e.message : '');
 }
 
@@ -1150,13 +1151,17 @@ async function cargar(fresh){
       g('Claves!A1:B', CLAVES).catch(() => null), g('Textos!A1:B').catch(() => [])]);
     st.d = modelar(ti, su, pe, co, cl); { const u = String(st.d.cfg.URL_APP || '').trim(), k = st.d.invTok, a = $('#invLink') || document.createElement('a'); st.invUrl = u && k ? u + '?mue=' + encodeURIComponent(k) : ''; if (u && k) { a.href = u + '?mue=' + encodeURIComponent(k); a.hidden = false; const lu = new Date(); lu.setDate(lu.getDate() - (lu.getDay() + 6) % 7); const mi = new Date(lu); mi.setDate(lu.getDate() + 2); a.textContent = 'Muestreo Top 50 · ' + DIAS_S[lu.getDay()].toLowerCase() + ' ' + lu.getDate() + ' ' + MESES_S[lu.getMonth()]; a.title = 'Muestreo Top 50 de la semana del ' + lu.getDate() + ' ' + MESES_S[lu.getMonth()] + ' (entrega hasta el mié ' + mi.getDate() + ' ' + MESES_S[mi.getMonth()] + '): avance de todas las tiendas y carga de archivos del POS'; } }
     st.textos = tx.slice(1).filter(r => r[1]).map(r => ({tipo: String(r[0] || '').trim(), texto: String(r[1]).trim()}));
+    st.intentos = 0; clearTimeout(st.reintento);
     $('#banner').innerHTML = ''; $('#nuevaSup').disabled = false;
     $('#status').textContent = 'Actualizado ' + fmtF(hoyISO(), new Date().toTimeString().slice(0,5));
     render();
   } catch (e) {
-    if (e && e.retryable && !fresh) { setTimeout(() => cargar(true), (e.retryAfterMs || 1500) + Math.random()*800); return; }
-    $('#banner').innerHTML = `<div class="banner err">${esc(errorCopy(e))}</div>`;
-    $('#status').textContent = st.d ? 'Mostrando los últimos datos cargados' : 'Sin datos';
+    const fijo = ['needs_reauth','server_not_connected','selection_required','not_in_manifest','not_granted','consent_required','blocked_by_policy','approval_required'].includes(e && e.code);
+    st.intentos = (st.intentos || 0) + 1;
+    if (!fijo && st.intentos <= 3) { $('#status').textContent = 'Google Sheets tardó en responder, reintentando…'; setTimeout(() => cargar(true), (e && e.retryAfterMs) || [2000, 5000, 12000][st.intentos - 1]); return; }
+    if (!fijo) { st.intentos = 0; clearTimeout(st.reintento); st.reintento = setTimeout(() => cargar(true), 60000); }
+    $('#banner').innerHTML = fijo || !st.d ? `<div class="banner err">${esc(errorCopy(e))}</div>` : '';
+    $('#status').textContent = st.d ? (fijo ? 'Mostrando los últimos datos cargados' : 'Sin conexión con Google Sheets; se reintenta en 1 min') : 'Sin datos';
     if (!st.d) ['#stores'].forEach(s => $(s).innerHTML = '<div class="empty">Sin conexión con la base de datos.</div>');
     return;
   } finally { $('#refresh').disabled = false; }
@@ -1866,9 +1871,37 @@ function autocompletar(p){
 /* det1: iniciales para el avatar y fotos como miniaturas (Drive) */
 const iniciales = t => String(t || '?').replace(/[^\p{L}\s]/gu, ' ').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
 const driveId = u => { const m = String(u || '').match(/\/d\/([\w-]{20,})|[?&]id=([\w-]{20,})/); return m ? (m[1] || m[2]) : ''; };
+/* det2: */
+/* det2: si una miniatura no carga se prueba la siguiente fuente; al final queda "Ver foto" (el toque abre la foto completa) */
+function fotoFalla(img){
+  const a = img.parentNode, id = a && a.dataset.fid, n = +(img.dataset.n || 0);
+  const sin = () => { if (a) a.classList.add('sin'); img.remove(); };
+  if (!id) return sin();
+  if (n === 0) { img.dataset.n = 1; img.src = 'https://drive.google.com/thumbnail?id=' + id + '&sz=w600'; return; }
+  if (n === 1 && typeof window.fotoMcp === 'function') { img.dataset.n = 2; window.fotoMcp(id).then(u => { if (u) img.src = u; else sin(); }, sin); return; }
+  sin();
+}
+window.fotoFalla = fotoFalla;
+
+/* det2: en el panel admin las imágenes externas pueden estar bloqueadas; se piden al conector de Google Drive */
+const FOTO_CACHE = {};
+function buscarB64(v, d){
+  d = d || 0; if (v == null || d > 5) return '';
+  if (typeof v === 'string') { const s = v.replace(/^data:[^,]+,/, '').replace(/\s/g, ''); return s.length > 1500 && /^[A-Za-z0-9+/=_-]+$/.test(s.slice(0, 3000)) ? s.replace(/-/g, '+').replace(/_/g, '/') : ''; }
+  if (typeof v === 'object') for (const k of Object.keys(v)) { const r = buscarB64(v[k], d + 1); if (r) return r; }
+  return '';
+}
+window.fotoMcp = id => FOTO_CACHE[id] || (FOTO_CACHE[id] = (async () => {
+  const mcp = st.mcp || (window.claude && window.claude.use ? await window.claude.use('mcp') : null); if (!mcp) return '';
+  const r = await mcp.callTool('Google Drive', 'download_file_content', {fileId: id}, {cache: {staleTime: 864e5}});
+  const b = buscarB64(r && r.payload) || buscarB64(r && r.structuredContent) || buscarB64(r && r.content);
+  if (!b) return '';
+  const tipo = b.startsWith('/9j/') ? 'image/jpeg' : b.startsWith('iVBOR') ? 'image/png' : b.startsWith('UklG') ? 'image/webp' : 'image/jpeg';
+  return 'data:' + tipo + ';base64,' + b;
+})().catch(() => { delete FOTO_CACHE[id]; return ''; }));
 function fotoThumbs(p){
   const g = (arr, l) => arr.map((u, i) => { const id = driveId(u), t = l + (arr.length > 1 ? ' ' + (i + 1) : '');
-    return `<a class="d-foto${id ? '' : ' sin'}" href="${esc(u)}" target="_blank" rel="noopener">${id ? `<img src="https://drive.google.com/thumbnail?id=${id}&sz=w600" alt="Foto ${esc(t)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('sin');this.remove()">` : ''}<span>${esc(t)}</span></a>`; }).join('');
+    return `<a class="d-foto${id ? '' : ' sin'}" href="${esc(u)}" target="_blank" rel="noopener" data-fid="${esc(id)}">${id ? `<img src="https://lh3.googleusercontent.com/d/${id}=w600" alt="Foto ${esc(t)}" loading="lazy" referrerpolicy="no-referrer" onerror="fotoFalla(this)">` : ''}<span>${esc(t)}</span></a>`; }).join('');
   return p.fotoA.length || p.fotoD.length ? `<div class="d-fotos">${g(p.fotoA, 'Antes')}${g(p.fotoD, 'Después')}</div>` : '';
 }
 /* det1: recordatorios cuando le toca a la tienda y todavía no responde */

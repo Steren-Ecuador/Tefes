@@ -1679,9 +1679,20 @@ function autocompletar(p){
 /* det1: iniciales para el avatar y fotos como miniaturas (Drive) */
 const iniciales = t => String(t || '?').replace(/[^\p{L}\s]/gu, ' ').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
 const driveId = u => { const m = String(u || '').match(/\/d\/([\w-]{20,})|[?&]id=([\w-]{20,})/); return m ? (m[1] || m[2]) : ''; };
+/* det2: */
+/* det2: si una miniatura no carga se prueba la siguiente fuente; al final queda "Ver foto" (el toque abre la foto completa) */
+function fotoFalla(img){
+  const a = img.parentNode, id = a && a.dataset.fid, n = +(img.dataset.n || 0);
+  const sin = () => { if (a) a.classList.add('sin'); img.remove(); };
+  if (!id) return sin();
+  if (n === 0) { img.dataset.n = 1; img.src = 'https://drive.google.com/thumbnail?id=' + id + '&sz=w600'; return; }
+  if (n === 1 && typeof window.fotoMcp === 'function') { img.dataset.n = 2; window.fotoMcp(id).then(u => { if (u) img.src = u; else sin(); }, sin); return; }
+  sin();
+}
+window.fotoFalla = fotoFalla;
 function fotoThumbs(p){
   const g = (arr, l) => arr.map((u, i) => { const id = driveId(u), t = l + (arr.length > 1 ? ' ' + (i + 1) : '');
-    return `<a class="d-foto${id ? '' : ' sin'}" href="${esc(u)}" target="_blank" rel="noopener">${id ? `<img src="https://drive.google.com/thumbnail?id=${id}&sz=w600" alt="Foto ${esc(t)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('sin');this.remove()">` : ''}<span>${esc(t)}</span></a>`; }).join('');
+    return `<a class="d-foto${id ? '' : ' sin'}" href="${esc(u)}" target="_blank" rel="noopener" data-fid="${esc(id)}">${id ? `<img src="https://lh3.googleusercontent.com/d/${id}=w600" alt="Foto ${esc(t)}" loading="lazy" referrerpolicy="no-referrer" onerror="fotoFalla(this)">` : ''}<span>${esc(t)}</span></a>`; }).join('');
   return p.fotoA.length || p.fotoD.length ? `<div class="d-fotos">${g(p.fotoA, 'Antes')}${g(p.fotoD, 'Después')}</div>` : '';
 }
 /* det1: recordatorios cuando le toca a la tienda y todavía no responde */
