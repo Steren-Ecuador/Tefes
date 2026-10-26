@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (020e07406d77). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (d334fdc46cb2). No editar a mano. -->
 <html lang="es" data-theme="light">
 <head>
 <base target="_top">
@@ -1535,7 +1535,7 @@ function render(){
 
   if (st.fTienda && !enCiudad(st.fTienda)) st.fTienda = '';
   const fT = $('#fTienda'), cur = st.fTienda;
-  fT.innerHTML = '<option value="">Todas las tiendas</option>' + d.tiendas.filter(t => enCiudad(t.nombre)).map(t => `<option ${t.nombre === cur ? 'selected' : ''}>${esc(t.nombre)}</option>`).join('');
+  fT.innerHTML = '<option value="">Todas las tiendas</option>' + d.tiendas.filter(t => enCiudad(t.nombre)).map(t => `<option value="${esc(t.nombre)}" ${t.nombre === cur ? 'selected' : ''}>${esc(t.nombre)}</option>`).join('');
   $('#fSec').innerHTML = '<option value="">Todas las secciones</option>' + SECS.map(s => `<option value="${esc(SEC_NAMES[s])}" ${st.fSec === SEC_NAMES[s] ? 'selected' : ''}>${s}) ${esc(SEC_NAMES[s])}</option>`).join('');
   renderPend();
   renderContactos();
@@ -2816,7 +2816,7 @@ function renderVF(){
         </tbody></table></div></div>` : ''}
       <div><div class="sec-h"><h3 class="cl-h">Registros</h3></div>
         <div class="rec-st">${chip('abiertos', 'Abiertos')}${chip('cerrados', 'Cerrados')}${chip('todos', 'Todos')}
-        <select id="vfT" aria-label="Tienda" class="cl-sel"><option value="">Todas las tiendas</option>${tiendas.map(t => `<option ${t === fT ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
+        <select id="vfT" aria-label="Tienda" class="cl-sel"><option value="">Todas las tiendas</option>${tiendas.map(t => `<option value="${esc(t)}" ${t === fT ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
         <div class="panel flush scroll"><table class="exec vf-t"><thead><tr><th>Fecha</th><th>Tienda</th><th>Producto</th><th>Cliente</th><th>Estado</th><th class="num">Días</th></tr></thead><tbody>
         ${V.map(x => `<tr><td>${fd(x.fecha)}</td><td>${esc(x.tienda)}<div class="small faint">${esc(x.asesor)}</div></td>
           <td><b>${esc(x.cod)}</b>${x.cant > 1 ? ' ×' + x.cant : ''}<div class="obs">${esc(x.prod)}</div></td>
