@@ -1979,20 +1979,23 @@ function elegirResp(p, k){
     <div class="ac"><textarea id="dCom" rows="3" placeholder="${esc(o.ph)}" autocomplete="off"></textarea><div class="ac-list" id="acList" hidden></div></div>
     <div class="ac-chips" id="acChips"></div>
     ${o.est === 'Reabierto' ? `<label class="r-lbl" for="dFecha">Nueva fecha límite <span class="faint">· obligatoria</span></label>
-    <input type="date" id="dFecha" class="r-fecha" min="${st.d.hoy}" value="${fechaSug(p)}">` : ''}
+    <input type="date" id="dFecha" class="r-fecha" min="${st.d.hoy}" value="${fechaSug(p)}">` : o.est === 'Mensaje' ? `<label class="r-lbl" for="dFecha">Nueva fecha de compromiso <span class="faint">· opcional, cámbiala si das otro plazo</span></label>
+    <input type="date" id="dFecha" class="r-fecha" min="${st.d.hoy}" value="${p.fcomp && p.fcomp >= st.d.hoy ? p.fcomp : ''}">` : ''}
     <p class="r-falta" id="rFalta" hidden></p>
     <button class="r-cta ${o.cls || ''}" id="rOk">${o.boton}${o.nota ? `<small>${o.nota}</small>` : ''}</button></div>`;
   autocompletar(p);
   const ta = $('#dCom'), ok = $('#rOk'), fe = $('#dFecha');
   RESP.revisar = () => {
-    const fm = o.texto === 'obl' && !ta.value.trim(), ff = fe && (!fe.value || fe.value < st.d.hoy);
+    /* fc1: con "Escribir a la tienda" la fecha es opcional; si se pone, debe ser hoy o después */
+    const fm = o.texto === 'obl' && !ta.value.trim(), ff = fe && (o.est === 'Mensaje' ? !!fe.value && fe.value < st.d.hoy : !fe.value || fe.value < st.d.hoy);
     ok.disabled = false; ok.classList.toggle('falta', fm || ff); $('#rFalta').hidden = !(RESP.intento && (fm || ff));
-    $('#rFalta').textContent = fm ? 'Escribe el mensaje para poder enviarlo.' : ff ? 'Pon la nueva fecha límite (hoy o después).' : '';
+    $('#rFalta').textContent = fm ? 'Escribe el mensaje para poder enviarlo.' : ff ? (o.est === 'Mensaje' ? 'La nueva fecha de compromiso debe ser hoy o después.' : 'Pon la nueva fecha límite (hoy o después).') : '';
     return fm ? 'm' : ff ? 'f' : '';
   };
   ta.addEventListener('input', RESP.revisar); if (fe) fe.addEventListener('input', RESP.revisar); RESP.revisar();
   ok.onclick = () => { RESP.intento = true; const falta = RESP.revisar(); if (falta) { (falta === 'm' ? ta : fe).focus(); return; }
-    guardarEstado(p.id, o.est, conFecha(ta.value.trim(), fe && fe.value), ok, fe && fe.value); };
+    const fn = fe && fe.value && !(o.est === 'Mensaje' && fe.value === p.fcomp) ? fe.value : '', txt = ta.value.trim();
+    guardarEstado(p.id, o.est, o.est === 'Mensaje' ? (fn ? (txt ? txt + ' · ' : '') + 'Nueva fecha de compromiso: ' + fmtF(fn) : txt) : conFecha(txt, fn), ok, fn); };
   $('#rForm').scrollIntoView({block:'nearest', behavior:'smooth'});
 }
 
@@ -2066,7 +2069,7 @@ async function guardarEstado(id, estado, comentario, btn, fecha){
     r[21] = s;
     r[22] = (r[22] ? r[22] + '\n' : '') + s + ' · ' + estado + ' (' + 'Administrador' + ' · supervisor)' + (comentario ? ': ' + comentario : '');
     await escribirSeguro(idx, r, s, btn);
-    if (estado === 'Reabierto' && /^\d{4}-\d{2}-\d{2}$/.test(fecha || '')) await setRange(`Pendientes!M${idx + 1}`, [[fecha]]);   // nueva fecha límite
+    if ((estado === 'Reabierto' || estado === 'Mensaje') && /^\d{4}-\d{2}-\d{2}$/.test(fecha || '')) await setRange(`Pendientes!M${idx + 1}`, [[fecha]]);   // fc1   // nueva fecha límite
     toast({Mensaje:'Mensaje enviado', Pendiente:'Movido a Abierto', Cerrado:'Pendiente cerrado', Reabierto:'Pendiente reabierto, la tienda lo verá en su lista'}[estado] || 'Movido a ' + estado);
     $('#drawer').innerHTML = '';
     await cargar(true);
