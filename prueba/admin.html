@@ -2073,7 +2073,7 @@ async function guardarEstado(id, estado, comentario, btn, fecha){
     toast({Mensaje:'Mensaje enviado', Pendiente:'Movido a Abierto', Cerrado:'Pendiente cerrado', Reabierto:'Pendiente reabierto, la tienda lo verá en su lista'}[estado] || 'Movido a ' + estado);
     $('#drawer').innerHTML = '';
     await cargar(true);
-    if (btn) detalle(id);
+    if (btn && estado === 'Mensaje') detalle(id);   // al cerrar, validar o devolver el detalle queda cerrado (Diego 2026-10-26)
   } catch (e) {
     toast(e.code === 'server_unavailable' || e.code === 'upstream_error' ? 'Google Sheets no respondió después de varios intentos. Pulsa Actualizar para ver si quedó guardado.' : errorCopy(e), 7000);
     if (btn) { btn.disabled = false; btn.textContent = 'Reintentar'; }
