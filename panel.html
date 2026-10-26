@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (84d9d25ce256). No editar a mano. -->
-<html lang="es">
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (7108cee3c77d). No editar a mano. -->
+<html lang="es" data-theme="light">
 <head>
 <base target="_top">
 <meta charset="utf-8">
@@ -307,6 +307,40 @@ table.exec td{padding:10px 8px}
 .tl-txt{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:2px}
 .tl-foto{font-size:12.5px;color:var(--accent,var(--brand));font-weight:600;margin-top:2px}
 .tl li.ev>div{font-size:13px;color:var(--fg-3,var(--muted))}
+/* det1: */
+.d-top{position:sticky;top:-20px;margin:-20px -18px 0;padding:10px 12px 10px 18px;background:var(--surface);border-bottom:1px solid var(--line);z-index:5;display:flex;align-items:center;gap:10px}
+.d-top-t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.d-top-t b{font-size:15px}
+.d-top-t span{font-size:12.5px;color:var(--fg-3,var(--muted));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d-x{border:0;background:var(--surface-2,var(--line));color:var(--fg,var(--ink));border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px}
+.d-autor{display:flex;align-items:center;gap:10px;margin-top:4px}
+.d-autor b{display:block;font-size:15px}
+.d-autor small{display:block;color:var(--fg-3,var(--muted));font-size:12.5px}
+.av{flex:0 0 auto;width:36px;height:36px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:.3px;background:var(--warn-soft,#fdf0db);color:var(--warn,#a86300)}
+.av.s{background:var(--accent-soft,#e3edf7);color:var(--accent,var(--brand))}
+.d-fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.d-foto{position:relative;display:block;aspect-ratio:1/1;border-radius:14px;overflow:hidden;background:var(--surface-2,var(--line));text-decoration:none}
+.d-foto img{width:100%;height:100%;object-fit:cover;display:block}
+.d-foto span{position:absolute;left:8px;bottom:8px;background:rgba(8,15,22,.72);color:#fff;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px}
+.d-foto.sin::before{content:"▣ Ver foto";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--accent,var(--brand));font-weight:600;font-size:13px}
+.cm-tit{display:flex;align-items:baseline;gap:6px;margin-top:6px;font-weight:700;font-size:15px}
+.cm-tit span{font-weight:400;font-size:13px;color:var(--fg-3,var(--muted))}
+.cms{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.cm{display:flex;gap:8px;align-items:flex-start}
+.cm .av{width:32px;height:32px;font-size:12px}
+.cm-c{min-width:0;flex:1}
+.cm-b{display:inline-block;max-width:100%;background:var(--surface-2,#eef1f5);border-radius:4px 16px 16px 16px;padding:8px 12px}
+.cm.s .cm-b{background:var(--accent-soft,#e3edf7)}
+.cm-b b{font-size:13.5px}
+.cm-b b small{font-weight:400;color:var(--fg-3,var(--muted));font-size:12px}
+.cm-b .tl-txt{margin-top:1px;font-size:14.5px;line-height:1.4}
+.cm-b .cm-acc{font-size:14px;color:var(--fg-2,var(--muted));margin-top:1px}
+.cm-m{font-size:12px;color:var(--fg-3,var(--muted));margin:3px 0 0 12px}
+.cm-m em{font-style:normal;font-weight:600}
+.cm-ev{text-align:center;font-size:12.5px;color:var(--fg-3,var(--muted))}
+.r-form textarea#dCom{border-radius:18px;padding:10px 14px;background:var(--surface-2,#eef1f5);border-color:transparent}
+.r-form textarea#dCom:focus{background:var(--surface);border-color:var(--accent,var(--brand))}
+.r-cta.falta{opacity:.75}
 .tl-vacio{color:var(--fg-3,var(--muted));font-size:13px}
 .drawer .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--fg-3);margin-top:6px}
 .hist{white-space:pre-wrap;font-size:13px;color:var(--fg-2);background:var(--surface-2);border-radius:8px;padding:10px}
@@ -1655,7 +1689,7 @@ function autocompletar(p){
   let items = [], sel = -1;
   const poner = txt => { ta.value = txt; cerrar(); ta.focus(); ta.setSelectionRange(txt.length, txt.length); guardarBtn(); if (RESP.revisar) RESP.revisar(); };
   const cerrar = () => { list.hidden = true; items = []; sel = -1; };
-  const pintar = () => { list.innerHTML = items.map((t, i) => `<div class="ac-it${i === sel ? ' on' : ''}" data-i="${i}"><span class="ac-tipo">${esc(t.tipo)}</span>${esc(t.texto)}</div>`).join(''); list.hidden = !items.length;
+  const pintar = () => { list.innerHTML = items.map((t, i) => `<div class="ac-it${i === sel ? ' on' : ''}" data-i="${i}">${esc(t.texto)}</div>`).join(''); list.hidden = !items.length;
     list.querySelectorAll('.ac-it').forEach(el => el.onmousedown = e => { e.preventDefault(); poner(items[+el.dataset.i].texto); }); };
   const buscar = () => {
     const q = norm(ta.value).trim(); if (q.length < 2) { cerrar(); return; }
@@ -1675,32 +1709,56 @@ function autocompletar(p){
   };
   ta.onblur = () => setTimeout(cerrar, 150);
   const tipos = RESP.op && RESP.op.quick ? [RESP.op.quick] : [];
-  const chips = tipos.flatMap(k => T.filter(t => t.tipo === k).slice(0, k === 'Aprobación' ? 2 : 4));
-  $('#acChips').innerHTML = chips.map((t, i) => `<button class="chip ac-chip" data-i="${i}"><span class="ac-tipo">${esc(t.tipo)}</span>${esc(t.texto)}</button>`).join('');
+  const rec = recordatorios(p);
+  const chips = rec.concat(tipos.flatMap(k => T.filter(t => t.tipo === k).slice(0, rec.length ? 2 : k === 'Aprobación' ? 2 : 4)));
+  $('#acChips').innerHTML = chips.map((t, i) => `<button class="chip ac-chip" data-i="${i}">${esc(t.texto)}</button>`).join('');
   $('#acChips').querySelectorAll('.ac-chip').forEach(b => b.onclick = () => poner(chips[+b.dataset.i].texto));
 }
 
+/* det1: */
+/* det1: iniciales para el avatar y fotos como miniaturas (Drive) */
+const iniciales = t => String(t || '?').replace(/[^\p{L}\s]/gu, ' ').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
+const driveId = u => { const m = String(u || '').match(/\/d\/([\w-]{20,})|[?&]id=([\w-]{20,})/); return m ? (m[1] || m[2]) : ''; };
+function fotoThumbs(p){
+  const g = (arr, l) => arr.map((u, i) => { const id = driveId(u), t = l + (arr.length > 1 ? ' ' + (i + 1) : '');
+    return `<a class="d-foto${id ? '' : ' sin'}" href="${esc(u)}" target="_blank" rel="noopener">${id ? `<img src="https://drive.google.com/thumbnail?id=${id}&sz=w600" alt="Foto ${esc(t)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('sin');this.remove()">` : ''}<span>${esc(t)}</span></a>`; }).join('');
+  return p.fotoA.length || p.fotoD.length ? `<div class="d-fotos">${g(p.fotoA, 'Antes')}${g(p.fotoD, 'Después')}</div>` : '';
+}
+/* det1: recordatorios cuando le toca a la tienda y todavía no responde */
+function recordatorios(p){
+  if (!RESP.op || RESP.op.k !== 'msg' || opcionesSup(p).g !== 'ab' || p.comT || p.fotoD.length) return [];
+  const venc = p.fcomp && p.fcomp < st.d.hoy, r = [];
+  if (venc) r.push('La fecha de compromiso era el ' + fmtF(p.fcomp) + ' y todavía no vemos la corrección. ¿Nos ayudas a resolverlo hoy?');
+  else if (p.fcomp) r.push('¿Cómo vas con este punto? Recuerda que la fecha de compromiso es el ' + fmtF(p.fcomp) + '.');
+  else r.push('¿Cómo vas con este punto?');
+  r.push('Cuando lo corrijas, sube la foto de cómo quedó para poder validarlo.', '¿Necesitas algo para resolverlo? Avísame.');
+  return r.map(texto => ({texto}));
+}
 /* ---------- lo que ha pasado: línea de tiempo, de lo más antiguo a lo más reciente ---------- */
 const ACCION_TL = {'Por validar':'envió la corrección para validar', 'Cerrado':'validó y cerró el pendiente', 'Reabierto':'lo devolvió a la tienda', 'En proceso':'mandó un avance', 'Pendiente':'lo dejó abierto', '':'escribió'};
-function chat(hist){
+function chat(hist, p){
+  const tienda = p ? p.tienda : 'La tienda';
   const ent = [];
   String(hist || '').split('\n').forEach(l => {
     const m = l.match(/^(\d{4}-\d{2}-\d{2})( \d{2}:\d{2})? · (.*)$/);
     if (m) ent.push({f: m[1], h: (m[2] || '').trim(), t: m[3]}); else if (ent.length) ent[ent.length - 1].t += '\n' + l;
   });
-  if (!ent.length) return '<div class="tl-vacio">Sin movimientos todavía.</div>';
-  return '<ol class="tl">' + ent.map(e => {
+  if (p && p.comT && !ent.some(e => e.t.includes(String(p.comT).trim().slice(0, 40)))) ent.push({f: p.fres || '', h: '', t: 'Por validar (' + tienda + '): ' + p.comT});
+  if (!ent.length) return '<div class="tl-vacio">Todavía no hay comentarios.</div>';
+  return '<ol class="cms">' + ent.map(e => {
     let who = '', estado = null, txt = e.t, sup = false, m;
     if ((m = e.t.match(/^(Pendiente|En proceso|Por validar|Cerrado|Reabierto|Mensaje) \(([^)]+)\)(?::\s*([\s\S]*))?$/))) { estado = m[1] === 'Mensaje' ? '' : m[1]; sup = /supervisor$/i.test(m[2]); who = m[2].replace(/\s*·?\s*supervisor$/i, '') || 'Supervisor'; txt = (m[3] || '').trim(); }
     else if ((m = e.t.match(/^(Pendiente|En proceso|Por validar|Cerrado|Reabierto)(?::\s*([\s\S]*))?$/))) { estado = m[1]; sup = estado === 'Cerrado' || estado === 'Reabierto'; who = sup ? 'Supervisor' : 'La tienda'; txt = (m[2] || '').trim(); }
     else if ((m = e.t.match(/^Supervisor: ([\s\S]+)$/))) { estado = ''; sup = true; who = 'Supervisor'; txt = m[1]; }
     else if ((m = e.t.match(/^Creado por (.+)$/))) txt = m[1].trim() + ' registró el pendiente';
     const f = txt.match(/\s*\[(\d+) foto\(s\)\]$/); if (f) txt = txt.replace(f[0], '');
-    const cuando = '<time>' + fmtF(e.f) + (e.h ? ' · ' + fmtH(e.h) : '') + '</time>';
-    if (estado === null) return '<li class="ev"><i></i><div>' + esc(txt) + ' ' + cuando + '</div></li>';
+    const cuando = '<time>' + (e.f ? fmtF(e.f) : '') + (e.h ? ' · ' + fmtH(e.h) : '') + '</time>';
+    if (estado === null) return '<li class="cm-ev">' + esc(txt) + ' · ' + cuando + '</li>';
     const accion = estado === 'En proceso' && !txt ? 'lo marcó en proceso' : ACCION_TL[estado];
-    return '<li class="' + (sup ? 's' : 't') + '"><i></i><div><div class="tl-cab"><b>' + esc(who) + '</b>' + (sup && who !== 'Supervisor' ? ' (supervisor)' : '') + ' ' + accion + ' ' + cuando + '</div>' +
-      (txt ? '<div class="tl-txt">' + esc(txt) + '</div>' : '') + (f ? '<div class="tl-foto">▣ ' + f[1] + ' foto' + (f[1] > 1 ? 's' : '') + '</div>' : '') + '</div></li>';
+    const nom = who === 'La tienda' ? tienda : who, fot = f ? '<div class="tl-foto">▣ ' + f[1] + ' foto' + (f[1] > 1 ? 's' : '') + '</div>' : '';
+    return '<li class="cm ' + (sup ? 's' : 't') + '"><span class="av' + (sup ? ' s' : '') + '">' + esc(iniciales(nom)) + '</span><div class="cm-c"><div class="cm-b"><b>' + esc(nom) + (sup ? ' <small>· supervisor</small>' : '') + '</b>' +
+      (txt ? '<div class="tl-txt">' + esc(txt) + '</div>' : '<div class="cm-acc">' + accion.charAt(0).toUpperCase() + accion.slice(1) + '</div>') + fot + '</div>' +
+      '<div class="cm-m">' + (txt ? '<em>' + accion.charAt(0).toUpperCase() + accion.slice(1) + '</em> · ' : '') + cuando + '</div></div></li>';
   }).join('') + '</ol>';
 }
 
@@ -1735,7 +1793,7 @@ function bindResp(p){ RESP.op = null; RESP.revisar = null; document.querySelecto
 /* Al elegir una respuesta aparece solo su mensaje y un botón que dice lo que va a pasar */
 function elegirResp(p, k){
   const o = opcionesSup(p).ops.find(x => x.k === k); if (!o || !$('#rForm')) return;
-  RESP.op = o;
+  RESP.op = o; RESP.intento = false;
   document.querySelectorAll('.r-opc').forEach(b => { const on = b.dataset.k === k; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
   $('#rForm').innerHTML = `<div class="r-form"><label class="r-lbl" for="dCom">Mensaje para la tienda <span class="faint">· ${o.texto === 'obl' ? 'obligatorio' : 'opcional'}</span></label>
     <div class="ac"><textarea id="dCom" rows="3" placeholder="${esc(o.ph)}" autocomplete="off"></textarea><div class="ac-list" id="acList" hidden></div></div>
@@ -1748,11 +1806,13 @@ function elegirResp(p, k){
   const ta = $('#dCom'), ok = $('#rOk'), fe = $('#dFecha');
   RESP.revisar = () => {
     const fm = o.texto === 'obl' && !ta.value.trim(), ff = fe && (!fe.value || fe.value < st.d.hoy);
-    ok.disabled = fm || ff; $('#rFalta').hidden = !(fm || ff);
+    ok.disabled = false; ok.classList.toggle('falta', fm || ff); $('#rFalta').hidden = !(RESP.intento && (fm || ff));
     $('#rFalta').textContent = fm ? 'Escribe el mensaje para poder enviarlo.' : ff ? 'Pon la nueva fecha límite (hoy o después).' : '';
+    return fm ? 'm' : ff ? 'f' : '';
   };
   ta.addEventListener('input', RESP.revisar); if (fe) fe.addEventListener('input', RESP.revisar); RESP.revisar();
-  ok.onclick = () => guardarEstado(p.id, o.est, conFecha(ta.value.trim(), fe && fe.value), ok, fe && fe.value);
+  ok.onclick = () => { RESP.intento = true; const falta = RESP.revisar(); if (falta) { (falta === 'm' ? ta : fe).focus(); return; }
+    guardarEstado(p.id, o.est, conFecha(ta.value.trim(), fe && fe.value), ok, fe && fe.value); };
   $('#rForm').scrollIntoView({block:'nearest', behavior:'smooth'});
 }
 
@@ -1768,19 +1828,19 @@ function detalle(id){
   const p = st.d.pend.find(x => x.id === id); if (!p) return;
   if (window.REG) REG.vista('Pendiente ' + p.id + ' · ' + p.tienda);
   $('#drawer').innerHTML = `<div class="drawer-bg"><div class="drawer" role="dialog" aria-label="Pendiente ${esc(p.id)}">
-    <div style="display:flex;justify-content:space-between;align-items:center"><span class="small faint">${esc(p.id)} · ${esc(p.tienda)}</span><button class="btn" id="dClose">Cerrar panel</button></div>
+    <div class="d-top"><div class="d-top-t"><b>Pendiente ${esc(p.id)}</b><span>${esc(p.tienda)}${p.seccion ? ' · ' + esc(p.seccion) : ''}</span></div><button class="d-x" id="dClose" aria-label="Cerrar">Cerrar ✕</button></div>
+    <div class="d-autor"><span class="av">${esc(iniciales(p.tienda))}</span><div><b>${esc(p.tienda)}</b><small>${esc(p.origen)} del ${fmtF(p.fechaSup)} · calificación ${esc(p.calif)}</small></div></div>
     <div class="d-punto"><span class="d-cod">${esc(p.punto)}</span><div><div class="d-sec">${esc(p.seccion || '')}</div><h2>${esc(p.texto || p.punto)}</h2></div></div>
     ${turnoHTML(p)}
     ${revDet(p)}
-    <div>${puede(p) ? '' : tagEstado(p.estado) + ' '}${p.prior ? `<span class="pill ${p.prior === 'Alta' ? 'p-bad' : p.prior === 'Media' ? 'p-warn' : 'p-na'}">Prioridad ${esc(p.prior)}</span>` : ''} <span class="small faint">${esc(p.origen)} del ${fmtF(p.fechaSup)} · calificación ${esc(p.calif)}</span></div>
+    <div>${puede(p) ? '' : tagEstado(p.estado) + ' '}${p.prior ? `<span class="pill ${p.prior === 'Alta' ? 'p-bad' : p.prior === 'Media' ? 'p-warn' : 'p-na'}">Prioridad ${esc(p.prior)}</span>` : ''}</div>
     ${p.hallazgo ? `<div class="lbl">Lo que se encontró</div><div>${esc(p.hallazgo)}</div>` : ''}
     <div class="lbl">Acción correctiva</div><div class="d-acc">${esc(p.accion || 'Sin acción correctiva definida')}</div>
-    <div class="lbl">Lo que respondió la tienda${p.fres ? ' el ' + fmtF(p.fres) : ''}</div><div>${p.comT ? esc(p.comT) : '<span class="faint">Todavía no responde</span>'}</div>
-    ${p.fotoA.length || p.fotoD.length ? `<div class="links">${fotoLinks(p.fotoA, 'Foto antes')}${fotoLinks(p.fotoD, 'Foto después')}</div>` : ''}
+    ${fotoThumbs(p)}
     <div class="d-resp"><div><div class="lbl">Responsable</div><div>${esc(p.resp || '–')}</div></div><div><div class="lbl">Fecha de compromiso</div><div class="${ABIERTOS.includes(p.estado) && p.fcomp && p.fcomp < st.d.hoy ? 'venc' : ''}">${fmtF(p.fcomp) || 'Sin fecha'}</div></div></div>
     
+    <div class="cm-tit">Comentarios</div><div class="tl-box" id="dChat">${chat(p.hist, p)}</div>
     ${puede(p) ? `${respHTML(p)}` : `<div class="banner small">${st.yo ? (revisores(p).length ? 'Este pendiente lo revisa ' + esc(unirN(revisores(p))) + '. Puedes verlo, pero no actuar sobre él.' : 'Puedes ver este pendiente, pero no tienes permiso para comentar en esta tienda.') : 'Identifícate para comentar, cerrar o reabrir este pendiente.'} ${st.yo ? '' : '<button class="btn primary" id="dLogin" style="margin-left:6px">Identificarme</button>'}</div>`}
-    <div class="lbl">Lo que ha pasado</div><div class="tl-box" id="dChat">${chat(p.hist)}</div>
   </div></div>`;
   $('#dClose').onclick = () => $('#drawer').innerHTML = '';
   $('.drawer-bg').onclick = e => { if (e.target.classList.contains('drawer-bg')) $('#drawer').innerHTML = ''; };
