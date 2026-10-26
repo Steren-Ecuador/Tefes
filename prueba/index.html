@@ -40,6 +40,7 @@ select{font:inherit;padding:9px 10px;border-radius:10px;border:1px solid var(--l
 .nota h3{margin:0 0 6px;color:var(--ink);font-size:16px}
 .nota ol{margin:6px 0 0;padding-left:20px}
 .pie{margin-top:16px;font-size:13px;color:var(--faint);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+[hidden]{display:none!important}
 .pie button{font:inherit;background:none;border:0;color:var(--acc);text-decoration:underline;cursor:pointer;padding:0}
 </style>
 </head>
@@ -47,7 +48,7 @@ select{font:inherit;padding:9px 10px;border-radius:10px;border:1px solid var(--l
 <header class="cab"><div class="in">
   <span class="tag">Entorno de pruebas</span>
   <h1>TEFES</h1>
-  <p>Las mismas pantallas que usan la administración, los supervisores y las tiendas, con datos de ejemplo. Personas, clientes, ventas y conteos son inventados. Nada de lo que hagas aquí llega a la app real.</p>
+  <p id="intro">Las mismas pantallas que usan la administración, los supervisores y las tiendas, con datos de ejemplo. Personas, clientes, ventas y conteos son inventados. Nada de lo que hagas aquí llega a la app real.</p>
 </div></header>
 <main class="main">
   <div class="niveles">
@@ -70,14 +71,43 @@ select{font:inherit;padding:9px 10px;border-radius:10px;border:1px solid var(--l
   <div class="nota">
     <h3>Cómo probarlo</h3>
     <ol>
-      <li>En <b>Supervisores</b>, elige un nombre (por ejemplo Paula Andrade). Para entrar como <b>Administrador</b> no hace falta clave.</li>
+      <li>En <b>Supervisores</b>, elige un nombre (por ejemplo <span id="ejSup">Paula Andrade</span>). Para entrar como <b>Administrador</b> no hace falta clave.</li>
       <li>En <b>Tienda</b>, responde un pendiente con foto: aparece en Supervisores y en Administración como "Por validar".</li>
-      <li>Los tres niveles comparten estos datos de ejemplo en este navegador. "Empezar de nuevo" los deja como al inicio.</li>
+      <li>Los tres niveles comparten estos datos en este navegador. "Empezar de nuevo" los deja como al inicio.</li>
     </ol>
   </div>
-  <div class="pie"><span>Datos de ejemplo del <span id="dia"></span>.</span><button type="button" id="reiniciar">Empezar de nuevo</button></div>
+  <div class="pie"><span id="pieTxt">Datos de ejemplo del <span id="dia"></span>.</span><button type="button" id="reiniciar">Empezar de nuevo</button><button type="button" id="salirReal" hidden>Usar datos de ejemplo</button></div>
+  <div id="cargando" hidden style="position:fixed;inset:0;background:rgba(15,21,28,.6);color:#fff;display:grid;place-items:center;font-weight:700;font-size:18px;z-index:9">Abriendo los datos reales…</div>
 </main>
 <script>
+/* Foto de datos reales: foto.enc va cifrado (AES-GCM, gzip); la clave llega solo en el enlace (#k=...) y se guarda en este navegador. */
+function abrirFoto() {
+  var DB = window.TEFES_PRUEBA, q = new URLSearchParams(location.search), h = location.hash.match(/k=([\w-]+)/), k = h ? h[1] : DB.claveReal();
+  if (!k || !window.crypto || !crypto.subtle || !window.DecompressionStream) return;
+  if (h) history.replaceState(null, '', location.pathname + location.search);
+  var vuelta = q.get('rehacer'), aviso = document.getElementById('cargando');
+  if (vuelta || h || !DB.esReal()) aviso.hidden = false;
+  var b = atob(k.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((k.length + 3) % 4)), raw = new Uint8Array(b.length);
+  for (var i = 0; i < b.length; i++) raw[i] = b.charCodeAt(i);
+  fetch('foto.enc', {cache: 'no-cache'}).then(function (r) { if (!r.ok) throw new Error('sin foto'); return r.arrayBuffer(); }).then(function (buf) {
+    return crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']).then(function (key) {
+      return crypto.subtle.decrypt({name: 'AES-GCM', iv: new Uint8Array(buf, 0, 12)}, key, new Uint8Array(buf, 12));
+    });
+  }).then(function (plano) {
+    return new Response(new Blob([plano]).stream().pipeThrough(new DecompressionStream('gzip'))).json();
+  }).then(function (foto) {
+    try { localStorage.setItem('tefesPrueba.k', k); } catch (e) {}
+    var nueva = !DB.esReal() || DB.fecha() !== foto.fecha;
+    if (nueva || vuelta) DB.ponerFoto(foto);
+    if (vuelta) location.replace(vuelta);
+    else if (nueva) location.reload();
+    else aviso.hidden = true;
+  }).catch(function () {
+    aviso.hidden = true;
+    if (h) alert('No se pudieron abrir los datos reales: la clave del enlace no es correcta. Se muestran datos de ejemplo.');
+    if (vuelta) { DB.salirReal(); location.replace(vuelta); }
+  });
+}
 (function () {
   var DB = window.TEFES_PRUEBA, sel = document.getElementById('tienda'), ir = document.getElementById('irTienda');
   var nom = function (t) { return t === 'Megakywi' ? 'Megakywi-EloyAlfaro' : t === 'Megamaxi' ? 'Megamaxi 6 Dic' : t; };
@@ -85,7 +115,17 @@ select{font:inherit;padding:9px 10px;border-radius:10px;border:1px solid var(--l
   var pon = function () { ir.href = 'tienda.html?t=' + encodeURIComponent(DB.token(sel.value)); };
   sel.onchange = pon; pon();
   document.getElementById('dia').textContent = new Date(DB.hoyISO() + 'T12:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'long', year: 'numeric'});
-  document.getElementById('reiniciar').onclick = function () { if (confirm('¿Volver a los datos de ejemplo del inicio?')) { DB.reiniciar(); location.reload(); } };
+  document.getElementById('reiniciar').onclick = function () { if (confirm('¿Volver a los datos del inicio? Se borra lo que hiciste en esta prueba.')) { if (DB.reiniciar() !== 'va') location.reload(); } };
+  if (DB.esReal()) {
+    var f = DB.fecha().split(' ');
+    document.getElementById('intro').textContent = 'Las mismas pantallas que usan la administración, los supervisores y las tiendas, con una foto de los datos reales. Puedes probar todo: lo que registres queda solo en este navegador y nada llega a la app real.';
+    document.getElementById('pieTxt').textContent = 'Datos reales del ' + f[0].split('-').reverse().join('/') + ' a las ' + f[1] + ' (foto).';
+    var s1 = DB.filas('Supervisores').filter(function (r) { return /^s/i.test(r[4] || ''); })[0];
+    if (s1) document.getElementById('ejSup').textContent = s1[0];
+    var sr = document.getElementById('salirReal'); sr.hidden = false;
+    sr.onclick = function () { if (confirm('¿Pasar a datos de ejemplo? Para volver a los reales abre otra vez el enlace con la clave.')) { DB.salirReal(); location.reload(); } };
+  }
+  abrirFoto();
 })();
 </script>
 </body>

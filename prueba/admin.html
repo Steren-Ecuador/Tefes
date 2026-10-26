@@ -3332,6 +3332,20 @@ window.cvCtx = {api: cvLeerHoja, yo: () => st.mcp ? {nombre: 'Diego'} : null};
 .pe-wait{display:flex;gap:10px;align-items:center;color:var(--fg-2)}
 .pe-wait i{width:16px;height:16px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--accent);animation:peGira .8s linear infinite}
 @keyframes peGira{to{transform:rotate(360deg)}}
+.pe-fig{position:relative;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);background:var(--surface-2)}
+.pe-fig img{display:block;width:100%}
+.pe-mk{position:absolute;border:3px solid var(--mk,#d92d20);border-radius:4px;box-shadow:0 0 0 1px rgba(255,255,255,.7)}
+.pe-mk b{position:absolute;left:-3px;top:-3px;transform:translate(-35%,-35%);min-width:24px;height:24px;border-radius:12px;background:var(--mk,#d92d20);color:#fff;font:700 13px/24px var(--f-body);text-align:center;padding:0 5px;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.pe-mk.v{--mk:#e07b00}
+.pe-hz{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:2px 10px;padding:10px 0;border-bottom:1px solid var(--line);align-items:start}
+.pe-hz:last-child{border-bottom:0}
+.pe-hz>i{font-style:normal;width:26px;height:26px;border-radius:13px;background:#d92d20;color:#fff;font-weight:700;font-size:13px;display:grid;place-items:center}
+.pe-hz>i.v{background:#e07b00}
+.pe-hz .ac{font-weight:700;letter-spacing:.3px}
+.pe-hz .q{font-size:12.5px;color:var(--fg-3)}
+.pe-hz .x{border:0;background:none;color:var(--fg-3);font-size:18px;padding:0 4px}
+.pe-rep td{font-size:13.5px;vertical-align:top}
+.pe-pasos{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14.5px}
 .pe-back{border:0;background:none;color:var(--accent);font-weight:600;padding:0;font-size:14px;align-self:flex-start}
 </style>
 <script>
@@ -3389,7 +3403,7 @@ function peVNueva(){
   if (!b) return `<button class="pe-back" data-pe="lista">← Exhibiciones</button>
     <section class="panel"><div class="panel-h"><h2>Nueva exhibición</h2></div>
     <label class="an-f" style="margin-bottom:12px">Nombre de la promoción o exhibición<input type="text" id="peNom" placeholder="Ej.: Percha Black Month audífonos"></label>
-    <label class="pe-up"><input type="file" accept="image/*" id="peFotoModelo"><b>Subir la foto modelo</b><span class="small">Una foto de frente, con toda la percha y los precios legibles.</span><span class="btn">Elegir foto</span></label>
+    <label class="pe-up"><input type="file" accept="image/*,application/pdf" id="peFotoModelo"><b>Subir la guía de la promo (PDF) o la foto modelo</b><span class="small">Del PDF se toma la página de la góndola: foto de referencia y tabla de códigos.</span><span class="btn">Elegir foto</span></label>
     ${PE.msg ? `<p class="small" style="margin:10px 0 0">${PE.msg}</p>` : ''}</section>`;
   return `<button class="pe-back" data-pe="lista">← Exhibiciones</button>
     <div class="pe-dos"><div><img class="pe-foto" src="${b.fotoUrl}" alt="Foto modelo"></div>
@@ -3430,7 +3444,7 @@ function peVLayout(){
       <button class="btn" data-pe-revisar="${peEsc(t)}">${r ? 'Nueva revisión' : 'Revisar'}</button></div></div>`; }).join('');
   return `<button class="pe-back" data-pe="lista">← Exhibiciones</button>
     <div class="sec-h"><h2>${peEsc(l.nombre)}</h2><div class="pe-act"><button class="btn" data-pe="editar">Editar layout</button><button class="btn bad" data-pe="archivar">Archivar</button></div></div>
-    <div class="pe-dos"><div><img class="pe-foto" src="${peUrl(l.fotoId)}" alt="Foto modelo"><p class="small faint">Creada ${peFecha(l.creado)}</p></div>
+    <div class="pe-dos"><div><img class="pe-foto" src="${peUrl(l.fotoId)}" alt="Foto modelo"><p class="small faint">Creada ${peFecha(l.creado)}${l.guiaId ? ` · <a href="${peUrl(l.guiaId)}" target="_blank" rel="noopener">Ver guía (PDF)</a>` : ''}</p></div>
     <div style="display:flex;flex-direction:column;gap:12px;min-width:0">${peDiagrama(l)}${l.notas ? `<p class="small muted" style="margin:0">${peEsc(l.notas)}</p>` : ''}</div></div>
     <div><div class="sec-h"><h2>Tiendas</h2><span class="hint">Sube la foto actual de la tienda y Claude la compara con este layout.</span></div><div class="panel flush">${tiendas}</div></div>`;
 }
@@ -3458,15 +3472,47 @@ function peVRevision(){
     <div class="sec-h"><h2>${peEsc(r.tienda)} · ${peFecha(r.fecha)}</h2>${decidido ? `<span class="pill ${r.estado === 'aprobada' ? 'p-good' : 'p-bad'}">${r.estado === 'aprobada' ? 'Aprobada' : 'Devuelta'} ${peFecha(r.decidido)}</span>` : ''}</div>
     <div class="pe-res"><b class="${pts >= 90 ? 'good-t' : pts >= 70 ? 'warn-t' : 'bad-t'}">${pts}%</b><span class="muted">${malos ? malos + (malos === 1 ? ' producto por corregir' : ' productos por corregir') : 'Todo como en el layout'}</span></div>
     ${r.resumen ? `<p style="margin:0">${peEsc(r.resumen)}</p>` : ''}${r.pedirFoto ? `<p class="small banner" style="margin:0">${peEsc(r.pedirFoto)}</p>` : ''}
-    <div class="pe-dos"><div style="display:flex;flex-direction:column;gap:8px"><div class="lbl" style="margin:0">Foto de la tienda</div><div class="pe-fotos">${(r.fotos || []).map(f => `<a href="${peUrl(f.id)}" target="_blank" rel="noopener"><img class="pe-foto" src="${peUrl(f.id)}" alt=""></a>`).join('')}</div>
-      <div class="lbl" style="margin:0">Modelo</div><img class="pe-foto" src="${peUrl(l.fotoId)}" alt="" style="max-height:220px;object-fit:contain"></div>
-    <div style="display:flex;flex-direction:column;gap:12px;min-width:0">${peDiagrama(l, est)}
-      <section class="panel"><div class="lbl" style="margin:0">Producto por producto</div>${items}${extras}${pop}</section></div></div>
+    ${peAuditoria(r, l, est, items, extras, pop)}
     <section class="panel"><label class="an-f">Comentario general para la tienda<textarea id="peCom" ${decidido ? 'disabled' : ''}>${peEsc(r.comentario)}</textarea></label>
     <div class="pe-act" style="margin-top:12px">${decidido ? `<button class="btn" data-pe="reabrir">Volver a decidir</button>` :
       `<button class="btn good" data-pe="aprobar">Aprobar</button><button class="btn bad" data-pe="devolver">Devolver con comentarios</button><button class="btn" data-pe="guardarrev">Guardar sin decidir</button>`}
       <button class="btn" data-pe="copiar">Copiar mensaje</button><a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(peMensaje(r, l))}">WhatsApp</a></div>
     ${PE.msg ? `<p class="small" style="margin:10px 0 0">${PE.msg}</p>` : ''}</section>`;
+}
+
+function peFig(r, k){
+  const f = (r.fotos || [])[k]; if (!f) return '';
+  const hz = (r.hallazgos || []).map((h, i) => ({...h, n: i + 1})).filter(h => (h.foto || 0) === k && h.caja);
+  return `<div class="pe-fig"><a href="${peUrl(f.id)}" target="_blank" rel="noopener"><img src="${peUrl(f.id)}" alt="Foto de la tienda"></a>${hz.map(h => `<span class="pe-mk${h.accion === 'VALIDAR' ? ' v' : ''}" style="left:${h.caja[0]}%;top:${h.caja[1]}%;width:${h.caja[2]}%;height:${h.caja[3]}%" title="${peEsc(h.detalle)}"><b>${h.n}</b></span>`).join('')}</div>`;
+}
+function peAuditoria(r, l, est, items, extras, pop){
+  const ed = r.estado === 'por revisar', H = r.hallazgos || [];
+  const hz = H.map((h, i) => `<div class="pe-hz"><i class="${h.accion === 'VALIDAR' ? 'v' : ''}">${i + 1}</i><div><span class="ac">${peEsc(h.accion)}</span> · ${peEsc(h.detalle)}
+      <div class="q">${peEsc(h.zona)}${h.categoria ? ' · ' + peEsc(h.categoria) : ''}${h.estandar ? ' · Guía: ' + peEsc(h.estandar) : ''}${h.tienda ? ' · Tienda: ' + peEsc(h.tienda) : ''}</div></div>
+      ${ed ? `<button class="x" data-pe-delhz="${i}" title="Quitar este hallazgo">×</button>` : '<span></span>'}</div>`).join('');
+  const rep = (r.repisas || []).length ? `<section class="panel"><div class="lbl" style="margin:0 0 6px">Control por repisa</div><div class="scroll"><table class="pe-rep"><thead><tr><th>Nivel</th><th>Guía</th><th>Tienda</th><th>Diferencia</th><th></th></tr></thead><tbody>${r.repisas.map(x => `<tr><td>${peEsc(x.nivel)}</td><td>${peEsc(x.estandar)}</td><td>${peEsc(x.tienda)}${x.causa ? `<div class="small faint">${peEsc(x.causa)}</div>` : ''}</td><td>${peEsc(x.diferencia)}</td><td><span class="pill ${x.ok ? 'p-good' : 'p-bad'}">${x.ok ? 'OK' : 'Corregir'}</span></td></tr>`).join('')}</tbody></table></div></section>` : '';
+  const pasos = (r.pasos || []).length ? `<section class="panel"><div class="lbl" style="margin:0 0 8px">Pasos para corregir</div><ol class="pe-pasos">${r.pasos.map(x => `<li>${peEsc(x)}</li>`).join('')}</ol></section>` : '';
+  return `<div class="pe-dos"><div style="display:flex;flex-direction:column;gap:8px">${(r.fotos || []).map((f, k) => peFig(r, k)).join('')}
+      ${(r.fotos || []).length ? `<button class="btn" data-pe="bajarimg" style="align-self:flex-start">Descargar foto marcada</button>` : ''}
+      <div class="lbl" style="margin:6px 0 0">Modelo</div><img class="pe-foto" src="${peUrl(l.fotoId)}" alt="" style="max-height:220px;object-fit:contain"></div>
+    <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+      ${H.length ? `<section class="panel"><div class="lbl" style="margin:0">Hallazgos</div>${hz}</section>` : ''}
+      ${peDiagrama(l, est)}</div></div>
+    ${rep}${pasos}
+    <details class="panel"${H.length ? '' : ' open'}><summary style="cursor:pointer;font-weight:600">Producto por producto</summary>${items}${extras}${pop}</details>`;
+}
+async function peFotoMarcada(r){
+  const f = (r.fotos || [])[0]; if (!f) return null;
+  const blob = await peBlob(f.id); if (!blob) return null;
+  const img = await createImageBitmap(blob), c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+  const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+  const u = Math.max(2, Math.round(img.width / 300));
+  (r.hallazgos || []).forEach((h, i) => { if ((h.foto || 0) !== 0 || !h.caja) return;
+    const col = h.accion === 'VALIDAR' ? '#e07b00' : '#d92d20', [x, y, w, hh] = h.caja.map((v, k) => v / 100 * (k % 2 ? img.height : img.width));
+    g.lineWidth = u * 2; g.strokeStyle = col; g.strokeRect(x, y, w, hh);
+    const R = u * 7; g.fillStyle = col; g.beginPath(); g.arc(x + R * .4, y + R * .4, R, 0, 7); g.fill();
+    g.fillStyle = '#fff'; g.font = `bold ${Math.round(R * 1.2)}px sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(String(i + 1), x + R * .4, y + R * .45); });
+  return new Promise(res => c.toBlob(res, 'image/jpeg', .9));
 }
 
 /* ---------- lógica ---------- */
@@ -3476,8 +3522,9 @@ function peMensaje(r, l){
   const mal = (r.items || []).filter(x => x.estado !== 'ok');
   const t = [`Revisión de exhibición: ${l.nombre}`, `Tienda: ${r.tienda} · ${peFecha(r.fecha)}`,
     `Resultado: ${r.estado === 'aprobada' ? 'APROBADA' : r.estado === 'devuelta' ? 'DEVUELTA, corregir' : 'en revisión'} (${peScore(r)}% como el layout)`];
-  if (mal.length) { t.push('', 'Corregir:'); mal.forEach(x => t.push(`• Nivel ${x.nivel}, posición ${x.pos}, ${x.producto}: ${PE_EST[x.estado][0]}${x.comentario ? '. ' + x.comentario : ''}`)); }
-  (r.extras || []).forEach(x => t.push(`• Retirar: ${x.producto}${x.donde ? ' (' + x.donde + ')' : ''}`));
+  if ((r.hallazgos || []).length) { t.push('', 'Corregir (los números van marcados en la foto):'); r.hallazgos.forEach((h, i) => t.push(`${i + 1}. ${h.accion}: ${h.detalle}${h.zona ? ' (' + h.zona + ')' : ''}`)); }
+  else if (mal.length) { t.push('', 'Corregir:'); mal.forEach(x => t.push(`• Nivel ${x.nivel}, posición ${x.pos}, ${x.producto}: ${PE_EST[x.estado][0]}${x.comentario ? '. ' + x.comentario : ''}`)); }
+  if (!(r.hallazgos || []).length) (r.extras || []).forEach(x => t.push(`• Retirar: ${x.producto}${x.donde ? ' (' + x.donde + ')' : ''}`));
   if (r.comentario) t.push('', r.comentario);
   if (r.estado === 'devuelta') t.push('', 'Cuando esté corregida, envía una foto nueva de frente.');
   return t.join('\n');
@@ -3489,6 +3536,20 @@ async function peAchicar(file, lado){
   c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
   c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
   return new Promise(res => c.toBlob(b => res(b || file), 'image/jpeg', .85));
+}
+// Guía de la promo en PDF: se dibuja con pdf.js y se toma la página que dice "góndola" (si no, la que tiene la foto más grande: la 2)
+async function peGuia(pdf){
+  if (!window.pdfjsLib) await new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js'; sc.onload = ok; sc.onerror = () => no(new Error('no cargó el lector de PDF')); document.head.appendChild(sc); });
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const doc = await pdfjsLib.getDocument({data: await pdf.arrayBuffer()}).promise;
+  let n = Math.min(2, doc.numPages);
+  for (let i = 1; i <= doc.numPages; i++) { const t = (await (await doc.getPage(i)).getTextContent()).items.map(x => x.str).join(' ');
+    if (/g[oó]ndola|percha|exhibici/i.test(t)) { n = i; break; } }
+  const pg = await doc.getPage(n), vp = pg.getViewport({scale: 1}), k = 2000 / Math.max(vp.width, vp.height), v = pg.getViewport({scale: k});
+  const c = document.createElement('canvas'); c.width = Math.round(v.width); c.height = Math.round(v.height);
+  await pg.render({canvasContext: c.getContext('2d'), viewport: v}).promise;
+  const pagina = await new Promise(res => c.toBlob(res, 'image/jpeg', .9));
+  return {pagina, pdf};
 }
 async function peSubir(file){
   const blob = await peAchicar(file);
@@ -3514,6 +3575,8 @@ Describe el layout EXACTO para luego auditar tiendas:
 - frentes: cuántas unidades del mismo producto se ven de frente lado a lado en esa posición;
 - precio: el precio visible en la etiqueta o cartel de esa posición, si se lee, si no, "";
 - senal: rasgo visual corto para reconocerlo (color de caja, forma).
+Si la imagen es una página de la guía de la promoción con una TABLA de códigos en cuadrícula junto a la foto, esa tabla manda: cada fila es un nivel (de arriba hacia abajo) y cada columna una posición (de izquierda a derecha); usa los códigos de la tabla y la foto para los frentes y la descripción.
+Los precios de la guía pueden ser de otro país (México): NO los pongas en precio; en material_pop anota que cada producto lleva su cartel "Llévate 2x" o el que corresponda.
 No inventes: si algo no se lee, dilo en observaciones.
 Responde SOLO con JSON: {"niveles":[{"nombre":"Nivel 1 (arriba)","items":[{"producto":"","codigo":"","frentes":1,"precio":"","senal":""}]}],"material_pop":["carteles, cenefas, habladores que se ven"],"observaciones":""}`;
   try {
@@ -3539,9 +3602,11 @@ Revisa CADA producto del layout, en orden, en la foto actual:
 - "frentes": está en su lugar pero con menos o más frentes;
 - "precio": en su lugar pero sin etiqueta, cartel o con precio distinto;
 - "dudoso": la foto no permite verlo (borrosa, cortada, reflejo).
+Los precios que se vean en la foto MODELO pueden ser de otro país: no los compares; en la tienda revisa que cada producto tenga su cartel de la promo en USD y que la vigencia impresa del cartel no esté vencida (hoy es ${new Date().toLocaleDateString('es-EC')}).
 Sé estricto pero justo; no inventes. Además lista productos que están en la percha y NO van en el layout, y el estado del material POP.
 Comentarios cortos, en español de Ecuador, dirigidos a la tienda, con tuteo ("Mueve…", "Agrega…").
-Responde SOLO con JSON: {"resumen":"una o dos frases","items":[{"nivel":1,"pos":1,"producto":"","estado":"ok","encontrado":"dónde está o qué hay en su lugar","comentario":""}],"extras":[{"producto":"","donde":"","comentario":""}],"pop":[{"elemento":"","estado":"","comentario":""}],"pedir_otra_foto":"vacío si la foto sirve; si no, qué foto pedir"}`;
+Responde SOLO con JSON: {"resumen":"una o dos frases","items":[{"nivel":1,"pos":1,"producto":"","estado":"ok","encontrado":"dónde está o qué hay en su lugar","comentario":""}],"extras":[{"producto":"","donde":"","comentario":""}],"pop":[{"elemento":"","estado":"","comentario":""}],"hallazgos":[{"zona":"Nivel 1 izquierda","categoria":"Producto faltante","estandar":"qué pide la guía","tienda":"qué hay","accion":"COLOCAR","detalle":"instrucción corta para la tienda","foto":0,"caja":[10,5,30,15]}],"repisas":[{"nivel":1,"estandar":"","tienda":"","diferencia":"","causa":"","ok":false}],"pasos":["paso 1"],"pedir_otra_foto":"vacío si la foto sirve; si no, qué foto pedir"}
+Reglas de "hallazgos" (máximo 10, del más grave al menos grave; agrupa lo repetido): categoria es una de "Producto faltante", "No contemplado", "Ubicación", "Frentes", "Material POP", "Precio", "Validar"; accion es una de COLOCAR, RETIRAR, REUBICAR, FRENTEAR, CAMBIAR, VALIDAR; "foto" es el número de la foto ACTUAL (0 = la primera foto de la tienda, sin contar la modelo); "caja" es el rectángulo en esa foto, en PORCENTAJE (0-100) del ancho y alto: [x izquierda, y arriba, ancho, alto], que encierre exactamente la zona del problema (para una falta, el espacio donde debería ir). "repisas": una fila por nivel del layout comparando lo pedido con lo que hay. "pasos": el flujo de corrección en orden, 3 a 6 pasos cortos.`;
   try {
     const j = await PE.ia.json(prompt, {images: imgs, modelTier: 'complex', cache: false});
     const base = peItems(l), got = Array.isArray(j.items) ? j.items : [];
@@ -3549,7 +3614,10 @@ Responde SOLO con JSON: {"resumen":"una o dos frases","items":[{"nivel":1,"pos":
       return {nivel: it.nivel, pos: it.pos, producto: it.producto, estado: PE_EST[g.estado] ? g.estado : 'dudoso', encontrado: String(g.encontrado || ''), comentario: String(g.comentario || '')}; });
     const r = {layoutId: l.id, layoutNombre: l.nombre, tienda: b.tienda, fecha: peHoy(), fotos: b.fotos.map(f => ({id: f.id})), items,
       extras: Array.isArray(j.extras) ? j.extras.slice(0, 20) : [], pop: Array.isArray(j.pop) ? j.pop.slice(0, 20) : [],
-      resumen: String(j.resumen || ''), pedirFoto: String(j.pedir_otra_foto || ''), comentario: '', estado: 'por revisar', modeloEnviado: !!modelo};
+      resumen: String(j.resumen || ''), pedirFoto: String(j.pedir_otra_foto || ''), comentario: '', estado: 'por revisar', modeloEnviado: !!modelo,
+      hallazgos: (Array.isArray(j.hallazgos) ? j.hallazgos : []).slice(0, 12).map(h => ({zona: String(h.zona || ''), categoria: String(h.categoria || ''), estandar: String(h.estandar || ''), tienda: String(h.tienda || ''), accion: String(h.accion || '').toUpperCase(), detalle: String(h.detalle || ''), foto: Math.max(0, parseInt(h.foto, 10) || 0), caja: Array.isArray(h.caja) && h.caja.length === 4 ? h.caja.map(v => Math.max(0, Math.min(100, +v || 0))) : null})),
+      repisas: (Array.isArray(j.repisas) ? j.repisas : []).slice(0, 12).map(x => ({nivel: x.nivel, estandar: String(x.estandar || ''), tienda: String(x.tienda || ''), diferencia: String(x.diferencia || ''), causa: String(x.causa || ''), ok: !!x.ok})),
+      pasos: (Array.isArray(j.pasos) ? j.pasos : []).slice(0, 8).map(String)};
     r.puntaje = peScore(r);
     const ref = PE.db.collection('revisiones').doc(); await ref.set(r); r.id = ref.id;
     PE.R.unshift(r); PE.rev = r; PE.borrador = null; PE.ver = 'revision';
@@ -3578,11 +3646,14 @@ function peEnlazar(el){
   el.querySelectorAll('[data-pe-add]').forEach(b => b.onclick = () => { const l = ed(); peLeerEditor(l); l.niveles[+b.dataset.peAdd].items.push({producto: '', codigo: '', frentes: 1, precio: ''}); pePintar(); });
   el.querySelectorAll('[data-pe-del]').forEach(b => b.onclick = () => { const l = ed(); peLeerEditor(l); const [i, j] = b.dataset.peDel.split('.'); l.niveles[+i].items.splice(+j, 1); pePintar(); });
   el.querySelectorAll('[data-pe-delnv]').forEach(b => b.onclick = () => { const l = ed(); peLeerEditor(l); l.niveles.splice(+b.dataset.peDelnv, 1); pePintar(); });
+  el.querySelectorAll('[data-pe-delhz]').forEach(b => b.onclick = () => { const r = PE.rev; document.querySelectorAll('[data-pe-com]').forEach(x => r.items[+x.dataset.peCom].comentario = x.value.trim()); const c = document.getElementById('peCom'); if (c) r.comentario = c.value; r.hallazgos.splice(+b.dataset.peDelhz, 1); pePintar(); });
   el.querySelectorAll('[data-pe-est]').forEach(s => s.onchange = () => { const r = PE.rev; document.querySelectorAll('[data-pe-com]').forEach(x => r.items[+x.dataset.peCom].comentario = x.value.trim()); const c = document.getElementById('peCom'); if (c) r.comentario = c.value; r.items[+s.dataset.peEst].estado = s.value; pePintar(); });
   const fm = el.querySelector('#peFotoModelo');
-  if (fm) fm.onchange = async () => { const f = fm.files[0]; if (!f) return; const nom = (document.getElementById('peNom') || {}).value || '';
-    PE.msg = 'Subiendo la foto…'; pePintar();
-    try { const a = await peSubir(f); PE.borrador = {nombre: nom.trim(), fotoId: a.id, fotoUrl: a.url, blob: a.blob, niveles: [], notas: ''};
+  if (fm) fm.onchange = async () => { let f = fm.files[0]; if (!f) return; const nom = (document.getElementById('peNom') || {}).value || '';
+    PE.msg = /pdf/i.test(f.type) ? 'Leyendo la guía…' : 'Subiendo la foto…'; pePintar();
+    try { let guiaId = '';
+      if (/pdf/i.test(f.type)) { const g = await peGuia(f); f = g.pagina; if (PE.as) guiaId = (await PE.as.upload(g.pdf, {contentType: 'application/pdf'}).catch(() => ({}))).id || ''; }
+      const a = await peSubir(f); PE.borrador = {nombre: nom.trim(), fotoId: a.id, fotoUrl: a.url, blob: a.blob, guiaId, niveles: [], notas: ''};
       if (PE.ia && PE.iaLim?.images) await peLeerModelo(PE.borrador, a.blob); else { PE.borrador.niveles = [{nombre: 'Nivel 1 (arriba)', items: []}]; PE.msg = 'Claude no puede ver fotos en este panel ahora; arma el layout a mano.'; pePintar(); } }
     catch (e) { PE.msg = 'No se pudo subir la foto: ' + peEsc(e.message || e.code); pePintar(); } };
   const fa = el.querySelector('#peFotoActual');
@@ -3600,7 +3671,7 @@ function peEnlazar(el){
     if (a === 'releer') { const l = ed(); const blob = l.blob || await peBlob(l.fotoId); if (blob) await peLeerModelo(l, blob); return; }
     if (a === 'guardar') { const l = ed(); peLeerEditor(l); l.niveles.forEach(n => n.items = n.items.filter(it => it.producto));
       if (!l.niveles.some(n => n.items.length)) { PE.msg = 'Agrega al menos un producto.'; return pePintar(); }
-      const body = {nombre: l.nombre || 'Exhibición ' + new Date().toLocaleDateString('es-EC'), fotoId: l.fotoId, niveles: l.niveles.map(n => ({nombre: n.nombre, items: n.items.map(({producto, codigo, frentes, precio, senal}) => ({producto, codigo: codigo || '', frentes: frentes || 1, precio: precio || '', senal: senal || ''}))})), notas: l.notas || '', creado: l.creado || peHoy(), editado: peHoy(), estado: 'activo'};
+      const body = {nombre: l.nombre || 'Exhibición ' + new Date().toLocaleDateString('es-EC'), fotoId: l.fotoId, guiaId: l.guiaId || '', niveles: l.niveles.map(n => ({nombre: n.nombre, items: n.items.map(({producto, codigo, frentes, precio, senal}) => ({producto, codigo: codigo || '', frentes: frentes || 1, precio: precio || '', senal: senal || ''}))})), notas: l.notas || '', creado: l.creado || peHoy(), editado: peHoy(), estado: 'activo'};
       b.disabled = true;
       try { const ref = l.id ? PE.db.collection('perchas').doc(l.id) : PE.db.collection('perchas').doc(); await ref.set(body);
         await peCargar(); PE.id = ref.id; PE.ver = 'layout'; PE.borrador = PE.editando = null; toast('Layout guardado'); }
@@ -3608,6 +3679,9 @@ function peEnlazar(el){
       return pePintar(); }
     if (a === 'archivar') { if (!confirm('¿Archivar esta exhibición? Sus revisiones quedan guardadas.')) return; const l = peLayout(); const {id, ...body} = l; await PE.db.collection('perchas').doc(id).set({...body, estado: 'archivado'}); await peCargar(); PE.ver = 'lista'; return pePintar(); }
     if (a === 'comparar') return peComparar();
+    if (a === 'bajarimg') { const dl = await window.claude?.use?.('downloads'), r = PE.rev, bl = await peFotoMarcada(r);
+      if (!dl || !bl) return toast('No se pudo preparar la foto');
+      try { await dl.save({filename: 'Exhibición ' + r.tienda + ' ' + String(r.fecha).slice(0, 10) + '.jpg', data: bl}); } catch (e) {} return; }
     if (a === 'aprobar') return peGuardarRev('aprobada');
     if (a === 'devolver') return peGuardarRev('devuelta');
     if (a === 'guardarrev') return peGuardarRev();
