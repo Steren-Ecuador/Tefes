@@ -94,7 +94,7 @@
     ['B05', 'B', 'Exhibición de mercadería correcta, sin duplicados ni espacios vacíos.', 'Siempre'], ['B06', 'B', 'Producto de impulso de la semana o del mes correctamente exhibido.', 'Si es 0 o 1'],
     ['B07', 'B', 'Precios completos, vigentes, legibles y con portaprecios en buen estado.', 'Si es 0 o 1'], ['B08', 'B', 'Descuentos y ofertas correctamente identificados.', 'Si es 0 o 1'],
     ['B09', 'B', 'Pantalla corporativa encendida y con contenido vigente.', 'Si es 0 o 1'],
-    ['C01', 'C', 'Equipo con acceso y avance en Universidad Steren.', 'Si es 0 o 1'], ['C02', 'C', 'Calculadora de objetivos y productividad implementada y actualizada.', 'Si es 0 o 1'],
+    ['C01', 'C', 'Equipo con acceso y avance en Universidad Steren.', 'Siempre', 'Sí'], ['C02', 'C', 'Calculadora de objetivos y productividad implementada y actualizada.', 'Si es 0 o 1'],
     ['C03', 'C', 'Pizarra o comunicación de productividad actualizada.', 'Siempre'], ['C04', 'C', 'Venta total vs. objetivo revisada durante la visita.', 'Opcional', 'Sí'],
     ['C05', 'C', 'Ticket promedio revisado vs. objetivo.', 'Opcional', 'Sí'], ['C06', 'C', 'Artículos por ticket revisados vs. objetivo (1,8).', 'Opcional', 'Sí'],
     ['C07', 'C', 'Venta de garantía extendida gestionada activamente.', 'Si es 0 o 1'], ['C08', 'C', 'Venta de producto de impulso gestionada activamente.', 'Opcional'],
