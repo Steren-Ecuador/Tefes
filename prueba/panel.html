@@ -347,6 +347,17 @@ table.exec td{padding:10px 8px}
 .av-item{padding:10px 2px;border-bottom:1px solid var(--line)}
 .av-item:last-child{border-bottom:0}
 .av-item h3{margin:0 0 4px;font-size:15px}
+/* anuncio adelanto difuminado (Efecto con 🔒) */
+.velo{position:relative;margin:10px 0 12px;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#111,#2b2b2b)}
+.velo-in{filter:blur(7px);padding:16px;color:#fff;user-select:none;display:flex;flex-direction:column;gap:4px}
+.velo-in small{font-size:12px;opacity:.8}
+.velo-in b{font-size:30px;color:#f5b301;line-height:1.1}
+.velo-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+.velo-g i{font-style:normal;background:rgba(255,255,255,.1);border-radius:8px;padding:8px;font-size:13px}
+.velo-tapa{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.2)}
+.velo-tapa span{background:rgba(0,0,0,.6);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:9px 16px;font-weight:800;font-size:15px;letter-spacing:.3px;animation:veloLatido 1.6s ease-in-out infinite}
+@keyframes veloLatido{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@media (prefers-reduced-motion:reduce){.velo-tapa span{animation:none}}
 .av-item p{margin:0 0 6px;white-space:pre-line}
 /* ---------- rediseño 2026-10-22: barra con pestañas, una pantalla por tema ---------- */
 :root{--head:#111a24; --head-ink:#eef2f6; --head-2:#93a1b0; --head-line:#2c3a48}
@@ -1489,6 +1500,14 @@ function renderActividades(){
 }
 
 /* ---------- avisos semanales a las tiendas (pestaña Anuncios de la Base, vía apiAvisosPanel; solo lectura) ---------- */
+/* Anuncio adelanto (Efecto que empieza con 🔒): tarjeta borrosa con relleno, nunca el texto real, y cuenta regresiva */
+function veloHtml(a, hoy){
+  const q = Math.round((new Date((a.cuenta || a.hasta) + 'T12:00:00') - new Date(hoy + 'T12:00:00')) / 864e5);
+  const tapa = q > 1 ? 'Faltan ' + q + ' días' : q === 1 ? 'Falta 1 día' : q === 0 ? '¡Es hoy!' : 'Muy pronto';
+  return '<div class="velo" aria-hidden="true"><div class="velo-in"><small>CAMPAÑA ESPECIAL</small><b>$XX de xxxxxxxx</b>' +
+    '<span>xxxxxx xxx xxxxx xxxxxxx xx $xxx</span><div class="velo-g"><i>xx xx xxx</i><i>x xxx xxx</i><i>xxxxx xxxxxx</i></div></div>' +
+    '<div class="velo-tapa"><span>🔒 ' + tapa + '</span></div></div>';
+}
 function renderAvisos(){
   const sec = $('#avisos'), el = $('#avBody'); if (!sec || !st.avisos) return;
   const fd = i => { const d = new Date(i + 'T12:00'); return d.getDate() + ' ' + MESES_S[d.getMonth()]; };
@@ -1497,7 +1516,7 @@ function renderAvisos(){
   el.innerHTML = L.map(a => {
     const tot = a.lecturas.reduce((s, l) => s + l.total, 0), ley = a.lecturas.reduce((s, l) => s + l.leyeron, 0);
     const faltan = a.lecturas.filter(l => l.leyeron < l.total).map(l => esc(l.tienda) + ' ' + l.leyeron + '/' + l.total);
-    return `<div class="av-item"><h3>${esc(a.titulo)}</h3>${a.texto ? `<p>${esc(a.texto)}</p>` : ''}
+    return `<div class="av-item"><h3>${esc(a.titulo)}</h3>${/^🔒/.test(a.efecto || '') ? veloHtml(a, st.d && st.d.hoy || new Date().toLocaleDateString('en-CA', {timeZone: 'America/Guayaquil'})) : ''}${a.texto ? `<p>${esc(a.texto)}</p>` : ''}
       <div class="small faint">Del ${fd(a.desde)} al ${fd(a.hasta)} · ${a.lecturas.length === 1 ? esc(a.lecturas[0].tienda) : a.lecturas.length + ' tiendas'} · leyeron ${ley} de ${tot}${faltan.length ? ' · faltan en ' + faltan.join(', ') : ''}</div></div>`;
   }).join('');
 }
@@ -1660,9 +1679,20 @@ function autocompletar(p){
 /* det1: iniciales para el avatar y fotos como miniaturas (Drive) */
 const iniciales = t => String(t || '?').replace(/[^\p{L}\s]/gu, ' ').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
 const driveId = u => { const m = String(u || '').match(/\/d\/([\w-]{20,})|[?&]id=([\w-]{20,})/); return m ? (m[1] || m[2]) : ''; };
+/* det2: */
+/* det2: si una miniatura no carga se prueba la siguiente fuente; al final queda "Ver foto" (el toque abre la foto completa) */
+function fotoFalla(img){
+  const a = img.parentNode, id = a && a.dataset.fid, n = +(img.dataset.n || 0);
+  const sin = () => { if (a) a.classList.add('sin'); img.remove(); };
+  if (!id) return sin();
+  if (n === 0) { img.dataset.n = 1; img.src = 'https://drive.google.com/thumbnail?id=' + id + '&sz=w600'; return; }
+  if (n === 1 && typeof window.fotoMcp === 'function') { img.dataset.n = 2; window.fotoMcp(id).then(u => { if (u) img.src = u; else sin(); }, sin); return; }
+  sin();
+}
+window.fotoFalla = fotoFalla;
 function fotoThumbs(p){
   const g = (arr, l) => arr.map((u, i) => { const id = driveId(u), t = l + (arr.length > 1 ? ' ' + (i + 1) : '');
-    return `<a class="d-foto${id ? '' : ' sin'}" href="${esc(u)}" target="_blank" rel="noopener">${id ? `<img src="https://drive.google.com/thumbnail?id=${id}&sz=w600" alt="Foto ${esc(t)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('sin');this.remove()">` : ''}<span>${esc(t)}</span></a>`; }).join('');
+    return `<a class="d-foto${id ? '' : ' sin'}" href="${esc(u)}" target="_blank" rel="noopener" data-fid="${esc(id)}">${id ? `<img src="https://lh3.googleusercontent.com/d/${id}=w600" alt="Foto ${esc(t)}" loading="lazy" referrerpolicy="no-referrer" onerror="fotoFalla(this)">` : ''}<span>${esc(t)}</span></a>`; }).join('');
   return p.fotoA.length || p.fotoD.length ? `<div class="d-fotos">${g(p.fotoA, 'Antes')}${g(p.fotoD, 'Después')}</div>` : '';
 }
 /* det1: recordatorios cuando le toca a la tienda y todavía no responde */
