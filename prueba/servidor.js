@@ -175,6 +175,13 @@
     return {pid: p.id, n: q.n, titulo: p.titulo, pregunta: q.pregunta, opciones: q.opciones, alDia: alDia, total: g.length};
   };
   API.apiCorregirVisita = function (tok, pid, n, opcion) { tiendaDe(tok); var q = preguntas(pid).filter(function (x) { return x.n === S(n); })[0]; return {bien: !!q && q.opciones['ABC'.indexOf(q.ok)] === opcion}; };
+  /* punto E04: transferencias de la tienda en el ERP (en pruebas, una lista de ejemplo fija) */
+  API.apiTransfE04 = function (tok) {
+    tiendaDe(tok); var h = new Date(), d = function (n) { var x = new Date(h.getTime() - n * 864e5); return ('0' + x.getDate()).slice(-2) + '/' + ('0' + (x.getMonth() + 1)).slice(-2) + '/' + x.getFullYear(); };
+    return {corte: d(0), umbral: 7, recientes: 2,
+      dif: [{n: '10000999', fecha: d(60), dias: 60, estado: 'Con diferencias', con: 'CEDIS Quito', envia: false}],
+      viejas: [{n: '10003999', fecha: d(12), dias: 12, estado: 'En tránsito', con: 'CEDIS Guayaquil', envia: false}]};
+  };
   API.apiGuardarSupervisionTienda = function (tok, d) {
     var t = tiendaDe(tok), secs = F('Secciones'), puntos = F('Puntos'), suma = {}, cnt = {}, c = {'0': 0, '1': 0, '2': 0, 'N/A': 0};
     (d.items || []).forEach(function (i) { var p = puntos.filter(function (x) { return x[0] === i.id; })[0]; if (!p) return; c[i.calif] = (c[i.calif] || 0) + 1;

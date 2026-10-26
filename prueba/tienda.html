@@ -1844,6 +1844,37 @@ function polVisitaWire(p, el){
     const bt = $('#pt-' + p.id) && $('#pt-' + p.id).querySelector('[data-c="' + c + '"]'); if (bt) bt.click();
   });
 }
+/* ---------- punto E04: transferencias de la tienda en el ERP (TransferenciasE04.gs) ---------- */
+const TV = {d: null, cargando: false, error: ''};
+function trfE04Dato(){
+  const d = TV.d; if (!d) return '';
+  const lst = a => a.map(x => x.n).join(', ');
+  if (!d.dif.length && !d.viejas.length) return 'Transferencias ERP al ' + d.corte + ': ninguna con diferencias ni abierta de más de ' + d.umbral + ' días';
+  return 'Transferencias ERP al ' + d.corte + ': ' + [d.dif.length ? d.dif.length + ' con diferencias (' + lst(d.dif) + ')' : '',
+    d.viejas.length ? d.viejas.length + ' abierta' + (d.viejas.length > 1 ? 's' : '') + ' de más de ' + d.umbral + ' días (' + lst(d.viejas) + ')' : ''].filter(Boolean).join(' y ');
+}
+function trfE04Html(p){
+  if (p.id !== 'E04' || !S.form || S.form.tipo !== 'Supervisión') return '';   // solo supervisores, no en la autosupervisión de la tienda
+  if (!TV.d) {
+    if (!TV.cargando && !TV.error) trfE04Cargar(p);
+    return '<div class="vbox"><div class="ttl">Transferencias en el ERP</div><div class="tiny muted">' + (TV.error ? esc(TV.error) : 'Cargando…') + '</div>' +
+      (TV.error ? '<button class="link" data-tretry>Reintentar</button>' : '') + '</div>';
+  }
+  const d = TV.d, n = d.dif.length + d.viejas.length;
+  const fila = x => '<div class="vrow"><span>' + esc(x.n) + ' · ' + (x.envia ? 'a ' : 'de ') + esc(x.con) + '</span><b>' + esc(x.estado) + (x.dias != null ? ' · ' + x.dias + ' d' : '') + '</b></div>';
+  return '<div class="vbox' + (n ? ' mal' : '') + '"><div class="ttl">Transferencias en el ERP al ' + esc(d.corte) + '</div>' +
+    (n ? (d.dif.length ? '<div class="tiny muted">Con diferencias</div>' + d.dif.map(fila).join('') : '') +
+         (d.viejas.length ? '<div class="tiny muted" style="margin-top:4px">Abiertas de más de ' + d.umbral + ' días</div>' + d.viejas.map(fila).join('') : '') +
+         '<div class="tiny" style="margin-top:6px">Pide a la tienda el correo de gestión con la bodega o el otro local. 1 si lo muestra, 0 si no hay gestión.</div>'
+       : '<div>Ninguna con diferencias ni abierta de más de ' + d.umbral + ' días: corresponde 2.</div>') +
+    (d.recientes ? '<div class="tiny muted" style="margin-top:4px">' + d.recientes + ' abierta' + (d.recientes > 1 ? 's' : '') + ' de ' + d.umbral + ' días o menos (normal)</div>' : '') +
+    '<button class="link" data-tdato>Usar como dato de apoyo</button></div>';
+}
+async function trfE04Cargar(p){
+  TV.cargando = true;
+  try { TV.d = await api('apiTransfE04'); } catch (e) { TV.error = 'No se pudo leer el ERP: ' + e.message; }
+  TV.cargando = false; pintarPunto(p);
+}
 function puntoHtml(p){
   const it = S.form.items[p.id] || {}, F = S.form;
   const g = it.calif == null ? '' : 'g' + (it.calif === 'N/A' ? 'na' : it.calif);
@@ -1862,7 +1893,7 @@ function puntoHtml(p){
   return '<div class="card punto ' + g + '">' + '<div class="tk-sec">' + esc(p.sec + ') ' + sec6) + ' · ' + n6 + ' de ' + S.data.puntos.length + '</div>' +
     '<div><span class="pid">' + esc(p.id) + '</span>' + esc(p.texto) + '</div>' +
     '<div class="tools"><button class="link" data-guia>Ver criterio</button>' + (!verObs ? '<button class="link" data-ver="verObs">+ Observación</button>' : '') + (!verDato ? '<button class="link" data-ver="verDato">+ Dato</button>' : '') + (it.calif === '2' || it.calif === 'N/A' ? '<button class="link" data-cerrar>Listo ▲</button>' : '') + '</div>' +
-    '<div class="guia">' + esc(p.criterio) + '</div>' + ventasHtml(p) + polVisitaHtml(p) +
+    '<div class="guia">' + esc(p.criterio) + '</div>' + ventasHtml(p) + polVisitaHtml(p) + trfE04Html(p) +
     '<div class="cal">' + [['2','c2','Cumple'],['1','c1','Parcial'],['0','c0','Incumple'],['N/A','cna','No aplica']].map(([v,c,l]) => '<button class="' + c + ' ' + (it.calif===v?'on':'') + '" data-c="' + v + '">' + v + '<small>' + l + '</small></button>').join('') + '</div>' +
     (verObs ? '<label class="f">Observación' + (pend ? ' (qué se encontró)' : '') + '</label><textarea data-i="obs" rows="2" placeholder="Qué se encontró">' + esc(it.obs||'') + '</textarea>' : '') +
     (verDato ? '<label class="f">Dato de apoyo' + (p.datoReq ? ' *' : '') + '</label><input type="text" data-i="dato" placeholder="' + (p.datoReq ? 'Obligatorio' : 'Opcional') + '" value="' + esc(it.dato||'') + '">' : '') +
@@ -1891,6 +1922,8 @@ function bindPunto(p, cont){
   if (el.hasAttribute('data-abrir')) { el.onclick = () => { it().abierto = true; pintarPunto(p); }; return; }
   el.querySelector('[data-guia]').onclick = () => el.classList.toggle('showg');
   polVisitaWire(p, el);
+  const td = el.querySelector('[data-tdato]'); if (td) td.onclick = () => { it().dato = trfE04Dato(); it().verDato = true; guardarBorrador(); pintarPunto(p); actualizarFooter(); };
+  const tr = el.querySelector('[data-tretry]'); if (tr) tr.onclick = () => { TV.error = ''; pintarPunto(p); };
   const vd = el.querySelector('[data-vdato]'); if (vd) vd.onclick = () => { const d = ventasDato(p); it().dato = d.dato; it().verDato = true; guardarBorrador(); pintarPunto(p); actualizarFooter(); };
   el.querySelectorAll('[data-ver]').forEach(b => b.onclick = () => { it()[b.dataset.ver] = true; pintarPunto(p); const f = cont.querySelector(b.dataset.ver === 'verObs' ? '[data-i=obs]' : '[data-i=dato]'); if (f) f.focus(); });
   const cerrar = el.querySelector('[data-cerrar]'); if (cerrar) cerrar.onclick = () => { delete it().abierto; pintarPunto(p); };
