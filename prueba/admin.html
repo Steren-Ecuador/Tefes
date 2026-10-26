@@ -2603,7 +2603,7 @@ function waMensaje(nombre, ger, g, enlace){
   const n = g.n, uno = n === 1;
   if (g.auto) { L.push(''); L.push((n ? 'Ah, y nos falta' : 'Nos falta') + (g.auto.ult ? ` la autosupervisión de esta semana; la última fue el ${waFecha(g.auto.ult)}.` : ' la autosupervisión de la tienda, todavía no tenemos ninguna.')); }
   L.push('');
-  L.push(n ? (g.venc.length || g.hoy.length ? `¿Me ayudas a cerrar${uno ? 'lo' : 'los'} hoy?` : `¿Me ayudas a que ${uno ? 'quede listo' : 'queden listos'} a tiempo?`) + ` Apenas ${uno ? 'esté, súbelo' : 'estén, súbelos'} con foto a la app y ${uno ? 'lo' : 'los'} reviso.`
+  L.push(n ? (g.venc.length || g.hoy.length ? `¿Me ayudas a cerrar${uno ? 'lo' : 'los'} hoy?` : `¿Me ayudas a que ${uno ? 'quede listo' : 'queden listos'} a tiempo?`) + ` Apenas ${uno ? 'esté, actualízalo' : 'estén, actualízalos'} en la app y ${uno ? 'lo' : 'los'} reviso.`
     : '¿Me ayudas a hacerla hoy?');
   if (enlace) L.push(enlace);
   return L.join('\n');
@@ -2624,7 +2624,7 @@ function renderWA(){
       ${st.wa == null ? '<span class="cnt-warn small">No se pudo leer la pestaña "WhatsApp gerentes" de la hoja privada.</span>' : ''}</div>
     <div class="panel flush">${!L.length ? '<div class="empty">Ninguna tienda tiene temas atrasados ni críticos hoy.</div>' : L.map(({t, g}) => {
       const ger = G[t.nombre] || {}, tel = telIntl(ger.cel), env = waLS('wa:' + hoy + ':' + t.nombre);
-      const enlace = url && t.token ? url + '?t=' + encodeURIComponent(t.token) : '';
+      const enlace = t.token ? GH_TEFES + '?t=' + encodeURIComponent(t.token) : '';
       const msg = waMensaje(t.nombre, ger.nombre, g, enlace); st.waMsg[t.nombre] = msg;
       const pills = [g.venc.length && `<span class="pill p-bad">${g.venc.length} vencido${g.venc.length > 1 ? 's' : ''}</span>`, g.hoy.length && `<span class="pill p-warn">${g.hoy.length} vence${g.hoy.length > 1 ? 'n' : ''} hoy</span>`,
         g.dev.length && `<span class="pill p-warn">${g.dev.length} devuelto${g.dev.length > 1 ? 's' : ''}</span>`, g.alta.length && `<span class="pill p-acc">${g.alta.length} prioridad alta</span>`,
