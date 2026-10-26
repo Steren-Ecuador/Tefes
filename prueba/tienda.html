@@ -553,8 +553,9 @@ input[type=tel],input[type=email]{width:100%;border:1px solid var(--line);border
     vista(nombre){ nombre = String(nombre || ''); if (nombre === R.vistaAct) return; cerrarVista(true); R.vistaAct = nombre; },
     ev(ev, det){ push(ev, det); },
     /* ux4: una fila por apertura: cuándo vio algo y cuánto tardaron los datos del servidor */
-    carga(msPantalla, msDatos, guardado){ const s = ms => (Math.round(ms / 100) / 10).toFixed(1).replace('.', ',') + ' s';
-      push('Carga', 'pantalla ' + s(msPantalla) + ' · datos ' + (msDatos == null ? 'sin respuesta' : s(msDatos)) + ' · ' + (guardado ? 'con datos guardados' : 'sin datos guardados') + ' · ' + R.disp); }
+    carga(msPantalla, msDatos, guardado, extra){   /* lote7: extra = motivo del error o lo más lento */
+      const s = ms => (Math.round(ms / 100) / 10).toFixed(1).replace('.', ',') + ' s';
+      push('Carga', 'pantalla ' + s(msPantalla) + ' · datos ' + (msDatos == null ? 'sin respuesta' : s(msDatos)) + ' · ' + (guardado ? 'con datos guardados' : 'sin datos guardados') + ' · ' + R.disp + (extra ? ' · ' + String(extra).slice(0, 160) : '')); }
   };
 })();
 </script>
@@ -2068,11 +2069,16 @@ function enlaceSup(){
   let guardado = null, toco = false;
   try { const c = lsGet(CACHE_KEY); if (c && c.d && c.d.hoy && Date.now() - c.t < 3 * 864e5) guardado = c.d; } catch(e){}
   const t0 = performance.now(); let tPant = null;   // ux4: medición de la carga
-  const medir = ok => { try { if (window.REG) REG.carga(tPant == null ? performance.now() : tPant, ok ? performance.now() - t0 : null, !!guardado); } catch(e){} };
+  const medir = (ok, extra) => { try { if (window.REG) REG.carga(tPant == null ? performance.now() : tPant, ok ? performance.now() - t0 : null, !!guardado, extra); } catch(e){} };
+  /* lote7: si el servidor falla, un reintento a los 2 s antes de mostrar el error; se anota el motivo y lo más lento */
+  let reintento = '';
+  const pedir = async () => { try { return await api('apiInitTienda'); } catch (e1) { reintento = 'reintento (' + String(e1 && e1.message || e1).slice(0, 60) + ')'; await new Promise(r => setTimeout(r, 2000)); return api('apiInitTienda'); } };
+  const lento = t => { if (!t) return ''; const s = ms => (ms / 1000).toFixed(1).replace('.', ','); return 'servidor ' + s(t.total || 0) + ' s: ' + Object.keys(t).filter(k => k !== 'total').sort((a, b) => t[b] - t[a]).slice(0, 3).map(k => k + ' ' + s(t[k])).join(', '); };
   if (guardado) { S.data = guardado; llenarPersonal(); render(); enlaceSup(); tPant = performance.now();
     const marcar = () => { toco = true; }; ['input', 'click', 'change'].forEach(ev => document.addEventListener(ev, marcar, {capture: true, once: true})); }
-  try { const d = await api('apiInitTienda'); if (!d) throw new Error('El servidor no devolvió datos de la tienda');
-    lsSet(CACHE_KEY, {t: Date.now(), d: d}); medir(true);
+  try { const d = await pedir(); if (!d) throw new Error('El servidor no devolvió datos de la tienda');
+    const tiempos = d.tiempos; delete d.tiempos;
+    lsSet(CACHE_KEY, {t: Date.now(), d: d}); medir(true, [reintento, lento(tiempos)].filter(Boolean).join(' · '));
     if (!guardado) { S.data = d; llenarPersonal(); render(); enlaceSup(); return; }
     if (JSON.stringify(d) === JSON.stringify(guardado)) return;
     const poner = () => { S.data = d; llenarPersonal(); render(); };
@@ -2082,7 +2088,7 @@ function enlaceSup(){
     b.innerHTML = '<span>Hay cambios nuevos</span><button type="button">Actualizar</button>';
     b.querySelector('button').onclick = () => { b.remove(); poner(); };
     $('#main').prepend(b); }
-  catch(e){ medir(false); if (guardado) toast('Sin conexión: se muestran los últimos datos guardados', 5000);
+  catch(e){ medir(false, 'error: ' + String(e && e.message || e).slice(0, 100) + (reintento ? ' · tras ' + reintento : '')); if (guardado) toast('Sin conexión: se muestran los últimos datos guardados', 5000);
     else $('#main').innerHTML = '<div class="empty">No se pudo cargar: ' + esc(e.message) + '<br><br><button class="btn primary" onclick="location.reload()">Reintentar</button></div>'; }
 })();
 setTimeout(() => { if (!S.data) $('#main').innerHTML = '<div class="empty">La conexión está tardando más de lo normal. Revisa tu internet y vuelve a intentar.<br><br><button class="btn primary" onclick="location.reload()">Reintentar</button></div>'; }, 30000);
