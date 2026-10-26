@@ -360,10 +360,31 @@
   var HOJA_PDF = 'https://github.com/diegorevelom/politicas-tefes/raw/main/supervision/Hoja%20de%20supervision%20de%20tienda.pdf';
   var FOTO = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240"><rect width="320" height="240" fill="#dfe7f0"/><text x="160" y="126" font-family="Arial" font-size="18" text-anchor="middle" fill="#4a5866">Foto de ejemplo</text></svg>');
   var DB = null;
+  /* Datos reales: foto cifrada (foto.enc) que abre la portada con la clave del enlace (#k=...).
+     La portada la descifra y la deja aquí con ponerFoto(); las demás pantallas solo la leen. */
+  var KEY_K = 'tefesPrueba.k';
+  function claveReal() { try { return localStorage.getItem(KEY_K) || ''; } catch (e) { return ''; } }
+  var EN_PORTADA = /\/(index\.html)?$/.test(location.pathname);
   function cargar() {
-    try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && s.v === VERSION && s.dia === hoyISO()) DB = s; } catch (e) {}
+    var real = claveReal();
+    try {
+      var s = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (s && (real ? s.real : !s.real && s.v === VERSION && s.dia === hoyISO())) DB = s;
+    } catch (e) {}
+    if (!DB && real && !EN_PORTADA) {   // falta la copia de trabajo: la portada la vuelve a armar y regresa aquí
+      document.documentElement.style.display = 'none';
+      location.replace(SITIO + '?rehacer=' + encodeURIComponent(location.pathname.split('/').pop() + location.search));
+      throw new Error('Cargando la foto de datos reales…');
+    }
     if (!DB) DB = generar();
-    refrescarVivo(); guardar();
+    if (!DB.real) refrescarVivo();
+    guardar();
+  }
+  function ponerFoto(foto) {
+    var ej = generar().tabs, T = foto.tabs;
+    Object.keys(ej).forEach(function (t) { if (!T[t]) T[t] = t === 'Claves' ? ej[t] : [ej[t][0]]; });
+    DB = {v: VERSION, real: true, fecha: foto.fecha, dia: hoyISO(), tabs: T};
+    guardar();
   }
   function guardar() { try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) {} }
   // la tienda que cuenta "en vivo" se mantiene viva mientras dure la demostración
@@ -411,10 +432,18 @@
   }
   function agregar(nombre, fila) { hoja(nombre).push(fila.map(txt)); guardar(); return hoja(nombre).length; }
   function filas(nombre) { return hoja(nombre).slice(1); }
-  function reiniciar() { try { localStorage.removeItem(KEY); Object.keys(localStorage).forEach(function (k) { if (/^(tiendaDatos_|panelDatos_|supTefes|vfCat_|mueDemo|supSTEREN|supIntro_|supDraft|tabSup|invOrdSup)/.test(k)) localStorage.removeItem(k); }); } catch (e) {} DB = null; cargar(); }
+  function limpiar() { try { localStorage.removeItem(KEY); Object.keys(localStorage).forEach(function (k) { if (/^(tiendaDatos_|panelDatos_|supTefes|vfCat_|mueDemo|supSTEREN|supIntro_|supDraft|tabSup|invOrdSup)/.test(k)) localStorage.removeItem(k); }); } catch (e) {} DB = null; }
+  // con datos reales vuelve a la foto original pasando por la portada (devuelve 'va' porque navega)
+  function reiniciar() {
+    limpiar();
+    if (claveReal()) { location.replace(SITIO + '?rehacer=' + encodeURIComponent(location.pathname.split('/').pop() + location.search)); return 'va'; }
+    cargar();
+  }
+  function salirReal() { try { localStorage.removeItem(KEY_K); } catch (e) {} limpiar(); }
 
   cargar();
-  window.TEFES_PRUEBA = {leer: leer, escribir: escribir, agregar: agregar, filas: filas, hoja: hoja, guardar: guardar, reiniciar: reiniciar,
+  window.TEFES_PRUEBA = {ponerFoto: ponerFoto, claveReal: claveReal, salirReal: salirReal, esReal: function () { return !!DB.real; }, fecha: function () { return DB.fecha || ''; },
+    leer: leer, escribir: escribir, agregar: agregar, filas: filas, hoja: hoja, guardar: guardar, reiniciar: reiniciar,
     hoyISO: hoyISO, sumar: sumar, semISO: semISO, lunes: lunes, hm: hm, isoDe: isoDe, SITIO: SITIO, FOTO: FOTO, ADMIN: ADMIN,
     token: function (tienda) { var c = filas('Claves').filter(function (r) { return r[0] === tienda; })[0]; return c ? c[1] : ''; },
     tiendaDeToken: function (tok) { var c = filas('Claves').filter(function (r) { return r[1] === tok && !/^__/.test(r[0]); })[0]; return c ? c[0] : ''; },

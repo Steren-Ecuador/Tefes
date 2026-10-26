@@ -4,7 +4,7 @@
 (function () {
   var DB = window.TEFES_PRUEBA;
   var S = function (v) { return String(v == null ? '' : v).trim(); };
-  var N = function (v) { var n = Number(S(v).replace('%', '').replace(',', '.')); return isNaN(n) || S(v) === '' ? null : n; };
+  var N = function (v) { var x = S(v).replace('%', '').replace(/\$|\s/g, ''); if (x.indexOf(',') >= 0) x = x.replace(/\./g, '').replace(',', '.'); var n = Number(x); return isNaN(n) || S(v) === '' ? null : n; };
   var F = DB.filas;
   var lista = function (v) { return S(v).split(',').map(function (x) { return x.trim(); }).filter(Boolean); };
   function ahora() { var d = new Date(); return DB.isoDe(d) + ' ' + DB.hm(d); }
@@ -51,7 +51,7 @@
 
   /* ---------- inventario ---------- */
   function semanaMue() { return F('MueEstado').map(function (r) { return S(r[0]); }).filter(function (s) { return /^\d{4}-S\d{2}$/.test(s); }).sort().pop() || ''; }
-  function venceDe(sem) { var l = F('MueLista').filter(function (r) { return r[0] === sem; })[0]; return l ? DB.sumar(S(l[18]), 2) : DB.hoyISO(); }
+  function venceDe(sem) { var l = F('MueLista').filter(function (r) { return r[0] === sem; })[0]; return l && /^\d{4}-\d\d-\d\d/.test(S(l[18])) ? DB.sumar(DB.lunes(DB.sumar(S(l[18]).slice(0, 10), 1)), 2) : DB.hoyISO(); }   // miércoles de la semana publicada
   function corrDe(sem, t) { var m = {}; F('MueCorrecciones').forEach(function (r) { if (r[1] === sem && r[2] === t && r[3]) m[S(r[3]).replace(/^'/, '')] = r; }); return m; }
   function invFilas(sem) {
     var cache = {};
@@ -270,9 +270,11 @@
     panelOk(p); var pe = F('Personal'), lp = F('Lecturas de políticas');
     return {pe: [['Nombre completo', 'Tienda', 'Departamento', 'Ciudad', 'Cargo', 'Ingreso', 'Estado']].concat(pe), lp: [['Fecha', 'Hora', 'Política', 'Tienda', 'Persona', 'Cargo', 'Correctas', 'Resultado']].concat(lp)};
   };
-  API.apiClientesPanel = function (p) {   // pestaña Clientes del panel: sin datos de clientes en la prueba
+  API.apiClientesPanel = function (p) {   // pestaña Clientes del panel (con la foto real: celular y correo ya van tapados)
     panelOk(p);
-    return {vf: [['Fecha', 'Tienda', 'Código', 'Producto', 'Cantidad', 'Asesor', 'Cliente', 'Celular', 'Correo', 'Contacto', 'Nota', 'Consentimiento', 'Estado']], rec: [['Fecha', 'Tienda', 'Cliente', 'Reclamo', 'Estado']]};
+    var vf = F('Ventas futuras').filter(function (r) { return r[0]; }).map(function (r) { return [r[1], r[3], r[5], r[6], r[7], r[4], r[8], r[9], r[10], r[11], r[12], r[13], r[14]]; });
+    var rec = F('Reclamos clientes').filter(function (r) { return r[0]; }).map(function (r) { return [r[1], r[2], r[6], r[7], r[9]]; });
+    return {vf: [['Fecha', 'Tienda', 'Código', 'Producto', 'Cantidad', 'Asesor', 'Cliente', 'Celular', 'Correo', 'Contacto', 'Nota', 'Consentimiento', 'Estado']].concat(vf), rec: [['Fecha', 'Tienda', 'Cliente', 'Reclamo', 'Estado']].concat(rec)};
   };
   API.apiActividadesPanel = function (p) {   // actividades del mes de ejemplo (sobre de caja chica)
     panelOk(p); var mes = new Date().toISOString().slice(0, 7);

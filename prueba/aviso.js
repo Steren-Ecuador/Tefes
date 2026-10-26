@@ -9,12 +9,14 @@
     if (document.getElementById('prAviso')) return;
     var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
     var d = document.createElement('div'); d.id = 'prAviso'; d.setAttribute('role', 'note');
-    d.innerHTML = '<b>Entorno de pruebas</b><span>Datos de ejemplo: personas, clientes y cifras son inventados. Nada llega a la app real.</span>' +
+    var P = window.TEFES_PRUEBA, f = P.esReal() ? P.fecha().split(' ') : null;
+    d.innerHTML = '<b>Entorno de pruebas</b><span>' + (f ? 'Datos reales del ' + f[0].split('-').reverse().join('/') + ' ' + f[1] + '. Lo que hagas aquí queda solo en este navegador: nada llega a la app real.' :
+      'Datos de ejemplo: personas, clientes y cifras son inventados. Nada llega a la app real.') + '</span>' +
       '<a href="./">Cambiar de nivel</a><button type="button" id="prReiniciar">Empezar de nuevo</button>';
     document.body.insertBefore(d, document.body.firstChild);
     document.getElementById('prReiniciar').onclick = function () {
-      if (!confirm('¿Volver a los datos de ejemplo del inicio? Se borra lo que hiciste en esta prueba.')) return;
-      window.TEFES_PRUEBA.reiniciar(); location.reload();
+      if (!confirm('¿Volver a los datos del inicio? Se borra lo que hiciste en esta prueba.')) return;
+      if (window.TEFES_PRUEBA.reiniciar() !== 'va') location.reload();
     };
     if (!/^Pruebas/.test(document.title)) document.title = 'Pruebas · ' + document.title;
   }
