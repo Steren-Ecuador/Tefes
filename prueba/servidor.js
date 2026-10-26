@@ -270,11 +270,9 @@
     panelOk(p); var pe = F('Personal'), lp = F('Lecturas de políticas');
     return {pe: [['Nombre completo', 'Tienda', 'Departamento', 'Ciudad', 'Cargo', 'Ingreso', 'Estado']].concat(pe), lp: [['Fecha', 'Hora', 'Política', 'Tienda', 'Persona', 'Cargo', 'Correctas', 'Resultado']].concat(lp)};
   };
-  API.apiClientesPanel = function (p) {   // pestaña Clientes del panel (con la foto real: celular y correo ya van tapados)
+  API.apiClientesPanel = function (p) {   // pestaña Clientes del panel: las dos hojas tal cual, con encabezado (en la foto real celular y correo van tapados)
     panelOk(p);
-    var vf = F('Ventas futuras').filter(function (r) { return r[0]; }).map(function (r) { return [r[1], r[3], r[5], r[6], r[7], r[4], r[8], r[9], r[10], r[11], r[12], r[13], r[14]]; });
-    var rec = F('Reclamos clientes').filter(function (r) { return r[0]; }).map(function (r) { return [r[1], r[2], r[6], r[7], r[9]]; });
-    return {vf: [['Fecha', 'Tienda', 'Código', 'Producto', 'Cantidad', 'Asesor', 'Cliente', 'Celular', 'Correo', 'Contacto', 'Nota', 'Consentimiento', 'Estado']].concat(vf), rec: [['Fecha', 'Tienda', 'Cliente', 'Reclamo', 'Estado']].concat(rec)};
+    return {vf: DB.hoja('Ventas futuras').slice(), rec: DB.hoja('Reclamos clientes').slice()};
   };
   API.apiActividadesPanel = function (p) {   // actividades del mes de ejemplo (sobre de caja chica)
     panelOk(p); var mes = new Date().toISOString().slice(0, 7);

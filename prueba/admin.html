@@ -230,6 +230,40 @@ table.exec td{padding:10px 8px}
 .tl-txt{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:2px}
 .tl-foto{font-size:12.5px;color:var(--accent,var(--brand));font-weight:600;margin-top:2px}
 .tl li.ev>div{font-size:13px;color:var(--fg-3,var(--muted))}
+/* det1: */
+.d-top{position:sticky;top:-20px;margin:-20px -18px 0;padding:10px 12px 10px 18px;background:var(--surface);border-bottom:1px solid var(--line);z-index:5;display:flex;align-items:center;gap:10px}
+.d-top-t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.d-top-t b{font-size:15px}
+.d-top-t span{font-size:12.5px;color:var(--fg-3,var(--muted));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d-x{border:0;background:var(--surface-2,var(--line));color:var(--fg,var(--ink));border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px}
+.d-autor{display:flex;align-items:center;gap:10px;margin-top:4px}
+.d-autor b{display:block;font-size:15px}
+.d-autor small{display:block;color:var(--fg-3,var(--muted));font-size:12.5px}
+.av{flex:0 0 auto;width:36px;height:36px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;letter-spacing:.3px;background:var(--warn-soft,#fdf0db);color:var(--warn,#a86300)}
+.av.s{background:var(--accent-soft,#e3edf7);color:var(--accent,var(--brand))}
+.d-fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.d-foto{position:relative;display:block;aspect-ratio:1/1;border-radius:14px;overflow:hidden;background:var(--surface-2,var(--line));text-decoration:none}
+.d-foto img{width:100%;height:100%;object-fit:cover;display:block}
+.d-foto span{position:absolute;left:8px;bottom:8px;background:rgba(8,15,22,.72);color:#fff;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px}
+.d-foto.sin::before{content:"▣ Ver foto";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--accent,var(--brand));font-weight:600;font-size:13px}
+.cm-tit{display:flex;align-items:baseline;gap:6px;margin-top:6px;font-weight:700;font-size:15px}
+.cm-tit span{font-weight:400;font-size:13px;color:var(--fg-3,var(--muted))}
+.cms{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.cm{display:flex;gap:8px;align-items:flex-start}
+.cm .av{width:32px;height:32px;font-size:12px}
+.cm-c{min-width:0;flex:1}
+.cm-b{display:inline-block;max-width:100%;background:var(--surface-2,#eef1f5);border-radius:4px 16px 16px 16px;padding:8px 12px}
+.cm.s .cm-b{background:var(--accent-soft,#e3edf7)}
+.cm-b b{font-size:13.5px}
+.cm-b b small{font-weight:400;color:var(--fg-3,var(--muted));font-size:12px}
+.cm-b .tl-txt{margin-top:1px;font-size:14.5px;line-height:1.4}
+.cm-b .cm-acc{font-size:14px;color:var(--fg-2,var(--muted));margin-top:1px}
+.cm-m{font-size:12px;color:var(--fg-3,var(--muted));margin:3px 0 0 12px}
+.cm-m em{font-style:normal;font-weight:600}
+.cm-ev{text-align:center;font-size:12.5px;color:var(--fg-3,var(--muted))}
+.r-form textarea#dCom{border-radius:18px;padding:10px 14px;background:var(--surface-2,#eef1f5);border-color:transparent}
+.r-form textarea#dCom:focus{background:var(--surface);border-color:var(--accent,var(--brand))}
+.r-cta.falta{opacity:.75}
 .tl-vacio{color:var(--fg-3,var(--muted));font-size:13px}
 .drawer .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--fg-3);margin-top:6px}
 .hist{white-space:pre-wrap;font-size:13px;color:var(--fg-2);background:var(--surface-2);border-radius:8px;padding:10px}
@@ -378,6 +412,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .vit .t{font-weight:500;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .more{display:block;width:100%;text-align:center;border:0;border-top:1px solid var(--line);background:none;padding:10px;color:var(--accent);font-weight:600;font-size:14px}
 table.exec th{padding:12px 10px 8px}
+table.exec tr.grp th{padding:10px 10px 0;border-bottom:0;font-size:11.5px;color:var(--fg-2);letter-spacing:.8px}
+/* tm1: tabla Tiendas como tarjetas en el celular (2026-10-26) */
+@media(max-width:620px){#stores table:has(tr.grp) thead{display:none}#stores table:has(tr.grp) tbody{display:block}#stores table:has(tr.grp) tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px;padding:12px 14px;border-bottom:1px solid var(--line)}#stores table:has(tr.grp) td:not(.hide-sm){display:block;border:0;padding:0;text-align:left;min-width:0}#stores table:has(tr.grp) td:nth-child(1){grid-column:1/-1;font-size:16px}#stores table:has(tr.grp) td:nth-child(5){grid-column:1/3;border-left:0;padding-left:0}#stores table:has(tr.grp) td:nth-child(n+2)::before{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--fg-3);font-weight:600;margin-bottom:2px}#stores table:has(tr.grp) td:nth-child(2)::before{content:"Venta al día"}#stores table:has(tr.grp) td:nth-child(3)::before{content:"Cumplimiento"}#stores table:has(tr.grp) td:nth-child(4)::before{content:"Proyección"}#stores table:has(tr.grp) td:nth-child(5)::before{content:"Puntaje"}#stores table:has(tr.grp) td:nth-child(7)::before{content:"Pendientes"}#stores table:has(tr.grp) td:nth-child(3){font-size:16px;font-weight:600}#stores table:has(tr.grp) td .pcell{gap:4px}}
 table.exec td{padding:11px 10px}
 th.sep,td.sep{border-left:1px solid var(--line);padding-left:16px}
 .score{font-family:var(--f-display);font-weight:700;font-size:18px}
@@ -532,6 +569,16 @@ tr.on td{background:var(--accent-soft)}
 .vf-t td{font-size:14px;vertical-align:top}
 .vf-t .obs{font-size:12.5px;color:var(--fg-2);max-width:280px}
 .vf-cedis{background:var(--warn-soft);border-radius:10px;padding:10px 12px;font-size:14px}
+/* cl1: Clientes compacto, una columna (2026-10-26) */
+.cl-col{display:flex;flex-direction:column;gap:16px;margin-top:14px;min-width:0}
+.cl-h{font-family:var(--f-display);font-size:16px;font-weight:600;margin:0}
+.cl-col .sec-h{margin-bottom:6px}
+.cl-sel{margin-left:auto;font-size:14px;padding:5px 8px}
+.rec-st{align-items:center}
+#vfBody .kpis,#recBody .kpis{gap:4px 24px}
+#vfBody .kpi b,#recBody .kpi b{font-size:24px}
+#recBody{margin-top:0}
+@media(max-width:620px){.cl-sel{margin-left:0;flex:1 1 100%}.vf-t th:nth-child(6),.vf-t td:nth-child(6){display:none}}
 /* ---------- flash de ventas ---------- */
 .fl-cab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
 .fl-cab h2{font-size:22px}
@@ -621,6 +668,7 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
   </div>
   <nav class="tabs" id="tabs" aria-label="Secciones del panel">
     <button data-v="hoy">Hoy</button>
+    <button data-v="mispendientes" hidden title="Solo tú: tus pendientes con Bodega, Contabilidad, Talento Humano y otras áreas">Mis pendientes<span class="n bad" id="nMp"></span></button>
     <button data-v="flash" title="Venta del día y del mes contra presupuesto, desde el ERP"><span class="gar-foco tab" aria-hidden="true"></span>Flash de Ventas</button>
     <button data-v="pendientes" title="El número son los pendientes que esperan tu validación">Pendientes<span class="n bad" id="nPend"></span></button>
     <button data-v="whatsapp" title="Mensajes listos para los gerentes: vencidos, vencen hoy, prioridad alta y devueltos">WhatsApp<span class="n bad" id="nWa"></span></button>
@@ -666,7 +714,7 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
       </div>
     </div>
     <div>
-      <div class="sec-h"><h2>Tiendas</h2><span class="hint">Peor puntaje de supervisión primero. Toca una tienda para ver su detalle.</span></div>
+      <div class="sec-h"><h2>Tiendas: ventas del mes y supervisión</h2><span class="hint">Peor puntaje de supervisión primero. Toca una tienda para ver su detalle.</span></div>
       <div class="panel flush scroll" id="stores"><div class="skeleton">Cargando tiendas…</div></div>
     </div>
     <section class="panel" id="anuncios">
@@ -722,6 +770,10 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
 
   <div class="view" data-view="guias" hidden>
     <div id="guiBody"><div class="skeleton">Cargando manuales y guías…</div></div>
+  </div>
+
+  <div class="view" data-view="mispendientes" hidden>
+    <div id="mpBody"><div class="skeleton">Cargando tus pendientes…</div></div>
   </div>
 
   <div class="view" data-view="perchas" hidden>
@@ -1210,7 +1262,7 @@ function render(){
     return v >= 0.9 ? '<span class="zero">Todas sobre 90%</span>' : `${esc(SEC_CORTO[SECS[i]])} <b style="color:var(--${band(v)})">${pct(v)}</b>`; };
   const alDia = st.ventas ? st.ventas.ultimo : '';
   $('#stores').innerHTML = !filas.length ? '<div class="empty">No hay tiendas activas en la hoja Tiendas.</div>' :
-    `<table class="exec"><thead><tr><th>Tienda</th>${st.ventas ? '<th class="num">Venta al día</th><th class="num">Cumplimiento</th><th class="num">Proyección del mes</th>' : ''}<th class="${st.ventas ? 'sep' : ''}">Puntaje</th><th class="hide-sm">Sección más baja</th><th>Pendientes</th></tr></thead><tbody>` +
+    `<table class="exec"><thead>${st.ventas ? '<tr class="grp"><th></th><th colspan="3" style="text-align:center">Ventas del mes</th><th colspan="3" class="sep">Supervisión de tienda</th></tr>' : ''}<tr><th>Tienda</th>${st.ventas ? '<th class="num">Venta al día</th><th class="num">Cumplimiento</th><th class="num">Proyección del mes</th>' : ''}<th class="${st.ventas ? 'sep' : ''}">Puntaje</th><th class="hide-sm">Sección más baja</th><th>Pendientes</th></tr></thead><tbody>` +
     orden.map(f => {
       const u = f.ult;
       const pend = [f.venc ? `<span class="pill p-bad">${f.venc} vencido${f.venc > 1 ? 's' : ''}</span>` : '',
@@ -1744,7 +1796,7 @@ function autocompletar(p){
   let items = [], sel = -1;
   const poner = txt => { ta.value = txt; cerrar(); ta.focus(); ta.setSelectionRange(txt.length, txt.length); guardarBtn(); if (RESP.revisar) RESP.revisar(); };
   const cerrar = () => { list.hidden = true; items = []; sel = -1; };
-  const pintar = () => { list.innerHTML = items.map((t, i) => `<div class="ac-it${i === sel ? ' on' : ''}" data-i="${i}"><span class="ac-tipo">${esc(t.tipo)}</span>${esc(t.texto)}</div>`).join(''); list.hidden = !items.length;
+  const pintar = () => { list.innerHTML = items.map((t, i) => `<div class="ac-it${i === sel ? ' on' : ''}" data-i="${i}">${esc(t.texto)}</div>`).join(''); list.hidden = !items.length;
     list.querySelectorAll('.ac-it').forEach(el => el.onmousedown = e => { e.preventDefault(); poner(items[+el.dataset.i].texto); }); };
   const buscar = () => {
     const q = norm(ta.value).trim(); if (q.length < 2) { cerrar(); return; }
@@ -1777,32 +1829,56 @@ function autocompletar(p){
   ta.onblur = () => setTimeout(cerrar, 150);
   // Atajos: solicitudes si está por validar o abierto, aprobaciones si está por validar
   const tipos = RESP.op && RESP.op.quick ? [RESP.op.quick] : [];
-  const chips = tipos.flatMap(k => T.filter(t => t.tipo === k).slice(0, k === 'Aprobación' ? 2 : 4));
-  $('#acChips').innerHTML = chips.map((t, i) => `<button class="chip ac-chip" data-i="${i}"><span class="ac-tipo">${esc(t.tipo)}</span>${esc(t.texto)}</button>`).join('');
+  const rec = recordatorios(p);
+  const chips = rec.concat(tipos.flatMap(k => T.filter(t => t.tipo === k).slice(0, rec.length ? 2 : k === 'Aprobación' ? 2 : 4)));
+  $('#acChips').innerHTML = chips.map((t, i) => `<button class="chip ac-chip" data-i="${i}">${esc(t.texto)}</button>`).join('');
   $('#acChips').querySelectorAll('.ac-chip').forEach(b => b.onclick = () => poner(chips[+b.dataset.i].texto));
 }
 
+/* det1: */
+/* det1: iniciales para el avatar y fotos como miniaturas (Drive) */
+const iniciales = t => String(t || '?').replace(/[^\p{L}\s]/gu, ' ').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?';
+const driveId = u => { const m = String(u || '').match(/\/d\/([\w-]{20,})|[?&]id=([\w-]{20,})/); return m ? (m[1] || m[2]) : ''; };
+function fotoThumbs(p){
+  const g = (arr, l) => arr.map((u, i) => { const id = driveId(u), t = l + (arr.length > 1 ? ' ' + (i + 1) : '');
+    return `<a class="d-foto${id ? '' : ' sin'}" href="${esc(u)}" target="_blank" rel="noopener">${id ? `<img src="https://drive.google.com/thumbnail?id=${id}&sz=w600" alt="Foto ${esc(t)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('sin');this.remove()">` : ''}<span>${esc(t)}</span></a>`; }).join('');
+  return p.fotoA.length || p.fotoD.length ? `<div class="d-fotos">${g(p.fotoA, 'Antes')}${g(p.fotoD, 'Después')}</div>` : '';
+}
+/* det1: recordatorios cuando le toca a la tienda y todavía no responde */
+function recordatorios(p){
+  if (!RESP.op || RESP.op.k !== 'msg' || opcionesSup(p).g !== 'ab' || p.comT || p.fotoD.length) return [];
+  const venc = p.fcomp && p.fcomp < st.d.hoy, r = [];
+  if (venc) r.push('La fecha de compromiso era el ' + fmtF(p.fcomp) + ' y todavía no vemos la corrección. ¿Nos ayudas a resolverlo hoy?');
+  else if (p.fcomp) r.push('¿Cómo vas con este punto? Recuerda que la fecha de compromiso es el ' + fmtF(p.fcomp) + '.');
+  else r.push('¿Cómo vas con este punto?');
+  r.push('Cuando lo corrijas, sube la foto de cómo quedó para poder validarlo.', '¿Necesitas algo para resolverlo? Avísame.');
+  return r.map(texto => ({texto}));
+}
 /* ---------- lo que ha pasado: línea de tiempo, de lo más antiguo a lo más reciente ---------- */
 const ACCION_TL = {'Por validar':'envió la corrección para validar', 'Cerrado':'validó y cerró el pendiente', 'Reabierto':'lo devolvió a la tienda', 'En proceso':'mandó un avance', 'Pendiente':'lo dejó abierto', '':'escribió'};
-function chat(hist){
+function chat(hist, p){
+  const tienda = p ? p.tienda : 'La tienda';
   const ent = [];
   String(hist || '').split('\n').forEach(l => {
     const m = l.match(/^(\d{4}-\d{2}-\d{2})( \d{2}:\d{2})? · (.*)$/);
     if (m) ent.push({f: m[1], h: (m[2] || '').trim(), t: m[3]}); else if (ent.length) ent[ent.length - 1].t += '\n' + l;
   });
-  if (!ent.length) return '<div class="tl-vacio">Sin movimientos todavía.</div>';
-  return '<ol class="tl">' + ent.map(e => {
+  if (p && p.comT && !ent.some(e => e.t.includes(String(p.comT).trim().slice(0, 40)))) ent.push({f: p.fres || '', h: '', t: 'Por validar (' + tienda + '): ' + p.comT});
+  if (!ent.length) return '<div class="tl-vacio">Todavía no hay comentarios.</div>';
+  return '<ol class="cms">' + ent.map(e => {
     let who = '', estado = null, txt = e.t, sup = false, m;
     if ((m = e.t.match(/^(Pendiente|En proceso|Por validar|Cerrado|Reabierto|Mensaje) \(([^)]+)\)(?::\s*([\s\S]*))?$/))) { estado = m[1] === 'Mensaje' ? '' : m[1]; sup = /supervisor$/i.test(m[2]); who = m[2].replace(/\s*·?\s*supervisor$/i, '') || 'Supervisor'; txt = (m[3] || '').trim(); }
     else if ((m = e.t.match(/^(Pendiente|En proceso|Por validar|Cerrado|Reabierto)(?::\s*([\s\S]*))?$/))) { estado = m[1]; sup = estado === 'Cerrado' || estado === 'Reabierto'; who = sup ? 'Supervisor' : 'La tienda'; txt = (m[2] || '').trim(); }
     else if ((m = e.t.match(/^Supervisor: ([\s\S]+)$/))) { estado = ''; sup = true; who = 'Supervisor'; txt = m[1]; }
     else if ((m = e.t.match(/^Creado por (.+)$/))) txt = m[1].trim() + ' registró el pendiente';
     const f = txt.match(/\s*\[(\d+) foto\(s\)\]$/); if (f) txt = txt.replace(f[0], '');
-    const cuando = '<time>' + fmtF(e.f) + (e.h ? ' · ' + fmtH(e.h) : '') + '</time>';
-    if (estado === null) return '<li class="ev"><i></i><div>' + esc(txt) + ' ' + cuando + '</div></li>';
+    const cuando = '<time>' + (e.f ? fmtF(e.f) : '') + (e.h ? ' · ' + fmtH(e.h) : '') + '</time>';
+    if (estado === null) return '<li class="cm-ev">' + esc(txt) + ' · ' + cuando + '</li>';
     const accion = estado === 'En proceso' && !txt ? 'lo marcó en proceso' : ACCION_TL[estado];
-    return '<li class="' + (sup ? 's' : 't') + '"><i></i><div><div class="tl-cab"><b>' + esc(who) + '</b>' + (sup && who !== 'Supervisor' ? ' (supervisor)' : '') + ' ' + accion + ' ' + cuando + '</div>' +
-      (txt ? '<div class="tl-txt">' + esc(txt) + '</div>' : '') + (f ? '<div class="tl-foto">▣ ' + f[1] + ' foto' + (f[1] > 1 ? 's' : '') + '</div>' : '') + '</div></li>';
+    const nom = who === 'La tienda' ? tienda : who, fot = f ? '<div class="tl-foto">▣ ' + f[1] + ' foto' + (f[1] > 1 ? 's' : '') + '</div>' : '';
+    return '<li class="cm ' + (sup ? 's' : 't') + '"><span class="av' + (sup ? ' s' : '') + '">' + esc(iniciales(nom)) + '</span><div class="cm-c"><div class="cm-b"><b>' + esc(nom) + (sup ? ' <small>· supervisor</small>' : '') + '</b>' +
+      (txt ? '<div class="tl-txt">' + esc(txt) + '</div>' : '<div class="cm-acc">' + accion.charAt(0).toUpperCase() + accion.slice(1) + '</div>') + fot + '</div>' +
+      '<div class="cm-m">' + (txt ? '<em>' + accion.charAt(0).toUpperCase() + accion.slice(1) + '</em> · ' : '') + cuando + '</div></div></li>';
   }).join('') + '</ol>';
 }
 
@@ -1837,7 +1913,7 @@ function bindResp(p){ RESP.op = null; RESP.revisar = null; document.querySelecto
 /* Al elegir una respuesta aparece solo su mensaje y un botón que dice lo que va a pasar */
 function elegirResp(p, k){
   const o = opcionesSup(p).ops.find(x => x.k === k); if (!o || !$('#rForm')) return;
-  RESP.op = o;
+  RESP.op = o; RESP.intento = false;
   document.querySelectorAll('.r-opc').forEach(b => { const on = b.dataset.k === k; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
   $('#rForm').innerHTML = `<div class="r-form"><label class="r-lbl" for="dCom">Mensaje para la tienda <span class="faint">· ${o.texto === 'obl' ? 'obligatorio' : 'opcional'}</span></label>
     <div class="ac"><textarea id="dCom" rows="3" placeholder="${esc(o.ph)}" autocomplete="off"></textarea><div class="ac-list" id="acList" hidden></div></div>
@@ -1850,11 +1926,13 @@ function elegirResp(p, k){
   const ta = $('#dCom'), ok = $('#rOk'), fe = $('#dFecha');
   RESP.revisar = () => {
     const fm = o.texto === 'obl' && !ta.value.trim(), ff = fe && (!fe.value || fe.value < st.d.hoy);
-    ok.disabled = fm || ff; $('#rFalta').hidden = !(fm || ff);
+    ok.disabled = false; ok.classList.toggle('falta', fm || ff); $('#rFalta').hidden = !(RESP.intento && (fm || ff));
     $('#rFalta').textContent = fm ? 'Escribe el mensaje para poder enviarlo.' : ff ? 'Pon la nueva fecha límite (hoy o después).' : '';
+    return fm ? 'm' : ff ? 'f' : '';
   };
   ta.addEventListener('input', RESP.revisar); if (fe) fe.addEventListener('input', RESP.revisar); RESP.revisar();
-  ok.onclick = () => guardarEstado(p.id, o.est, conFecha(ta.value.trim(), fe && fe.value), ok, fe && fe.value);
+  ok.onclick = () => { RESP.intento = true; const falta = RESP.revisar(); if (falta) { (falta === 'm' ? ta : fe).focus(); return; }
+    guardarEstado(p.id, o.est, conFecha(ta.value.trim(), fe && fe.value), ok, fe && fe.value); };
   $('#rForm').scrollIntoView({block:'nearest', behavior:'smooth'});
 }
 
@@ -1869,21 +1947,21 @@ const conFecha = (txt, f) => f ? (txt ? txt + ' · ' : '') + 'Nueva fecha límit
 function detalle(id){
   const p = st.d.pend.find(x => x.id === id); if (!p) return;
   $('#drawer').innerHTML = `<div class="drawer-bg"><div class="drawer" role="dialog" aria-label="Pendiente ${esc(p.id)}">
-    <div style="display:flex;justify-content:space-between;align-items:center"><span class="small faint">${esc(p.id)} · ${esc(p.tienda)}</span><button class="btn" id="dClose">Cerrar panel</button></div>
+    <div class="d-top"><div class="d-top-t"><b>Pendiente ${esc(p.id)}</b><span>${esc(p.tienda)}${p.seccion ? ' · ' + esc(p.seccion) : ''}</span></div><button class="d-x" id="dClose" aria-label="Cerrar">Cerrar ✕</button></div>
+    <div class="d-autor"><span class="av">${esc(iniciales(p.tienda))}</span><div><b>${esc(p.tienda)}</b><small>${esc(p.origen)} del ${fmtF(p.fechaSup)} · calificación ${esc(p.calif)}</small></div></div>
     <div class="d-punto"><span class="d-cod">${esc(p.punto)}</span><div><div class="d-sec">${esc(p.seccion || '')}</div><h2>${esc(p.texto || p.punto)}</h2></div></div>
     ${turnoHTML(p)}
     ${revDet(p)}
-    <div>${p.prior ? `<span class="pill ${p.prior === 'Alta' ? 'p-bad' : p.prior === 'Media' ? 'p-warn' : 'p-na'}">Prioridad ${esc(p.prior)}</span>` : ''} <span class="small faint">${esc(p.origen)} del ${fmtF(p.fechaSup)} · calificación ${esc(p.calif)}</span></div>
+    <div>${p.prior ? `<span class="pill ${p.prior === 'Alta' ? 'p-bad' : p.prior === 'Media' ? 'p-warn' : 'p-na'}">Prioridad ${esc(p.prior)}</span>` : ''}</div>
     ${p.hallazgo ? `<div class="lbl">Lo que se encontró</div><div>${esc(p.hallazgo)}</div>` : ''}
     <div class="lbl">Acción correctiva</div><div class="d-acc">${esc(p.accion || 'Sin acción correctiva definida')}</div>
-    <div class="lbl">Lo que respondió la tienda${p.fres ? ' el ' + fmtF(p.fres) : ''}</div><div>${p.comT ? esc(p.comT) : '<span class="faint">Todavía no responde</span>'}</div>
-    ${p.fotoA.length || p.fotoD.length ? `<div class="links">${fotoLinks(p.fotoA, 'Foto antes')}${fotoLinks(p.fotoD, 'Foto después')}</div>` : ''}
+    ${fotoThumbs(p)}
     <div class="d-resp"><div><div class="lbl">Responsable</div><div>${esc(p.resp || '–')}</div></div><div><div class="lbl">Fecha de compromiso</div><div class="${ABIERTOS.includes(p.estado) && p.fcomp && p.fcomp < st.d.hoy ? 'venc' : ''}">${fmtF(p.fcomp) || 'Sin fecha'}</div></div></div>
     
+    <div class="cm-tit">Comentarios</div><div class="tl-box" id="dChat">${chat(p.hist, p)}</div>
     ${respHTML(p)}
     <div class="ac-foot small"><span id="acSave"></span><a href="${SHEET_URL}#gid=8" target="_blank" rel="noopener">Editar la lista de textos</a></div>
 
-    <div class="lbl">Lo que ha pasado</div><div class="tl-box" id="dChat">${chat(p.hist)}</div>
   </div></div>`;
   $('#dClose').onclick = () => $('#drawer').innerHTML = '';
   $('.drawer-bg').onclick = e => { if (e.target.classList.contains('drawer-bg')) $('#drawer').innerHTML = ''; };
@@ -2303,22 +2381,22 @@ function renderVF(){
   const tiendas = [...new Set(L.map(x => x.tienda))].sort();
   const chip = (k, t) => `<button class="chip${fE === k ? ' on' : ''}" data-vfe="${k}">${t}</button>`;
   const vendidos = L.filter(x => x.estado === 'Compró').length, cerr = L.filter(x => ['Compró', 'No compró'].includes(x.estado)).length;
-  el.innerHTML = `<div class="sec-h"><h2>Ventas futuras</h2><span class="hint">Lo que piden los clientes y no tenemos. La app avisa al asesor y al gerente cuando hay en otras tiendas o en bodega (con cantidades, para pedir la transferencia) y cuando llega a su tienda. Stock diario del ERP.</span></div>
+  el.innerHTML = `<div class="sec-h"><h2>Ventas futuras</h2></div>
     <div class="kpis">
       <div class="kpi acc"><b>${ab.filter(x => x.estado === 'Esperando').length}</b><span>clientes esperando</span></div>
       <div class="kpi ${ab.some(x => x.estado === 'Llegó') ? 'warn' : ''}"><b>${ab.filter(x => x.estado === 'Llegó').length}</b><span>llegó, por avisar</span></div>
       <div class="kpi"><b>${ab.filter(x => x.estado === 'Avisado').length}</b><span>avisados</span></div>
       <div class="kpi good"><b>${cerr ? Math.round(vendidos / cerr * 100) + '%' : '–'}</b><span>compraron (${vendidos} de ${cerr} cerrados)</span></div>
     </div>
-    ${cedis.length ? `<div class="vf-cedis" style="margin-top:14px"><b>Hay en otras tiendas o CEDIS para ${cedis.length} cliente${cedis.length > 1 ? 's' : ''}:</b> ${[...new Set(cedis.map(x => x.cod + ' → ' + x.tienda))].map(esc).join(' · ')}. La tienda ya recibió el aviso para pedir la transferencia; cuando llegue a la tienda se avisa solo.</div>` : ''}
-    <div class="grid2" style="margin-top:18px;align-items:start">
-      <div><div class="sec-h"><h2>Lo que más piden</h2><span class="hint">Abiertos, para compras</span></div>
+    ${cedis.length ? `<div class="vf-cedis" style="margin-top:12px"><b>Hay en otras tiendas o CEDIS para ${cedis.length} cliente${cedis.length > 1 ? 's' : ''}:</b> ${[...new Set(cedis.map(x => x.cod + ' → ' + x.tienda))].map(esc).join(' · ')}. La tienda ya recibió el aviso para pedir la transferencia; cuando llegue a la tienda se avisa solo.</div>` : ''}
+    <div class="cl-col">
+      ${top.length ? `<div><div class="sec-h"><h3 class="cl-h">Lo que más piden</h3></div>
         <div class="panel flush scroll"><table class="exec"><thead><tr><th>Producto</th><th class="num">Clientes</th><th class="num">Unid.</th><th>Tiendas</th></tr></thead><tbody>
-        ${top.map(p => `<tr><td><b>${esc(p.cod)}</b> <span class="small faint">${esc(p.prod)}</span>${p.cedis ? ' <span class="pill p-warn">CEDIS</span>' : ''}${p.lle ? ' <span class="pill p-good">llegó</span>' : ''}</td><td class="num">${p.cli}</td><td class="num">${p.u}</td><td class="small">${esc([...p.t].join(', '))}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">Nada abierto.</td></tr>'}
-        </tbody></table></div></div>
-      <div><div class="sec-h"><h2>Registros${fT ? ' · ' + esc(fT) : ''}</h2>
-        <select id="vfT" aria-label="Tienda"><option value="">Todas las tiendas</option>${tiendas.map(t => `<option ${t === fT ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
-        <div class="rec-st">${chip('abiertos', 'Abiertos')}${chip('cerrados', 'Cerrados')}${chip('todos', 'Todos')}</div>
+        ${top.map(p => `<tr><td><b>${esc(p.cod)}</b> <span class="small faint">${esc(p.prod)}</span>${p.cedis ? ' <span class="pill p-warn">CEDIS</span>' : ''}${p.lle ? ' <span class="pill p-good">llegó</span>' : ''}</td><td class="num">${p.cli}</td><td class="num">${p.u}</td><td class="small">${esc([...p.t].join(', '))}</td></tr>`).join('') }
+        </tbody></table></div></div>` : ''}
+      <div><div class="sec-h"><h3 class="cl-h">Registros</h3></div>
+        <div class="rec-st">${chip('abiertos', 'Abiertos')}${chip('cerrados', 'Cerrados')}${chip('todos', 'Todos')}
+        <select id="vfT" aria-label="Tienda" class="cl-sel"><option value="">Todas las tiendas</option>${tiendas.map(t => `<option ${t === fT ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
         <div class="panel flush scroll"><table class="exec vf-t"><thead><tr><th>Fecha</th><th>Tienda</th><th>Producto</th><th>Cliente</th><th>Estado</th><th class="num">Días</th></tr></thead><tbody>
         ${V.map(x => `<tr><td>${fd(x.fecha)}</td><td>${esc(x.tienda)}<div class="small faint">${esc(x.asesor)}</div></td>
           <td><b>${esc(x.cod)}</b>${x.cant > 1 ? ' ×' + x.cant : ''}<div class="obs">${esc(x.prod)}</div></td>
@@ -2356,18 +2434,15 @@ function renderReclamos(){
   const V = L.filter(x => (fE === 'todos' || (fE === 'abiertos') === x.abierto) && (!fT || x.tienda === fT))
     .sort((a, b) => (b.abierto - a.abierto) || b.fecha.localeCompare(a.fecha));
   const chip = (k, t) => `<button class="chip${fE === k ? ' on' : ''}" data-re="${k}">${t}</button>`;
-  el.innerHTML = `<div class="kpis">
+  el.innerHTML = `<div class="sec-h" style="margin-top:8px"><h2>Reclamos de clientes</h2></div><div class="kpis">
       <div class="kpi ${ab ? 'bad' : 'good'}"><b>${ab}</b><span>abiertos</span></div>
       <div class="kpi good"><b>${L.length - ab}</b><span>cerrados</span></div>
       <div class="kpi"><b>${filas.length}</b><span>locales con reclamos</span></div>
     </div>
-    <div class="grid2" style="margin-top:22px;align-items:start">
-      <div><div class="sec-h"><h2>Por local</h2><span class="hint">Toca un local para filtrar</span></div>
-        <div class="panel flush"><table class="exec"><thead><tr><th>Local</th><th class="num">Abiertos</th><th class="num">Cerrados</th></tr></thead><tbody>
-        ${filas.map(f => `<tr class="click${fT === f.t ? ' on' : ''}" data-rt="${esc(f.t)}"><td class="store">${esc(f.t)}</td><td class="num">${f.a ? `<span class="cnt-bad">${f.a}</span>` : '<span class="zero">0</span>'}</td><td class="num">${f.c || '<span class="zero">0</span>'}</td></tr>`).join('')}
-        </tbody></table></div></div>
-      <div><div class="sec-h"><h2>Casos${fT ? ' · ' + esc(fT) : ''}</h2>${fT ? '<button class="kmas" id="recTodo">Ver todos los locales</button>' : ''}</div>
+    <div class="cl-col">
+      <div>
         <div class="rec-st">${chip('todos', 'Todos')}${chip('abiertos', 'Abiertos')}${chip('cerrados', 'Cerrados')}</div>
+        <div class="rec-st"><button class="chip${fT ? '' : ' on'}" id="recTodo">Todos los locales</button>${filas.map(f => `<button class="chip${fT === f.t ? ' on' : ''}" data-rt="${esc(f.t)}">${esc(f.t)}${f.a ? ` <b class="cnt-bad">${f.a}</b>` : ''}</button>`).join('')}</div>
         <div class="panel flush">${V.length ? V.map(x => `<div class="rec-it"><div class="h"><span class="t">${esc(x.id)} · ${esc(x.tienda)} · ${esc(x.prod)}</span>
           <span class="pill ${x.abierto ? 'p-bad' : 'p-good'}">${x.abierto ? 'Abierto' : 'Cerrado' + (x.cierre ? ' ' + fd(x.cierre) : '')}</span></div>
           <div class="small faint">${fd(x.fecha)} · ${esc(x.tipo)}${x.origen ? ' · ' + esc(x.origen) : ''}${x.cli ? ' · ' + esc(x.cli) : ''}</div>
@@ -2377,7 +2452,7 @@ function renderReclamos(){
   el.querySelectorAll('[data-rt]').forEach(r => r.onclick = () => { st.recT = st.recT === r.dataset.rt ? '' : r.dataset.rt; renderReclamos(); });
   if ($('#recTodo')) $('#recTodo').onclick = () => { st.recT = ''; renderReclamos(); };
 }
-const VISTAS = ['hoy','flash','anuncios','pendientes','whatsapp','inventario','vivo','politicas','reclamos','guias','perchas','supervisores','equipo','enlaces'];
+const VISTAS = ['hoy','mispendientes','flash','anuncios','pendientes','whatsapp','inventario','vivo','politicas','reclamos','guias','perchas','supervisores','equipo','enlaces'];
 function ir(v){
   if (v === 'vivo') v = 'inventario';   // En vivo está arriba de Inventario
   if (v === 'supervisores') v = 'equipo';
@@ -2392,6 +2467,7 @@ function ir(v){
   if (v === 'inventario' && window.cvRender) { cvRender(); cvCargar(); }
   if (v === 'whatsapp') requestAnimationFrame(() => document.querySelectorAll('.wa-it textarea').forEach(t => { t.style.height = 'auto'; t.style.height = t.scrollHeight + 2 + 'px'; }));
   if (v === 'perchas' && window.peAbrir) peAbrir();
+  if (v === 'mispendientes' && window.mpAbrir) mpAbrir();
   window.scrollTo({top: 0});
 }
 document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => ir(b.dataset.v));
@@ -3602,7 +3678,7 @@ Revisa CADA producto del layout, en orden, en la foto actual:
 - "frentes": está en su lugar pero con menos o más frentes;
 - "precio": en su lugar pero sin etiqueta, cartel o con precio distinto;
 - "dudoso": la foto no permite verlo (borrosa, cortada, reflejo).
-Los precios que se vean en la foto MODELO pueden ser de otro país: no los compares; en la tienda revisa que cada producto tenga su cartel de la promo en USD y que la vigencia impresa del cartel no esté vencida (hoy es ${new Date().toLocaleDateString('es-EC')}).
+Los precios que se vean en la foto MODELO pueden ser de otro país: no los compares; en la tienda revisa que cada producto tenga su cartel de la promo en USD y que la vigencia impresa del cartel no esté vencida (hoy es ${new Date().toLocaleDateString('es-EC')})${l.hasta ? '. OJO: la promoción está vigente hasta ' + l.hasta + (l.vigencia ? ' (' + l.vigencia + ')' : '') + '; un cartel con una fecha impresa anterior NO es falla mientras la promo siga vigente' : ''}.
 Sé estricto pero justo; no inventes. Además lista productos que están en la percha y NO van en el layout, y el estado del material POP.
 Comentarios cortos, en español de Ecuador, dirigidos a la tienda, con tuteo ("Mueve…", "Agrega…").
 Responde SOLO con JSON: {"resumen":"una o dos frases","items":[{"nivel":1,"pos":1,"producto":"","estado":"ok","encontrado":"dónde está o qué hay en su lugar","comentario":""}],"extras":[{"producto":"","donde":"","comentario":""}],"pop":[{"elemento":"","estado":"","comentario":""}],"hallazgos":[{"zona":"Nivel 1 izquierda","categoria":"Producto faltante","estandar":"qué pide la guía","tienda":"qué hay","accion":"COLOCAR","detalle":"instrucción corta para la tienda","foto":0,"caja":[10,5,30,15]}],"repisas":[{"nivel":1,"estandar":"","tienda":"","diferencia":"","causa":"","ok":false}],"pasos":["paso 1"],"pedir_otra_foto":"vacío si la foto sirve; si no, qué foto pedir"}
@@ -3696,6 +3772,145 @@ window.peAbrir = () => { if (!PE.listo) peIniciar(); else pePintar(); };
 if (typeof st !== 'undefined' && st.tab === 'perchas') peAbrir();
 </script>
 
+<style>
+/* ---------- Mis pendientes con otras áreas (solo Diego, 2026-10-26) ---------- */
+#mpBody{display:flex;flex-direction:column;gap:18px}
+.mp-add{display:grid;grid-template-columns:minmax(0,1fr) 170px 150px 200px auto;gap:8px;align-items:center}
+.mp-add input,.mp-add select{width:100%;min-width:0;font-size:15px}
+.mp-dl{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg-3);min-width:0}
+@media(max-width:820px){.mp-add{grid-template-columns:1fr 1fr}.mp-add .mp-q{grid-column:1/-1}.mp-add .btn{grid-column:1/-1;padding:10px}}
+.mp-fil{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.mp-fil::-webkit-scrollbar{display:none}
+.mp-fil .chip{white-space:nowrap;font-weight:600;font-size:13.5px}
+.mp-fil .chip b{margin-left:4px}
+.mp-list{padding:0;overflow:hidden}
+.mp-it{border-top:1px solid var(--line)}
+.mp-it:first-child{border-top:0}
+.mp-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:4px 10px;align-items:start;padding:11px 14px}
+.mp-ok{width:22px;height:22px;border-radius:50%;border:2px solid var(--fg-3);background:none;padding:0;margin-top:1px;display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--surface)}
+.mp-ok:hover{border-color:var(--good)}
+.mp-it.hecho .mp-ok{background:var(--good);border-color:var(--good)}
+.mp-it.hecho .mp-t{text-decoration:line-through;color:var(--fg-3)}
+.mp-main{min-width:0;cursor:pointer;border:0;background:none;text-align:left;padding:0;font:inherit;color:inherit}
+.mp-t{font-weight:500;overflow-wrap:anywhere}
+.mp-m{display:flex;gap:6px 10px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--fg-2);margin-top:3px}
+.mp-m .pill{font-size:12px;padding:1px 8px}
+.mp-f{font-size:13px;white-space:nowrap;color:var(--fg-2);margin-top:2px}
+.mp-f.venc{color:var(--bad);font-weight:700}
+.mp-f.hoy{color:var(--warn);font-weight:700}
+.mp-ed{display:flex;flex-direction:column;gap:8px;padding:0 14px 14px 52px}
+@media(max-width:560px){.mp-ed{padding-left:14px}}
+.mp-ed .fila{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.mp-ed label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--fg-3)}
+.mp-ed input,.mp-ed select,.mp-ed textarea{font-size:15px;width:100%}
+.mp-ed textarea{min-height:0;field-sizing:content}
+.mp-ed .acc{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mp-ed .acc .faint{margin-left:auto;font-size:12px}
+.mp-vacio{padding:22px 14px;text-align:center;color:var(--fg-2)}
+</style>
+<script>
+/* Mis pendientes con otras áreas: lista de tareas personal de Diego con Bodega/CEDIS, Contabilidad, Talento Humano, etc.
+   Solo el dueño del artefacto. Datos en db, colección "areas" (reglas read/write owner). Claude también puede agregar filas. */
+const MP = {db: null, L: [], fil: 'abiertos', area: '', abierto: '', listo: false, sub: null};
+const MP_AREAS = ['Bodega / CEDIS', 'Compras', 'Contabilidad', 'Talento Humano', 'Sistemas', 'Gerencia', 'Marketing', 'Servicio técnico', 'Web / Contact Center', 'Steren México', 'Otra'];
+const MP_EST = ['Por solicitar', 'Solicitado', 'En proceso', 'Entregado'];
+const MP_PILL = {'Por solicitar': 'p-na', 'Solicitado': 'p-acc', 'En proceso': 'p-warn', 'Entregado': 'p-good'};
+const mpEsc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const mpHoy = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const mpFecha = f => { if (!f) return ''; const [y, m, d] = f.split('-'); return d + '/' + m; };
+const mpVenc = t => t.estado !== 'Entregado' && t.fecha && t.fecha < mpHoy();
+function mpBadge(){
+  const n = document.getElementById('nMp'); if (!n) return;
+  const v = MP.L.filter(mpVenc).length; n.textContent = v || '';
+}
+function mpOrden(a, b){
+  const h = (a.estado === 'Entregado') - (b.estado === 'Entregado'); if (h) return h;
+  if (a.estado === 'Entregado') return String(b.hecho || '').localeCompare(String(a.hecho || ''));
+  return String(a.fecha || '9999').localeCompare(String(b.fecha || '9999')) || String(a.creado).localeCompare(String(b.creado));
+}
+function mpPintar(){
+  const el = document.getElementById('mpBody'); if (!el) return;
+  if (!MP.db) { el.innerHTML = '<div class="banner">No se pudo abrir tu lista. Abre el panel con tu cuenta de claude.ai.</div>'; return; }
+  const hoy = mpHoy(), ab = MP.L.filter(t => t.estado !== 'Entregado');
+  const F = {abiertos: ['Abiertos', t => t.estado !== 'Entregado'], vencidos: ['Vencidos', mpVenc], porsol: ['Por solicitar', t => t.estado === 'Por solicitar'], sol: ['Solicitados', t => t.estado === 'Solicitado'], proc: ['En proceso', t => t.estado === 'En proceso'], hechos: ['Entregados', t => t.estado === 'Entregado']};
+  const areas = [...new Set(ab.map(t => t.area).filter(Boolean))].sort();
+  if (MP.area && !areas.includes(MP.area) && MP.fil !== 'hechos') MP.area = '';
+  const ver = MP.L.filter(F[MP.fil][1]).filter(t => !MP.area || t.area === MP.area).sort(mpOrden);
+  const lista = MP.fil === 'hechos' ? ver.slice(0, 40) : ver;
+  el.innerHTML = `
+    <div class="sec-h"><h2>Mis pendientes con otras áreas</h2><span class="hint">Solo tú los ves</span></div>
+    <form class="mp-add" id="mpAdd" autocomplete="off">
+      <input class="mp-q" name="tarea" type="text" placeholder="¿Qué hay que resolver?" required maxlength="300">
+      <select name="area" aria-label="Área">${MP_AREAS.map(a => `<option>${a}</option>`).join('')}</select>
+      <input name="quien" type="text" placeholder="Con quién" maxlength="80">
+      <label class="mp-dl">Entrega<input name="fecha" type="date" aria-label="Fecha de entrega"></label>
+      <button class="btn primary" type="submit">Agregar</button>
+    </form>
+    <div class="mp-fil">${Object.keys(F).filter(k => k === 'abiertos' || k === MP.fil || MP.L.some(F[k][1])).map(k => `<button class="chip${MP.fil === k ? ' on' : ''}" data-mpf="${k}">${F[k][0]}<b>${MP.L.filter(F[k][1]).length}</b></button>`).join('')}
+      ${areas.length > 1 ? '<span style="width:10px;flex:none"></span>' + areas.map(a => `<button class="chip${MP.area === a ? ' on' : ''}" data-mpa="${mpEsc(a)}">${mpEsc(a)}<b>${ab.filter(t => t.area === a).length}</b></button>`).join('') : ''}</div>
+    <div class="panel mp-list">${lista.length ? lista.map(t => {
+      const v = mpVenc(t), h = t.estado !== 'Entregado' && t.fecha === hoy, on = MP.abierto === t.id;
+      return `<div class="mp-it${t.estado === 'Entregado' ? ' hecho' : ''}" data-id="${t.id}">
+        <div class="mp-row">
+          <button class="mp-ok" data-mpok title="${t.estado === 'Entregado' ? 'Volver a abrir' : 'Marcar entregado'}" aria-label="Marcar entregado">${t.estado === 'Entregado' ? '✓' : ''}</button>
+          <button class="mp-main" data-mpab><div class="mp-t">${mpEsc(t.tarea)}</div>
+            <div class="mp-m"><span class="pill p-acc">${mpEsc(t.area || 'Otra')}</span>${t.quien ? '<span>' + mpEsc(t.quien) + '</span>' : ''}<span class="pill ${MP_PILL[t.estado] || 'p-na'}">${mpEsc(t.estado || 'Por solicitar')}</span>${t.solicitado ? '<span class="faint">Solicitado ' + mpFecha(t.solicitado) + '</span>' : ''}${t.nota ? '<span class="faint">· nota</span>' : ''}</div></button>
+          <span class="mp-f${v ? ' venc' : h ? ' hoy' : ''}">${t.estado === 'Entregado' ? 'Entregado ' + mpFecha(String(t.hecho || '').slice(0, 10)) : t.fecha ? (v ? 'Venció ' : h ? 'Entrega hoy ' : 'Entrega ') + mpFecha(t.fecha) : 'Sin fecha'}</span>
+        </div>
+        ${on ? `<div class="mp-ed">
+          <label>Qué<input data-k="tarea" type="text" value="${mpEsc(t.tarea)}" maxlength="300"></label>
+          <div class="fila">
+            <label>Área<select data-k="area">${MP_AREAS.concat(MP_AREAS.includes(t.area) || !t.area ? [] : [t.area]).map(a => `<option${a === t.area ? ' selected' : ''}>${mpEsc(a)}</option>`).join('')}</select></label>
+            <label>Con quién<input data-k="quien" type="text" value="${mpEsc(t.quien)}" maxlength="80"></label>
+            <label>Fecha de solicitud<input data-k="solicitado" type="date" value="${mpEsc(t.solicitado)}"></label>
+            <label>Fecha de entrega<input data-k="fecha" type="date" value="${mpEsc(t.fecha)}"></label>
+            <label>Estado<select data-k="estado">${MP_EST.map(e => `<option${e === t.estado ? ' selected' : ''}>${e}</option>`).join('')}</select></label>
+          </div>
+          <label>Nota (qué se habló, próximo paso)<textarea data-k="nota" rows="2" maxlength="2000">${mpEsc(t.nota)}</textarea></label>
+          <div class="acc"><button class="btn primary" data-mpsave>Guardar</button><button class="btn" data-mpcerrar>Cerrar</button><button class="btn bad" data-mpdel>Borrar</button>
+            <span class="faint">Anotado ${mpFecha(String(t.creado || '').slice(0, 10))}${t.estado === 'Entregado' && t.hecho ? ' · entregado ' + mpFecha(String(t.hecho).slice(0, 10)) : ''}</span></div>
+        </div>` : ''}
+      </div>`; }).join('') : `<div class="mp-vacio">${MP.L.length ? 'Nada en este filtro.' : 'Aún no tienes pendientes con otras áreas. Escribe el primero arriba, o pídemelo en el chat.'}</div>`}</div>`;
+  mpBadge();
+  const f = document.getElementById('mpAdd');
+  f.onsubmit = async e => { e.preventDefault(); const d = new FormData(f), tarea = String(d.get('tarea') || '').trim(); if (!tarea) return;
+    const b = f.querySelector('button'); b.disabled = true;
+    try { await MP.db.collection('areas').add({tarea, area: d.get('area'), quien: String(d.get('quien') || '').trim(), solicitado: mpHoy(), fecha: d.get('fecha') || '', estado: 'Solicitado', nota: '', creado: new Date().toISOString()});
+      try { localStorage.setItem('mpArea', d.get('area')); } catch (x) {}
+      MP.fil = MP.fil === 'hechos' ? 'abiertos' : MP.fil; }
+    catch (x) { alert('No se pudo guardar: ' + (x.message || x.code || x)); b.disabled = false; } };
+  try { const a = localStorage.getItem('mpArea'); if (a) f.area.value = a; } catch (x) {}
+  el.querySelectorAll('[data-mpf]').forEach(b => b.onclick = () => { MP.fil = b.dataset.mpf; mpPintar(); });
+  el.querySelectorAll('[data-mpa]').forEach(b => b.onclick = () => { MP.area = MP.area === b.dataset.mpa ? '' : b.dataset.mpa; mpPintar(); });
+  el.querySelectorAll('.mp-it').forEach(it => {
+    const id = it.dataset.id, t = MP.L.find(x => x.id === id), ref = MP.db.collection('areas').doc(id);
+    it.querySelector('[data-mpok]').onclick = async () => { const hecho = t.estado !== 'Entregado';
+      try { await ref.update(hecho ? {estado: 'Entregado', hecho: new Date().toISOString()} : {estado: 'Solicitado', hecho: ''}); } catch (x) { alert('No se pudo guardar.'); } };
+    it.querySelector('[data-mpab]').onclick = () => { MP.abierto = MP.abierto === id ? '' : id; mpPintar(); };
+    const s = it.querySelector('[data-mpsave]'); if (!s) return;
+    s.onclick = async () => { const u = {}; it.querySelectorAll('.mp-ed [data-k]').forEach(x => u[x.dataset.k] = x.value.trim());
+      if (!u.tarea) return alert('Escribe qué hay que resolver.');
+      if (u.estado === 'Entregado' && t.estado !== 'Entregado') u.hecho = new Date().toISOString();
+      if (u.estado !== 'Entregado') u.hecho = '';
+      s.disabled = true; try { MP.abierto = ''; await ref.update(u); } catch (x) { s.disabled = false; alert('No se pudo guardar.'); } };
+    it.querySelector('[data-mpcerrar]').onclick = () => { MP.abierto = ''; mpPintar(); };
+    it.querySelector('[data-mpdel]').onclick = async () => { if (!confirm('¿Borrar este pendiente?')) return; MP.abierto = ''; try { await ref.delete(); } catch (x) { alert('No se pudo borrar.'); } };
+  });
+}
+window.mpAbrir = () => mpPintar();
+(async () => {
+  const u = await window.claude?.use?.('user'); const b = document.querySelector('#tabs button[data-v="mispendientes"]');
+  if (!(u && await u.isOwner().catch(() => false))) return;
+  if (b) b.hidden = false;
+  MP.db = await window.claude?.use?.('db').catch(() => null);
+  if (!MP.db) return mpPintar();
+  MP.sub = MP.db.collection('areas').onSnapshot(s => { MP.L = s.docs.map(d => ({id: d.id, ...d.data()})); MP.listo = true;
+    if (typeof st !== 'undefined' && st.tab === 'mispendientes') { if (!document.activeElement || !document.activeElement.closest || !document.activeElement.closest('.mp-ed')) mpPintar(); } else mpBadge(); },
+    () => { MP.db = null; mpPintar(); });
+})();
+if (typeof st !== 'undefined' && st.tab === 'mispendientes') mpAbrir();
+</script>
+
 <script>/* etiquetas de tiendas (Diego 2026-10-24): solo el nombre visible, la clave interna sigue igual */
 (function(){
   var R=[[/\bMegakywi\b(?!-EloyAlfaro)/g,'Megakywi-EloyAlfaro'],[/\bMegamaxi\b(?! 6 Dic)/g,'Megamaxi 6 Dic']];
@@ -3754,8 +3969,9 @@ if (typeof st !== 'undefined' && st.tab === 'perchas') peAbrir();
     politicas: 'M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z', guias: 'M4 5h7v14H4zM13 5h7v14h-7z', contactos: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2',
     reclamos: 'M3 4h2l2.5 11h11L21 7H6.5M9 20h.01M18 20h.01', equipo: 'M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6M21 19v-1a4 4 0 0 0-3-3.8M16 4.2a3 3 0 0 1 0 5.6',
     enlaces: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+    mispendientes: 'M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9',
     mas: 'M5 12h.01M12 12h.01M19 12h.01'};
-  const CORTO = {hoy: 'Hoy', flash: 'Flash', pendientes: 'Pendientes', supervision: 'Supervisar', inventario: 'Inventario', politicas: 'Políticas', guias: 'Manuales', contactos: 'Contactos', reclamos: 'Clientes', equipo: 'Equipo', enlaces: 'Contactos'};
+  const CORTO = {mispendientes: 'Mis pend.', hoy: 'Hoy', flash: 'Flash', pendientes: 'Pendientes', supervision: 'Supervisar', inventario: 'Inventario', politicas: 'Políticas', guias: 'Manuales', contactos: 'Contactos', reclamos: 'Clientes', equipo: 'Equipo', enlaces: 'Contactos'};
   const ORDEN = ['hoy', 'pendientes', 'supervision', 'inventario', 'flash'];
   const ico = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + (d || P.mas) + '"/></svg>';
   const nombre = b => CORTO[b.dataset.v] || b.textContent.trim();
@@ -3782,8 +3998,8 @@ if (typeof st !== 'undefined' && st.tab === 'perchas') peAbrir();
 <script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "Buscar: inventario, Mall Sol, caja chica, política…",
-  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "reclamos"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "whatsapp", "inventario", "perchas"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Personas", "vistas": ["equipo"]}, {"id": "ajustes", "nombre": "Contactos", "vistas": ["enlaces"]}],
-  items: [{"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa, validar y anuncios", "kw": "inicio resumen mapa validar anuncios actividades caja chica avisos"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Inventario en vivo", "v": "inventario", "sub": "Tiendas · quién está contando ahora", "kw": "conteo vivo contando ahora", "go": () => TEM_ABRIR("#cvBox")}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Clientes", "v": "reclamos", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Garantías extendidas", "v": "flash", "sub": "Ventas", "kw": "garantia garantias extendidas", "go": () => TEM_ABRIR("#garBody")}, {"t": "WhatsApp a gerentes", "v": "whatsapp", "sub": "Tiendas · vencidos, vencen hoy y devueltos", "kw": "whatsapp mensajes avisos gerentes kapso"}, {"t": "Perchas", "v": "perchas", "sub": "Tiendas · exhibición", "kw": "perchas exhibicion layout planograma"}, {"t": "Equipo de supervisores", "v": "equipo", "sub": "Personas", "kw": "supervisores equipo visitas ranking personas"}, {"t": "Contactos de tiendas", "v": "enlaces", "sub": "Contactos", "kw": "contactos telefono llamar whatsapp correo direccion horario tienda numero"}, {"t": "Enlaces para compartir", "v": "enlaces", "sub": "Contactos", "kw": "enlaces links claves compartir gerentes supervisores portal ajustes configuracion"}, {"t": "Nueva supervisión", "sub": "Abrir el formulario", "kw": "supervisar visita checklist nueva supervision", "go": () => document.querySelector("#nuevaSup").click()}],
+  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy", "mispendientes"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "reclamos"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "whatsapp", "inventario", "perchas"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Personas", "vistas": ["equipo"]}, {"id": "ajustes", "nombre": "Contactos", "vistas": ["enlaces"]}],
+  items: [{"t": "Mis pendientes con otras áreas", "v": "mispendientes", "sub": "Hoy · solo tú", "kw": "tareas todo lista bodega cedis contabilidad talento humano rrhh compras sistemas gerencia marketing areas departamentos"}, {"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa, validar y anuncios", "kw": "inicio resumen mapa validar anuncios actividades caja chica avisos"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Inventario en vivo", "v": "inventario", "sub": "Tiendas · quién está contando ahora", "kw": "conteo vivo contando ahora", "go": () => TEM_ABRIR("#cvBox")}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Clientes", "v": "reclamos", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Garantías extendidas", "v": "flash", "sub": "Ventas", "kw": "garantia garantias extendidas", "go": () => TEM_ABRIR("#garBody")}, {"t": "WhatsApp a gerentes", "v": "whatsapp", "sub": "Tiendas · vencidos, vencen hoy y devueltos", "kw": "whatsapp mensajes avisos gerentes kapso"}, {"t": "Perchas", "v": "perchas", "sub": "Tiendas · exhibición", "kw": "perchas exhibicion layout planograma"}, {"t": "Equipo de supervisores", "v": "equipo", "sub": "Personas", "kw": "supervisores equipo visitas ranking personas"}, {"t": "Contactos de tiendas", "v": "enlaces", "sub": "Contactos", "kw": "contactos telefono llamar whatsapp correo direccion horario tienda numero"}, {"t": "Enlaces para compartir", "v": "enlaces", "sub": "Contactos", "kw": "enlaces links claves compartir gerentes supervisores portal ajustes configuracion"}, {"t": "Nueva supervisión", "sub": "Abrir el formulario", "kw": "supervisar visita checklist nueva supervision", "go": () => document.querySelector("#nuevaSup").click()}],
   extra: function(){
     const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
     (S.d.tiendas || []).filter(t => t.activa).forEach(t => out.push({grupo: 'Tiendas', t: t.nombre, sub: 'Pendientes de ' + t.nombre, kw: 'tienda local', v: 'pendientes',
