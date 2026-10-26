@@ -2034,6 +2034,22 @@ function accion(id, a){
   guardarEstado(id, 'Cerrado', '', b);
 }
 
+/* gu1: */
+/* Si Google Sheets no responde al guardar, se revisa la fila: si el sello de hora ya está, quedó guardado; si no, se reintenta */
+async function escribirSeguro(idx, r, s, btn){
+  const rango = `Pendientes!O${idx + 1}:W${idx + 1}`, fila = [r.slice(14, 23).map(safe)];
+  for (let i = 0; ; i++) {
+    try { return await setRange(rango, fila); }
+    catch (e) {
+      const pasajero = ['server_unavailable', 'upstream_error', 'rate_limited', 'timeout'].includes(e && e.code) || (e && e.retryable);
+      if (!pasajero || i >= 3) throw e;
+      if (btn) btn.textContent = 'Google tardó, revisando…';
+      await new Promise(ok => setTimeout(ok, [1500, 4000, 8000][i]));
+      try { const v = await getRange(`Pendientes!V${idx + 1}`, true); if (v[0] && String(v[0][0]) === s) return; } catch (_) {}
+      if (btn) btn.textContent = 'Reintentando…';
+    }
+  }
+}
 async function guardarEstado(id, estado, comentario, btn, fecha){
   if (estado === 'Mensaje' && !comentario) { toast('Escribe el mensaje para la tienda'); return; }
   if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
@@ -2049,14 +2065,14 @@ async function guardarEstado(id, estado, comentario, btn, fecha){
     if (comentario) r[20] = comentario;
     r[21] = s;
     r[22] = (r[22] ? r[22] + '\n' : '') + s + ' · ' + estado + ' (' + 'Administrador' + ' · supervisor)' + (comentario ? ': ' + comentario : '');
-    await setRange(`Pendientes!O${idx + 1}:W${idx + 1}`, [r.slice(14, 23).map(safe)]);
+    await escribirSeguro(idx, r, s, btn);
     if (estado === 'Reabierto' && /^\d{4}-\d{2}-\d{2}$/.test(fecha || '')) await setRange(`Pendientes!M${idx + 1}`, [[fecha]]);   // nueva fecha límite
     toast({Mensaje:'Mensaje enviado', Pendiente:'Movido a Abierto', Cerrado:'Pendiente cerrado', Reabierto:'Pendiente reabierto, la tienda lo verá en su lista'}[estado] || 'Movido a ' + estado);
     $('#drawer').innerHTML = '';
     await cargar(true);
     if (btn) detalle(id);
   } catch (e) {
-    toast(e.code === 'server_unavailable' || e.code === 'upstream_error' ? 'No hubo respuesta de Google Sheets. Pulsa Actualizar antes de reintentar, puede que sí se haya guardado.' : errorCopy(e), 7000);
+    toast(e.code === 'server_unavailable' || e.code === 'upstream_error' ? 'Google Sheets no respondió después de varios intentos. Pulsa Actualizar para ver si quedó guardado.' : errorCopy(e), 7000);
     if (btn) { btn.disabled = false; btn.textContent = 'Reintentar'; }
     else cargar(true);
   }

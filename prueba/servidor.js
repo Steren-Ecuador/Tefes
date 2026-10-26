@@ -107,7 +107,7 @@
       ventas: v ? {venta: v.venta, meta: v.meta, cumpl: v.cumpl, proyeccion: v.proyeccion, cumplProy: v.cumplProy, ticket: v.ticket, metaTicket: 35, art: v.art, metaArt: 1.8, ultimo: v.ultimo,
         impulso: [{producto: 'Bocina Bluetooth portátil 10 W', pvp: '44,90', meta: 12}, {producto: 'Batería portátil 10 000 mAh', pvp: '27,90', meta: 20}]} : null,
       anuncios: F('Anuncios').filter(function (r) { return r[0] && !/^no$/i.test(S(r[6])) && para(r[3]).indexOf(t) >= 0 && S(r[1]) <= hoy; }).map(function (r) {
-        return {id: S(r[0]), titulo: S(r[4]), texto: S(r[5]), desde: S(r[1]), hasta: S(r[2]) || DB.sumar(S(r[1]), 6), efecto: S(r[7]), lecturas: lecturasDe('Lecturas de anuncios', S(r[0]), t)};
+        return {id: S(r[0]), titulo: S(r[4]), texto: S(r[5]), desde: S(r[1]), hasta: S(r[2]) || DB.sumar(S(r[1]), 6), efecto: S(r[7]), cuenta: S(r[8]), lecturas: lecturasDe('Lecturas de anuncios', S(r[0]), t)};
       }).sort(function (a, b) { return a.desde < b.desde ? 1 : -1; }),
       politicas: politicas().filter(function (p) { return para(p.tiendas).indexOf(t) >= 0; }).map(function (p) {
         return {id: p.id, titulo: p.titulo, publicada: p.publicada, resumen: p.resumen, html: polHtml(p.id).html,
@@ -309,9 +309,9 @@
   API.apiAvisosPanel = function (p) {
     panelOk(p); var hoy = DB.hoyISO(), leido = {};
     F('Lecturas de anuncios').forEach(function (r) { leido[r[2] + '|' + r[3] + '|' + r[4]] = 1; });
-    return F('Anuncios').map(function (r) { return {id: S(r[0]), desde: S(r[1]), hasta: S(r[2]) || DB.sumar(S(r[1]), 6), tiendas: S(r[3]) || 'Todas', titulo: S(r[4]), texto: S(r[5]), activo: S(r[6]) || 'Sí'}; })
+    return F('Anuncios').map(function (r) { return {id: S(r[0]), desde: S(r[1]), hasta: S(r[2]) || DB.sumar(S(r[1]), 6), tiendas: S(r[3]) || 'Todas', titulo: S(r[4]), texto: S(r[5]), activo: S(r[6]) || 'Sí', efecto: S(r[7]), cuenta: S(r[8])}; })
       .filter(function (a) { return a.id && a.desde <= hoy && a.hasta >= hoy && !/^no$/i.test(a.activo); })
-      .map(function (a) { return {id: a.id, titulo: a.titulo, texto: a.texto, desde: a.desde, hasta: a.hasta, lecturas: para(a.tiendas).map(function (t) {
+      .map(function (a) { return {id: a.id, titulo: a.titulo, texto: a.texto, desde: a.desde, hasta: a.hasta, efecto: a.efecto, cuenta: a.cuenta, lecturas: para(a.tiendas).map(function (t) {
         var g = gente(t).map(function (z) { return z.nombre; }); return {tienda: t, total: g.length, leyeron: g.filter(function (n) { return leido[a.id + '|' + t + '|' + n]; }).length}; })}; });
   };
   API.apiContactosPanel = function (p) {
