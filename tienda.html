@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (cb4d10edca3a). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (a2c600653052). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -2168,7 +2168,9 @@ function enlaceSup(){
   /* lote7: si el servidor falla, un reintento a los 2 s antes de mostrar el error; se anota el motivo y lo más lento */
   let reintento = '';
   /* lote8: tres partes a la vez (el servidor las corre en paralelo); cada una con su reintento */
-  const parte = async p => { try { return await api('apiInitTiendaParte', p); } catch (e1) { reintento = 'reintento ' + p + ' (' + String(e1 && e1.message || e1).slice(0, 60) + ')'; await new Promise(r => setTimeout(r, 2000)); return api('apiInitTiendaParte', p); } };
+  /* l9: hasta 2 reintentos con espera al azar, para que las tiendas que abren a la vez no reintenten juntas */
+  const parte = async p => { for (let i = 0; ; i++) { try { return await api('apiInitTiendaParte', p); } catch (e1) { if (i >= 2) throw e1;
+    reintento = 'reintento ' + (i + 1) + ' ' + p + ' (' + String(e1 && e1.message || e1).slice(0, 60) + ')'; await new Promise(r => setTimeout(r, (i ? 5000 : 2000) + Math.random() * (i ? 5000 : 3000))); } } };
   const pedir = async () => { const L = await Promise.all(['base', 'inv', 'leer'].map(parte)); if (!L[0]) return null;
     const t = {}; let tot = 0; L.forEach(x => { const q = (x && x.tiempos) || {}; tot = Math.max(tot, q.total || 0); Object.keys(q).forEach(k => { if (k !== 'total') t[k] = q[k]; }); });
     const d = Object.assign({}, L[0], L[1], L[2]); t.total = tot; d.tiempos = t; return d; };
