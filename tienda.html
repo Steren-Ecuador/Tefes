@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (a2c600653052). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (4811fafc8e67). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -1747,6 +1747,14 @@ function nuevoForm(){
 }
 /* cronómetro: corre mientras la supervisión está abierta, se pausa al salir */
 function msReloj(F){ if (!F || !F.reloj) return 0; return F.reloj.acum + (F.reloj.desde ? Date.now() - F.reloj.desde : 0); }
+/* cs1: si nadie tocó la supervisión en más de 20 min (navegador cerrado sin Pausar), el reloj se detiene en la última actividad */
+function relojSanear(F){ const r = F && F.reloj; if (r && r.desde && Date.now() - (r.ultimo || r.desde) > 20 * 60000){ r.acum += Math.max(0, (r.ultimo || r.desde) - r.desde); r.desde = null; } return F; }
+function cancelarSup(){
+  openModal('<h3>¿Cancelar la supervisión?</h3><p class="muted small">Se borra el borrador guardado en este equipo y el cronómetro se detiene. Las fotos ya subidas no se usan.</p>' +
+    '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="cxNo">Volver</button><button class="btn primary grow" id="cxSi">Sí, cancelar</button></div>');
+  $('#cxNo').onclick = closeModal;
+  $('#cxSi').onclick = () => { closeModal(); lsSet(DRAFT_KEY, null); S.form = null; $('#footer').innerHTML = ''; pintarReloj(); renderSup(); toast('Supervisión cancelada.', 2500); };
+}
 function relojCorrer(F){ if (F.reloj && !F.reloj.desde){ F.reloj.desde = Date.now(); F.reloj.ultimo = Date.now(); } }
 function relojPausar(F){ if (F && F.reloj && F.reloj.desde){ F.reloj.acum += Date.now() - F.reloj.desde; F.reloj.desde = null; anotarTiempo(F, null); } }
 function anotarTiempo(F, sec){
@@ -1791,13 +1799,14 @@ function renderSup(){
   modoTk();
   if(!S.form){
     $('#footer').innerHTML = '';
-    const d = lsGet(DRAFT_KEY), d0 = d;
+    const d = relojSanear(lsGet(DRAFT_KEY)), d0 = d;
     const hechos = d ? Object.values(d.items).filter(i => i.calif != null).length : 0;
     $('#main').innerHTML = '<div class="card"><h3 style="margin-top:0">Nueva supervisión</h3>' +
       '<p class="muted small">Son ' + S.data.puntos.length + ' puntos. Al calificar, la página pasa sola al siguiente. Cada punto con 0 o 1 crea un pendiente para la tienda. Un cronómetro arriba mide cuánto toma; con Pausar se detiene y el avance queda guardado.</p>' +
-      (d ? '<button class="btn primary block" id="sCont">Continuar borrador (' + hechos + '/' + S.data.puntos.length + (d.reloj ? ' · ' + fmtReloj(msReloj(d)) : '') + ')</button><div style="height:8px"></div><button class="btn ghost block" id="sNew">Empezar de nuevo</button>'
+      (d ? '<button class="btn primary block" id="sCont">Continuar borrador (' + hechos + '/' + S.data.puntos.length + (d.reloj ? ' · ' + fmtReloj(msReloj(d)) : '') + ')</button><div style="height:8px"></div><button class="btn ghost block" id="sNew">Empezar de nuevo</button><div style="height:8px"></div><button class="btn ghost block" id="sCancel" style="color:var(--bad)">Cancelar supervisión</button>'
           : '<button class="btn primary block" id="sNew">Empezar</button>') + '</div>' + histHtml();
-    if(d) $('#sCont').onclick = () => { const d = lsGet(DRAFT_KEY) || d0; S.form = d; if (!d.reloj) d.reloj = {acum:0, desde:null, ultimo:null}; if (!d.tSec) d.tSec = {}; relojCorrer(d); guardarBorrador(true); renderSup(); };
+    if(d) $('#sCancel').onclick = cancelarSup;
+    if(d) $('#sCont').onclick = () => { const d = relojSanear(lsGet(DRAFT_KEY)) || d0; S.form = d; if (!d.reloj) d.reloj = {acum:0, desde:null, ultimo:null}; if (!d.tSec) d.tSec = {}; relojCorrer(d); guardarBorrador(true); renderSup(); };
     const empezar = () => { closeModal(); S.form = nuevoForm(); guardarBorrador(true); renderSup(); };
     $('#sNew').onclick = () => {
       if (!d) return empezar();
@@ -1825,8 +1834,9 @@ function renderSup(){
     h += '<div class="sec-h" id="sec-' + esc(s.cod) + '"><h2>' + esc(s.cod) + ') ' + esc(s.nombre) + '</h2><span class="tiny muted" id="secp-' + esc(s.cod) + '"></span></div>';
     S.data.puntos.filter(p => p.sec === s.cod).forEach(p => h += '<div id="pt-' + esc(p.id) + '"></div>');
   });
-  h += '<div class="tk-lock" id="tkLock" hidden></div><div class="card tk-snap" id="tkFinal"><label class="f" style="margin-top:0">Comentario general (opcional)</label><textarea data-k="comentario">' + esc(F.comentario) + '</textarea></div>';
-  $('#main').innerHTML = h;
+  h += '<div class="tk-lock" id="tkLock" hidden></div><div class="card tk-snap" id="tkFinal"><label class="f" style="margin-top:0">Comentario general (opcional)</label><textarea data-k="comentario">' + esc(F.comentario) + '</textarea></div>' +
+    '<button class="btn ghost block" id="sCancel2" style="color:var(--bad);margin-bottom:12px">Cancelar supervisión</button>';
+  $('#main').innerHTML = h; $('#sCancel2').onclick = cancelarSup;
   S.data.puntos.forEach(p => pintarPunto(p));
   $('#footer').innerHTML = '<div class="footer"><div class="in"><div class="grow" style="min-width:0"><div class="small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span id="fN"></span> · <span class="score" id="fS"></span></div><div class="bar"><i id="fBar"></i></div></div>' +
     '<button class="btn" id="fSig">Siguiente ↓</button><button class="btn primary" id="fGuardar">Guardar</button></div></div>';
@@ -2124,7 +2134,7 @@ function histHtml(){
   const L = S.data.supervisiones;
   const color = v => v == null ? 'var(--na-soft)' : v >= 0.9 ? 'var(--ok)' : v >= 0.71 ? 'var(--warn)' : 'var(--bad)';
   const dur = s => s.min != null && !isNaN(s.min) ? s.min : minDe(s.ini, s.fin);
-  const ds = L.map(dur).filter(x => x != null && x > 0);
+  const ds = L.map(dur).filter(x => x != null && x > 0 && x <= 480);   // cs1: más de 8 h es un borrador olvidado
   let h = '<div class="card"><h3 style="margin-top:0">Últimas supervisiones</h3>';
   if (ds.length) h += '<p class="small muted" style="margin-top:-2px">Duración promedio: <b style="color:var(--ink)">' + fmtMin(Math.round(ds.reduce((a, b) => a + b, 0) / ds.length)) + '</b></p>';
   if(!L.length) h += '<div class="empty">Todavía no hay supervisiones registradas.</div>';
