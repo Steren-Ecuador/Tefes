@@ -555,7 +555,7 @@ input[type=tel],input[type=email]{width:100%;border:1px solid var(--line);border
     /* ux4: una fila por apertura: cuándo vio algo y cuánto tardaron los datos del servidor */
     carga(msPantalla, msDatos, guardado, extra){   /* lote7: extra = motivo del error o lo más lento */
       const s = ms => (Math.round(ms / 100) / 10).toFixed(1).replace('.', ',') + ' s';
-      push('Carga', 'pantalla ' + s(msPantalla) + ' · datos ' + (msDatos == null ? 'sin respuesta' : s(msDatos)) + ' · ' + (guardado ? 'con datos guardados' : 'sin datos guardados') + ' · ' + R.disp + (extra ? ' · ' + String(extra).slice(0, 160) : '')); }
+      push('Carga', 'pantalla ' + s(msPantalla) + ' · datos ' + (msDatos == null ? 'sin respuesta' : s(msDatos)) + ' · ' + (guardado ? 'con datos guardados' : 'sin datos guardados') + ' · ' + R.disp + (/github\.io$/.test(location.hostname) ? ' · GitHub' : ' · Google') /* lote8 */ + (extra ? ' · ' + String(extra).slice(0, 160) : '')); }
   };
 })();
 </script>
@@ -2105,7 +2105,11 @@ function enlaceSup(){
   const medir = (ok, extra) => { try { if (window.REG) REG.carga(tPant == null ? performance.now() : tPant, ok ? performance.now() - t0 : null, !!guardado, extra); } catch(e){} };
   /* lote7: si el servidor falla, un reintento a los 2 s antes de mostrar el error; se anota el motivo y lo más lento */
   let reintento = '';
-  const pedir = async () => { try { return await api('apiInitTienda'); } catch (e1) { reintento = 'reintento (' + String(e1 && e1.message || e1).slice(0, 60) + ')'; await new Promise(r => setTimeout(r, 2000)); return api('apiInitTienda'); } };
+  /* lote8: tres partes a la vez (el servidor las corre en paralelo); cada una con su reintento */
+  const parte = async p => { try { return await api('apiInitTiendaParte', p); } catch (e1) { reintento = 'reintento ' + p + ' (' + String(e1 && e1.message || e1).slice(0, 60) + ')'; await new Promise(r => setTimeout(r, 2000)); return api('apiInitTiendaParte', p); } };
+  const pedir = async () => { const L = await Promise.all(['base', 'inv', 'leer'].map(parte)); if (!L[0]) return null;
+    const t = {}; let tot = 0; L.forEach(x => { const q = (x && x.tiempos) || {}; tot = Math.max(tot, q.total || 0); Object.keys(q).forEach(k => { if (k !== 'total') t[k] = q[k]; }); });
+    const d = Object.assign({}, L[0], L[1], L[2]); t.total = tot; d.tiempos = t; return d; };
   const lento = t => { if (!t) return ''; const s = ms => (ms / 1000).toFixed(1).replace('.', ','); return 'servidor ' + s(t.total || 0) + ' s: ' + Object.keys(t).filter(k => k !== 'total').sort((a, b) => t[b] - t[a]).slice(0, 3).map(k => k + ' ' + s(t[k])).join(', '); };
   if (guardado) { S.data = guardado; llenarPersonal(); render(); enlaceSup(); tPant = performance.now();
     const marcar = () => { toco = true; }; ['input', 'click', 'change'].forEach(ev => document.addEventListener(ev, marcar, {capture: true, once: true})); }
