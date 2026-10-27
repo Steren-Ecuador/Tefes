@@ -1718,11 +1718,11 @@ function renderLinks(){
       <code>${esc(l || falta)}</code>
       <span class="btns"><button class="btn" data-l="${esc(l)}" ${l ? '' : 'disabled'}>Copiar</button>${l ? `<a class="btn wa" href="${esc(wa(msg))}" target="_blank" rel="noopener" title="Enviar por WhatsApp">WhatsApp</a><a class="btn" href="${esc(l)}" target="_blank" rel="noopener">Abrir</a>` : ''}</span></div>`;
   const faltaUrl = 'Disponible cuando guardes la dirección de la app';
-  const pl = url && d.panelTok ? url + '?p=' + encodeURIComponent(d.panelTok) : '';
+  const pl = d.panelTok ? GH_TEFES + '?p=' + encodeURIComponent(d.panelTok) : '';   // eg1
   $('#panelLink').innerHTML = row('Panel general', pl, !d.panelTok ? 'Falta la fila __PANEL__ en la hoja privada de claves' : faltaUrl,
     'Panel de revisión general de TEFES (solo lectura, sin cuenta):\n' + pl);
   const act = d.tiendas.filter(t => t.activa);
-  const tl = t => url && t.token ? url + '?t=' + encodeURIComponent(t.token) : '';
+  const tl = t => t.token ? GH_TEFES + '?t=' + encodeURIComponent(t.token) : '';   // eg1
   $('#links').innerHTML = d.tiendas.map(t => { const l = tl(t);
     return row(esc(t.nombre) + (t.activa ? '' : ' <span class="pill p-na">Inactiva</span>'), l, !t.token ? 'Sin clave en la hoja privada' : faltaUrl,
       'TEFES, tienda ' + t.nombre + '. Entra aquí para hacer la supervisión:\n' + l); }).join('');
@@ -3517,7 +3517,7 @@ function nuevaSupervision(){
     return {t, u: ss[ss.length - 1]};
   }).sort((a, b) => (a.u && a.u.total != null ? a.u.total : 9) - (b.u && b.u.total != null ? b.u.total : 9) || a.t.nombre.localeCompare(b.t.nombre));
   const fila = ({t, u}) => {
-    const l = url && t.token ? url + '?t=' + encodeURIComponent(t.token) : '';
+    const l = t.token ? GH_TEFES + '?t=' + encodeURIComponent(t.token) : '';   // eg1: por GitHub
     const info = `<div class="store">${esc(t.nombre)}</div><div class="small faint">${u ? 'Última ' + fmtF(u.fecha) + ' · hace ' + dias(u.fecha, d.hoy) + ' días' : 'Sin evaluar'}</div>`;
     const pill = u && u.total != null ? `<span class="pill p-${band(u.total)}">${pct(u.total)}</span>` : '<span class="pill p-na">Sin dato</span>';
     return l ? `<a class="ns-row" href="${esc(l)}" target="_blank" rel="noopener"><div>${info}</div>${pill}</a>`
