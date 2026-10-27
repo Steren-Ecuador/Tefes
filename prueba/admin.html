@@ -3038,8 +3038,10 @@ function infLista(){
   const L = infFilas().filter(r => r[4] === ui.tienda && (ui.tipo === 'cic') === /c[ií]clico/i.test(r[5] || '')).reverse();   // solo los informes de la pestaña abierta (Top 50 o Cíclico)
   el.innerHTML = `<div class="actions" style="margin:0"><button class="btn primary" id="infNuevo">Informe de inventario</button></div>` +
     (L.length ? `<div class="lbl">Informes guardados</div>` + L.map(r => `<div class="sv-it"><div><b>${esc(r[0])}</b> · ${esc(fmtF(r[1], r[2]))}<div class="small faint">${esc(r[5])} ${esc(r[3])} · a descontar ${esc(ivMon(num(r[11]) || 0))}</div></div>
-      <span class="pol-acc"><span class="pill ${r[13] === 'Firmado' ? 'p-good' : 'p-warn'}">${esc(r[13] || 'Por firmar')}</span><button class="btn" data-infpdf="${esc(r[0])}">PDF</button><button class="btn" data-infarc="${esc(r[0])}" title="Lo quita de la lista; queda guardado en la hoja">Archivar</button>${r[13] === 'Firmado' ? '' : `<button class="btn" data-inffir="${esc(r[0])}">Firmado</button>`}</span></div>`).join('') : '');
+      <span class="pol-acc"><span class="pill ${r[13] === 'Firmado' ? 'p-good' : 'p-warn'}">${esc(r[13] || 'Por firmar')}</span>${icEstado(r[0])}<button class="btn" data-infpdf="${esc(r[0])}">PDF</button><button class="btn" data-infmail="${esc(r[0])}">Correo</button><button class="btn" data-infarc="${esc(r[0])}" title="Lo quita de la lista; queda guardado en la hoja">Archivar</button>${r[13] === 'Firmado' ? '' : `<button class="btn" data-inffir="${esc(r[0])}">Firmado</button>`}</span></div>`).join('') : '');
   $('#infNuevo').onclick = () => infNuevo();
+  el.querySelectorAll('[data-infmail]').forEach(b => b.onclick = () => { const r = infFilas().find(x => x[0] === b.dataset.infmail), f = r && infDatos(r); if (f) icAbrir(Object.assign(f, {id: r[0]}), b.closest('.sv-it')); else toast('Este informe no tiene datos para el correo.'); });
+  icLeer();
   el.querySelectorAll('[data-infpdf]').forEach(b => b.onclick = () => { const r = infFilas().find(x => x[0] === b.dataset.infpdf), f = r && infDatos(r); if (f) infPdf(f, b); else toast('Este informe no tiene datos para el PDF.'); });
   el.querySelectorAll('[data-infarc]').forEach(b => b.onclick = async () => {
     if (!confirm('¿Archivar el informe ' + b.dataset.infarc + '? Sale de la lista pero queda guardado en la hoja.')) return;
@@ -3060,6 +3062,83 @@ function infLista(){
       toast('Marcado como firmado'); infLista(); }
     catch (e) { b.disabled = false; toast('No se pudo marcar: ' + (e.message || errorCopy(e)), 5000); }
   });
+}
+/* ic1: enviar el informe a la tienda por correo, con el PDF adjunto. Queda en la cola 'Correos de informes' (hoja privada de claves);
+   la app de Google lo envía desde diego.revelo@tefes.net en los próximos 5 minutos y anota Enviado o el error. */
+const IC_TAB = "'Correos de informes'";
+const IC_ENC = ['Fecha', 'Informe', 'Tienda', 'Para', 'CC', 'Asunto', 'Mensaje', 'Estado', 'Enviado', 'Detalle'];
+const IC_MES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const IC_DIA = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+async function icLeer(){
+  if (st.icLeyendo || (st.icT && Date.now() - st.icT < 60000)) return;
+  st.icLeyendo = true;
+  try { st.icF = await getRange(IC_TAB + '!A1:J', true, CLAVES); } catch (e) {}
+  st.icLeyendo = false; st.icT = Date.now(); infLista();
+}
+function icEstado(id){
+  const r = (st.icF || []).slice(1).filter(x => x[1] === id).pop(); if (!r) return '';
+  const ok = r[7] === 'Enviado', err = r[7] === 'Error';
+  return `<span class="pill ${ok ? 'p-good' : err ? 'p-bad' : 'p-acc'}" title="${esc((r[3] || '') + (r[9] ? ' · ' + r[9] : ''))}">${ok ? 'Correo enviado ' + esc(fmtF(r[8])) : err ? 'El correo no salió' : 'Correo en cola'}</span>`;
+}
+const icNombre = n => { const p = String(n || '').trim().split(/\s+/), x = p.length >= 3 ? p[2] : p[0] || ''; return x.charAt(0).toUpperCase() + x.slice(1).toLowerCase(); };
+async function icCorreoTienda(t){   // admin: filas de Contactos; panel de supervisores: objetos {tienda, correo}
+  const de = L => { const r = (L || []).find(x => (Array.isArray(x) ? x[0] : x && x.tienda) === t); return r ? String((Array.isArray(r) ? r[2] : r.correo) || '').trim() : ''; };
+  let c = de(st.contactos);
+  if (!c) { try { st.icCt = st.icCt || await getRange('Contactos!A1:C', false, CLAVES); } catch (e) {} c = de(st.icCt); }
+  return c;
+}
+function icPlantilla(f){
+  const lim = new Date(); lim.setDate(lim.getDate() + 3);
+  const nf = f.items.filter(x => x.dif < 0).length, ns = f.items.filter(x => x.dif > 0).length;
+  const rep = Number(f.desc) > 0 ? (f.reparto || []).map(r => r.n + ': ' + ivMon(r.v)).join('\n') : '';
+  return {asunto: `Informe de inventario ${f.tienda} · semana ${f.semana} (${f.id})`,
+    msg: `Hola ${icNombre(f.lider)},\n\nTe envío adjunto el informe de inventario de ${f.tienda} (${f.tipo}, semana ${f.semana}).\n\n` +
+      `Resultado:\n• Faltante al PVP: ${ivMon(f.falt)} (${nf} producto${nf === 1 ? '' : 's'})\n• Sobrante al PVP: ${ivMon(f.sobr)} (${ns} producto${ns === 1 ? '' : 's'}; se carga a la tienda)\n` +
+      `• Valor a descontar al personal: ${ivMon(f.desc)}${f.tol ? ' (dentro de la tolerancia de $10, no se descuenta)' : ''}\n` +
+      (rep ? `\nReparto:\n${rep}\n` : '') +
+      `\nPor favor:\n1. Revisen el informe con todo el equipo.\n2. Imprímanlo y que cada persona firme en su recuadro.\n` +
+      `3. Devuélvanlo firmado (escaneado o foto clara, respondiendo a este correo) hasta el ${IC_DIA[lim.getDay()]} ${lim.getDate()} de ${IC_MES[lim.getMonth()]}.\n\n` +
+      `Si alguien tiene una observación sobre algún producto, respondan a este correo antes de firmar.\n\nSaludos,\n${f.elaboro || 'Administrador'}\n${f.cargoElab ? f.cargoElab + ' · ' : ''}TEFES`};
+}
+async function icAbrir(f, ancla){
+  document.querySelectorAll('.ic-form').forEach(x => x.remove());
+  const p = icPlantilla(f), box = document.createElement('div');
+  box.className = 'an-form ic-form'; box.style.margin = '8px 0';
+  box.innerHTML = `<b>Enviar ${esc(f.id)} a la tienda</b>
+    <label class="an-f">Para<input type="text" data-ic="para" placeholder="correo de la tienda"></label>
+    <label class="an-f">Copia (opcional)<input type="text" data-ic="cc" placeholder="separa varios con coma"></label>
+    <label class="an-f">Asunto<input type="text" data-ic="as" value="${esc(p.asunto)}"></label>
+    <label class="an-f">Mensaje<textarea data-ic="msg" style="min-height:320px">${esc(p.msg)}</textarea></label>
+    <span class="small faint">Va con el PDF del informe adjunto y sale desde el correo TEFES de Diego en los próximos 5 minutos.</span>
+    <p class="r-falta" hidden></p>
+    <div class="actions" style="margin:0"><button class="btn primary" data-ic="env">Enviar a la tienda</button><button class="btn" data-ic="no">Cancelar</button></div>`;
+  ancla.after(box);
+  box.querySelector('[data-ic=no]').onclick = () => box.remove();
+  box.querySelector('[data-ic=env]').onclick = () => icEnviar(f, box);
+  box.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+  const para = box.querySelector('[data-ic=para]'); para.value = await icCorreoTienda(f.tienda);
+}
+async function icEnviar(f, box){
+  const q = s => box.querySelector('[data-ic=' + s + ']'), falta = box.querySelector('.r-falta'), b = q('env');
+  const lista = s => s.split(/[,;\s]+/).map(x => x.trim()).filter(Boolean), malos = s => lista(s).filter(x => !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x));
+  const para = q('para').value.trim(), cc = q('cc').value.trim(), as = q('as').value.trim(), msg = q('msg').value.trim(), mal = malos(para).concat(malos(cc));
+  const m = !para ? 'Pon el correo de la tienda.' : mal.length ? 'Revisa estos correos: ' + mal.join(', ') : !as ? 'Pon el asunto.' : msg.length < 10 ? 'Escribe el mensaje.' : '';
+  if (m) { falta.textContent = m; falta.hidden = false; return; }
+  falta.hidden = true; b.disabled = true; b.textContent = 'Enviando…';
+  const fila = [stamp(), f.id, f.tienda, lista(para).join(', '), lista(cc).join(', '), safe(as), safe(msg), 'Por enviar', '', ''];
+  const reintentar = async fn => { const esperas = [10, 20, 30]; for (let i = 0; ; i++) { try { return await fn(); } catch (e) {
+    if (i >= esperas.length || !/upstream_error|rate_limited|server_unavailable/.test((e && e.code) || '')) throw e;
+    for (let s = esperas[i]; s > 0; s--) { b.textContent = 'Google Sheets ocupado, reintento en ' + s + ' s…'; await new Promise(r => setTimeout(r, 1000)); } b.textContent = 'Enviando…'; } } };
+  try {
+    let v = await reintentar(() => getRange(IC_TAB + '!A1:A', true, CLAVES));
+    if (!v.length) { await reintentar(() => setRange(IC_TAB + '!A1:J1', [IC_ENC], CLAVES)); v = [IC_ENC]; }
+    const n = v.length + 1;
+    await reintentar(() => setRange(IC_TAB + '!A' + n + ':J' + n, [fila], CLAVES));
+    st.icF = (st.icF && st.icF.length ? st.icF : [IC_ENC]).concat([fila]);
+    box.innerHTML = '<span class="pill p-acc">En cola</span> <span class="small">Sale a ' + esc(fila[3]) + ' en los próximos 5 minutos, con el PDF adjunto.</span>';
+    toast('Correo de ' + f.id + ' en cola');
+    if (document.getElementById('ivInf')) setTimeout(() => { if (!box.isConnected || !box.closest('#ivInf')) return; infLista(); }, 2500);
+  } catch (e) { b.disabled = false; b.textContent = 'Enviar a la tienda'; falta.textContent = e && e.code ? errorCopy(e) : 'No se pudo enviar: ' + (e && e.message || e); falta.hidden = false; }
 }
 function infNuevo(){
   const ui = st.ivUI, corr = invCorr(ui.sem, ui.tienda);
@@ -3145,7 +3224,8 @@ async function infGuardar(){
       S.rep.map(r => r.n + ': ' + ivDin(r.v)).join(' | '), 'Por firmar', safe(f.obs), JSON.stringify(f)];
     await setRange(INF_TAB + '!A' + n + ':P' + n, [fila], CLAVES);
     st.mue.inf = (st.mue.inf && st.mue.inf.length ? st.mue.inf : [INF_ENC]).concat([fila]);
-    $('#infAcc').innerHTML = `<span class="pill p-good">Guardado como ${esc(id)}</span><button class="btn primary" id="infPdfG">Descargar PDF para firmar</button>`;
+    $('#infAcc').innerHTML = `<span class="pill p-good">Guardado como ${esc(id)}</span><button class="btn primary" id="infPdfG">Descargar PDF para firmar</button><button class="btn" id="infMailG">Enviar a la tienda</button>`;
+    $('#infMailG').onclick = () => icAbrir(f, $('#infAcc'));
     $('#infPdfG').onclick = e => infPdf(f, e.target);
     toast('Informe ' + id + ' guardado');
   } catch (e) { S.guardado = null; b.disabled = false; b.textContent = 'Guardar informe'; falta.textContent = e && e.code ? errorCopy(e) : 'No se pudo guardar: ' + (e && e.message || e); falta.hidden = false; }
