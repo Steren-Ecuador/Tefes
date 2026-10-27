@@ -19,7 +19,7 @@
     });
   }
   function despues(fn, r) {
-    if (fn === 'apiInitTienda' && r && r.tienda) {
+    if ((fn === 'apiInitTienda' || fn === 'apiInitTiendaParte') && r && r.tienda) {
       var h = document.getElementById('hTienda');
       if (h) h.textContent = r.tienda;
       document.title = 'Pruebas · ' + r.tienda.replace(/\bMegakywi\b(?!-EloyAlfaro)/, 'Megakywi-EloyAlfaro').replace(/\bMegamaxi\b(?! 6 Dic)/, 'Megamaxi 6 Dic') + ' · TEFES';

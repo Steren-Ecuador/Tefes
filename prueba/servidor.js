@@ -89,6 +89,13 @@
 
   /* ---------- funciones de la página de la tienda ---------- */
   var API = {};
+  /* lote8: la página pide sus datos en 3 partes a la vez */
+  API.apiInitTiendaParte = function (tok, p) {
+    var d = API.apiInitTienda(tok);
+    if (p === 'base') return d;
+    if (p === 'inv') return {inventario: d.inventario, informesInv: d.informesInv, ventasFuturas: d.ventasFuturas, actividades: d.actividades};
+    return {politicas: d.politicas, guias: d.guias};
+  };
   API.apiInitTienda = function (tok) {
     var t = tiendaDe(tok), hoy = DB.hoyISO(), sec = F('Secciones').map(function (r) { return {cod: r[0], nombre: r[1], peso: N(r[2])}; });
     var puntos = F('Puntos').filter(function (r) { return S(r[5]) !== 'Automático'; }).map(function (r) { return {id: r[0], sec: r[1], seccion: r[2], texto: r[3], criterio: r[4], foto: r[5], queFoto: r[6], datoReq: /^s/i.test(S(r[7]))}; });

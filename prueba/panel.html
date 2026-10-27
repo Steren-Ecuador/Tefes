@@ -694,7 +694,7 @@ tr.on td{background:var(--accent-soft)}
     /* ux4: una fila por apertura: cuándo vio algo y cuánto tardaron los datos del servidor */
     carga(msPantalla, msDatos, guardado, extra){   /* lote7: extra = motivo del error o lo más lento */
       const s = ms => (Math.round(ms / 100) / 10).toFixed(1).replace('.', ',') + ' s';
-      push('Carga', 'pantalla ' + s(msPantalla) + ' · datos ' + (msDatos == null ? 'sin respuesta' : s(msDatos)) + ' · ' + (guardado ? 'con datos guardados' : 'sin datos guardados') + ' · ' + R.disp + (extra ? ' · ' + String(extra).slice(0, 160) : '')); }
+      push('Carga', 'pantalla ' + s(msPantalla) + ' · datos ' + (msDatos == null ? 'sin respuesta' : s(msDatos)) + ' · ' + (guardado ? 'con datos guardados' : 'sin datos guardados') + ' · ' + R.disp + (/github\.io$/.test(location.hostname) ? ' · GitHub' : ' · Google') /* lote8 */ + (extra ? ' · ' + String(extra).slice(0, 160) : '')); }
   };
 })();
 </script>
