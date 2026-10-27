@@ -3080,7 +3080,8 @@ function icEstado(id){
   const ok = r[7] === 'Enviado', err = r[7] === 'Error';
   return `<span class="pill ${ok ? 'p-good' : err ? 'p-bad' : 'p-acc'}" title="${esc((r[3] || '') + (r[9] ? ' · ' + r[9] : ''))}">${ok ? 'Correo enviado ' + esc(fmtF(r[8])) : err ? 'El correo no salió' : 'Correo en cola'}</span>`;
 }
-const icNombre = n => { const p = String(n || '').trim().split(/\s+/), x = p.length >= 3 ? p[2] : p[0] || ''; return x.charAt(0).toUpperCase() + x.slice(1).toLowerCase(); };
+const IC_APODOS = [[/chango/i, 'Anita'], [/barsallo/i, 'Jairo'], [/rivadeneira moreno/i, 'Francisco'], [/trujillo delgado/i, 'Amed']];   // ap2: como APODOS_ de Notificaciones.gs
+const icNombre = n => { const a = IC_APODOS.find(x => x[0].test(String(n || ''))); if (a) return a[1]; const p = String(n || '').trim().split(/\s+/), x = p.length >= 3 ? p[2] : p[0] || ''; return x.charAt(0).toUpperCase() + x.slice(1).toLowerCase(); };
 async function icCorreoTienda(t){   // admin: filas de Contactos; panel de supervisores: objetos {tienda, correo}
   const de = L => { const r = (L || []).find(x => (Array.isArray(x) ? x[0] : x && x.tienda) === t); return r ? String((Array.isArray(r) ? r[2] : r.correo) || '').trim() : ''; };
   let c = de(st.contactos);
