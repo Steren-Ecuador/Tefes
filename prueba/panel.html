@@ -2122,6 +2122,14 @@ function renderInventario(){
     return (typeof va === 'string' ? va.localeCompare(vb) : va - vb) * ord.d || a.t.localeCompare(b.t); });
   const th = (k, txt, cls, d0) => `<th class="${cls || ''}"><button type="button" class="iv-ord" data-ord="${k}" data-d0="${d0 || 1}" aria-sort="${ord.k === k ? (ord.d > 0 ? 'ascending' : 'descending') : 'none'}">${txt}${ord.k === k ? (ord.d > 0 ? ' ▲' : ' ▼') : ''}</button></th>`;
   const cic = T.filter(x => x.c);
+  /* pr1: semanas anteriores con diferencias sin revisar (solo tus tiendas; las listas se leen en segundo plano) */
+  const pendRev = [];
+  if (st.yo && ivPuede() && !st.mue) invPendCargar();
+  if (st.mue && ivPuede()) { const g = {};
+    st.mue.ml.slice(1).filter(r => r[0] && r[1] && String(r[0]) < I.sem && !ivExhib(r) && enCiudad(r[1])).forEach(r => { const k = r[0] + '|' + r[1] + '|' + (/c[ií]clico/i.test(String(r[6] || '')) ? 1 : 0); (g[k] = g[k] || []).push(r); });
+    Object.keys(g).forEach(k => { const [s0, t0, c0] = k.split('|'), corr = invCorr(s0, t0), F = g[k].map(r => ivFila(r, corr[sinApo(r[3])])).filter(o => o.cerrado && o.dif !== 0 && !o.cr);
+      if (F.length) pendRev.push({sem: s0, t: t0, cic: c0 === '1', n: F.length, falt: F.reduce((a, o) => a + Math.min(0, o.difp || 0), 0)}); });
+    pendRev.sort((a, b) => a.sem.localeCompare(b.sem) || a.falt - b.falt); }
   $('#nInv').textContent = atras.length || '';
   el.innerHTML = `<div class="iv-glob"><input type="search" id="invBusca" placeholder="Buscar un código en todas las tiendas" aria-label="Buscar un código en todas las tiendas" autocomplete="off" value="${esc(st.invQ || '')}"><div id="invBuscaRes"></div></div>
 <div><div class="sec-h"><h2>Muestreo Top 50</h2><span class="hint">Semana del ${fd(lu)} · entrega hasta el ${fd(new Date(I.vence + 'T12:00'))}</span></div>
@@ -2137,11 +2145,15 @@ function renderInventario(){
       <td class="num hide-sm">${x.fz === 'Enviado' && x.r.falt ? '<span class="venc">−' + din(x.r.falt) + '</span>' : '<span class="zero">–</span>'}</td>
       <td class="num hide-sm">${x.fz === 'Enviado' && x.r.sobr ? din(x.r.sobr) : '<span class="zero">–</span>'}</td></tr>`; }).join('') +
     `</tbody></table><p class="small faint" style="margin:0;padding:10px 12px;border-top:1px solid var(--line)">Exactitud: productos que cuadran ÷ productos de la lista. Verde ≥ 98% · ámbar 95–97% · rojo &lt; 95% (es la nota F02 de la supervisión). Exactitud, faltante y sobrante ya incluyen la revisión y los ajustes; faltante y sobrante al costo. Toca un título para ordenar. Al cerrar cada tienda te llega el correo con el reporte. Toca una tienda para ver producto por producto, registrar tu revisión y hacer el informe de inventario.</p></div></div>
+    ${pendRev.length ? `<div id="invPendRev"><div class="sec-h"><h2>Pendientes de revisión</h2><span class="hint">Semanas anteriores con diferencias que aún no revisas</span></div>
+    <div class="panel flush">${pendRev.map((x, i) => `<div class="li" data-pr="${i}" style="cursor:pointer"><div><div class="store">${esc(x.t)}</div><div class="small faint">Semana ${esc(x.sem.slice(-2))}${x.cic ? ' · cíclico' : ' · Top 50'} · ${x.n} sin revisar</div></div>
+      <span class="${x.falt < 0 ? 'venc' : 'small faint'}">${x.falt < 0 ? '−' + ivDin(-x.falt).replace('+', '') : ''}</span></div>`).join('')}</div></div>` : ''}
     <div><div class="sec-h"><h2>Inventario cíclico</h2><span class="hint">8 semanas por valor</span></div>
-    <div class="panel flush">${cic.length ? cic.map(x => `<div class="li" data-inv="${esc(x.t)}" data-cic="1" style="cursor:pointer"><div><div class="store">${esc(x.t)}</div><div class="small faint">${x.c.n} productos esta semana${x.c.cerr ? ' · ' + x.c.ok + ' cuadran, ' + x.c.dif + ' con diferencia' : ''}</div></div>
+    <div class="panel flush">${cic.length ? cic.map(x => `<div class="li" data-inv=""${esc(x.t)}" data-cic="1" style="cursor:pointer"><div><div class="store">${esc(x.t)}</div><div class="small faint">${x.c.n} productos esta semana${x.c.cerr ? ' · ' + x.c.ok + ' cuadran, ' + x.c.dif + ' con diferencia' : ''}</div></div>
       ${x.c.cerr ? `<span class="score ${exB(x.c.ex)}">${pct(x.c.ex)}</span>` : `<span class="pill ${faseC(x.fz)}">${esc(x.fz)}</span>`}</div>`).join('') :
       '<div class="empty">Ninguna tienda tiene conteo cíclico esta semana.</div>'}</div></div>`;
   el.querySelectorAll('[data-inv]').forEach(r => r.onclick = () => invAbrir(r.dataset.inv, I.sem, r.dataset.cic ? 'cic' : ''));
+  el.querySelectorAll('[data-pr]').forEach(d => d.onclick = () => { const x = pendRev[+d.dataset.pr]; invDetalle(x.t, x.sem, x.cic ? 'cic' : ''); if (st.ivUI) { st.ivUI.ver = 'sinrev'; invPintar(); } });
   el.querySelectorAll('[data-ord]').forEach(b => b.onclick = e => { e.stopPropagation(); const k = b.dataset.ord; st.invOrd = st.invOrd.k === k ? {k, d: -st.invOrd.d} : {k, d: +b.dataset.d0};
     try { localStorage.setItem('invOrdSup', JSON.stringify(st.invOrd)); } catch (x) {} renderInventario(); });
   const bi = $('#invBusca'); bi.oninput = () => { st.invQ = bi.value; invBuscar(); }; invBuscar();
@@ -2158,6 +2170,15 @@ async function invBuscarCargar(){
   } catch (e) { if (res) res.innerHTML = `<div class="small faint">No se pudo buscar: ${esc(errorCopy(e))}</div>`; return; }
   finally { st.mueCargando = false; }
   invBuscar();
+}
+/* pr1: lee las listas sin mostrar nada; al terminar vuelve a pintar Inventario con los pendientes de revisión */
+async function invPendCargar(){
+  if (st.mueCargando || st.pendRevErr) return; st.mueCargando = true;
+  try { const [me, ml, co, inf, pe] = await Promise.all(['MueEstado!A1:E', 'MueLista!A1:S', 'MueCorrecciones!A1:M', "'Informes de inventario'!A1:P", 'Personal!A1:G'].map(getRange));
+    st.mue = {me, ml, co, inf}; st.ivPe = pe; st.ivQ = st.ivQ || {}; }
+  catch (e) { st.pendRevErr = true; return; }
+  finally { st.mueCargando = false; }
+  renderInventario();
 }
 function invBuscar(){
   const res = $('#invBuscaRes'); if (!res) return;
@@ -2246,7 +2267,7 @@ function invDetalle(tienda, sem, filtro, q0){
       <div class="iv-chips" id="ivVer"></div></div>
     <div class="iv-list" id="ivList"></div>
   </div></div>`;
-  const cerrar = () => { $('#drawer').innerHTML = ''; st.ivUI = null; };
+  const cerrar = () => { $('#drawer').innerHTML = ''; st.ivUI = null; try { renderInventario(); } catch (x) {} };
   $('#dClose').onclick = cerrar;
   $('.drawer-bg').onclick = e => { if (e.target.classList.contains('drawer-bg')) cerrar(); };
   const s = $('#ivSem'); if (s) s.onchange = () => invDetalle(tienda, s.value, ui.tipo === 'cic' ? 'cic' : '');
