@@ -1098,10 +1098,50 @@ function errorCopy(e){
   return 'No se pudo leer Google Sheets (' + (c || 'error') + '). ' + (e && e.message ? e.message : '');
 }
 
-async function getRange(range, fresh, id){
+async function getRange1(range, fresh, id){
   const r = await st.mcp.callTool(SERVER, 'get_values', {spreadsheetId: id || SHEET, range}, {cache: fresh ? false : {staleTime: 20000}});
   const p = r.payload || {};
   return Array.isArray(p.values) ? p.values : [];
+}
+/* lq1: Google permite 60 lecturas por minuto por usuario (las comparten este panel y las tareas en la nube).
+   Las lecturas que salen juntas viajan en una sola petición (get_spreadsheet con varios rangos). */
+const LQ = {cola: {}, sinLote: false, solas: /^'?(MueLista|Registro)'?!/};
+function getRange(range, fresh, id){
+  id = id || SHEET;
+  if (LQ.sinLote || LQ.solas.test(range)) return getRange1(range, fresh, id);
+  const k = id + '|' + (fresh ? 1 : 0); let q = LQ.cola[k];
+  if (!q) { q = LQ.cola[k] = {id, fresh, items: []}; setTimeout(() => lqSalir(k), 0); }
+  return new Promise((res, rej) => q.items.push({range, res, rej}));
+}
+function lqClave(range){   // hoja + fila y columna de inicio, que es lo que devuelve Google por cada rango
+  const i = range.lastIndexOf('!'), hoja = range.slice(0, i).replace(/^'|'$/g, '').replace(/''/g, "'"), m = /^([A-Z]*)(\d*)/i.exec(range.slice(i + 1)) || [];
+  const col = String(m[1] || 'A').toUpperCase().split('').reduce((n, c) => n * 26 + c.charCodeAt(0) - 64, 0) - 1;
+  return hoja + '|' + (m[2] ? +m[2] - 1 : 0) + '|' + Math.max(0, col);
+}
+function lqFilas(g){   // GridData → filas como las de get_values (sin celdas ni filas vacías al final)
+  const out = (g.rowData || []).map(r => { const v = (r.values || []).map(c => c.formattedValue == null ? '' : String(c.formattedValue)); while (v.length && v[v.length - 1] === '') v.pop(); return v; });
+  while (out.length && !out[out.length - 1].length) out.pop();
+  return out;
+}
+async function lqSalir(k){
+  const q = LQ.cola[k]; delete LQ.cola[k];
+  const una = i => getRange1(i.range, q.fresh, q.id).then(i.res, i.rej);
+  const vistos = {}, lote = [], aparte = [];
+  q.items.forEach(i => { const c = lqClave(i.range); if (vistos[c] === undefined) { vistos[c] = i.range; lote.push(i); } else if (vistos[c] === i.range) lote.push(i); else aparte.push(i); });
+  aparte.forEach(una);
+  const rangos = [...new Set(lote.map(i => i.range))];
+  if (rangos.length < 2) { lote.forEach(una); return; }
+  try {
+    const r = await st.mcp.callTool(SERVER, 'get_spreadsheet', {spreadsheetId: q.id, ranges: rangos, includeGridData: true,
+      fields: ['sheets.properties.title', 'sheets.data.startRow', 'sheets.data.startColumn', 'sheets.data.rowData.values.formattedValue']}, {cache: q.fresh ? false : {staleTime: 20000}});
+    const m = {}; ((r.payload || {}).sheets || []).forEach(sh => (sh.data || []).forEach(g => { m[(sh.properties || {}).title + '|' + (g.startRow || 0) + '|' + (g.startColumn || 0)] = lqFilas(g); }));
+    lote.forEach(i => { const v = m[lqClave(i.range)]; if (v) i.res(v); else una(i); });
+  } catch (e) {
+    const c = e && e.code, txt = String((e && e.message) || '') + JSON.stringify((e && e.result) || '');
+    if (['not_in_manifest', 'not_granted', 'capability_disabled', 'capability_removed', 'blocked_by_policy', 'approval_required', 'bad_request'].includes(c)) LQ.sinLote = true;
+    if (c !== 'tool_error' && !LQ.sinLote || /quota|429|RESOURCE_EXHAUSTED|rate limit/i.test(txt)) lote.forEach(i => i.rej(e));   // cupo o red: que reintente quien pidió
+    else lote.forEach(una);   // p. ej. una pestaña que no existe: cada lectura por su lado, como antes
+  }
 }
 async function setRange(range, values, id){
   return st.mcp.callTool(SERVER, 'update_values', {spreadsheetId: id || SHEET, range, values}, {cache: false});
@@ -1569,7 +1609,7 @@ function renderActividades(){
   (st.act.de || []).slice(1).map(r => ({id: String(r[0] || '').trim(), titulo: String(r[1] || '').trim(), dia: +r[3] || 5, tiendas: String(r[4] || 'Todas').trim(), desde: String(r[5] || '').trim().slice(0, 7), activo: String(r[6] || 'Sí').trim()}))
     .filter(a => a.id && a.titulo && !/^no$/i.test(a.activo)).forEach(a => actPeriodos(a.desde, hoy).forEach((p, i) => {
       const ts = (/^todas$/i.test(a.tiendas) ? activas : a.tiendas.split(',').map(x => x.trim()).filter(Boolean)).map(t => ({tienda: t, hecho: ent[a.id + '|' + p + '|' + t] || null}));
-      if (i === 0 || ts.some(t => !t.hecho)) L.push({titulo: a.titulo.replace(/\{mes\}/g, ACT_MESES[+p.slice(5, 7) - 1]), vence: actVence(p, a.dia), tiendas: ts});
+      if (i === 0 || ts.some(t => !t.hecho)) L.push({titulo: a.titulo.replace(/\{mes\}/g, ACT_MESES[+p.slice(5, 7) - 1]).replace(/\{mes_sig\}/g, ACT_MESES[+p.slice(5, 7) % 12]) /* ms1 */, vence: actVence(p, a.dia), tiendas: ts});
     }));
   L.sort((a, b) => a.vence < b.vence ? -1 : 1);
   sec.hidden = !L.length; if (!L.length) return;
@@ -3198,9 +3238,13 @@ function invFormEventos(o){
       fin, fin === '' ? '' : Math.round(fin * o.costo * 100) / 100, dec, safe(com + (dec === IV_VEND ? ' · Vendidas antes del conteo: ' + vend : '')), 'Administrador'];
     const b = $('#ivGuardar'); b.disabled = true; b.textContent = 'Guardando…';
     try {
-      const co = await getRange('MueCorrecciones!A1:M', true, CLAVES);
+      /* rv1: si Google Sheets corta por el límite de lecturas por minuto, reintenta solo (hasta ~1,5 min) en vez de fallar */
+      const reintentar = async fn => { const esperas = [10, 20, 30, 30]; for (let i = 0; ; i++) { try { return await fn(); } catch (e) {
+        const c = e && e.code; if (i >= esperas.length || !/upstream_error|rate_limited|server_unavailable/.test(c || '')) throw e;
+        for (let s = esperas[i]; s > 0; s--) { b.textContent = 'Google Sheets ocupado, reintento en ' + s + ' s…'; await new Promise(r => setTimeout(r, 1000)); } b.textContent = 'Guardando…'; } } };
+      const co = await reintentar(() => getRange('MueCorrecciones!A1:M', true, CLAVES));
       const n = Math.max(co.length, 1) + 1;
-      await setRange('MueCorrecciones!A' + n + ':M' + n, [fila], CLAVES);
+      await reintentar(() => setRange('MueCorrecciones!A' + n + ':M' + n, [fila], CLAVES));
       const local = fila.slice(); local[3] = o.cod;
       st.mue.co = (co.length ? co : [['Fecha']]).concat([local]);
       ui.exp = ui.abierto; ui.abierto = null; toast('Revisión guardada'); invPintar(); renderInventario();
