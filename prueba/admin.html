@@ -1569,7 +1569,7 @@ function renderActividades(){
   (st.act.de || []).slice(1).map(r => ({id: String(r[0] || '').trim(), titulo: String(r[1] || '').trim(), dia: +r[3] || 5, tiendas: String(r[4] || 'Todas').trim(), desde: String(r[5] || '').trim().slice(0, 7), activo: String(r[6] || 'Sí').trim()}))
     .filter(a => a.id && a.titulo && !/^no$/i.test(a.activo)).forEach(a => actPeriodos(a.desde, hoy).forEach((p, i) => {
       const ts = (/^todas$/i.test(a.tiendas) ? activas : a.tiendas.split(',').map(x => x.trim()).filter(Boolean)).map(t => ({tienda: t, hecho: ent[a.id + '|' + p + '|' + t] || null}));
-      if (i === 0 || ts.some(t => !t.hecho)) L.push({titulo: a.titulo.replace(/\{mes\}/g, ACT_MESES[+p.slice(5, 7) - 1]), vence: actVence(p, a.dia), tiendas: ts});
+      if (i === 0 || ts.some(t => !t.hecho)) L.push({titulo: a.titulo.replace(/\{mes\}/g, ACT_MESES[+p.slice(5, 7) - 1]).replace(/\{mes_sig\}/g, ACT_MESES[+p.slice(5, 7) % 12]) /* ms1 */, vence: actVence(p, a.dia), tiendas: ts});
     }));
   L.sort((a, b) => a.vence < b.vence ? -1 : 1);
   sec.hidden = !L.length; if (!L.length) return;
