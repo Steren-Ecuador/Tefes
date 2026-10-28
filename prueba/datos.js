@@ -5,7 +5,7 @@
    La base imita las pestañas de las hojas de Google de la app; las pantallas la leen por rangos (A1). */
 (function () {
   var KEY = 'tefesPrueba.v1';
-  var VERSION = 4;
+  var VERSION = 5;
 
   /* ---------- utilidades ---------- */
   function pad(n) { return String(n).padStart(2, '0'); }
@@ -351,6 +351,18 @@
     difAnt.forEach(function (r) { T['MueCorrecciones'].push([sumar(luAct, -2), sAnt, r[1], r[3], r[4], r[8], r[11], r[8], '0', '0.00', 'Cuadra, fue error de conteo', 'Revisión de ejemplo.', ADMIN]); });
     T['Informes de inventario'].push(['INV-001', sumar(luAct, -2), '16:00', sAnt, 'Urdesa', 'Muestreo Top 50', ADMIN, equipo['Urdesa'][0][0], equipo['Urdesa'].map(function (x) { return x[0]; }).join(', '), '18.50', '0.00', '18.50', 'Partes iguales', 'Firmado', 'Informe de ejemplo.', '']);
 
+    /* cal1: calendario de visitas. Las supervisiones del último mes quedan como visitas hechas; luego, las que vienen */
+    T['Visitas'] = [['ID', 'Fecha', 'Tienda', 'Quién', 'Tipo', 'Estado', 'Nota', 'Creado']];
+    var nv = 0;
+    function visita(f, t, q, nota) { nv++; T['Visitas'].push(['V' + String(nv).padStart(4, '0'), f, t, q, q === ADMIN ? 'Diego' : 'Ventas', 'Programada', nota || '', sumar(f, -9) + ' 09:00 · ' + q]); }
+    function habil(f) { var d = new Date(f + 'T12:00:00').getDay(); return d === 0 ? sumar(f, 1) : d === 6 ? sumar(f, 2) : f; }
+    T['Supervisiones'].slice(1).filter(function (r) { return r[2] === 'Supervisión' && r[3] >= sumar(hoy, -35) && r[3] < hoy; }).forEach(function (r) { visita(r[3], r[1], r[6]); });
+    SUPERVISORES.filter(function (s) { return s[2] === 'Seguimiento'; }).forEach(function (s, k) {
+      s[1].split(', ').forEach(function (t, j) { visita(habil(sumar(hoy, 2 + k + j * 6)), t, s[0]); });
+      visita(habil(sumar(hoy, -3 - k)), s[1].split(', ')[1], s[0], 'Revisar inventario con el gerente');
+    });
+    TIENDAS.forEach(function (t, i) { visita(habil(sumar(hoy, 5 + i * 3)), t[0], ADMIN, t[1] === 'Guayaquil' ? 'Viaje a Guayaquil' : ''); });
+    visita(habil(sumar(hoy, 29)), '', ADMIN, 'Comparar criterios con el equipo de ventas');
     return {v: VERSION, dia: hoy, vivo: Date.now(), tabs: T};
   }
 
