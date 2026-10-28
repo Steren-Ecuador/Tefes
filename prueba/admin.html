@@ -609,6 +609,8 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
 .iv-ord{border:0;background:none;padding:0;font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit;cursor:pointer}
 .iv-ord[aria-sort="ascending"],.iv-ord[aria-sort="descending"]{color:var(--accent)}
 @media(max-width:620px){.fl-t .hide-sm{display:none}}
+/* flc1: Flash en el celular, cada tienda en dos líneas (2026-10-28) */
+@media(max-width:620px){.fl-t td:first-child{white-space:normal}.fl-t:has(.fl-bar) thead{display:none}.fl-t:has(.fl-bar) tbody{display:block}.fl-t:has(.fl-bar) tr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 14px;align-items:baseline;padding:11px 14px;border-bottom:1px solid var(--line)}.fl-t:has(.fl-bar) tr.fl-tot{background:var(--surface-2);border-bottom:0}.fl-t:has(.fl-bar) td:not(.hide-sm){display:block;border:0;padding:0;background:none;min-width:0}.fl-t:has(.fl-bar) td:nth-child(2)::before,.fl-t:has(.fl-bar) td:nth-child(3)::before{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--fg-3);font-weight:600}.fl-t:has(.fl-bar) td:nth-child(2)::before{content:"Día"}.fl-t:has(.fl-bar) td:nth-child(3)::before{content:"Mes"}.fl-t:has(.fl-bar) td:last-child{grid-column:1/-1}.fl-t:has(.fl-bar) .fl-bar{min-width:0}}
 /* ---------- garantías extendidas ---------- */
 #garBody{margin-top:30px}
 .gar-t td,.gar-t th{white-space:nowrap}
