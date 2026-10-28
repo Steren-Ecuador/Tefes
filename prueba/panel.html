@@ -555,6 +555,8 @@ details.li .body{margin-top:10px;font-size:13.5px;color:var(--fg-2);display:grid
 .fl-pct.ok{color:var(--good)} .fl-pct.bajo{color:var(--warn)}
 tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
 @media(max-width:620px){.fl-t .hide-sm{display:none}}
+/* flc1: Flash en el celular, cada tienda en dos líneas (2026-10-28) */
+@media(max-width:620px){.fl-t td:first-child{white-space:normal}.fl-t:has(.fl-bar) thead{display:none}.fl-t:has(.fl-bar) tbody{display:block}.fl-t:has(.fl-bar) tr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 14px;align-items:baseline;padding:11px 14px;border-bottom:1px solid var(--line)}.fl-t:has(.fl-bar) tr.fl-tot{background:var(--surface-2);border-bottom:0}.fl-t:has(.fl-bar) td:not(.hide-sm){display:block;border:0;padding:0;background:none;min-width:0}.fl-t:has(.fl-bar) td:nth-child(2)::before,.fl-t:has(.fl-bar) td:nth-child(3)::before{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--fg-3);font-weight:600}.fl-t:has(.fl-bar) td:nth-child(2)::before{content:"Día"}.fl-t:has(.fl-bar) td:nth-child(3)::before{content:"Mes"}.fl-t:has(.fl-bar) td:last-child{grid-column:1/-1}.fl-t:has(.fl-bar) .fl-bar{min-width:0}}
 #polPdf{position:fixed;left:-10000px;top:0}
 #polPdf .hoja{width:720px;background:#fff;color:#15202b;font:13px/1.45 Arial,sans-serif}
 #polPdf .cab{border-bottom:2px solid #c8102e;padding-bottom:6px;margin-bottom:12px;font-size:10px;color:#666}
