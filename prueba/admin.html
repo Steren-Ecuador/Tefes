@@ -1181,7 +1181,7 @@ async function cargar(fresh){
     gui: Promise.all([g('Guías!A1:I'), g("'Lecturas de guías'!A1:F").catch(() => [[]])]).then(([gg, ll]) => ({g: gg, l: ll})),
     vf: g("'Ventas futuras'!A1:V", CLAVES).catch(() => [[]]),
     flash: g('Flash!A1:I', CLAVES).catch(() => [[]]),
-    gar: g("'Garantías'!A1:G", CLAVES).catch(() => [[]])
+    gar: Promise.all([g("'Garantías'!A1:G", CLAVES), g('Fuentes!A1:B', CLAVES).catch(() => [])]).then(([a, f]) => { a.tomado = String(((f || []).find(r => String(r[0]).trim() === 'GARANTIAS_TOMADO') || [])[1] || '').trim(); return a; }).catch(() => [[]])
   };
   Object.values(extras).forEach(p => p.catch(() => {}));   // sin avisos de promesa rechazada mientras se espera lo principal
   if (TABS_REGISTRO.indexOf(st.tab) >= 0) cargarRegistro(fresh);
@@ -2426,6 +2426,9 @@ function renderGar(){
   const meses = [...new Set(R.map(x => x.desde.slice(0, 7)))].sort();
   const mA = meses[meses.length - 1], mP = meses.length > 1 ? meses[meses.length - 2] : null;
   const hasta = R.filter(x => x.desde.slice(0, 7) === mA).reduce((a, x) => x.hasta > a ? x.hasta : a, '');
+  /* fg1: cuándo se tomaron los datos del POS (Fuentes > GARANTIAS_TOMADO) */
+  const tomado = (st.gar && st.gar.tomado) || '';
+  const tomTxt = (m => m ? new Intl.DateTimeFormat('es-EC', {weekday: 'short', day: 'numeric', month: 'numeric', timeZone: 'UTC'}).format(new Date(Date.UTC(+m[1], m[2] - 1, +m[3], 12))).replace(',', '') + (m[4] ? ' ' + m[4] + ':' + m[5] : '') : '')(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/.exec(tomado));
   const dH = new Date(hasta + 'T12:00:00Z'), dias = new Date(Date.UTC(dH.getUTCFullYear(), dH.getUTCMonth() + 1, 0)).getUTCDate();
   const completo = dH.getUTCDate() >= dias, fac = completo ? 1 : dias / dH.getUTCDate();
   const nomMes = m => new Intl.DateTimeFormat('es-EC', {month: 'long', timeZone: 'UTC'}).format(new Date(m + '-15T12:00:00Z'));
@@ -2446,7 +2449,7 @@ function renderGar(){
     return `<tr class="click" data-gt="${esc(t.tienda)}"><td class="store">${esc(t.tienda)}</td>${mP ? `<td class="num">${cel(t.p)}</td>` : ''}<td class="num">${cel(t.a)}</td>${completo ? '' : `<td class="num hide-sm">${usd0.format(proy(t.a))}${flecha(t.a, t.p)}</td>`}</tr>` +
       (abierta === t.tienda ? as.map(a => `<tr class="as"><td>${esc(a.asesor)}</td>${mP ? `<td class="num">${cel(a.p)}</td>` : ''}<td class="num">${cel(a.a)}</td>${completo ? '' : '<td class="hide-sm"></td>'}</tr>`).join('') : '');
   }).join('');
-  el.innerHTML = `<div class="sec-h"><h2>Garantías extendidas</h2><span class="hint">Cantidad y dólares por tienda, del POS Steren. Toca una tienda para ver sus asesores.</span></div>
+  el.innerHTML = `<div class="sec-h"><h2>Garantías extendidas</h2><span class="hint">${tomTxt ? `Datos tomados del POS Steren el ${esc(tomTxt)} · ventas hasta el ${fd(hasta)}` : 'Cantidad y dólares por tienda, del POS Steren'}. Toca una tienda para ver sus asesores.</span></div>
     <div class="kpis">
       <div class="kpi acc"><b>${tot.a.q}</b><span>garantías en ${esc(nomMes(mA))}${completo ? '' : ' (al ' + fd(hasta) + ')'}</span></div>
       <div class="kpi"><b>${usd.format(tot.a.usd)}</b><span>vendidos</span></div>

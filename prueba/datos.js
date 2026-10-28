@@ -275,6 +275,7 @@
     T['Flash'].push([String(TIENDAS.length + 1), 'CEDIS B2B', 'CEDIS', '1840.00', r2(dia * 1650).toFixed(2), '', ayer, new Date(Date.now() - 25 * 60000).toISOString(), '']);
     T['Garantías'] = [['Desde', 'Hasta', 'Orden', 'Tienda', 'Asesor', 'Cantidad', 'Importe USD']];
     TIENDAS.forEach(function (t, i) { equipo[t[0]].slice(1).forEach(function (g) { var q = ent(0, 6); if (q) T['Garantías'].push([lun, hoy, String(i + 1), t[0], g[0], String(q), r2(q * (6 + R() * 8)).toFixed(2)]); }); });
+    T['Fuentes'] = [['Clave', 'Valor', 'Uso'], ['GARANTIAS_TOMADO', hoy + ' 08:05', 'Hora en que se tomaron del POS Steren los datos de Garantías']];
 
     /* clientes: ventas futuras y reclamos (todo inventado) */
     T['Ventas futuras'] = [['ID', 'Fecha', 'Hora', 'Tienda', 'Asesor', 'Código', 'Producto', 'Cantidad', 'Cliente', 'Celular', 'Correo', 'Contacto', 'Observaciones', 'Acepta contacto', 'Estado', 'Llegó', 'Aviso enviado', 'Avisado', 'Avisó', 'Cierre', 'Nota de cierre', 'En CEDIS']];
