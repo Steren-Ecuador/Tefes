@@ -609,6 +609,8 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
 .iv-ord{border:0;background:none;padding:0;font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit;cursor:pointer}
 .iv-ord[aria-sort="ascending"],.iv-ord[aria-sort="descending"]{color:var(--accent)}
 @media(max-width:620px){.fl-t .hide-sm{display:none}}
+/* flc1: Flash en el celular, cada tienda en dos líneas (2026-10-28) */
+@media(max-width:620px){.fl-t td:first-child{white-space:normal}.fl-t:has(.fl-bar) thead{display:none}.fl-t:has(.fl-bar) tbody{display:block}.fl-t:has(.fl-bar) tr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 14px;align-items:baseline;padding:11px 14px;border-bottom:1px solid var(--line)}.fl-t:has(.fl-bar) tr.fl-tot{background:var(--surface-2);border-bottom:0}.fl-t:has(.fl-bar) td:not(.hide-sm){display:block;border:0;padding:0;background:none;min-width:0}.fl-t:has(.fl-bar) td:nth-child(2)::before,.fl-t:has(.fl-bar) td:nth-child(3)::before{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--fg-3);font-weight:600}.fl-t:has(.fl-bar) td:nth-child(2)::before{content:"Día"}.fl-t:has(.fl-bar) td:nth-child(3)::before{content:"Mes"}.fl-t:has(.fl-bar) td:last-child{grid-column:1/-1}.fl-t:has(.fl-bar) .fl-bar{min-width:0}}
 /* ---------- garantías extendidas ---------- */
 #garBody{margin-top:30px}
 .gar-t td,.gar-t th{white-space:nowrap}
@@ -682,6 +684,7 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
   </div>
   <nav class="tabs" id="tabs" aria-label="Secciones del panel">
     <button data-v="hoy">Hoy</button>
+    <button data-v="calendario" title="Las visitas de todos a las tiendas, mes a mes">Calendario</button>
     <button data-v="mispendientes" hidden title="Solo tú: tus pendientes con Bodega, Contabilidad, Talento Humano y otras áreas">Mis pendientes<span class="n bad" id="nMp"></span></button>
     <button data-v="flash" title="Venta del día y del mes contra presupuesto, desde el ERP"><span class="gar-foco tab" aria-hidden="true"></span>Flash de Ventas</button>
     <button data-v="pendientes" title="El número son los pendientes que esperan tu validación">Pendientes<span class="n bad" id="nPend"></span></button>
@@ -698,6 +701,10 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
 </div></header>
 <div class="wrap">
   <div id="banner"></div>
+
+  <div class="view" data-view="calendario" hidden>
+    <div id="calBody"><div class="skeleton">Cargando el calendario…</div></div>
+  </div>
 
   <div class="view" data-view="hoy">
     <div class="kpis" id="kpis"></div>
@@ -2587,7 +2594,7 @@ function renderReclamos(){
   el.querySelectorAll('[data-rt]').forEach(r => r.onclick = () => { st.recT = st.recT === r.dataset.rt ? '' : r.dataset.rt; renderReclamos(); });
   if ($('#recTodo')) $('#recTodo').onclick = () => { st.recT = ''; renderReclamos(); };
 }
-const VISTAS = ['hoy','mispendientes','flash','anuncios','pendientes','whatsapp','inventario','vivo','transferencias','politicas','reclamos','guias','perchas','supervisores','equipo','enlaces'];
+const VISTAS = ['hoy','calendario','mispendientes','flash','anuncios','pendientes','whatsapp','inventario','vivo','transferencias','politicas','reclamos','guias','perchas','supervisores','equipo','enlaces'];
 function ir(v){
   if (v === 'vivo') v = 'inventario';   // En vivo está arriba de Inventario
   if (v === 'supervisores') v = 'equipo';
@@ -2600,6 +2607,7 @@ function ir(v){
   if (TABS_REGISTRO.indexOf(v) >= 0 && st.mcp && (st.rg === undefined || Date.now() - (st.rgT || 0) > 180000)) cargarRegistro(st.rg !== undefined);
   if (v === 'hoy') requestAnimationFrame(() => { if (M.listo) mapaDibujar(); });
   if (v === 'inventario' && window.cvRender) { cvRender(); cvCargar(); }
+  if (v === 'calendario' && window.calAbrir) calAbrir();   // cal1
   if (v === 'whatsapp') requestAnimationFrame(() => document.querySelectorAll('.wa-it textarea').forEach(t => { t.style.height = 'auto'; t.style.height = t.scrollHeight + 2 + 'px'; }));
   if (v === 'perchas' && window.peAbrir) peAbrir();
   if (v === 'mispendientes' && window.mpAbrir) mpAbrir();
@@ -4761,7 +4769,7 @@ if (typeof st !== 'undefined' && st.tab === 'transferencias') trfAbrir();
 (function(){
   const tabs = document.getElementById('tabs'), bnav = document.getElementById('bnav'), bg = document.getElementById('bmasBg'), mas = document.getElementById('bmas');
   if (!tabs || !bnav) return;
-  const P = {hoy: 'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z', pendientes: 'M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2',
+  const P = {hoy: 'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z', calendario: 'M4 6h16v14H4zM4 10h16M8 3v5M16 3v5M8 14h2M14 14h2M8 17h2', pendientes: 'M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2',
     supervision: 'M9 3h6v3H9zM6 5h12v16H6zM9 12l2 2 4-4', inventario: 'M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10', flash: 'M13 2L4 14h7l-1 8 9-12h-7z',
     politicas: 'M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z', guias: 'M4 5h7v14H4zM13 5h7v14h-7z', contactos: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2',
     reclamos: 'M3 4h2l2.5 11h11L21 7H6.5M9 20h.01M18 20h.01', equipo: 'M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6M21 19v-1a4 4 0 0 0-3-3.8M16 4.2a3 3 0 0 1 0 5.6',
@@ -4769,7 +4777,7 @@ if (typeof st !== 'undefined' && st.tab === 'transferencias') trfAbrir();
     mispendientes: 'M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9',
     transferencias: 'M4 8h14l-4-4M20 16H6l4 4',
     mas: 'M5 12h.01M12 12h.01M19 12h.01'};
-  const CORTO = {transferencias: 'Transf.', mispendientes: 'Mis pend.', hoy: 'Hoy', flash: 'Flash', pendientes: 'Pendientes', supervision: 'Supervisar', inventario: 'Inventario', politicas: 'Políticas', guias: 'Manuales', contactos: 'Contactos', reclamos: 'Clientes', equipo: 'Equipo', enlaces: 'Contactos'};
+  const CORTO = {calendario: 'Calendario', transferencias: 'Transf.', mispendientes: 'Mis pend.', hoy: 'Hoy', flash: 'Flash', pendientes: 'Pendientes', supervision: 'Supervisar', inventario: 'Inventario', politicas: 'Políticas', guias: 'Manuales', contactos: 'Contactos', reclamos: 'Clientes', equipo: 'Equipo', enlaces: 'Contactos'};
   const ORDEN = ['hoy', 'pendientes', 'supervision', 'inventario', 'flash'];
   const ico = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + (d || P.mas) + '"/></svg>';
   const nombre = b => CORTO[b.dataset.v] || b.textContent.trim();
@@ -4793,11 +4801,359 @@ if (typeof st !== 'undefined' && st.tab === 'transferencias') trfAbrir();
   pintar();
 })();
 </script>
+<style>
+/* cal1: calendario de visitas (2026-10-28) */
+#calBody{display:flex;flex-direction:column;gap:16px;min-width:0}
+.cal-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.cal-mesnav{display:flex;align-items:center;gap:6px}
+.cal-mesnav h2{font-family:var(--f-display);font-size:26px;font-weight:700;min-width:150px;text-align:center;margin:0}
+.cal-mesnav h2 span{color:var(--bad);font-weight:600}
+.cal-ic{border:0;background:var(--surface-2);color:var(--fg);width:34px;height:34px;border-radius:50%;font-size:20px;line-height:1;display:inline-grid;place-items:center;padding:0}
+.cal-ic:hover{background:var(--accent-soft)}
+.cal-nueva{border-radius:999px;padding:9px 16px}
+.cal-res{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 3px rgba(8,15,22,.05)}
+.cal-res-h{display:flex;align-items:center;gap:12px}
+.cal-res-h b{display:block;font-size:16px}
+.cal-res-h small{display:block;color:var(--fg-3);font-size:12.5px}
+.cal-res-ic{width:38px;height:38px;border-radius:10px;background:var(--accent-soft);display:grid;place-items:center;font-size:19px}
+.cal-res-n{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cal-res-n div{border:1px solid var(--line);border-radius:12px;padding:8px 12px;display:flex;flex-direction:column;gap:2px}
+.cal-res-n span{font-size:12.5px;color:var(--fg-2)}
+.cal-res-n b{font-family:var(--f-display);font-size:30px;line-height:1.05;font-weight:700}
+.cal-fil{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;align-items:center;padding-bottom:2px}
+.cal-fil::-webkit-scrollbar{display:none}
+.cal-fil .chip{white-space:nowrap;font-weight:600;font-size:13.5px;display:inline-flex;align-items:center;gap:6px}
+.cal-per i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.cal-auto{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;margin-left:4px;color:var(--fg-2)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.cal-h{font-size:11.5px;font-weight:700;text-align:center;color:var(--fg-3);padding:8px 0 6px;letter-spacing:.5px;border-bottom:1px solid var(--line)}
+.cal-h.fin{color:var(--fg-3);opacity:.7}
+.cal-d{min-height:104px;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--surface);padding:4px 3px 6px;display:flex;flex-direction:column;gap:3px;align-items:stretch;text-align:left;min-width:0;font:inherit;color:inherit}
+.cal-d:nth-child(7n+7){border-right:0}
+.cal-d.vacio{background:var(--surface-2);opacity:.45}
+.cal-d.fin{background:color-mix(in srgb,var(--surface-2) 45%,var(--surface))}
+.cal-d:hover{background:var(--accent-soft)}
+.cal-d.sel{box-shadow:inset 0 0 0 2px var(--accent)}
+.cal-n{align-self:center;font-size:14px;font-weight:600;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;margin-bottom:1px}
+.cal-d.fin .cal-n{color:var(--fg-3)}
+.cal-d.hoy .cal-n{background:var(--bad);color:#fff}
+.cal-chip{--c:#0096E0;display:block;font-size:11.5px;font-weight:600;line-height:1.25;padding:2px 5px;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:color-mix(in srgb,var(--c) 16%,var(--surface));color:color-mix(in srgb,var(--c) 78%,var(--fg));border-left:3px solid var(--c)}
+.cal-chip.hecha{background:var(--c);color:#fff;border-left-color:var(--c)}
+.cal-chip.suelta{background:var(--surface-2);color:var(--fg-2);border-left-color:var(--line);font-weight:500}
+.cal-chip.atrasada{background:var(--bad-soft);color:var(--bad);border-left-color:var(--bad);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--bad) 50%,transparent)}
+.cal-chip.fer{border-left:0;text-align:center;background:color-mix(in srgb,var(--c) 14%,var(--surface));font-weight:500}
+.cal-mas{font-size:11px;color:var(--fg-3);font-weight:700;padding-left:4px}
+.cal-ley{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:-6px}
+.cal-ley span{display:inline-flex;align-items:center;gap:5px}
+.cal-dot{width:9px;height:9px;border-radius:3px;display:inline-block}
+.cal-dot.rojo{background:var(--bad)}
+.cal-dia:empty{display:none}
+.cal-dia-p{display:flex;flex-direction:column;gap:6px;padding:12px 14px}
+.cal-dia-h{display:flex;align-items:center;gap:8px}
+.cal-dia-h b{font-size:16px}
+.cal-dia-h .cal-ic{margin-left:auto;width:30px;height:30px;font-size:14px}
+.cal-dia-p .btn{align-self:flex-start;margin-top:4px}
+.cal-lh{font-family:var(--f-display);font-size:17px;font-weight:600;padding:12px 14px 6px;display:flex;gap:8px;align-items:center}
+.cal-fila{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;padding:10px 14px;font:inherit;color:inherit}
+.cal-dia-p .cal-fila{padding:8px 0}
+.cal-dia-p .cal-fila:first-of-type{border-top:0}
+button.cal-fila:hover{background:var(--surface-2)}
+.cal-fila .av{width:34px;height:34px;font-size:12px}
+.cal-fi-t{min-width:0;display:flex;flex-direction:column}
+.cal-fi-t b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-fi-t small{font-size:12.5px;color:var(--fg-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-sync{display:flex;justify-content:center}
+.cal-hoja .btn{text-align:center;text-decoration:none;padding:10px 12px}
+.cal-hoja a.btn.primary{color:var(--accent-ink)}
+.cal-f{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--fg-2)}
+.cal-f input,.cal-f select{font:inherit;font-size:16px;font-weight:400;padding:10px 12px;width:100%;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.cal-url{font-size:12px;background:var(--surface-2);padding:8px 10px;border-radius:8px;overflow-wrap:anywhere;display:block}
+@media(max-width:620px){
+  .cal-mesnav h2{font-size:22px;min-width:120px}
+  .cal-nueva{flex:1 1 100%}
+  .cal-grid{border-radius:12px}
+  .cal-d{min-height:70px;padding:3px 1px 4px;gap:2px}
+  .cal-n{width:24px;height:24px;font-size:13px}
+  .cal-chip{font-size:9.5px;padding:1px 2px 1px 3px;border-left-width:2px;border-radius:3px;letter-spacing:-.2px}
+  .cal-chip.fer{font-size:8.5px}
+  .cal-mas{font-size:10px;padding-left:2px}
+  .cal-res-n b{font-size:24px}
+  .cal-res-n div{padding:7px 9px}
+}
+</style>
+<script>
+
+/* cal1: adaptador del calendario en el panel de Diego (lee y escribe la pestaña Visitas de la Base por el conector) */
+window.CAL_IO = {
+  leer: fresco => getRange('Visitas!A1:H', fresco, SHEET),
+  async guardar(v){
+    const r = await getRange1('Visitas!A1:H', true, SHEET), p2 = n => String(n).padStart(2, '0'), d = new Date();
+    const sello = d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()) + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes()) + ' · ' + CAL_YO();
+    const quien = String(v.quien || 'Administrador').trim(), tipo = /diego/i.test(quien) || quien === CAL_YO() ? 'Diego' : 'Ventas';
+    if (v.id) {
+      const k = r.findIndex((x, i) => i > 0 && String(x[0]) === String(v.id)); if (k < 0) throw new Error('No se encontró la visita ' + v.id);
+      const x = r[k].concat(Array(8).fill('')).slice(0, 8);
+      await setRange('Visitas!A' + (k + 1) + ':H' + (k + 1), [[x[0], v.fecha, v.tienda, quien, tipo, v.estado === 'Cancelada' ? 'Cancelada' : 'Programada', v.nota, (x[7] ? x[7] + ' | ' : '') + sello]], SHEET);
+      return;
+    }
+    let n = 0; r.slice(1).forEach(x => { const m = /^V(\d+)$/.exec(String(x[0] || '')); if (m) n = Math.max(n, +m[1]); });
+    const fila = Math.max(r.length, 1) + 1;
+    await setRange('Visitas!A' + fila + ':H' + fila, [['V' + String(n + 1).padStart(4, '0'), v.fecha, v.tienda, quien, tipo, 'Programada', v.nota, sello]], SHEET);
+  },
+  yo: () => CAL_YO(),
+  admin: () => true,
+  tiendas: () => st.d ? st.d.tiendas.filter(t => t.activa).map(t => t.nombre) : [],
+  sups: () => st.d ? st.d.sups : [],
+  personas: () => [CAL_YO()].concat((st.sv || []).slice(1).filter(r => r[0] && /^s/i.test(String(r[4] || '').trim()) && !/^admin/i.test(String(r[3] || '').trim())).map(r => String(r[0]).trim())),
+  async icsUrl(){
+    const u = st.d && String(st.d.cfg.URL_APP || '').trim(), tok = st.d && st.d.panelTok; if (!u || !tok) return '';
+    const b = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(tok + '|ics|' + CAL_YO().toLowerCase())));
+    return u + '?ics=' + btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '').slice(0, 22);
+  },
+  async descargar(blob, nombre){
+    try { const dl = await window.claude?.use?.('downloads'); if (!dl) throw {message: 'esta vista no permite descargar archivos'}; await dl.save({filename: nombre, data: blob}); }
+    catch (e) { if (!e || e.code !== 'declined') toast('No se pudo descargar: ' + (e && e.message || e), 5000); }
+  }
+};
+// Diego tal como figura en la pestaña Supervisores (así coincide la clave de su calendario .ics)
+function CAL_YO(){ const r = (st.sv || []).slice(1).find(r => /diego/i.test(String(r[0] || ''))); return r ? String(r[0]).trim() : 'Administrador'; }
+
+/* cal1: calendario de visitas compartido (Diego 2026-10-28). Mismo código en el admin y en Panel.html.
+   Cada host define window.CAL_IO = {leer, guardar, yo, admin, tiendas, sups, personas, icsUrl}; este módulo pinta #calBody. */
+(function () {
+  const C = window.CAL = {mes: '', sel: '', filtro: 'todos', auto: false, V: null, cargando: false, err: ''};
+  const io = () => window.CAL_IO || {};
+  const e = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+  const p2 = n => String(n).padStart(2, '0');
+  const isoD = d => d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
+  const hoy = () => isoD(new Date());
+  const sumar = (i, n) => { const d = new Date(i + 'T12:00'); d.setDate(d.getDate() + n); return isoD(d); };
+  const dif = (a, b) => Math.round((new Date(a + 'T12:00') - new Date(b + 'T12:00')) / 864e5);
+  const MES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  const DIA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  const largo = i => { const d = new Date(i + 'T12:00'); return DIA[d.getDay()] + ' ' + d.getDate() + ' de ' + MES[d.getMonth()].toLowerCase(); };
+  // feriados nacionales de Ecuador (los que mueve el gobierno se corrigen aquí)
+  const FER = {'2026-11-02': 'Día de Difuntos', '2026-11-03': 'Independencia de Cuenca', '2026-12-25': 'Navidad', '2027-01-01': 'Año Nuevo',
+    '2027-02-08': 'Carnaval', '2027-02-09': 'Carnaval', '2027-03-26': 'Viernes Santo', '2027-05-01': 'Día del Trabajo', '2027-05-24': 'Batalla de Pichincha',
+    '2027-08-10': 'Primer Grito de Independencia', '2027-10-09': 'Independencia de Guayaquil', '2027-11-02': 'Día de Difuntos', '2027-11-03': 'Independencia de Cuenca', '2027-12-25': 'Navidad'};
+  const PAL = ['#0096E0', '#7048e8', '#e8590c', '#2b8a3e', '#c2255c', '#1098ad', '#f08c00', '#5c7cfa', '#a61e4d', '#495057'];
+  const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  const corto = n => { const p = String(n || '').trim().split(/\s+/); return p.length > 1 ? p[0] + ' ' + p[1][0] + '.' : p[0] || ''; };
+  const ini = n => String(n || '').trim().split(/\s+/).slice(0, 2).map(x => x[0] || '').join('').toUpperCase();
+  function color(n) {
+    if (/diego/i.test(n)) return '#3b2466';
+    const L = personas().filter(x => !/diego/i.test(x)).map(norm).sort(), i = L.indexOf(norm(n));
+    return PAL[(i < 0 ? norm(n).length : i) % PAL.length];
+  }
+  function personas() {
+    const s = new Set((io().personas ? io().personas() : []).map(x => String(x).trim()).filter(Boolean));
+    (C.V || []).forEach(v => v.quien && s.add(v.quien));
+    return [...s];
+  }
+  // la persona de una supervisión hecha: la de la visita cuyo primer nombre y apellido aparecen en "Realizada por"
+  const esDe = (por, quien) => { const p = norm(por), q = norm(quien).split(/\s+/); return !!q[0] && p.indexOf(q[0]) >= 0 && (q.length < 2 || p.indexOf(q[1]) >= 0 || /diego/.test(q[0])); };
+
+  function modelo() {
+    const V = (C.V || []).filter(v => v.id && v.estado !== 'Cancelada'), S = (io().sups ? io().sups() : []).filter(s => s.fecha), h = hoy(), usadas = new Set();
+    V.forEach(v => {
+      const s = v.tienda && S.find(s => !usadas.has(s.id) && s.tienda === v.tienda && Math.abs(dif(s.fecha, v.fecha)) <= 3 && esDe(s.por, v.quien));
+      if (s) { usadas.add(s.id); v.hecha = s; v.est = 'hecha'; } else { v.hecha = null; v.est = v.fecha < h ? 'atrasada' : 'porhacer'; }
+    });
+    const sueltas = S.filter(s => !usadas.has(s.id) && (C.auto || s.tipo !== 'Autosupervisión'));
+    return {V, sueltas};
+  }
+  const pasaFiltro = q => C.filtro === 'todos' || (C.filtro === 'mias' ? norm(q) === norm(io().yo && io().yo()) : norm(q) === C.filtro);
+
+  async function cargar(fresco) {
+    if (C.cargando) return; C.cargando = true;
+    try {
+      const r = await io().leer(fresco), H = r[0] || [], ix = n => H.indexOf(n);
+      C.V = r.slice(1).map((x, k) => ({row: k + 2, id: x[0], fecha: String(x[ix('Fecha')] || '').slice(0, 10), tienda: x[ix('Tienda')] || '', quien: String(x[ix('Quién')] || '').trim(),
+        tipo: x[ix('Tipo')] || '', estado: x[ix('Estado')] || 'Programada', nota: x[ix('Nota')] || '', creado: x[ix('Creado')] || ''})).filter(v => v.id);
+      C.err = '';
+    } catch (er) { C.err = (er && er.message) || String(er); if (!C.V) C.V = []; }
+    C.cargando = false; pintar();
+  }
+
+  function chip(t, cls, col, tit) { return `<span class="cal-chip ${cls}" style="--c:${col}" title="${e(tit || t)}">${e(t)}</span>`; }
+
+  function pintar() {
+    const host = document.getElementById('calBody'); if (!host) return;
+    if (!C.mes) C.mes = hoy().slice(0, 7);
+    if (C.V === null) { host.innerHTML = '<div class="skeleton">Cargando el calendario…</div>'; cargar(); return; }
+    const {V, sueltas} = modelo(), h = hoy(), y = +C.mes.slice(0, 4), m = +C.mes.slice(5, 7);
+    const enMes = V.filter(v => v.fecha.slice(0, 7) === C.mes && pasaFiltro(v.quien));
+    const n = {hecha: enMes.filter(v => v.est === 'hecha').length, atrasada: enMes.filter(v => v.est === 'atrasada').length, porhacer: enMes.filter(v => v.est === 'porhacer').length};
+    const supMes = sueltas.filter(s => s.fecha.slice(0, 7) === C.mes).length;
+    const P = personas().sort((a, b) => /diego/i.test(a) ? -1 : /diego/i.test(b) ? 1 : a.localeCompare(b));
+    // cuadrícula: lunes primero
+    const ini1 = new Date(y, m - 1, 1, 12), off = (ini1.getDay() + 6) % 7, dm = new Date(y, m, 0).getDate(), celdas = [];
+    for (let i = 0; i < off; i++) celdas.push(null);
+    for (let d = 1; d <= dm; d++) celdas.push(y + '-' + p2(m) + '-' + p2(d));
+    while (celdas.length % 7) celdas.push(null);
+    const porDia = {}; V.filter(v => pasaFiltro(v.quien)).forEach(v => (porDia[v.fecha] = porDia[v.fecha] || []).push(v));
+    const supDia = {}; sueltas.forEach(s => (supDia[s.fecha] = supDia[s.fecha] || []).push(s));
+    const celda = d => {
+      if (!d) return '<div class="cal-d vacio"></div>';
+      const dow = new Date(d + 'T12:00').getDay(), L = (porDia[d] || []).slice().sort((a, b) => a.quien.localeCompare(b.quien)), S = C.filtro === 'todos' ? (supDia[d] || []) : [];
+      const items = [];
+      if (FER[d]) items.push(chip(FER[d], 'fer', '#9c36b5'));
+      L.forEach(v => items.push(chip((v.est === 'hecha' ? '✓ ' : '') + (v.tienda || v.nota || 'Visita'), v.est, color(v.quien), corto(v.quien) + ' · ' + (v.tienda || v.nota) + (v.est === 'atrasada' ? ' · atrasada' : v.est === 'hecha' ? ' · hecha' : ''))));
+      S.forEach(s => items.push(chip('✓ ' + s.tienda, 'hecha suelta', '#868e96', s.tipo + ' · ' + (s.por || ''))));
+      const max = 3, mas = items.length - max;
+      return `<button class="cal-d${d === h ? ' hoy' : ''}${d === C.sel ? ' sel' : ''}${dow === 0 || dow === 6 ? ' fin' : ''}" data-d="${d}"><span class="cal-n">${+d.slice(8)}</span>${items.slice(0, max).join('')}${mas > 0 ? `<span class="cal-mas">+${mas}</span>` : ''}</button>`;
+    };
+    const proximas = V.filter(v => v.fecha >= h && v.fecha <= sumar(h, 21) && pasaFiltro(v.quien)).sort((a, b) => (a.fecha + a.quien).localeCompare(b.fecha + b.quien));
+    const atras = V.filter(v => v.est === 'atrasada' && pasaFiltro(v.quien)).sort((a, b) => b.fecha.localeCompare(a.fecha));
+    const yo = io().yo ? io().yo() : '';
+    host.innerHTML = `
+      <div class="cal-top">
+        <div class="cal-mesnav"><button class="cal-ic" data-a="ant" aria-label="Mes anterior">‹</button><h2>${MES[m - 1]} <span>${y}</span></h2><button class="cal-ic" data-a="sig" aria-label="Mes siguiente">›</button>
+          ${C.mes !== h.slice(0, 7) ? '<button class="chip" data-a="hoy">Hoy</button>' : ''}</div>
+        ${yo ? '<button class="btn primary cal-nueva" data-a="nueva">＋ Agendar visita</button>' : ''}
+      </div>
+      ${C.err ? `<div class="banner err">No se pudo leer el calendario: ${e(C.err)}</div>` : ''}
+      <div class="cal-res">
+        <div class="cal-res-h"><span class="cal-res-ic">📅</span><div><b>Visitas de ${MES[m - 1].toLowerCase()}</b><small>${C.filtro === 'todos' ? 'Todo el equipo' : C.filtro === 'mias' ? 'Solo las tuyas' : e(P.find(x => norm(x) === C.filtro) || '')}</small></div></div>
+        <div class="cal-res-n"><div><span>Hechas</span><b class="good-t">${n.hecha}</b></div><div><span>Atrasadas</span><b class="bad-t">${n.atrasada}</b></div><div><span>Por hacer</span><b>${n.porhacer}</b></div></div>
+        ${supMes ? `<div class="small faint">Además, ${supMes} supervisión${supMes === 1 ? '' : 'es'} hecha${supMes === 1 ? '' : 's'} sin agendar${C.auto ? '' : ' (sin contar autosupervisiones)'}.</div>` : ''}
+      </div>
+      <div class="cal-fil">
+        <button class="chip${C.filtro === 'todos' ? ' on' : ''}" data-f="todos">Todos</button>
+        ${yo ? `<button class="chip${C.filtro === 'mias' ? ' on' : ''}" data-f="mias">Mías</button>` : ''}
+        ${P.map(x => `<button class="chip cal-per${C.filtro === norm(x) ? ' on' : ''}" data-f="${e(norm(x))}"><i style="background:${color(x)}"></i>${e(corto(x))}</button>`).join('')}
+        <label class="cal-auto small"><input type="checkbox" data-a="auto"${C.auto ? ' checked' : ''}> Autosupervisiones</label>
+      </div>
+      <div class="cal-grid" role="grid">
+        ${['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((x, i) => `<div class="cal-h${i > 4 ? ' fin' : ''}">${x}</div>`).join('')}
+        ${celdas.map(celda).join('')}
+      </div>
+      <div class="cal-ley small faint"><span><i class="cal-dot" style="background:#0096E0"></i>Agendada</span><span>✓ Hecha</span><span><i class="cal-dot rojo"></i>Atrasada</span><span><i class="cal-dot" style="background:#9c36b5"></i>Feriado</span></div>
+      <div class="cal-dia" id="calDia">${C.sel ? dia(C.sel, porDia[C.sel] || [], supDia[C.sel] || []) : ''}</div>
+      ${atras.length ? `<div class="panel flush"><div class="cal-lh">Atrasadas <span class="pill p-bad">${atras.length}</span></div>${atras.slice(0, 8).map(fila).join('')}</div>` : ''}
+      <div class="panel flush"><div class="cal-lh">Próximas 3 semanas</div>${proximas.length ? proximas.map(fila).join('') : '<div class="empty">No hay visitas agendadas.</div>'}</div>
+      ${io().icsUrl ? '<div class="cal-sync"><button class="btn" data-a="sync">🔗 Ver en Outlook o Google Calendar</button></div>' : ''}`;
+    enlazar(host);
+  }
+  function fila(v) {
+    const est = v.est === 'hecha' ? '<span class="pill p-good">Hecha</span>' : v.est === 'atrasada' ? '<span class="pill p-bad">Atrasada</span>' : '<span class="pill p-na">Agendada</span>';
+    return `<button class="cal-fila" data-v="${e(v.id)}"><span class="av" style="background:${color(v.quien)};color:#fff">${e(ini(v.quien))}</span>
+      <span class="cal-fi-t"><b>${e(v.tienda || v.nota || 'Visita')}</b><small>${e(largo(v.fecha))} · ${e(corto(v.quien))}${v.tienda && v.nota ? ' · ' + e(v.nota) : ''}</small></span>${est}</button>`;
+  }
+  function dia(d, L, S) {
+    const yo = io().yo ? io().yo() : '';
+    return `<div class="panel cal-dia-p"><div class="cal-dia-h"><b>${e(largo(d))}</b>${FER[d] ? ` <span class="pill" style="background:#f3d9fa;color:#862e9c">${e(FER[d])}</span>` : ''}
+      <button class="cal-ic" data-a="cerrar" aria-label="Cerrar">✕</button></div>
+      ${L.map(fila).join('')}${S.map(s => `<div class="cal-fila"><span class="av">✓</span><span class="cal-fi-t"><b>${e(s.tienda)}</b><small>${e(s.tipo)} · ${e(s.por || '')}</small></span><span class="pill p-good">Hecha</span></div>`).join('')}
+      ${!L.length && !S.length ? '<div class="empty">Nada este día.</div>' : ''}
+      ${yo ? `<button class="btn primary" data-a="nueva" data-d="${d}">＋ Agendar visita este día</button>` : ''}</div>`;
+  }
+  function enlazar(host) {
+    host.querySelectorAll('[data-a]').forEach(b => b.onclick = ev => {
+      const a = b.dataset.a;
+      if (a === 'ant' || a === 'sig') { const d = new Date(+C.mes.slice(0, 4), +C.mes.slice(5, 7) - 1 + (a === 'sig' ? 1 : -1), 1, 12); C.mes = isoD(d).slice(0, 7); C.sel = ''; pintar(); }
+      else if (a === 'hoy') { C.mes = hoy().slice(0, 7); C.sel = hoy(); pintar(); }
+      else if (a === 'nueva') { ev.stopPropagation(); formulario(null, b.dataset.d || C.sel || ''); }
+      else if (a === 'cerrar') { C.sel = ''; pintar(); }
+      else if (a === 'auto') { C.auto = b.checked; pintar(); }
+      else if (a === 'sync') sincronizar();
+    });
+    host.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { C.filtro = b.dataset.f; pintar(); });
+    host.querySelectorAll('.cal-d[data-d]').forEach(b => b.onclick = () => { C.sel = C.sel === b.dataset.d ? '' : b.dataset.d; pintar(); if (C.sel) requestAnimationFrame(() => { const x = document.getElementById('calDia'); if (x && window.innerWidth < 760) x.scrollIntoView({behavior: 'smooth', block: 'nearest'}); }); });
+    host.querySelectorAll('.cal-fila[data-v]').forEach(b => b.onclick = () => { const v = (C.V || []).find(x => x.id === b.dataset.v); if (v) detalle(v); });
+  }
+
+  /* ---------- hojas: agendar, detalle, sincronizar ---------- */
+  function hoja(html) {
+    const bg = document.createElement('div'); bg.className = 'drawer-bg cal-hoja-bg';
+    bg.innerHTML = `<div class="drawer cal-hoja" role="dialog" aria-modal="true">${html}</div>`;
+    bg.onclick = ev => { if (ev.target === bg) bg.remove(); };
+    document.body.appendChild(bg); return bg;
+  }
+  function puedeTocar(v) { const yo = io().yo ? io().yo() : ''; return !!yo && (io().admin && io().admin() || norm(v.quien) === norm(yo)); }
+  function formulario(v, fecha) {
+    const yo = io().yo ? io().yo() : '', adm = io().admin && io().admin(), T = io().tiendas ? io().tiendas() : [];
+    const P = personas().sort((a, b) => a.localeCompare(b));
+    const bg = hoja(`<div class="d-top"><div class="d-top-t"><b>${v ? 'Cambiar visita' : 'Agendar visita'}</b><span>${v ? e(v.tienda) + ' · ' + e(corto(v.quien)) : 'Todos la verán en el calendario'}</span></div><button class="d-x" data-x>Cerrar</button></div>
+      <label class="cal-f">Fecha<input type="date" id="calFe" value="${e(v ? v.fecha : fecha || hoy())}" min="${e(sumar(hoy(), -60))}"></label>
+      <label class="cal-f">Tienda<select id="calTi"><option value="">Sin tienda (reunión u otra actividad)</option>${T.map(t => `<option${(v ? v.tienda : '') === t ? ' selected' : ''}>${e(t)}</option>`).join('')}</select></label>
+      ${adm ? `<label class="cal-f">Quién visita<select id="calQu">${P.map(x => `<option${norm(x) === norm(v ? v.quien : yo) ? ' selected' : ''}>${e(x)}</option>`).join('')}</select></label>` : `<div class="small faint">Visita de <b>${e(yo)}</b></div>`}
+      <label class="cal-f">Nota (opcional)<input type="text" id="calNo" maxlength="120" value="${e(v ? v.nota : '')}" placeholder="Ej.: con inventario, viaje a Guayaquil"></label>
+      <div id="calAviso" class="small"></div>
+      <button class="r-cta" id="calOk">${v ? 'Guardar cambios' : 'Agendar'}</button>
+      ${v ? '<button class="btn bad" id="calCan">Cancelar esta visita</button>' : ''}`);
+    const q = s => bg.querySelector(s);
+    q('[data-x]').onclick = () => bg.remove();
+    const revisar = () => {   // aviso si otra persona ya va a esa tienda esa semana
+      const f = q('#calFe').value, t = q('#calTi').value, quien = q('#calQu') ? q('#calQu').value : yo;
+      const cruce = t && (C.V || []).filter(x => x.estado !== 'Cancelada' && x.tienda === t && (!v || x.id !== v.id) && Math.abs(dif(x.fecha, f)) <= 6 && norm(x.quien) !== norm(quien));
+      q('#calAviso').innerHTML = cruce && cruce.length ? `<div class="banner">Ojo: ${cruce.map(x => e(corto(x.quien)) + ' va el ' + e(largo(x.fecha))).join('; ')}. Mejor otra semana para no cruzarse.</div>` : FER[f] ? `<div class="banner">${e(largo(f))} es feriado (${e(FER[f])}).</div>` : '';
+    };
+    ['#calFe', '#calTi', '#calQu'].forEach(s => q(s) && (q(s).onchange = revisar)); revisar();
+    const enviar = async (estado, btn) => {
+      const f = q('#calFe').value; if (!f) return toastC('Elige la fecha');
+      btn.disabled = true; btn.textContent = 'Guardando…';
+      try {
+        await io().guardar({id: v ? v.id : '', row: v ? v.row : 0, fecha: f, tienda: q('#calTi').value, quien: q('#calQu') ? q('#calQu').value : yo, nota: q('#calNo').value.trim(), estado: estado || 'Programada'}, C.V || []);
+        bg.remove(); toastC(estado === 'Cancelada' ? 'Visita cancelada' : v ? 'Visita cambiada' : 'Visita agendada');
+        C.mes = f.slice(0, 7); C.sel = f; await cargar(true);
+      } catch (er) { btn.disabled = false; btn.textContent = 'Reintentar'; toastC('No se pudo guardar: ' + ((er && er.message) || er), 6000); }
+    };
+    q('#calOk').onclick = () => enviar('Programada', q('#calOk'));
+    if (q('#calCan')) q('#calCan').onclick = () => { if (confirm('¿Cancelar la visita a ' + (v.tienda || 'esta actividad') + ' del ' + largo(v.fecha) + '?')) enviar('Cancelada', q('#calCan')); };
+  }
+  function detalle(v) {
+    const est = v.est === 'hecha' ? `<div class="r-turno fin">Hecha <span>· supervisión del ${e(largo(v.hecha.fecha))}${v.hecha.total != null && !isNaN(v.hecha.total) ? ' · ' + Math.round(v.hecha.total * (v.hecha.total <= 1 ? 100 : 1)) + ' %' : ''}</span></div>` :
+      v.est === 'atrasada' ? `<div class="r-turno tu" style="background:var(--bad)">Atrasada <span>· era el ${e(largo(v.fecha))} y no hay supervisión registrada</span></div>` : `<div class="r-turno otro">Agendada <span>· ${dif(v.fecha, hoy()) === 0 ? 'hoy' : dif(v.fecha, hoy()) === 1 ? 'mañana' : 'en ' + dif(v.fecha, hoy()) + ' días'}</span></div>`;
+    const bg = hoja(`<div class="d-top"><div class="d-top-t"><b>${e(v.tienda || 'Actividad')}</b><span>${e(largo(v.fecha))}</span></div><button class="d-x" data-x>Cerrar</button></div>
+      <div class="d-autor"><span class="av" style="background:${color(v.quien)};color:#fff">${e(ini(v.quien))}</span><div><b>${e(v.quien)}</b><small>${e(v.tipo === 'Diego' ? 'Administración' : 'Equipo de ventas')}</small></div></div>
+      ${est}${v.nota ? `<div class="d-acc">${e(v.nota)}</div>` : ''}
+      <button class="btn" data-ics>📅 Agregar a mi calendario (Outlook, Google, iPhone)</button>
+      ${puedeTocar(v) && v.est !== 'hecha' ? '<button class="btn primary" data-ed>Cambiar fecha o tienda</button>' : ''}
+      ${v.creado ? `<div class="small faint">Agendada: ${e(String(v.creado).split(' | ')[0])}</div>` : ''}`);
+    bg.querySelector('[data-x]').onclick = () => bg.remove();
+    bg.querySelector('[data-ics]').onclick = () => bajarIcs([v]);
+    const ed = bg.querySelector('[data-ed]'); if (ed) ed.onclick = () => { bg.remove(); formulario(v); };
+  }
+  function bajarIcs(L) {
+    const x = s => String(s || '').replace(/[\\;,]/g, m => '\\' + m).replace(/\n/g, '\\n'), f = i => i.replace(/-/g, '');
+    const t = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TEFES//Visitas//ES', 'METHOD:PUBLISH'];
+    L.forEach(v => t.push('BEGIN:VEVENT', 'UID:' + v.id + '@tefes-visitas', 'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z',
+      'DTSTART;VALUE=DATE:' + f(v.fecha), 'DTEND;VALUE=DATE:' + f(sumar(v.fecha, 1)), 'SUMMARY:' + x('Visita ' + (v.tienda || v.nota || 'TEFES')),
+      'DESCRIPTION:' + x((v.nota ? v.nota + '\n' : '') + 'Supervisión de tienda · ' + v.quien), 'TRANSP:TRANSPARENT', 'END:VEVENT'));
+    t.push('END:VCALENDAR');
+    const blob = new Blob([t.join('\r\n')], {type: 'text/calendar'}), nom = 'visita-' + (L[0].tienda || 'tefes').toLowerCase().replace(/\s+/g, '-') + '-' + L[0].fecha + '.ics';
+    if (io().descargar) return io().descargar(blob, nom);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nom; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+  async function sincronizar() {
+    let u = ''; try { u = await io().icsUrl(); } catch (er) {}
+    if (!u) return toastC('No se pudo armar tu enlace de calendario', 5000);
+    const todos = u + '&q=todos', g = 'https://calendar.google.com/calendar/u/0/r?cid=' + encodeURIComponent(u.replace(/^https:/, 'webcal:'));
+    const o = 'https://outlook.office.com/calendar/addfromweb?url=' + encodeURIComponent(u) + '&name=' + encodeURIComponent('Mis visitas TEFES');
+    const bg = hoja(`<div class="d-top"><div class="d-top-t"><b>Tus visitas en Outlook o Google</b><span>Se agrega una vez y se actualiza solo</span></div><button class="d-x" data-x>Cerrar</button></div>
+      <p class="small">Tus visitas aparecen en tu calendario de siempre. Outlook y Google lo revisan cada pocas horas, así que un cambio puede tardar en verse allá. En la app se ve al instante.</p>
+      <a class="btn primary" href="${e(o)}" target="_blank" rel="noopener">Agregar a Outlook</a>
+      <a class="btn primary" href="${e(g)}" target="_blank" rel="noopener">Agregar a Google Calendar</a>
+      <a class="btn" href="${e(u.replace(/^https:/, 'webcal:'))}">Agregar al iPhone</a>
+      <div class="lbl">Tu enlace (para otro calendario)</div><code class="cal-url">${e(u)}</code><button class="btn" data-cp="${e(u)}">Copiar mi enlace</button>
+      <div class="lbl">Las visitas de todo el equipo</div><button class="btn" data-cp="${e(todos)}">Copiar enlace del equipo</button>
+      <p class="small faint">Este enlace es personal: no lo compartas fuera del equipo.</p>`);
+    bg.querySelector('[data-x]').onclick = () => bg.remove();
+    bg.querySelectorAll('[data-cp]').forEach(b => b.onclick = () => { try { navigator.clipboard.writeText(b.dataset.cp); toastC('Enlace copiado'); } catch (er) { prompt('Copia el enlace:', b.dataset.cp); } });
+  }
+  const toastC = (m, ms) => typeof toast === 'function' ? toast(m, ms) : alert(m);
+  window.calAbrir = () => { pintar(); if (C.V !== null && !C.cargando) cargar(true); };
+  window.calPintar = pintar;
+})();
+
+</script>
 <script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "Buscar: inventario, Mall Sol, caja chica, política…",
-  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy", "mispendientes"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "reclamos"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "whatsapp", "inventario", "transferencias", "perchas"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Personas", "vistas": ["equipo"]}, {"id": "ajustes", "nombre": "Contactos", "vistas": ["enlaces"]}],
-  items: [{"t": "Mis pendientes con otras áreas", "v": "mispendientes", "sub": "Hoy · solo tú", "kw": "tareas todo lista bodega cedis contabilidad talento humano rrhh compras sistemas gerencia marketing areas departamentos"}, {"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa, validar y anuncios", "kw": "inicio resumen mapa validar anuncios actividades caja chica avisos"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Transferencias", "v": "transferencias", "sub": "Tiendas · solo tú", "kw": "transferencias traslados envios agencias cedis semaforo diferencias faltantes sobrantes arregladas gestion erp producto codigo"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Inventario en vivo", "v": "inventario", "sub": "Tiendas · quién está contando ahora", "kw": "conteo vivo contando ahora", "go": () => TEM_ABRIR("#cvBox")}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Clientes", "v": "reclamos", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Garantías extendidas", "v": "flash", "sub": "Ventas", "kw": "garantia garantias extendidas", "go": () => TEM_ABRIR("#garBody")}, {"t": "WhatsApp a gerentes", "v": "whatsapp", "sub": "Tiendas · vencidos, vencen hoy y devueltos", "kw": "whatsapp mensajes avisos gerentes kapso"}, {"t": "Perchas", "v": "perchas", "sub": "Tiendas · exhibición", "kw": "perchas exhibicion layout planograma"}, {"t": "Equipo de supervisores", "v": "equipo", "sub": "Personas", "kw": "supervisores equipo visitas ranking personas"}, {"t": "Contactos de tiendas", "v": "enlaces", "sub": "Contactos", "kw": "contactos telefono llamar whatsapp correo direccion horario tienda numero"}, {"t": "Enlaces para compartir", "v": "enlaces", "sub": "Contactos", "kw": "enlaces links claves compartir gerentes supervisores portal ajustes configuracion"}, {"t": "Nueva supervisión", "sub": "Abrir el formulario", "kw": "supervisar visita checklist nueva supervision", "go": () => document.querySelector("#nuevaSup").click()}],
+  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy", "calendario", "mispendientes"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "reclamos"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "whatsapp", "inventario", "transferencias", "perchas"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Personas", "vistas": ["equipo"]}, {"id": "ajustes", "nombre": "Contactos", "vistas": ["enlaces"]}],
+  items: [{"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Mis pendientes con otras áreas", "v": "mispendientes", "sub": "Hoy · solo tú", "kw": "tareas todo lista bodega cedis contabilidad talento humano rrhh compras sistemas gerencia marketing areas departamentos"}, {"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa, validar y anuncios", "kw": "inicio resumen mapa validar anuncios actividades caja chica avisos"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Transferencias", "v": "transferencias", "sub": "Tiendas · solo tú", "kw": "transferencias traslados envios agencias cedis semaforo diferencias faltantes sobrantes arregladas gestion erp producto codigo"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Inventario en vivo", "v": "inventario", "sub": "Tiendas · quién está contando ahora", "kw": "conteo vivo contando ahora", "go": () => TEM_ABRIR("#cvBox")}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Clientes", "v": "reclamos", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Garantías extendidas", "v": "flash", "sub": "Ventas", "kw": "garantia garantias extendidas", "go": () => TEM_ABRIR("#garBody")}, {"t": "WhatsApp a gerentes", "v": "whatsapp", "sub": "Tiendas · vencidos, vencen hoy y devueltos", "kw": "whatsapp mensajes avisos gerentes kapso"}, {"t": "Perchas", "v": "perchas", "sub": "Tiendas · exhibición", "kw": "perchas exhibicion layout planograma"}, {"t": "Equipo de supervisores", "v": "equipo", "sub": "Personas", "kw": "supervisores equipo visitas ranking personas"}, {"t": "Contactos de tiendas", "v": "enlaces", "sub": "Contactos", "kw": "contactos telefono llamar whatsapp correo direccion horario tienda numero"}, {"t": "Enlaces para compartir", "v": "enlaces", "sub": "Contactos", "kw": "enlaces links claves compartir gerentes supervisores portal ajustes configuracion"}, {"t": "Nueva supervisión", "sub": "Abrir el formulario", "kw": "supervisar visita checklist nueva supervision", "go": () => document.querySelector("#nuevaSup").click()}],
   extra: function(){
     const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
     (S.d.tiendas || []).filter(t => t.activa).forEach(t => out.push({grupo: 'Tiendas', t: t.nombre, sub: 'Pendientes de ' + t.nombre, kw: 'tienda local', v: 'pendientes',

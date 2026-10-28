@@ -251,6 +251,27 @@
     if (y.admin) y.adminUrl = DB.SITIO + 'admin.html';
     return y;
   };
+  /* cal1: calendario de visitas (Calendario.gs) */
+  API.apiVisitas = function (p, nombre) {
+    panelOk(p); var ics = '';
+    try { if (nombre) ics = 'prueba-' + quien(nombre).nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-'); } catch (e) {}
+    return {v: DB.hoja('Visitas').map(function (r) { return r.slice(); }), ics: ics, url: DB.SITIO + 'calendario-de-prueba.ics'};
+  };
+  API.apiVisitaGuardar = function (p, nombre, v) {
+    panelOk(p); var y = quien(nombre); v = v || {};
+    var fecha = S(v.fecha).slice(0, 10); if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) throw new Error('Falta la fecha de la visita.');
+    var q = y.admin && v.quien ? S(v.quien) : y.nombre, tipo = q === DB.ADMIN ? 'Diego' : 'Ventas', t = DB.hoja('Visitas'), sello = ahora() + ' · ' + y.nombre;
+    if (v.id) {
+      var r = t.filter(function (x, k) { return k > 0 && x[0] === v.id; })[0]; if (!r) throw new Error('No se encontró la visita ' + v.id);
+      if (!y.admin && S(r[3]) !== y.nombre) throw new Error('Esa visita es de ' + r[3] + '; solo esa persona o el administrador la cambian.');
+      r[1] = fecha; r[2] = S(v.tienda); if (y.admin && v.quien) { r[3] = q; r[4] = tipo; } r[5] = v.estado === 'Cancelada' ? 'Cancelada' : 'Programada'; r[6] = S(v.nota); r[7] = S(r[7]) + ' | ' + sello;
+      DB.guardar(); return {ok: true, id: r[0]};
+    }
+    var n = 0; t.slice(1).forEach(function (x) { var m = /^V(\d+)$/.exec(S(x[0])); if (m) n = Math.max(n, +m[1]); });
+    var id = 'V' + String(n + 1).padStart(4, '0');
+    DB.agregar('Visitas', [id, fecha, S(v.tienda), q, tipo, 'Programada', S(v.nota), sello]);
+    return {ok: true, id: id};
+  };
   API.apiMiUso = function (p, nombre) { panelOk(p); return 'Tu uso esta semana: 2 h 15 min · este mes: 8 h 40 min'; };
   API.apiAccion = function (p, nombre, id, estado, comentario, fecha) {
     panelOk(p); var y = quien(nombre);
