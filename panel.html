@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (6ed1b25775bb). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (e593d92a4d7e). No editar a mano. -->
 <html lang="es" data-theme="light">
 <head>
 <base target="_top">
@@ -3625,6 +3625,56 @@ window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "af
     const t = e.target, escribe = t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable);
     if (e.key === '/' && !escribe && !e.metaKey && !e.ctrlKey) { e.preventDefault(); inp.focus(); }
   });
+})();
+</script>
+<style>/* pm1: Pendientes en el celular (Diego 2026-10-28): filtros en una fila, pestañas por estado, tarjetas bajas, "Más fallan" plegado, buscador que se esconde al bajar */
+.pm-tabs{display:none}
+@media(max-width:700px){
+  #explorer .filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;gap:6px;margin-bottom:10px}
+  #explorer .filters::-webkit-scrollbar{display:none}
+  #explorer .filters select{flex:0 0 auto;max-width:55vw;border-radius:999px;padding:6px 12px;font-size:14px}
+  #explorer .filters .chip,#explorer .filters #fEstado{flex:0 0 auto;white-space:nowrap}
+  #masFallan{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+  #masFallan:not(:empty)::before{content:"▸ "}
+  #masFallan.pm-abierto{white-space:normal}
+  #masFallan.pm-abierto::before{content:"▾ "}
+  .pm-tabs{display:flex;gap:6px;margin-bottom:10px}
+  .pm-tabs button{flex:1 1 0;min-width:0;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:7px 4px;font-weight:600;font-size:14px;white-space:nowrap}
+  .pm-tabs button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .pm-tabs b{margin-left:5px;opacity:.85}
+  #plist .board{grid-template-columns:minmax(0,1fr)!important;overflow:visible}
+  #plist .kcol:not(.pm-on){display:none!important}
+  #plist .kcol{background:none;padding:0;min-height:0;border:0}
+  #plist .kcol .kh,#plist .board+p{display:none}
+  #plist .kcard{padding:8px 10px;gap:3px}
+  #plist .kcard .kt{-webkit-line-clamp:2}
+  #plist .kcard .kmeta{gap:6px}
+  #plist .kcard .mv{display:none!important}
+  .tem-buscar{transition:max-height .2s,margin .2s,opacity .2s;max-height:64px}
+  body.pm-baja .tem-buscar{max-height:0;opacity:0;margin-top:0!important;margin-bottom:0!important;overflow:hidden}
+}
+</style>
+<script>
+(function(){   /* pm1 */
+  const plist = document.getElementById('plist'); if (!plist) return;
+  let col = 'Pendiente'; try { col = sessionStorage.getItem('pmCol') || col; } catch (e) {}
+  const pintar = () => {
+    const b = plist.querySelector('.board'); if (!b) return;
+    const cols = Array.from(b.querySelectorAll('.kcol')); if (!cols.length) return;
+    if (!cols.some(c => c.dataset.col === col)) col = cols[0].dataset.col;
+    let t = plist.querySelector('.pm-tabs');
+    if (!t) { t = document.createElement('div'); t.className = 'pm-tabs'; plist.insertBefore(t, b); }
+    const html = cols.map(c => { const kh = c.querySelector('.kh'), nom = kh && kh.querySelector('b') ? kh.querySelector('b').textContent : c.dataset.col, n = kh && kh.querySelector('span') ? kh.querySelector('span').textContent : '';
+      return '<button type="button" data-c="' + c.dataset.col + '" class="' + (c.dataset.col === col ? 'on' : '') + '">' + nom + '<b>' + n + '</b></button>'; }).join('');
+    if (t.innerHTML !== html) t.innerHTML = html;
+    cols.forEach(c => c.classList.toggle('pm-on', c.dataset.col === col));
+  };
+  plist.addEventListener('click', e => { const bt = e.target.closest('.pm-tabs button'); if (!bt) return; col = bt.dataset.c; try { sessionStorage.setItem('pmCol', col); } catch (x) {} pintar(); });
+  new MutationObserver(pintar).observe(plist, {childList: true});
+  pintar();
+  const mf = document.getElementById('masFallan'); if (mf) mf.addEventListener('click', () => mf.classList.toggle('pm-abierto'));
+  let y0 = window.scrollY;
+  addEventListener('scroll', () => { const y = window.scrollY; if (Math.abs(y - y0) < 12) return; document.body.classList.toggle('pm-baja', y > y0 && y > 120); y0 = y; }, {passive: true});
 })();
 </script>
 </body>
