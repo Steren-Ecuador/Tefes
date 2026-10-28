@@ -1723,7 +1723,7 @@ setInterval(pintarReloj, 1000);
 
 function calcular(){
   const suma = {}, cnt = {}; let n = 0;
-  ptsF().forEach(p => { const it = S.form.items[p.id]; if(!it || it.calif == null) return; n++;
+  S.data.puntos.forEach(p => { const ex = S.form.express && EXPRESS.indexOf(p.id) < 0, it = ex ? {calif: '2'} : S.form.items[p.id]; if(!it || it.calif == null) return; if (!ex) n++;   // ex2: en la express lo no revisado cuenta como 2
     if(it.calif === 'N/A') return; suma[p.sec] = (suma[p.sec]||0) + Number(it.calif); cnt[p.sec] = (cnt[p.sec]||0) + 1; });
   let tot = 0, pes = 0; const secs = {};
   S.data.secciones.forEach(s => { if(!cnt[s.cod]) { secs[s.cod] = null; return; } secs[s.cod] = suma[s.cod] / (cnt[s.cod]*2); tot += secs[s.cod]*s.peso; pes += s.peso; });
@@ -1747,7 +1747,7 @@ function renderSup(){
       '<p class="muted small">Son ' + ptsF().length + ' puntos. Al calificar, la página pasa sola al siguiente. Cada punto con 0 o 1 crea un pendiente para la tienda. Un cronómetro arriba mide cuánto toma; con Pausar se detiene y el avance queda guardado.</p>' +
       (d ? '<button class="btn primary block" id="sCont">Continuar borrador (' + hechos + '/' + ptsF().length + (d.reloj ? ' · ' + fmtReloj(msReloj(d)) : '') + ')</button><div style="height:8px"></div><button class="btn ghost block" id="sNew">Empezar de nuevo</button><div style="height:8px"></div><button class="btn ghost block" id="sCancel" style="color:var(--bad)">Cancelar supervisión</button>'
           : '<button class="btn primary block" id="sNew">Empezar</button>') +
-      (S.expressOk ? '<div style="height:8px"></div><button class="btn block" id="sExp">⚡ Supervisión express (' + EXPRESS.length + ' puntos clave)</button><div class="tiny muted" style="margin-top:4px">Solo para el Administrador. Los demás puntos quedan como No evaluado y no bajan el puntaje.</div>' : '') + '</div>' + histHtml();
+      (S.expressOk ? '<div style="height:8px"></div><button class="btn block" id="sExp">⚡ Supervisión express (' + EXPRESS.length + ' puntos clave)</button><div class="tiny muted" style="margin-top:4px">Solo para el Administrador. Los demás puntos cuentan como Cumple (2).</div>' : '') + '</div>' + histHtml();
     if(d) $('#sCancel').onclick = cancelarSup;
     if(d) $('#sCont').onclick = () => { const d = relojSanear(lsGet(DRAFT_KEY)) || d0; S.form = d; if (!d.reloj) d.reloj = {acum:0, desde:null, ultimo:null}; if (!d.tSec) d.tSec = {}; relojCorrer(d); guardarBorrador(true); renderSup(); };
     const empezar = ex => { closeModal(); S.form = nuevoForm(); if (ex === true) { S.form.express = true; S.form.tipo = 'Supervisión'; } guardarBorrador(true); renderSup(); };
@@ -1763,7 +1763,7 @@ function renderSup(){
     return;
   }
   const F = S.form;
-  let h = (F.express ? '<div class="card" style="border-left:4px solid var(--brand)"><b>⚡ Supervisión express</b><div class="small muted">' + EXPRESS.length + ' puntos clave. Los demás quedan como No evaluado y no bajan el puntaje.</div></div>' : '') +
+  let h = (F.express ? '<div class="card" style="border-left:4px solid var(--brand)"><b>⚡ Supervisión express</b><div class="small muted">' + EXPRESS.length + ' puntos clave. Los demás cuentan como Cumple (2).</div></div>' : '') +
     '<div class="card tk-snap">' +
     '<div class="seg" id="sTipo">' + ['Supervisión','Autosupervisión'].map(t => '<button data-t="' + t + '" class="' + (F.tipo===t?'on':'') + '">' + t + '</button>').join('') + '</div>' +
     '<div id="wRealiza">' + campoRealizada(F) + '</div>' +
@@ -2055,7 +2055,7 @@ function confirmarGuardar(){
     Object.keys(F.tSec || {}).forEach(k => tSec[k] = Math.round(F.tSec[k] / 60000));
     const payload = {tipo:F.tipo, fecha:F.fecha, horaInicio:F.horaInicio, horaFin:ahoraHM(), realizadaPor:F.realizadaPor, gerente:F.gerente, subadmin:F.subadmin, personas:F.personas, comentario:(F.express ? 'Supervisión express (' + EXPRESS.length + ' puntos clave). ' : '') + F.comentario,
       duracionMin: Math.round(ms / 60000), tiempoSecciones: tSec,
-      items: S.data.puntos.map(p => { const i = F.items[p.id] || {calif: 'N/A', obs: 'No evaluado (supervisión express)'}; return {id:p.id, calif:i.calif, obs:i.obs||'', dato:i.dato||'', fotos:fotosDe(i), accion:i.accion||'', responsable:i.responsable||'', fechaCompromiso:i.fechaCompromiso||'', prioridad:i.prioridad||''}; })};
+      items: S.data.puntos.map(p => { const i = F.items[p.id] || {calif: '2', obs: 'No revisado en la supervisión express: se da por cumplido', dato: 'No revisado (supervisión express)'};   /* ex2 */ return {id:p.id, calif:i.calif, obs:i.obs||'', dato:i.dato||'', fotos:fotosDe(i), accion:i.accion||'', responsable:i.responsable||'', fechaCompromiso:i.fechaCompromiso||'', prioridad:i.prioridad||''}; })};
     try {
       const r = await api('apiGuardarSupervisionTienda', payload);
       lsSet('supSTEREN_nombre', F.realizadaPor); lsSet(DRAFT_KEY, null); S.form = null; pintarReloj();
