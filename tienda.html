@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (9f9e90224ecb). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (4f436dd0e63c). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -1349,11 +1349,12 @@ function actToca(linea){
 function modalActividad(a){
   const P = S.data.personal || [], jefes = P.filter(p => /gerente|subadmin|jefe|encargad/i.test(p.cargo)), L = jefes.length ? jefes : P;
   let quien = '', foto = null;
+  const cc = a.id === 'CC' || /caja chica/i.test(a.titulo || '');   // ac1: casillas del sobre solo en caja chica
   openModal('<h3>' + esc(a.titulo) + '</h3><p class="small muted" style="margin:0">' + esc(a.como) + '</p>' +
     '<label class="f">¿Quién entrega?</label><div class="quien">' + L.map(p => '<button data-n="' + esc(p.nombre) + '">' + esc(p.nombre) + (p.cargo ? '<small>' + esc(p.cargo) + '</small>' : '') + '</button>').join('') + '</div>' +
-    '<label class="chk"><input type="checkbox" class="acc"> Todas las facturas son de ' + esc(a.mes) + '.</label>' +
-    '<label class="chk"><input type="checkbox" class="acc"> Van los recibos y facturas originales en el sobre.</label>' +
-    '<div class="phead"><span class="small"><b>Foto del sobre</b></span><span class="req opt">Opcional</span></div>' +
+    (cc ? '<label class="chk"><input type="checkbox" class="acc"> Todas las facturas son de ' + esc(a.mes) + '.</label>' +
+    '<label class="chk"><input type="checkbox" class="acc"> Van los recibos y facturas originales en el sobre.</label>' : '') +
+    '<div class="phead"><span class="small"><b>' + (cc ? 'Foto del sobre' : 'Foto') + '</b></span><span class="req opt">Opcional</span></div>' +
     '<div class="ph" id="acFotos"><label class="add cam"><span class="ic">📷</span>Cámara<input type="file" accept="image/*" capture="environment"></label></div>' +
     '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="acNo">Cancelar</button><button class="btn ok grow" id="acSi" disabled>Marcar entregado</button></div>');
   const si = $('#acSi'), listo = () => si.disabled = !(quien && [...document.querySelectorAll('.acc')].every(c => c.checked));
