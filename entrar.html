@@ -202,8 +202,9 @@ p .link{font-size:inherit;padding:6px 2px;margin:-6px 0}
       a.href = d.url;
       if (d.sup) a.addEventListener('click', function () {
         try {
-          var g = JSON.parse(localStorage.getItem('supTefes') || 'null');
-          if (!g || g.nombre !== d.sup) localStorage.setItem('supTefes', JSON.stringify({nombre: d.sup}));
+          // sp1: el panel recibe la sesión del código, así no vuelve a preguntar "¿Quién eres?" (ni la clave al Administrador)
+          var g = JSON.parse(localStorage.getItem('supTefes') || 'null'), s = leer();
+          if (!g || g.nombre !== d.sup || !g.clave || (s && /^ses:/.test(g.clave) && g.clave !== 'ses:' + s)) localStorage.setItem('supTefes', JSON.stringify(s ? {nombre: d.sup, clave: 'ses:' + s} : {nombre: d.sup}));
         } catch (e) {}
       });
       k.appendChild(a);
