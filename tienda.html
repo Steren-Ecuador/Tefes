@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (b9840e27b578). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (165fb422a5e2). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -1741,8 +1741,8 @@ function modalResolver(p){
 }
 
 /* ---------- SUPERVISAR ---------- */
-/* ex1: supervisión express del Administrador: 10 puntos clave; los demás quedan N/A "No evaluado" y no bajan el puntaje */
-const EXPRESS = ['A03', 'A11', 'B01', 'B05', 'B07', 'C04', 'C07', 'D01', 'D04', 'E02'];
+/* ex1: supervisión express del Administrador: 24 puntos clave; los demás quedan N/A "No evaluado" y no bajan el puntaje */
+const EXPRESS = ['A01', 'A02', 'A03', 'A05', 'A10', 'A11', 'B01', 'B02', 'B03', 'B05', 'B06', 'B07', 'B09', 'C01', 'C04', 'C05', 'C06', 'C07', 'C08', 'D01', 'D02', 'D03', 'D05', 'E01', 'E04'];
 const ptsF = () => S.form && S.form.express ? S.data.puntos.filter(p => EXPRESS.indexOf(p.id) >= 0) : S.data.puntos;
 function nuevoForm(){
   const ahora = Date.now();

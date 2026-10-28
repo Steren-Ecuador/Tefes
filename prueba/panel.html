@@ -1308,7 +1308,7 @@ function nuevaSupervision(){
   $('#drawer').innerHTML = `<div class="drawer-bg"><div class="drawer" role="dialog" aria-label="Nueva supervisión">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>Nueva supervisión</h2><button class="btn" id="nsClose">Cerrar</button></div>
     <div class="small faint">Elige el local. Se abre su formulario de supervisión con tu nombre, en otra pestaña. Primero las que llevan más tiempo sin supervisión.</div>
-    ${st.yo.admin ? '<label class="small" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="nsExp"> ⚡ Express: 10 puntos clave (cuenta como supervisión completa)</label>' : ''}<!-- ex1 -->
+    ${st.yo.admin ? '<label class="small" style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" id="nsExp"> ⚡ Express: 25 puntos clave (cuenta como supervisión completa)</label>' : ''}<!-- ex1 -->
     <div class="ns-list">${filas.map(f => `<button class="ns-row" data-t="${esc(f.t)}"><span><b>${esc(f.t)}</b><br><span class="small faint">${esc(CIUDAD[f.t] || '')}</span></span>
       <span class="small" style="white-space:nowrap;color:var(${f.dias == null || f.dias > 30 ? '--bad' : '--muted'})">${f.dias == null ? 'Sin supervisión' : f.dias === 0 ? 'Supervisada hoy' : 'Última hace ' + f.dias + (f.dias === 1 ? ' día' : ' días')}</span></button>`).join('') || '<div class="small faint" style="padding:14px">No tienes tiendas asignadas.</div>'}</div>
     <div class="small" id="nsMsg" style="margin-top:10px"></div>
