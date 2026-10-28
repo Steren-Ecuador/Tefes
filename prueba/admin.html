@@ -2671,9 +2671,15 @@ function renderWA(){
   const pend = L.filter(x => !waLS('wa:' + hoy + ':' + x.t.nombre)).length;
   const nb = $('#nWa'); if (nb) nb.textContent = pend || '';
   const autoOn = waLS('waAuto') !== 'no';
+  /* wl1: aviso automático diario (WhatsAppApi.gs anota cada envío en la pestaña 'WhatsApp enviados' de la hoja privada) */
+  if (st.waLog === undefined) { st.waLog = null; getRange("'WhatsApp enviados'!A1:E", true, CLAVES).then(v => { st.waLog = v; renderWA(); }, () => { st.waLog = []; }); }
+  const AU = {}; (st.waLog || []).slice(1).forEach(r => { if (String(r[0]).slice(0, 10) === hoy && !/prueba/i.test(r[3] || '')) AU[r[1]] = r; });
+  const auL = Object.values(AU), auOk = auL.filter(r => r[3] === 'Enviado').length, auMal = auL.length - auOk;
+  const auPill = r => r ? `<span class="pill ${r[3] === 'Enviado' ? 'p-good' : 'p-bad'}" title="${esc(r[4] || '')}">${r[3] === 'Enviado' ? 'Aviso automático ' + esc(String(r[0]).slice(11, 16)) : 'Aviso automático: ' + esc(r[3])}</span>` : '';
   el.innerHTML = `<div class="sec-h"><h2>Enviar por WhatsApp</h2><span class="hint">Solo tú ves esto. Se arma solo con los datos de hoy; puedes editar el texto antes de enviarlo.</span></div>
     <div class="filters"><button class="chip${autoOn ? ' on' : ''}" id="waAuto">Incluir autosupervisión atrasada</button>
       ${st.wa == null ? '<span class="cnt-warn small">No se pudo leer la pestaña "WhatsApp gerentes" de la hoja privada.</span>' : ''}</div>
+    <p class="small" style="margin:0 2px 10px">${auL.length ? `Aviso automático de hoy: <b>${auOk} enviado${auOk === 1 ? '' : 's'}</b>${auMal ? `, <span class="cnt-warn">${auMal} sin enviar</span>` : ''}.` : 'El aviso automático sale cada mañana entre 9:00 y 10:00 a cada gerente con algo vencido o que vence hoy.'} Las respuestas te llegan a tu WhatsApp.</p>
     <div class="panel flush">${!L.length ? '<div class="empty">Ninguna tienda tiene temas atrasados ni críticos hoy.</div>' : L.map(({t, g}) => {
       const ger = G[t.nombre] || {}, tel = telIntl(ger.cel), env = waLS('wa:' + hoy + ':' + t.nombre);
       const enlace = t.token ? GH_TEFES + '?t=' + encodeURIComponent(t.token) : '';
@@ -2683,7 +2689,7 @@ function renderWA(){
         g.auto && '<span class="pill p-na">Autosupervisión</span>'].filter(Boolean).join('');
       return `<div class="wa-it${env ? ' env' : ''}" data-t="${esc(t.nombre)}">
         <div class="wa-cab"><span class="store">${esc(WA_VIS[t.nombre] || t.nombre)}</span><span class="small faint">${ger.nombre ? esc(ger.nombre) + (ger.cel ? ' · ' + esc(ger.cel) : ' · <span class="cnt-warn">falta celular</span>') : '<span class="cnt-warn">falta gerente y celular</span>'}</span>
-          ${env ? `<span class="pill p-good">Enviado hoy ${esc(env)}</span>` : ''}<span class="pills">${pills}</span></div>
+          ${env ? `<span class="pill p-good">Enviado hoy ${esc(env)}</span>` : ''}${auPill(AU[t.nombre])}<span class="pills">${pills}</span></div>
         <textarea rows="${msg.split('\n').length + 1}" aria-label="Mensaje para ${esc(t.nombre)}">${esc(msg)}</textarea>
         <div class="wa-acc"><button class="btn" data-a="copiar">Copiar</button>
           ${tel ? '<button class="btn wa" data-a="wa">Abrir WhatsApp</button>' : ''}
