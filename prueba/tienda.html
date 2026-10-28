@@ -2073,7 +2073,13 @@ function histHtml(){
   const color = v => v == null ? 'var(--na-soft)' : v >= 0.9 ? 'var(--ok)' : v >= 0.71 ? 'var(--warn)' : 'var(--bad)';
   const dur = s => s.min != null && !isNaN(s.min) ? s.min : minDe(s.ini, s.fin);
   const ds = L.map(dur).filter(x => x != null && x > 0 && x <= 480);   // cs1: más de 8 h es un borrador olvidado
-  let h = '<div class="card"><h3 style="margin-top:0">Últimas supervisiones</h3>';
+  // m6: meta de 6 supervisiones al mes = 1 de Diego + 1 del equipo de ventas + 4 autosupervisiones (reunión 2026-10-27)
+  const mes = String(S.data.hoy || iso(new Date())).slice(0, 7), c = {d: 0, v: 0, a: 0};
+  L.filter(s => String(s.fecha).slice(0, 7) === mes).forEach(s => c[/diego/i.test(String(s.por || '')) && s.tipo !== 'Autosupervisión' ? 'd'
+    : s.tipo !== 'Autosupervisión' && /campa[ñn]a|cede[ñn]o|aguiar|febres|chav[eé]z|solah/i.test(String(s.por || '')) ? 'v' : 'a']++);
+  const n6 = Math.min(c.d, 1) + Math.min(c.v, 1) + Math.min(c.a, 4);
+  let h = '<div class="card"><h3 style="margin-top:0">Meta del mes: 6 supervisiones</h3><p class="small" style="margin:0"><b style="font-size:18px">' + n6 + ' de 6</b> · Autosupervisiones de la tienda ' + Math.min(c.a, 4) + ' de 4 · Supervisión de Diego ' + Math.min(c.d, 1) + ' de 1 · Visita del equipo de ventas ' + Math.min(c.v, 1) + ' de 1</p></div>' +
+    '<div class="card"><h3 style="margin-top:0">Últimas supervisiones</h3>';
   if (ds.length) h += '<p class="small muted" style="margin-top:-2px">Duración promedio: <b style="color:var(--ink)">' + fmtMin(Math.round(ds.reduce((a, b) => a + b, 0) / ds.length)) + '</b></p>';
   if(!L.length) h += '<div class="empty">Todavía no hay supervisiones registradas.</div>';
   else h += '<div class="hist-l">' + L.map(s => { const m = dur(s); return '<div class="hist-i"><div><div class="small"><b>' + fmtF(s.fecha) + '</b> · ' + esc(s.tipo) + '</div>' +
