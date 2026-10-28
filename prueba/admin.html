@@ -1280,6 +1280,19 @@ function datosCiudad(){
   const D = st.d; if (!st.city) return D;
   return {...D, tiendas: D.tiendas.filter(t => enCiudad(t.nombre)), sups: D.sups.filter(s => enCiudad(s.tienda)), pend: D.pend.filter(p => enCiudad(p.tienda))};
 }
+/* m6: meta de 6 supervisiones al mes por tienda = 1 de Diego + 1 del equipo de ventas + 4 autosupervisiones (reunión 2026-10-27) */
+// Quién cuenta como equipo de ventas: los de la pestaña Supervisores (sin Diego). Lo que hace el personal de la tienda cuenta como autosupervisión.
+const M6_VENTAS = /campa[ñn]a|cede[ñn]o|aguiar|febres|chav[eé]z|solah/i;
+const m6EsVentas = por => { const p = String(por || '').toLowerCase();
+  return M6_VENTAS.test(p) || [].concat((st.sv || []).slice(1).map(r => r[0]), st.usuarios || []).map(n => String(n || '').trim().toLowerCase()).some(n => n && !/diego/.test(n) && p.indexOf(n) >= 0); };
+function metaMes6(ss, hoy){
+  const mes = String(hoy).slice(0, 7), c = {d: 0, v: 0, a: 0};
+  ss.filter(s => String(s.fecha).slice(0, 7) === mes).forEach(s => c[/diego/i.test(String(s.por || '')) && s.tipo !== 'Autosupervisión' ? 'd' : s.tipo !== 'Autosupervisión' && m6EsVentas(s.por) ? 'v' : 'a']++);
+  const dia = +String(hoy).slice(8, 10), fin = new Date(+mes.slice(0, 4), +mes.slice(5, 7), 0).getDate();
+  return Object.assign(c, {n: Math.min(c.d, 1) + Math.min(c.v, 1) + Math.min(c.a, 4), esp: Math.floor(6 * dia / fin)});
+}
+const m6Atras = m => m.n < Math.min(6, m.esp);
+const m6Pill = m => `<span class="pill p-${!m6Atras(m) ? 'good' : m.esp - m.n >= 2 ? 'bad' : 'warn'}" title="Diego ${m.d} de 1 · Ventas ${m.v} de 1 · Autosupervisiones ${m.a} de 4">${m.n} de 6 en el mes</span>`;
 function render(){
   const D = st.d, d = datosCiudad(), hoy = d.hoy;
   const diasAuto = Number(d.cfg.DIAS_AUTOSUPERVISION) || 7;
@@ -1289,7 +1302,7 @@ function render(){
     const ult = ss[ss.length - 1], ultS = sup[sup.length - 1], ultA = auto[auto.length - 1];
     const P = D.pend.filter(p => p.tienda === t.nombre);
     const ab = P.filter(p => ABIERTOS.includes(p.estado));
-    return {t, ult, ultS, ultA, nS: sup.length, nA: auto.length, serie: ss.slice(-6).map(s => s.total), ab: ab.length,
+    return {t, m6: metaMes6(ss, hoy), ult, ultS, ultA, nS: sup.length, nA: auto.length, serie: ss.slice(-6).map(s => s.total), ab: ab.length,
       venc: ab.filter(p => p.fcomp && p.fcomp < hoy).length, val: P.filter(p => p.estado === 'Por validar').length,
       dUlt: ult ? dias(ult.fecha, hoy) : null, dSup: ultS ? dias(ultS.fecha, hoy) : null, dAuto: ultA ? dias(ultA.fecha, hoy) : null};
   });
@@ -1308,7 +1321,7 @@ function render(){
     [ab.length, 'Pendientes abiertos', ab.length ? 'warn' : ''],
     [venc, 'Vencidos', venc ? 'bad' : ''],
     [val, 'Esperan tu validación', 'acc'],
-    [sinSup, 'Tiendas sin evaluar en 30 días', sinSup ? 'warn' : '']
+    [filas.filter(f => m6Atras(f.m6)).length, 'Tiendas atrasadas en la meta de 6 al mes', filas.some(f => m6Atras(f.m6)) ? 'warn' : '']
   ].map(([v, l, c]) => `<div class="kpi ${c}"><b>${v}</b><span>${l}</span></div>`).join('');
 
   // Tabla de tiendas: ventas del mes primero; después la última evaluación (supervisión o autosupervisión), peor puntaje primero
@@ -1334,7 +1347,7 @@ function render(){
         f.ab ? `<span>${f.ab} abierto${f.ab > 1 ? 's' : ''}</span>` : (f.val ? '' : '<span class="zero">Al día</span>')].filter(Boolean).join(' ');
       return `<tr class="click" data-t="${esc(f.t.nombre)}"><td class="store">${esc(f.t.nombre)}</td>
         ${st.ventas ? vCols(f.t.nombre) : ''}
-        <td class="${st.ventas ? 'sep' : ''}">${u ? `<span class="score ${band(u.total)}">${pct(u.total)}</span> <span class="small faint">${resLabel(u.total)}</span><div class="small faint">${u.tipo === 'Autosupervisión' ? 'Autosup. · ' : ''}hace ${f.dUlt} días</div>` : '<span class="pill p-na">Sin evaluar</span>'}</td>
+        <td class="${st.ventas ? 'sep' : ''}">${u ? `<span class="score ${band(u.total)}">${pct(u.total)}</span> <span class="small faint">${resLabel(u.total)}</span><div class="small faint">${u.tipo === 'Autosupervisión' ? 'Autosup. · ' : ''}hace ${f.dUlt} días</div>` : '<span class="pill p-na">Sin evaluar</span>'}<div style="margin-top:4px">${m6Pill(f.m6)}</div></td>
         <td class="hide-sm">${masBaja(u)}</td>
         <td><div class="pcell">${pend}</div></td></tr>`;
     }).join('') + `</tbody></table><p class="small faint" style="margin:0;padding:10px 12px;border-top:1px solid var(--line)">${st.ventas ? `Ventas al ${alDia.slice(8, 10)}/${alDia.slice(5, 7)}. Proyección del mes contra la meta: verde ≥ 100%, ámbar 90–99%, rojo &lt; 90%. ` : ''}Puntaje: última evaluación, supervisión o autosupervisión. Verde ≥ 90% · ámbar 71–89% · rojo ≤ 70%.</p>`;
@@ -2576,7 +2589,6 @@ function ir(v){
   if (v === 'vivo') v = 'inventario';   // En vivo está arriba de Inventario
   if (v === 'supervisores') v = 'equipo';
   if (v === 'anuncios') v = 'hoy';   // Anuncios va al final de Hoy, como en el panel de supervisores
-  if (v === 'whatsapp') v = 'pendientes';   // WhatsApp en pausa (Diego 2026-10-26); para volver: quitar esta línea y devolver 'whatsapp' a la lista de Tiendas
   if (VISTAS.indexOf(v) < 0) v = 'hoy';
   st.tab = v;
   document.querySelectorAll('.view').forEach(x => x.hidden = x.dataset.view !== v);
@@ -2737,6 +2749,7 @@ function detalleTienda(nombre){
       <div class="td-grid"><span>Venta al día</span><b>${din(v.venta)}</b><span>Cumplimiento de la meta (${din(v.meta)})</span><b>${pct(v.cumpl)}</b>
       <span>Proyección del mes</span><span><span class="pill p-${v.cumplProy >= 1 ? 'good' : v.cumplProy >= 0.9 ? 'warn' : 'bad'}">${pct(v.cumplProy)}</span> ${din(v.proy)}</span>
       <span>Ticket promedio · artículos por factura</span><span>$${v.ticket != null ? v.ticket.toFixed(0) : '–'} · ${v.art != null ? v.art.toFixed(2).replace('.', ',') : '–'}</span></div>` : ''}
+    <div class="lbl">Meta del mes: 6 supervisiones</div><div class="td-grid"><span>Diego</span><b>${f.m6.d} de 1</b><span>Equipo de ventas</span><b>${f.m6.v} de 1</b><span>Autosupervisiones</span><b>${f.m6.a} de 4</b><span>Total</span><span>${m6Pill(f.m6)}</span></div>
     <div class="lbl">Última supervisión</div>${ev(f.ultS, f.dSup, f.nS, 30)}
     <div class="lbl">Última autosupervisión</div>${ev(f.ultA, f.dAuto, f.nA, diasAuto)}
     ${dif != null ? `<div class="small ${Math.abs(dif) >= 10 ? 'cnt-warn' : 'faint'}">La autosupervisión da ${dif > 0 ? '+' : ''}${dif} puntos frente a la supervisión.</div>` : ''}
@@ -2818,12 +2831,89 @@ function renderInventario(){
     <div><div class="sec-h"><h2>Inventario cíclico</h2><span class="hint">8 semanas por valor</span></div>
     <div class="panel flush">${cic.length ? cic.map(x => `<div class="li" data-inv="${esc(x.t)}" data-cic="1" style="cursor:pointer"><div><div class="store">${esc(x.t)}</div><div class="small faint">${x.c.n} productos esta semana${x.c.cerr ? ' · ' + x.c.ok + ' cuadran, ' + x.c.dif + ' con diferencia' : ''}</div></div>
       ${x.c.cerr ? `<span class="score ${exB(x.c.ex)}">${pct(x.c.ex)}</span>` : `<span class="pill ${faseC(x.fz)}">${esc(x.fz)}</span>`}</div>`).join('') :
-      '<div class="empty">Ninguna tienda tiene conteo cíclico esta semana.</div>'}</div></div>`;
+      '<div class="empty">Ninguna tienda tiene conteo cíclico esta semana.</div>'}</div></div>
+    <div id="invCobros"></div>`;
   el.querySelectorAll('[data-inv]').forEach(r => r.onclick = () => invDetalle(r.dataset.inv, sem, r.dataset.cic ? 'cic' : ''));
   el.querySelectorAll('[data-pr]').forEach(d => d.onclick = () => { const x = pendRev[+d.dataset.pr]; invDetalle(x.t, x.sem, x.cic ? 'cic' : ''); if (st.ivUI) { st.ivUI.ver = 'sinrev'; invPintar(); } });
   el.querySelectorAll('[data-ord]').forEach(b => b.onclick = () => { const k = b.dataset.ord; st.invOrd = st.invOrd.k === k ? {k, d: -st.invOrd.d} : {k, d: +b.dataset.d0};
     try { localStorage.setItem('invOrd', JSON.stringify(st.invOrd)); } catch (e) {} renderInventario(); });
   const bi = $('#invBusca'); bi.oninput = () => { st.invQ = bi.value; invBuscar(); }; invBuscar();
+  cbPintar(); cbLeer();
+}
+/* cb1: cobros al personal por faltantes de inventario (solo panel de Diego; hoja privada 'Cobros de inventario', una fila por persona).
+   A Origen · B Fecha · C Tienda · D Persona · E Cargo · F Valor · G Cuotas · H Descontadas · I Mes inicio · J Estado · K Nota · L Actualizado */
+const CB_TAB = "'Cobros de inventario'";
+const cbNum = v => { const s = String(v == null ? '' : v).trim(); if (!s) return 0; const n = Number(s.indexOf(',') >= 0 ? s.replace(/\./g, '').replace(',', '.') : s); return isNaN(n) ? 0 : n; };
+const cbMes = s => { const m = /^(\d{4})-(\d{2})/.exec(String(s || '')); return m ? MESES_S[+m[2] - 1] + ' ' + m[1] : ''; };
+async function cbLeer(fresh){
+  if (st.cbLeyendo || (!fresh && st.cbT && Date.now() - st.cbT < 120000)) return;
+  st.cbLeyendo = true;
+  try { st.cb = await getRange(CB_TAB + '!A1:L', true, CLAVES); } catch (e) { if (!st.cb) st.cb = null; }
+  st.cbLeyendo = false; st.cbT = Date.now(); cbPintar();
+}
+function cbFilas(){ return ((st.cb || []).slice(1)).map((r, i) => ({n: i + 2, org: r[0] || '', fecha: r[1] || '', t: r[2] || '', per: r[3] || '', cargo: r[4] || '', v: cbNum(r[5]),
+  cu: Math.round(cbNum(r[6])), des: Math.round(cbNum(r[7])), ini: r[8] || '', est: r[9] || 'Por firmar', nota: r[10] || ''})).filter(x => x.org && x.per); }
+const cbPagado = x => x.cu ? Math.min(x.v, Math.round(x.v / x.cu * x.des * 100) / 100) : 0;
+function cbPintar(){
+  const el = $('#invCobros'); if (!el) return;
+  if (!document.getElementById('cbCss')) document.head.insertAdjacentHTML('beforeend', '<style id="cbCss">.cb-p{grid-template-columns:minmax(0,1fr) auto}.cb-p .pol-acc{grid-column:1/-1;justify-content:flex-start}.cb-p select{font-size:14px;padding:5px 8px}</style>');
+  if (st.cb === undefined) { el.innerHTML = ''; cbLeer(); return; }
+  if (st.cb === null) { el.innerHTML = '<div class="sec-h"><h2>Cobros al personal</h2></div><div class="panel"><div class="empty">No se pudo leer la pestaña Cobros de inventario.</div></div>'; return; }
+  const F = cbFilas(), G = {};
+  F.forEach(x => { (G[x.org] = G[x.org] || []).push(x); });
+  const usados = new Set(F.map(x => x.org)), ult = {};
+  ((st.mue && st.mue.inf) || []).slice(1).filter(r => r[0] && r[13] !== 'Archivado').forEach(r => { ult[r[4] + '|' + r[3] + '|' + r[5]] = r; });   // el último informe de cada tienda, semana y tipo
+  const porReg = Object.values(ult).filter(r => cbNum(r[11]) > 0 && !usados.has(r[0]));
+  const tot = F.reduce((a, x) => a + x.v, 0), pag = F.reduce((a, x) => a + cbPagado(x), 0);
+  const grupos = Object.keys(G).map(k => { const L = G[k], v = L.reduce((a, x) => a + x.v, 0), p = L.reduce((a, x) => a + cbPagado(x), 0);
+    const est = p >= v - 0.005 ? 'Cobrado' : p > 0 ? 'Cobrando' : L.every(x => x.est === 'Firmado') ? 'Firmado' : 'Por firmar';
+    return {k, L, v, p, est, t: L[0].t, fecha: L[0].fecha}; }).sort((a, b) => (a.est === 'Cobrado') - (b.est === 'Cobrado') || b.fecha.localeCompare(a.fecha));
+  const pc = {Cobrado: 'p-good', Cobrando: 'p-acc', Firmado: 'p-acc', 'Por firmar': 'p-warn'};
+  el.innerHTML = `<div class="sec-h"><h2>Cobros al personal</h2><span class="hint">Descuentos por faltantes de inventario · solo en tu panel</span></div>
+    <div class="kpis" style="margin-bottom:14px"><div class="kpi"><b>${ivMon(tot)}</b><span>a cobrar</span></div><div class="kpi good"><b>${ivMon(pag)}</b><span>descontado</span></div><div class="kpi ${tot - pag > 0.005 ? 'warn' : ''}"><b>${ivMon(tot - pag)}</b><span>pendiente</span></div></div>
+    ${porReg.length ? `<div class="panel flush" style="margin-bottom:12px">${porReg.map(r => `<div class="li"><div><div class="store">${esc(r[4])} · ${esc(r[0])}</div><div class="small faint">Informe sin pasar a cobros · ${esc(r[5])} ${esc(r[3])} · a descontar ${ivMon(cbNum(r[11]))}</div></div><button class="btn" data-cbreg="${esc(r[0])}">Registrar</button></div>`).join('')}</div>` : ''}
+    <div class="panel flush">${grupos.length ? grupos.map(g => `<details class="li"${st.cbAbierto === g.k ? ' open' : ''} data-cbg="${esc(g.k)}"><summary><div><div class="store">${esc(g.t)} · ${esc(g.k)}</div>
+      <div class="small faint">${g.L.length} persona${g.L.length === 1 ? '' : 's'} · ${ivMon(g.p)} de ${ivMon(g.v)}</div><div class="cum-bar"><i style="width:${g.v ? Math.round(g.p / g.v * 100) : 0}%"></i></div></div>
+      <span class="pill ${pc[g.est]}">${g.est}</span></summary>
+      <div style="margin-top:8px">${g.L.map(x => { const p = cbPagado(x), fin = x.cu && x.des >= x.cu;
+        return `<div class="cum-p cb-p"><div><b>${esc(x.per)}</b><div class="small faint">${esc(x.cargo)}${x.ini ? ' · desde ' + esc(cbMes(x.ini)) : ''}</div></div>
+          <span style="text-align:right">${ivMon(x.v)}<div class="small faint">${x.cu ? (fin ? 'cobrado' : 'falta ' + ivMon(x.v - p)) : 'sin cuotas'}</div></span>
+          <span class="pol-acc"><select data-cbcu="${x.n}" aria-label="Cuotas" title="Cuotas"><option value="">Cuotas</option>${[1, 2, 3, 4, 5, 6].map(c => `<option value="${c}"${x.cu === c ? ' selected' : ''}>${c} cuota${c > 1 ? 's' : ''} · ${ivMon(x.v / c)}</option>`).join('')}</select>
+          ${x.cu ? `<span class="small">${x.des} de ${x.cu}</span>${fin ? '<span class="pill p-good">Cobrado</span>' : `<button class="btn" data-cbmas="${x.n}" title="Marca una cuota como descontada en el rol">+1 cuota</button>`}${x.des ? `<button class="btn" data-cbmenos="${x.n}" title="Deshacer una cuota">−</button>` : ''}` : ''}</span>
+          ${x.nota ? `<div class="small faint">${esc(x.nota)}</div>` : ''}</div>`; }).join('')}
+        ${g.est === 'Por firmar' ? `<div class="actions"><button class="btn primary" data-cbfir="${esc(g.k)}">Marcar firmado</button></div>` : ''}</div></details>`).join('') :
+      '<div class="empty">Todavía no hay cobros registrados.</div>'}</div>`;
+  el.querySelectorAll('details[data-cbg]').forEach(d => d.ontoggle = () => { if (d.open) st.cbAbierto = d.dataset.cbg; else if (st.cbAbierto === d.dataset.cbg) st.cbAbierto = null; });
+  const fila = n => F.find(x => x.n === n);
+  el.querySelectorAll('[data-cbcu]').forEach(s => s.onchange = () => { const x = fila(+s.dataset.cbcu); cbGuardar([Object.assign({}, x, {cu: +s.value || 0, des: Math.min(x.des, +s.value || 0)})]); });
+  el.querySelectorAll('[data-cbmas]').forEach(b => b.onclick = () => { const x = fila(+b.dataset.cbmas); b.disabled = true;
+    cbGuardar([Object.assign({}, x, {des: x.des + 1, ini: x.ini || hoyISO().slice(0, 7), est: 'Firmado'})]); });
+  el.querySelectorAll('[data-cbmenos]').forEach(b => b.onclick = () => { const x = fila(+b.dataset.cbmenos); b.disabled = true; cbGuardar([Object.assign({}, x, {des: Math.max(0, x.des - 1)})]); });
+  el.querySelectorAll('[data-cbfir]').forEach(b => b.onclick = () => { b.disabled = true; cbGuardar(G[b.dataset.cbfir].map(x => Object.assign({}, x, {est: 'Firmado'}))); });
+  el.querySelectorAll('[data-cbreg]').forEach(b => b.onclick = () => { b.disabled = true; cbRegistrar(b.dataset.cbreg); });
+}
+async function cbGuardar(L){
+  try {
+    for (const x of L) {
+      const v = [x.cu || '', x.des, x.ini || '', x.est, safe(x.nota || ''), stamp()];
+      await setRange(CB_TAB + '!G' + x.n + ':L' + x.n, [v], CLAVES);
+      const r = st.cb[x.n - 1]; while (r.length < 12) r.push(''); r.splice(6, 6, ...v);
+    }
+    toast('Guardado');
+  } catch (e) { toast('No se pudo guardar: ' + (e && e.code ? errorCopy(e) : (e && e.message || e)), 5000); }
+  cbPintar();
+}
+async function cbRegistrar(id){
+  const r = ((st.mue && st.mue.inf) || []).find(x => x[0] === id), f = r && infDatos(r);
+  if (!f || !(f.reparto || []).length) { toast('Ese informe no tiene reparto.'); cbPintar(); return; }
+  const filas = f.reparto.filter(p => Number(p.v) > 0).map(p => [id, r[1], r[4], p.n, p.c || '', Number(p.v), 1, 0, '', 'Por firmar', f.tipo + ' ' + (f.semana || '').slice(-3), stamp()]);
+  try {
+    const v = await getRange(CB_TAB + '!A1:A', true, CLAVES), n = Math.max(v.length, 1) + 1;
+    await setRange(CB_TAB + '!A' + n + ':L' + (n + filas.length - 1), filas, CLAVES);
+    st.cb = (st.cb && st.cb.length ? st.cb.slice(0, n - 1) : [[]]).concat(filas);
+    st.cbAbierto = id; toast('Cobro de ' + id + ' registrado');
+  } catch (e) { toast('No se pudo registrar: ' + (e && e.code ? errorCopy(e) : (e && e.message || e)), 5000); }
+  cbPintar();
 }
 /* un código (o parte de él, o barras) en todas las tiendas y semanas */
 function invBuscar(){
@@ -4697,8 +4787,8 @@ if (typeof st !== 'undefined' && st.tab === 'transferencias') trfAbrir();
 <script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "Buscar: inventario, Mall Sol, caja chica, política…",
-  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy", "mispendientes"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "reclamos"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "inventario", "transferencias", "perchas"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Personas", "vistas": ["equipo"]}, {"id": "ajustes", "nombre": "Contactos", "vistas": ["enlaces"]}],
-  items: [{"t": "Mis pendientes con otras áreas", "v": "mispendientes", "sub": "Hoy · solo tú", "kw": "tareas todo lista bodega cedis contabilidad talento humano rrhh compras sistemas gerencia marketing areas departamentos"}, {"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa, validar y anuncios", "kw": "inicio resumen mapa validar anuncios actividades caja chica avisos"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Transferencias", "v": "transferencias", "sub": "Tiendas · solo tú", "kw": "transferencias traslados envios agencias cedis semaforo diferencias faltantes sobrantes arregladas gestion erp producto codigo"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Inventario en vivo", "v": "inventario", "sub": "Tiendas · quién está contando ahora", "kw": "conteo vivo contando ahora", "go": () => TEM_ABRIR("#cvBox")}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Clientes", "v": "reclamos", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Garantías extendidas", "v": "flash", "sub": "Ventas", "kw": "garantia garantias extendidas", "go": () => TEM_ABRIR("#garBody")}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "whatsapp"}, {"t": "Perchas", "v": "perchas", "sub": "Tiendas · exhibición", "kw": "perchas exhibicion layout planograma"}, {"t": "Equipo de supervisores", "v": "equipo", "sub": "Personas", "kw": "supervisores equipo visitas ranking personas"}, {"t": "Contactos de tiendas", "v": "enlaces", "sub": "Contactos", "kw": "contactos telefono llamar whatsapp correo direccion horario tienda numero"}, {"t": "Enlaces para compartir", "v": "enlaces", "sub": "Contactos", "kw": "enlaces links claves compartir gerentes supervisores portal ajustes configuracion"}, {"t": "Nueva supervisión", "sub": "Abrir el formulario", "kw": "supervisar visita checklist nueva supervision", "go": () => document.querySelector("#nuevaSup").click()}],
+  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy", "mispendientes"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "reclamos"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "whatsapp", "inventario", "transferencias", "perchas"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Personas", "vistas": ["equipo"]}, {"id": "ajustes", "nombre": "Contactos", "vistas": ["enlaces"]}],
+  items: [{"t": "Mis pendientes con otras áreas", "v": "mispendientes", "sub": "Hoy · solo tú", "kw": "tareas todo lista bodega cedis contabilidad talento humano rrhh compras sistemas gerencia marketing areas departamentos"}, {"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa, validar y anuncios", "kw": "inicio resumen mapa validar anuncios actividades caja chica avisos"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Transferencias", "v": "transferencias", "sub": "Tiendas · solo tú", "kw": "transferencias traslados envios agencias cedis semaforo diferencias faltantes sobrantes arregladas gestion erp producto codigo"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Inventario en vivo", "v": "inventario", "sub": "Tiendas · quién está contando ahora", "kw": "conteo vivo contando ahora", "go": () => TEM_ABRIR("#cvBox")}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Clientes", "v": "reclamos", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Garantías extendidas", "v": "flash", "sub": "Ventas", "kw": "garantia garantias extendidas", "go": () => TEM_ABRIR("#garBody")}, {"t": "WhatsApp a gerentes", "v": "whatsapp", "sub": "Tiendas · vencidos, vencen hoy y devueltos", "kw": "whatsapp mensajes avisos gerentes kapso"}, {"t": "Perchas", "v": "perchas", "sub": "Tiendas · exhibición", "kw": "perchas exhibicion layout planograma"}, {"t": "Equipo de supervisores", "v": "equipo", "sub": "Personas", "kw": "supervisores equipo visitas ranking personas"}, {"t": "Contactos de tiendas", "v": "enlaces", "sub": "Contactos", "kw": "contactos telefono llamar whatsapp correo direccion horario tienda numero"}, {"t": "Enlaces para compartir", "v": "enlaces", "sub": "Contactos", "kw": "enlaces links claves compartir gerentes supervisores portal ajustes configuracion"}, {"t": "Nueva supervisión", "sub": "Abrir el formulario", "kw": "supervisar visita checklist nueva supervision", "go": () => document.querySelector("#nuevaSup").click()}],
   extra: function(){
     const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
     (S.d.tiendas || []).filter(t => t.activa).forEach(t => out.push({grupo: 'Tiendas', t: t.nombre, sub: 'Pendientes de ' + t.nombre, kw: 'tienda local', v: 'pendientes',

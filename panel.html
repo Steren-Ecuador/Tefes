@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (8a40579a669a). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (59ef3bfe85dd). No editar a mano. -->
 <html lang="es" data-theme="light">
 <head>
 <base target="_top">
@@ -1452,6 +1452,19 @@ function modelar(ti, su, pe, co, cl){
   return {cfg, tiendas, sups, pend, panelTok: tok.__PANEL__ || '', hoy: hoyISO()};
 }
 
+/* m6: meta de 6 supervisiones al mes por tienda = 1 de Diego + 1 del equipo de ventas + 4 autosupervisiones (reunión 2026-10-27) */
+// Quién cuenta como equipo de ventas: los de la pestaña Supervisores (sin Diego). Lo que hace el personal de la tienda cuenta como autosupervisión.
+const M6_VENTAS = /campa[ñn]a|cede[ñn]o|aguiar|febres|chav[eé]z|solah/i;
+const m6EsVentas = por => { const p = String(por || '').toLowerCase();
+  return M6_VENTAS.test(p) || [].concat((st.sv || []).slice(1).map(r => r[0]), st.usuarios || []).map(n => String(n || '').trim().toLowerCase()).some(n => n && !/diego/.test(n) && p.indexOf(n) >= 0); };
+function metaMes6(ss, hoy){
+  const mes = String(hoy).slice(0, 7), c = {d: 0, v: 0, a: 0};
+  ss.filter(s => String(s.fecha).slice(0, 7) === mes).forEach(s => c[/diego/i.test(String(s.por || '')) && s.tipo !== 'Autosupervisión' ? 'd' : s.tipo !== 'Autosupervisión' && m6EsVentas(s.por) ? 'v' : 'a']++);
+  const dia = +String(hoy).slice(8, 10), fin = new Date(+mes.slice(0, 4), +mes.slice(5, 7), 0).getDate();
+  return Object.assign(c, {n: Math.min(c.d, 1) + Math.min(c.v, 1) + Math.min(c.a, 4), esp: Math.floor(6 * dia / fin)});
+}
+const m6Atras = m => m.n < Math.min(6, m.esp);
+const m6Pill = m => `<span class="pill p-${!m6Atras(m) ? 'good' : m.esp - m.n >= 2 ? 'bad' : 'warn'}" title="Diego ${m.d} de 1 · Ventas ${m.v} de 1 · Autosupervisiones ${m.a} de 4">${m.n} de 6 en el mes</span>`;
 /* ---------- render ---------- */
 function render(){
   const d = st.d, hoy = d.hoy;
@@ -1463,7 +1476,7 @@ function render(){
     const ult = ss[ss.length - 1], ultS = sup[sup.length - 1], ultA = auto[auto.length - 1];
     const P = d.pend.filter(p => p.tienda === t.nombre);
     const ab = P.filter(p => ABIERTOS.includes(p.estado));
-    return {t, ult, ultS, ultA, nS: sup.length, nA: auto.length, serie: ss.slice(-6).map(s => s.total), ab: ab.length,
+    return {t, m6: metaMes6(ss, hoy), ult, ultS, ultA, nS: sup.length, nA: auto.length, serie: ss.slice(-6).map(s => s.total), ab: ab.length,
       venc: ab.filter(p => p.fcomp && p.fcomp < hoy).length, val: P.filter(p => p.estado === 'Por validar').length,
       dUlt: ult ? dias(ult.fecha, hoy) : null, dSup: ultS ? dias(ultS.fecha, hoy) : null, dAuto: ultA ? dias(ultA.fecha, hoy) : null};
   });
@@ -1487,7 +1500,7 @@ function render(){
     [ab.length, 'Pendientes abiertos', ab.length ? 'warn' : ''],
     [venc, 'Vencidos', venc ? 'bad' : ''],
     [val, 'Esperan validación', 'acc'],
-    [sinSup, 'Tiendas sin evaluar en 30 días', sinSup ? 'warn' : '']
+    [filas.filter(f => m6Atras(f.m6)).length, 'Tiendas atrasadas en la meta de 6 al mes', filas.some(f => m6Atras(f.m6)) ? 'warn' : '']
   ].map(([v, l, c]) => `<div class="kpi ${c}"><b>${v}</b><span>${l}</span></div>`).join('');
 
   const orden = filas;
@@ -1512,7 +1525,7 @@ function render(){
         f.ab ? `<span>${f.ab} abierto${f.ab > 1 ? 's' : ''}</span>` : (f.val ? '' : '<span class="zero">Al día</span>')].filter(Boolean).join(' ');
       return `<tr class="click" data-t="${esc(f.t.nombre)}"><td class="store">${esc(f.t.nombre)}</td>
         ${hayV ? vCols(f.t.nombre) : ''}
-        <td class="${hayV ? 'sep' : ''}">${u ? `<span class="score ${band(u.total)}">${pct(u.total)}</span> <span class="small faint">${resLabel(u.total)}</span><div class="small faint">${u.tipo === 'Autosupervisión' ? 'Autosup. · ' : ''}hace ${f.dUlt} días</div>` : '<span class="pill p-na">Sin evaluar</span>'}</td>
+        <td class="${hayV ? 'sep' : ''}">${u ? `<span class="score ${band(u.total)}">${pct(u.total)}</span> <span class="small faint">${resLabel(u.total)}</span><div class="small faint">${u.tipo === 'Autosupervisión' ? 'Autosup. · ' : ''}hace ${f.dUlt} días</div>` : '<span class="pill p-na">Sin evaluar</span>'}<div style="margin-top:4px">${m6Pill(f.m6)}</div></td>
         <td class="hide-sm">${masBaja(u)}</td>
         <td><div class="pcell">${pend}</div></td></tr>`;
     }).join('') + `</tbody></table><p class="small faint" style="margin:0;padding:10px 12px;border-top:1px solid var(--line)">${hayV && alDia ? `Ventas al ${alDia.slice(8, 10)}/${alDia.slice(5, 7)}. Proyección del mes contra la meta: verde ≥ 100%, ámbar 90–99%, rojo &lt; 90%. ` : ''}Puntaje: última evaluación, supervisión o autosupervisión. Verde ≥ 90% · ámbar 71–89% · rojo ≤ 70%.</p>`;
@@ -2140,6 +2153,7 @@ function detalleTienda(nombre){
       <div class="td-grid"><span>Venta al día</span><b>${din(v.venta)}</b><span>Cumplimiento de la meta (${din(v.meta)})</span><b>${pct(v.cumpl)}</b>
       <span>Proyección del mes</span><span style="white-space:nowrap"><span class="pill p-${v.cumplProy >= 1 ? 'good' : v.cumplProy >= 0.9 ? 'warn' : 'bad'}">${pct(v.cumplProy)}</span> ${din(v.proyeccion)}</span>
       ${v.ticket != null ? `<span>Ticket promedio · artículos por factura</span><span>$${v.ticket.toFixed(0)} · ${v.art != null ? String(v.art).replace('.', ',') : '–'}</span>` : ''}</div>` : ''}
+    <div class="lbl">Meta del mes: 6 supervisiones</div><div class="td-grid"><span>Diego</span><b>${f.m6.d} de 1</b><span>Equipo de ventas</span><b>${f.m6.v} de 1</b><span>Autosupervisiones</span><b>${f.m6.a} de 4</b><span>Total</span><span>${m6Pill(f.m6)}</span></div>
     <div class="lbl">Última supervisión</div>${ev(f.ultS, f.dSup, f.nS, 30)}
     <div class="lbl">Última autosupervisión</div>${ev(f.ultA, f.dAuto, f.nA, diasAuto)}
     ${dif != null ? `<div class="small ${Math.abs(dif) >= 10 ? 'cnt-warn' : 'faint'}">La autosupervisión da ${dif > 0 ? '+' : ''}${dif} puntos frente a la supervisión.</div>` : ''}
