@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (4f436dd0e63c). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (05f7875f3410). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -918,7 +918,7 @@ function modoTk(){ document.documentElement.classList.toggle('tk', S.vista === '
 const tkOn = () => document.documentElement.classList.contains('tk');
 function tkGate(){
   if (!S.form || !S.data) return;
-  const tk = tkOn(), L = S.data.puntos, sinQuien = !String(S.form.realizadaPor || '').trim();
+  const tk = tkOn(), L = ptsF(), sinQuien = !String(S.form.realizadaPor || '').trim();
   const i0 = sinQuien ? 0 : L.findIndex(p => faltaEn(p)), corte = sinQuien ? -1 : (i0 < 0 ? L.length : i0);
   L.forEach((p, i) => { const w = $('#pt-' + p.id); if (w) w.classList.toggle('tk-bloq', tk && i > corte); });
   const fin = $('#tkFinal'); if (fin) fin.classList.toggle('tk-bloq', tk && (sinQuien || i0 >= 0));
@@ -1741,6 +1741,9 @@ function modalResolver(p){
 }
 
 /* ---------- SUPERVISAR ---------- */
+/* ex1: supervisión express del Administrador: 10 puntos clave; los demás quedan N/A "No evaluado" y no bajan el puntaje */
+const EXPRESS = ['A03', 'A11', 'B01', 'B05', 'B07', 'C04', 'C07', 'D01', 'D04', 'E02'];
+const ptsF = () => S.form && S.form.express ? S.data.puntos.filter(p => EXPRESS.indexOf(p.id) >= 0) : S.data.puntos;
 function nuevoForm(){
   const ahora = Date.now();
   return {tipo:'Supervisión', fecha:S.data.hoy, horaInicio:ahoraHM(), realizadaPor:lsGet('supSTEREN_nombre') || '', gerente:S.data.gerente || '', subadmin:'', personas:'', comentario:'', items:{},
@@ -1782,7 +1785,7 @@ setInterval(pintarReloj, 1000);
 
 function calcular(){
   const suma = {}, cnt = {}; let n = 0;
-  S.data.puntos.forEach(p => { const it = S.form.items[p.id]; if(!it || it.calif == null) return; n++;
+  ptsF().forEach(p => { const it = S.form.items[p.id]; if(!it || it.calif == null) return; n++;
     if(it.calif === 'N/A') return; suma[p.sec] = (suma[p.sec]||0) + Number(it.calif); cnt[p.sec] = (cnt[p.sec]||0) + 1; });
   let tot = 0, pes = 0; const secs = {};
   S.data.secciones.forEach(s => { if(!cnt[s.cod]) { secs[s.cod] = null; return; } secs[s.cod] = suma[s.cod] / (cnt[s.cod]*2); tot += secs[s.cod]*s.peso; pes += s.peso; });
@@ -1803,23 +1806,27 @@ function renderSup(){
     const d = relojSanear(lsGet(DRAFT_KEY)), d0 = d;
     const hechos = d ? Object.values(d.items).filter(i => i.calif != null).length : 0;
     $('#main').innerHTML = '<div class="card"><h3 style="margin-top:0">Nueva supervisión</h3>' +
-      '<p class="muted small">Son ' + S.data.puntos.length + ' puntos. Al calificar, la página pasa sola al siguiente. Cada punto con 0 o 1 crea un pendiente para la tienda. Un cronómetro arriba mide cuánto toma; con Pausar se detiene y el avance queda guardado.</p>' +
-      (d ? '<button class="btn primary block" id="sCont">Continuar borrador (' + hechos + '/' + S.data.puntos.length + (d.reloj ? ' · ' + fmtReloj(msReloj(d)) : '') + ')</button><div style="height:8px"></div><button class="btn ghost block" id="sNew">Empezar de nuevo</button><div style="height:8px"></div><button class="btn ghost block" id="sCancel" style="color:var(--bad)">Cancelar supervisión</button>'
-          : '<button class="btn primary block" id="sNew">Empezar</button>') + '</div>' + histHtml();
+      '<p class="muted small">Son ' + ptsF().length + ' puntos. Al calificar, la página pasa sola al siguiente. Cada punto con 0 o 1 crea un pendiente para la tienda. Un cronómetro arriba mide cuánto toma; con Pausar se detiene y el avance queda guardado.</p>' +
+      (d ? '<button class="btn primary block" id="sCont">Continuar borrador (' + hechos + '/' + ptsF().length + (d.reloj ? ' · ' + fmtReloj(msReloj(d)) : '') + ')</button><div style="height:8px"></div><button class="btn ghost block" id="sNew">Empezar de nuevo</button><div style="height:8px"></div><button class="btn ghost block" id="sCancel" style="color:var(--bad)">Cancelar supervisión</button>'
+          : '<button class="btn primary block" id="sNew">Empezar</button>') +
+      (S.expressOk ? '<div style="height:8px"></div><button class="btn block" id="sExp">⚡ Supervisión express (' + EXPRESS.length + ' puntos clave)</button><div class="tiny muted" style="margin-top:4px">Solo para el Administrador. Los demás puntos quedan como No evaluado y no bajan el puntaje.</div>' : '') + '</div>' + histHtml();
     if(d) $('#sCancel').onclick = cancelarSup;
     if(d) $('#sCont').onclick = () => { const d = relojSanear(lsGet(DRAFT_KEY)) || d0; S.form = d; if (!d.reloj) d.reloj = {acum:0, desde:null, ultimo:null}; if (!d.tSec) d.tSec = {}; relojCorrer(d); guardarBorrador(true); renderSup(); };
-    const empezar = () => { closeModal(); S.form = nuevoForm(); guardarBorrador(true); renderSup(); };
+    const empezar = ex => { closeModal(); S.form = nuevoForm(); if (ex === true) { S.form.express = true; S.form.tipo = 'Supervisión'; } guardarBorrador(true); renderSup(); };
+    if ($('#sExp')) $('#sExp').onclick = () => { if (!d) return empezar(true); openModal('<h3>¿Empezar una express?</h3><p class="muted small">Se borrará el borrador guardado en este teléfono.</p>' +
+      '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="dNo">Cancelar</button><button class="btn primary grow" id="dSi">Sí, empezar</button></div>'); $('#dNo').onclick = closeModal; $('#dSi').onclick = () => empezar(true); };
     $('#sNew').onclick = () => {
-      if (!d) return empezar();
+      if (!d) return empezar(false);
       openModal('<h3>¿Empezar de nuevo?</h3><p class="muted small">Se borrará el borrador guardado en este teléfono.</p>' +
         '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="dNo">Cancelar</button><button class="btn primary grow" id="dSi">Sí, empezar de nuevo</button></div>');
-      $('#dNo').onclick = closeModal; $('#dSi').onclick = empezar;
+      $('#dNo').onclick = closeModal; $('#dSi').onclick = () => empezar(false);
     };
     pintarReloj();
     return;
   }
   const F = S.form;
-  let h = '<div class="card tk-snap">' +
+  let h = (F.express ? '<div class="card" style="border-left:4px solid var(--brand)"><b>⚡ Supervisión express</b><div class="small muted">' + EXPRESS.length + ' puntos clave. Los demás quedan como No evaluado y no bajan el puntaje.</div></div>' : '') +
+    '<div class="card tk-snap">' +
     '<div class="seg" id="sTipo">' + ['Supervisión','Autosupervisión'].map(t => '<button data-t="' + t + '" class="' + (F.tipo===t?'on':'') + '">' + t + '</button>').join('') + '</div>' +
     '<div id="wRealiza">' + campoRealizada(F) + '</div>' +
     '<div class="grid2">' +
@@ -1832,13 +1839,14 @@ function renderSup(){
     '</div></div>' +
     '<div class="secbar" id="secbar"></div>';
   S.data.secciones.forEach(s => {
+    if (!ptsF().some(p => p.sec === s.cod)) return;
     h += '<div class="sec-h" id="sec-' + esc(s.cod) + '"><h2>' + esc(s.cod) + ') ' + esc(s.nombre) + '</h2><span class="tiny muted" id="secp-' + esc(s.cod) + '"></span></div>';
-    S.data.puntos.filter(p => p.sec === s.cod).forEach(p => h += '<div id="pt-' + esc(p.id) + '"></div>');
+    ptsF().filter(p => p.sec === s.cod).forEach(p => h += '<div id="pt-' + esc(p.id) + '"></div>');
   });
   h += '<div class="tk-lock" id="tkLock" hidden></div><div class="card tk-snap" id="tkFinal"><label class="f" style="margin-top:0">Comentario general (opcional)</label><textarea data-k="comentario">' + esc(F.comentario) + '</textarea></div>' +
     '<button class="btn ghost block" id="sCancel2" style="color:var(--bad);margin-bottom:12px">Cancelar supervisión</button>';
   $('#main').innerHTML = h; $('#sCancel2').onclick = cancelarSup;
-  S.data.puntos.forEach(p => pintarPunto(p));
+  ptsF().forEach(p => pintarPunto(p));
   $('#footer').innerHTML = '<div class="footer"><div class="in"><div class="grow" style="min-width:0"><div class="small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span id="fN"></span> · <span class="score" id="fS"></span></div><div class="bar"><i id="fBar"></i></div></div>' +
     '<button class="btn" id="fSig">Siguiente ↓</button><button class="btn primary" id="fGuardar">Guardar</button></div></div>';
   document.querySelectorAll('main [data-k]').forEach(i => i.oninput = () => { F[i.dataset.k] = i.value; guardarBorrador(); if (i.dataset.k === 'realizadaPor') tkGate(); });
@@ -1962,8 +1970,8 @@ function puntoHtml(p){
   const cls = req ? (fs.length ? 'req ok' : 'req') : 'req opt';
   const verObs = pend || it.obs || it.verObs, verDato = p.datoReq || it.dato || it.verDato;
   const sugs = pend ? sugerencias('Acción correctiva', p.texto + ' ' + (it.obs || ''), it.accion, it.accion ? 2 : 3) : [];
-  const sec6 = (S.data.secciones.find(s => s.cod === p.sec) || {}).nombre || '', n6 = S.data.puntos.indexOf(p) + 1;
-  return '<div class="card punto ' + g + '">' + '<div class="tk-sec">' + esc(p.sec + ') ' + sec6) + ' · ' + n6 + ' de ' + S.data.puntos.length + '</div>' +
+  const sec6 = (S.data.secciones.find(s => s.cod === p.sec) || {}).nombre || '', n6 = ptsF().indexOf(p) + 1;
+  return '<div class="card punto ' + g + '">' + '<div class="tk-sec">' + esc(p.sec + ') ' + sec6) + ' · ' + n6 + ' de ' + ptsF().length + '</div>' +
     '<div><span class="pid">' + esc(p.id) + '</span>' + esc(p.texto) + '</div>' +
     '<div class="tools"><button class="link" data-guia>Ver criterio</button>' + (!verObs ? '<button class="link" data-ver="verObs">+ Observación</button>' : '') + (!verDato ? '<button class="link" data-ver="verDato">+ Dato</button>' : '') + (it.calif === '2' || it.calif === 'N/A' ? '<button class="link" data-cerrar>Listo ▲</button>' : '') + '</div>' +
     '<div class="guia">' + esc(p.criterio) + '</div>' + ventasHtml(p) + polVisitaHtml(p) + trfE04Html(p) +
@@ -2053,7 +2061,7 @@ function bindSug(p, cont){
 }
 /** Lleva al siguiente punto sin calificar (o con algo pendiente), empezando después del actual */
 function irSiguiente(desdeId){
-  const L = S.data.puntos, i0 = desdeId ? L.findIndex(p => p.id === desdeId) + 1 : 0;
+  const L = ptsF(), i0 = desdeId ? L.findIndex(p => p.id === desdeId) + 1 : 0;
   const orden = L.slice(i0).concat(L.slice(0, i0));
   const sig = orden.find(p => !S.form.items[p.id] || S.form.items[p.id].calif == null) || orden.find(p => faltaEn(p));
   if (!sig) { const fin = tkOn() && $('#tkFinal'); if (fin) fin.scrollIntoView({behavior:'smooth', block:'start'}); else toast('Todo calificado. Revisa y toca Guardar.'); return; }
@@ -2062,7 +2070,7 @@ function irSiguiente(desdeId){
   const card = c.firstElementChild; if (card){ card.classList.add('foco'); setTimeout(() => card.classList.remove('foco'), 1200); }
 }
 function actualizarFooter(){
-  const c = calcular(), N = S.data.puntos.length;
+  const c = calcular(), N = ptsF().length;
   if (!$('#fN')) return;
   $('#fN').textContent = c.n + '/' + N;
   $('#fS').textContent = c.total == null ? '–' : pct(c.total);
@@ -2073,7 +2081,7 @@ function actualizarFooter(){
   tkGate();
   const bar = $('#secbar');
   if (bar) {
-    bar.innerHTML = S.data.secciones.map(s => { const ps = S.data.puntos.filter(p => p.sec === s.cod), hechos = ps.filter(p => S.form.items[p.id] && S.form.items[p.id].calif != null).length;
+    bar.innerHTML = S.data.secciones.map(s => { const ps = ptsF().filter(p => p.sec === s.cod), hechos = ps.filter(p => S.form.items[p.id] && S.form.items[p.id].calif != null).length;
       return '<button data-sec="' + esc(s.cod) + '" class="' + (hechos === ps.length ? 'done' : '') + '"><b>' + esc(s.cod) + (c.secs[s.cod] != null ? ' · ' + pct(c.secs[s.cod]) : '') + '</b><span>' + hechos + '/' + ps.length + '</span></button>'; }).join('');
     bar.querySelectorAll('[data-sec]').forEach(b => b.onclick = () => { const t = $('#sec-' + b.dataset.sec); if (t) t.scrollIntoView({behavior:'smooth', block:'start'}); });
   }
@@ -2081,7 +2089,7 @@ function actualizarFooter(){
 function confirmarGuardar(){
   const F = S.form;
   if(!F.realizadaPor.trim()){ toast('Escribe quién realiza la supervisión'); window.scrollTo(0,0); return; }
-  const malos = S.data.puntos.map(p => [p, faltaEn(p)]).filter(x => x[1]);
+  const malos = ptsF().map(p => [p, faltaEn(p)]).filter(x => x[1]);
   if (malos.length) {
     const grupos = {}; malos.forEach(([p, f]) => (grupos[f] = grupos[f] || []).push(p.id));
     const txt = Object.keys(grupos).map(k => 'falta ' + k + ' en ' + grupos[k].slice(0, 4).join(', ') + (grupos[k].length > 4 ? '…' : '')).join('; ');
@@ -2102,14 +2110,14 @@ function confirmarGuardar(){
   $('#mOk').onclick = async () => {
     const b = $('#mOk'); b.disabled = true;
     if (subiendoTotal()) { b.innerHTML = '<span class="spin"></span> Subiendo ' + subiendoTotal() + ' foto(s)…'; await new Promise(r => { S.esperando = r; }); }
-    const sinFoto = S.data.puntos.filter(p => faltaEn(p));
+    const sinFoto = ptsF().filter(p => faltaEn(p));
     if (sinFoto.length) { closeModal(); toast('Algunas fotos no subieron: ' + sinFoto.map(p => p.id).join(', ') + '. Reintenta y vuelve a guardar.', 5000); renderSup(); return; }
     b.innerHTML = '<span class="spin"></span> Guardando…';
     const ms = msReloj(F), tSec = {};
     Object.keys(F.tSec || {}).forEach(k => tSec[k] = Math.round(F.tSec[k] / 60000));
-    const payload = {tipo:F.tipo, fecha:F.fecha, horaInicio:F.horaInicio, horaFin:ahoraHM(), realizadaPor:F.realizadaPor, gerente:F.gerente, subadmin:F.subadmin, personas:F.personas, comentario:F.comentario,
+    const payload = {tipo:F.tipo, fecha:F.fecha, horaInicio:F.horaInicio, horaFin:ahoraHM(), realizadaPor:F.realizadaPor, gerente:F.gerente, subadmin:F.subadmin, personas:F.personas, comentario:(F.express ? 'Supervisión express (' + EXPRESS.length + ' puntos clave). ' : '') + F.comentario,
       duracionMin: Math.round(ms / 60000), tiempoSecciones: tSec,
-      items: S.data.puntos.map(p => { const i = F.items[p.id]; return {id:p.id, calif:i.calif, obs:i.obs||'', dato:i.dato||'', fotos:fotosDe(i), accion:i.accion||'', responsable:i.responsable||'', fechaCompromiso:i.fechaCompromiso||'', prioridad:i.prioridad||''}; })};
+      items: S.data.puntos.map(p => { const i = F.items[p.id] || {calif: 'N/A', obs: 'No evaluado (supervisión express)'}; return {id:p.id, calif:i.calif, obs:i.obs||'', dato:i.dato||'', fotos:fotosDe(i), accion:i.accion||'', responsable:i.responsable||'', fechaCompromiso:i.fechaCompromiso||'', prioridad:i.prioridad||''}; })};
     try {
       const r = await api('apiGuardarSupervisionTienda', payload);
       lsSet('supSTEREN_nombre', F.realizadaPor); lsSet(DRAFT_KEY, null); S.form = null; pintarReloj();
@@ -2173,6 +2181,7 @@ const CACHE_KEY = 'tiendaDatos_' + TOKEN;
 function enlaceSup(){
   // Enlace desde "Nueva supervisión" del panel (?sup=Nombre): abre Supervisar con ese nombre
   try { google.script.url.getLocation(l => { try { const n = l && l.parameter && String(l.parameter.sup || '').trim(); if (!n) return;
+    if (l.parameter.exp === '1') { S.expressOk = true; if (!S.form && S.vista === 'sup') renderSup(); }
     lsSet('supSTEREN_nombre', n); const f = S.form || lsGet(DRAFT_KEY);
     if (f) { f.tipo = 'Supervisión'; f.realizadaPor = n; if (S.form) guardarBorrador(true); else lsSet(DRAFT_KEY, f); }
     irA('sup'); } catch(e){} }); } catch(e){}
