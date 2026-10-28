@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (141c0679bc1a). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (cfb668d1facf). No editar a mano. -->
 <html lang="es" data-theme="light">
 <head>
 <base target="_top">
@@ -1418,6 +1418,12 @@ function irAdmin(url){
   try { window.open(url, '_top'); } catch (e) {}
 }
 function login(){
+  if (/github\.io$/.test(location.hostname)) {   // sp3: el nombre sale del código, nadie elige otro
+    $('#drawer').innerHTML = `<div class="drawer-bg login-bg"><div class="login" role="dialog" aria-label="Entrar">
+      <h2>Entra con tu código</h2><p class="small muted" style="margin:0">El panel te reconoce por el código que te llega a tu correo.</p>
+      <div class="actions"><a class="btn primary" href="entrar.html" target="_top">Entrar con mi código</a></div></div></div>`;
+    return;
+  }
   $('#drawer').innerHTML = `<div class="drawer-bg login-bg"><div class="login" role="dialog" aria-label="Identificarme">
     <h2>¿Quién eres?</h2><p class="small muted" style="margin:0">Elige tu nombre y pulsa OK.</p>
     <select id="lgSel"><option value="">Elige tu nombre…</option>${lgOpts()}</select>
@@ -3074,7 +3080,12 @@ pintarYo();
   const t0 = performance.now(), hayG = desdeGuardado(), tPant = hayG ? performance.now() : null;   // ux1 + ux4
   const carga = cargar();
   carga.then(() => { try { if (window.REG) REG.carga(tPant == null ? performance.now() : tPant, st.d ? performance.now() - t0 : null, hayG); } catch (e) {} });
-  if (g && g.nombre) { try { st.yo = await api('apiLogin', g.clave ? g.nombre + '#' + g.clave : g.nombre); st.clave = g.clave || ''; } catch (e) { try { localStorage.removeItem('supTefes'); } catch (x) {} } pintarYo(); if (st.d) render(); }
+  // sp2: si entró con código en este equipo, el panel usa esa sesión y no pregunta "¿Quién eres?"
+  let ses = ''; try { ses = localStorage.getItem('tefes_ingreso_prueba') || ''; } catch (e) {}
+  if (ses && (!g || !g.clave || (/^ses:/.test(g.clave) && g.clave !== 'ses:' + ses))) g = {nombre: '', clave: 'ses:' + ses};
+  if (g && (g.nombre || g.clave)) { try { st.yo = await api('apiLogin', g.clave ? g.nombre + '#' + g.clave : g.nombre); st.clave = g.clave || '';
+    try { localStorage.setItem('supTefes', JSON.stringify(st.clave ? {nombre: st.yo.nombre, clave: st.clave} : {nombre: st.yo.nombre})); } catch (x) {}
+  } catch (e) { try { localStorage.removeItem('supTefes'); } catch (x) {} } pintarYo(); if (st.d) render(); }
   try { await carga; } finally { if (!st.yo) login(); }
   setInterval(() => { if (document.visibilityState === 'visible') cargar(true); }, 300000);
 })();
