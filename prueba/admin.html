@@ -5079,7 +5079,7 @@ function CAL_YO(){ const r = (st.sv || []).slice(1).find(r => /diego/i.test(Stri
     const P = personas().sort((a, b) => a.localeCompare(b));
     const bg = hoja(`<div class="d-top"><div class="d-top-t"><b>${v ? 'Cambiar visita' : 'Agendar visita'}</b><span>${v ? e(v.tienda) + ' · ' + e(corto(v.quien)) : 'Todos la verán en el calendario'}</span></div><button class="d-x" data-x>Cerrar</button></div>
       <label class="cal-f">Fecha<input type="date" id="calFe" value="${e(v ? v.fecha : fecha || hoy())}" min="${e(sumar(hoy(), -60))}"></label>
-      <label class="cal-f">Tienda<select id="calTi"><option value="">Sin tienda (reunión u otra actividad)</option>${T.map(t => `<option${(v ? v.tienda : '') === t ? ' selected' : ''}>${e(t)}</option>`).join('')}</select></label>
+      <label class="cal-f">Tienda<select id="calTi"><option value="">Sin tienda (reunión u otra actividad)</option>${T.map(t => `<option value="${e(t)}"${(v ? v.tienda : '') === t ? ' selected' : ''}>${e(t)}</option>`).join('')}</select></label>
       ${adm ? `<label class="cal-f">Quién visita<select id="calQu">${P.map(x => `<option${norm(x) === norm(v ? v.quien : yo) ? ' selected' : ''}>${e(x)}</option>`).join('')}</select></label>` : `<div class="small faint">Visita de <b>${e(yo)}</b></div>`}
       <label class="cal-f">Nota (opcional)<input type="text" id="calNo" maxlength="120" value="${e(v ? v.nota : '')}" placeholder="Ej.: con inventario, viaje a Guayaquil"></label>
       <div id="calAviso" class="small"></div>
