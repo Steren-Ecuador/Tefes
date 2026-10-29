@@ -3334,7 +3334,9 @@ button.cal-fila:hover{background:var(--surface-2)}
 
   function pintar() {
     const host = document.getElementById('calBody'); if (!host) return;
-    if (!C.mes) C.mes = hoy().slice(0, 7);
+    if (!C.mes) {   // cal2: en la última semana del mes se abre el mes siguiente
+      const d = new Date(); C.mes = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate() - d.getDate() < 7 ? isoD(new Date(d.getFullYear(), d.getMonth() + 1, 1, 12)).slice(0, 7) : hoy().slice(0, 7);
+    }
     if (C.V === null) { host.innerHTML = '<div class="skeleton">Cargando el calendario…</div>'; cargar(); return; }
     const {V, sueltas} = modelo(), h = hoy(), y = +C.mes.slice(0, 4), m = +C.mes.slice(5, 7);
     const enMes = V.filter(v => v.fecha.slice(0, 7) === C.mes && pasaFiltro(v.quien));
