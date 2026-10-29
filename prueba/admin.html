@@ -673,6 +673,7 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
 @media(max-width:700px){.tem-nav,.tem-sub{display:none!important}.tem-buscar{flex-basis:100%;max-width:none;order:9;margin:4px 0 6px}}
 :root{--tem-head:var(--head);--tem-ink:var(--head-ink);--tem-2:var(--head-2);--tem-chip:rgba(255,255,255,.12)}
 .brand{align-items:center}
+.fue-l{display:grid;gap:8px}.fue-it{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}.fue-it .pill{min-width:76px;text-align:center;font-size:12px}.fue-tx{min-width:0;line-height:1.45}
 </style>
 
 <header class="bar"><div class="gut">
@@ -686,6 +687,7 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
     <button data-v="hoy">Hoy</button>
     <button data-v="calendario" title="Las visitas de todos a las tiendas, mes a mes">Calendario</button>
     <button data-v="mispendientes" hidden title="Solo tú: tus pendientes con Bodega, Contabilidad, Talento Humano y otras áreas">Mis pendientes<span class="n bad" id="nMp"></span></button>
+    <button data-v="fuentes" hidden title="Solo tú: qué tan actualizada está cada fuente de datos (ERP, OneDrive, Codex, POS)">Fuentes<span class="n bad" id="nFue"></span></button>
     <button data-v="flash" title="Venta del día y del mes contra presupuesto, desde el ERP"><span class="gar-foco tab" aria-hidden="true"></span>Flash de Ventas</button>
     <button data-v="pendientes" title="El número son los pendientes que esperan tu validación">Pendientes<span class="n bad" id="nPend"></span></button>
     <button data-v="whatsapp" title="Mensajes listos para los gerentes: vencidos, vencen hoy, prioridad alta y devueltos">WhatsApp<span class="n bad" id="nWa"></span></button>
@@ -796,6 +798,11 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
 
   <div class="view" data-view="mispendientes" hidden>
     <div id="mpBody"><div class="skeleton">Cargando tus pendientes…</div></div>
+  </div>
+
+  <div class="view" data-view="fuentes" hidden>
+    <div class="sec-h"><h2>Estado de la información</h2><span class="hint" id="fueSub">Cada fuente de datos, cuándo se actualizó y si está al día.</span></div>
+    <div id="fueBody"><div class="skeleton">Cargando fuentes…</div></div>
   </div>
 
   <div class="view" data-view="transferencias" hidden>
@@ -1188,6 +1195,7 @@ async function cargar(fresh){
     gui: Promise.all([g('Guías!A1:I'), g("'Lecturas de guías'!A1:F").catch(() => [[]])]).then(([gg, ll]) => ({g: gg, l: ll})),
     vf: g("'Ventas futuras'!A1:V", CLAVES).catch(() => [[]]),
     flash: g('Flash!A1:I', CLAVES).catch(() => [[]]),
+    fue: g("'Estado fuentes'!A1:H", CLAVES).catch(() => [[]]),   // ef1
     gar: Promise.all([g("'Garantías'!A1:G", CLAVES), g('Fuentes!A1:B', CLAVES).catch(() => [])]).then(([a, f]) => { a.tomado = String(((f || []).find(r => String(r[0]).trim() === 'GARANTIAS_TOMADO') || [])[1] || '').trim(); return a; }).catch(() => [[]])
   };
   Object.values(extras).forEach(p => p.catch(() => {}));   // sin avisos de promesa rechazada mientras se espera lo principal
@@ -1404,6 +1412,7 @@ function render(){
   renderPoliticas();
   renderVF();
   try { renderFlash(); } catch (e) { console.error(e); }
+  try { renderFuentes(); } catch (e) { console.error(e); }
   try { renderGar(); } catch (e) { console.error(e); }
   renderReclamos();
   try { renderGuias(); } catch (e) { console.error(e); }
@@ -2594,7 +2603,38 @@ function renderReclamos(){
   el.querySelectorAll('[data-rt]').forEach(r => r.onclick = () => { st.recT = st.recT === r.dataset.rt ? '' : r.dataset.rt; renderReclamos(); });
   if ($('#recTodo')) $('#recTodo').onclick = () => { st.recT = ''; renderReclamos(); };
 }
-const VISTAS = ['hoy','calendario','mispendientes','flash','anuncios','pendientes','whatsapp','inventario','vivo','transferencias','politicas','reclamos','guias','perchas','supervisores','equipo','enlaces'];
+/* ef1: Estado de la información (solo Diego). Horas en Ecuador (UTC-5). */
+function renderFuentes(){
+  const el = $('#fueBody'); if (!el) return;
+  if (st.fue === undefined) { el.innerHTML = '<div class="skeleton">Cargando fuentes…</div>'; return; }
+  const P = t => { const m = String(t || '').trim().replace(/^'/, '').match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2}))?|^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);
+    if (!m) return null; return m[1] ? Date.UTC(+m[1], m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0)) : Date.UTC(+m[8], m[7] - 1, +m[6], +(m[9] || 0), +(m[10] || 0)); };
+  const ahora = Date.now() - 5 * 3600e3;   // "UTC" con la hora de Ecuador
+  const dia = new Intl.DateTimeFormat('es-EC', {weekday: 'short', day: 'numeric', month: 'numeric', timeZone: 'UTC'});
+  const fF = (t, h) => { const x = P(t); if (x == null) return ''; const d = new Date(x); return dia.format(d).replace(',', '') + (h && (d.getUTCHours() || d.getUTCMinutes()) ? ' ' + String(d.getUTCHours()).padStart(2, '0') + ':' + String(d.getUTCMinutes()).padStart(2, '0') : ''); };
+  const hace = t => { const x = P(t); if (x == null) return ''; const m = Math.max(0, Math.round((ahora - x) / 60000));
+    return m < 60 ? 'hace ' + m + ' min' : m < 48 * 60 ? 'hace ' + Math.round(m / 60) + ' h' : 'hace ' + Math.round(m / 1440) + ' días'; };
+  const R = (st.fue || [[]]).slice(1).filter(r => r[0]).map(r => ({f: String(r[0]), o: String(r[1] || ''), fr: String(r[2] || ''), u: String(r[3] || ''), h: String(r[4] || ''), e: String(r[5] || '').trim(), n: String(r[6] || ''), rv: String(r[7] || '')}));
+  /* En vivo: Flash (cada 30 min de 9:00 a 22:00) y Garantías (Fuentes > GARANTIAS_TOMADO) */
+  const fl = R.find(x => /^flash/i.test(x.f)), fr = (st.flash || [[]])[1];
+  if (fl && fr && fr[8]) { fl.u = String(fr[8]); fl.h = String(fr[6] || fl.h); const x = P(fl.u), d = new Date(ahora), hm = d.getUTCHours() * 60 + d.getUTCMinutes();
+    const lim = hm >= 570 && hm <= 1350 ? ahora - 90 * 60000 : Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - (hm < 570 ? 1 : 0), 21, 0);
+    fl.e = x != null && x >= lim ? 'Al día' : 'Atrasado'; fl.n = fl.e === 'Al día' ? 'Venta de hoy en curso' : 'El ERP no se lee desde ' + fF(fl.u, 1); }
+  const ga = R.find(x => /garant/i.test(x.f)), gt = st.gar && st.gar.tomado;
+  if (ga && gt && (P(gt) || 0) > (P(ga.u) || 0)) ga.u = gt;
+  const ORD = {'Atrasado': 0, 'Atención': 1, 'Al día': 2, 'A pedido': 3}, CL = {'Atrasado': 'bad', 'Atención': 'warn', 'Al día': 'good', 'A pedido': 'na'};
+  R.sort((a, b) => (ORD[a.e] ?? 1) - (ORD[b.e] ?? 1));
+  const cnt = k => R.filter(x => x.e === k).length, nA = cnt('Atrasado');
+  const b = $('#nFue'); if (b) b.textContent = nA || '';
+  const rv = R.reduce((a, x) => (P(x.rv) || 0) > (P(a) || 0) ? x.rv : a, '');
+  $('#fueSub').textContent = [nA && nA + ' atrasada' + (nA > 1 ? 's' : ''), cnt('Atención') && cnt('Atención') + ' en atención', cnt('Al día') + ' al día', cnt('A pedido') && cnt('A pedido') + ' a pedido'].filter(Boolean).join(' · ') + (rv ? ' · revisado ' + fF(rv, 1) : '');
+  if (!R.length) { el.innerHTML = '<div class="empty">Todavía no hay fuentes registradas.</div>'; return; }
+  el.innerHTML = '<div class="fue-l">' + R.map(x => `<div class="fue-it"><span class="pill" style="background:var(--${CL[x.e] || 'na'}-soft);color:var(--${CL[x.e] || 'na'})">${esc(x.e || '–')}</span>
+    <div class="fue-tx"><b>${esc(x.f)}</b><div class="small faint">${esc(x.o)}${x.fr ? ' · ' + esc(x.fr) : ''}</div>
+    <div class="small">Actualizado ${esc(fF(x.u, 1) || '–')}${x.u ? ' <span class="faint">(' + esc(hace(x.u)) + ')</span>' : ''}${x.h ? ' · datos hasta ' + esc(fF(x.h)) : ''}</div>
+    ${x.n ? `<div class="small faint">${esc(x.n)}</div>` : ''}</div></div>`).join('') + '</div>';
+}
+const VISTAS = ['hoy','calendario','mispendientes','fuentes','flash','anuncios','pendientes','whatsapp','inventario','vivo','transferencias','politicas','reclamos','guias','perchas','supervisores','equipo','enlaces'];
 function ir(v){
   if (v === 'vivo') v = 'inventario';   // En vivo está arriba de Inventario
   if (v === 'supervisores') v = 'equipo';
@@ -2675,22 +2715,28 @@ function renderWA(){
   const el = $('#waBody'); if (!el || !st.d) return;
   const hoy = st.d.hoy, url = String(st.d.cfg.URL_APP || '').trim(), G = waGerentes();
   const todas = st.d.tiendas.filter(t => t.activa && enCiudad(t.nombre));
-  const L = [], aldia = [];
-  todas.forEach(t => { const g = waTemas(t.nombre, hoy); if (g.n || g.auto) L.push({t, g}); else aldia.push(WA_VIS[t.nombre] || t.nombre); });
-  L.sort((a, b) => b.g.venc.length - a.g.venc.length || b.g.hoy.length - a.g.hoy.length || b.g.n - a.g.n || a.t.nombre.localeCompare(b.t.nombre));
-  st.waMsg = {};
-  const pend = L.filter(x => !waLS('wa:' + hoy + ':' + x.t.nombre)).length;
-  const nb = $('#nWa'); if (nb) nb.textContent = pend || '';
-  const autoOn = waLS('waAuto') !== 'no';
   /* wl1: aviso automático diario (WhatsAppApi.gs anota cada envío en la pestaña 'WhatsApp enviados' de la hoja privada) */
   if (st.waLog === undefined) { st.waLog = null; getRange("'WhatsApp enviados'!A1:E", true, CLAVES).then(v => { st.waLog = v; renderWA(); }, () => { st.waLog = []; }); }
   const AU = {}; (st.waLog || []).slice(1).forEach(r => { if (String(r[0]).slice(0, 10) === hoy && !/prueba/i.test(r[3] || '')) AU[r[1]] = r; });
   const auL = Object.values(AU), auOk = auL.filter(r => r[3] === 'Enviado').length, auMal = auL.length - auOk;
   const auPill = r => r ? `<span class="pill ${r[3] === 'Enviado' ? 'p-good' : 'p-bad'}" title="${esc(r[4] || '')}">${r[3] === 'Enviado' ? 'Aviso automático ' + esc(String(r[0]).slice(11, 16)) : 'Aviso automático: ' + esc(r[3])}</span>` : '';
-  el.innerHTML = `<div class="sec-h"><h2>Enviar por WhatsApp</h2><span class="hint">Solo tú ves esto. Se arma solo con los datos de hoy; puedes editar el texto antes de enviarlo.</span></div>
-    <div class="filters"><button class="chip${autoOn ? ' on' : ''}" id="waAuto">Incluir autosupervisión atrasada</button>
+  /* sg1: seguimiento (Diego 2026-10-28): el aviso ya sale solo; lo útil es saber qué tienda se movió después del aviso */
+  const hm = v => { const m = /(\d{4}-\d{2}-\d{2})\s+(\d{1,2}):(\d{2})/.exec(String(v || '')); return m ? m[1] + ' ' + m[2].padStart(2, '0') + ':' + m[3] : ''; };
+  const seg = n => { const r = AU[n]; if (!r || r[3] !== 'Enviado') return ''; const t0 = hm(r[0]); return st.d.pend.some(p => p.tienda === n && hm(p.act) > t0) ? 'ok' : 'no'; };
+  const segPill = n => { const r = AU[n], e = seg(n); if (!r) return ''; const h = esc(hm(r[0]).slice(11));
+    return e === 'ok' ? `<span class="pill p-good">Ya actualizó · aviso ${h}</span>` : e === 'no' ? `<span class="pill p-bad">Sin moverse desde el aviso de las ${h}</span>` : `<span class="pill p-bad" title="${esc(r[4] || '')}">Aviso no salió: ${esc(r[3])}</span>`; };
+  const L = [], aldia = [];
+  todas.forEach(t => { const g = waTemas(t.nombre, hoy); if (g.n || g.auto || AU[t.nombre]) L.push({t, g}); else aldia.push(WA_VIS[t.nombre] || t.nombre); });
+  const sgO = n => ({no: 0, '': AU[n] ? 0 : 1, ok: 2})[seg(n)];
+  L.sort((a, b) => sgO(a.t.nombre) - sgO(b.t.nombre) || b.g.venc.length - a.g.venc.length || b.g.hoy.length - a.g.hoy.length || b.g.n - a.g.n || a.t.nombre.localeCompare(b.t.nombre));
+  st.waMsg = {};
+  const pend = L.filter(x => seg(x.t.nombre) === 'no' && !waLS('wa:' + hoy + ':' + x.t.nombre)).length;
+  const nb = $('#nWa'); if (nb) nb.textContent = pend || '';
+  const autoOn = waLS('waAuto') !== 'no';
+  el.innerHTML = `<div class="sec-h"><h2>Seguimiento de WhatsApp</h2><span class="hint">Solo tú ves esto. Qué tiendas se movieron después del aviso de la mañana.</span></div>
+    <div class="filters">
       ${st.wa == null ? '<span class="cnt-warn small">No se pudo leer la pestaña "WhatsApp gerentes" de la hoja privada.</span>' : ''}</div>
-    <p class="small" style="margin:0 2px 10px">${auL.length ? `Aviso automático de hoy: <b>${auOk} enviado${auOk === 1 ? '' : 's'}</b>${auMal ? `, <span class="cnt-warn">${auMal} sin enviar</span>` : ''}.` : 'El aviso automático sale cada mañana entre 9:00 y 10:00 a cada gerente con algo vencido o que vence hoy.'} Las respuestas te llegan a tu WhatsApp.</p>
+    <p class="small" style="margin:0 2px 10px">${auL.length ? `Aviso automático de hoy: <b>${auOk} enviado${auOk === 1 ? '' : 's'}</b>${auMal ? `, <span class="cnt-warn">${auMal} sin enviar</span>` : ''}.` : 'El aviso automático sale cada mañana entre 9:00 y 10:00 a cada gerente con algo vencido o que vence hoy.'}${auOk ? ` Ya actualizaron <b>${auL.filter(r => seg(r[1]) === 'ok').length}</b>; sin moverse <b>${auL.filter(r => seg(r[1]) === 'no').length}</b>.` : ''} Las respuestas te llegan a tu WhatsApp.</p>
     <div class="panel flush">${!L.length ? '<div class="empty">Ninguna tienda tiene temas atrasados ni críticos hoy.</div>' : L.map(({t, g}) => {
       const ger = G[t.nombre] || {}, tel = telIntl(ger.cel), env = waLS('wa:' + hoy + ':' + t.nombre);
       const enlace = t.token ? GH_TEFES + '?t=' + encodeURIComponent(t.token) : '';
@@ -2700,20 +2746,20 @@ function renderWA(){
         g.auto && '<span class="pill p-na">Autosupervisión</span>'].filter(Boolean).join('');
       return `<div class="wa-it${env ? ' env' : ''}" data-t="${esc(t.nombre)}">
         <div class="wa-cab"><span class="store">${esc(WA_VIS[t.nombre] || t.nombre)}</span><span class="small faint">${ger.nombre ? esc(ger.nombre) + (ger.cel ? ' · ' + esc(ger.cel) : ' · <span class="cnt-warn">falta celular</span>') : '<span class="cnt-warn">falta gerente y celular</span>'}</span>
-          ${env ? `<span class="pill p-good">Enviado hoy ${esc(env)}</span>` : ''}${auPill(AU[t.nombre])}<span class="pills">${pills}</span></div>
-        <textarea rows="${msg.split('\n').length + 1}" aria-label="Mensaje para ${esc(t.nombre)}">${esc(msg)}</textarea>
-        <div class="wa-acc"><button class="btn" data-a="copiar">Copiar</button>
-          ${tel ? '<button class="btn wa" data-a="wa">Abrir WhatsApp</button>' : ''}
+          ${env ? `<span class="pill p-good">Enviado hoy ${esc(env)}</span>` : ''}${segPill(t.nombre)}<span class="pills">${pills}</span></div>
+        <textarea hidden rows="${msg.split('\n').length + 1}" aria-label="Mensaje para ${esc(t.nombre)}">${esc(msg)}</textarea>
+        <div class="wa-acc">${tel ? `<button class="btn${seg(t.nombre) === 'no' ? ' wa' : ''}" data-a="wa">Escribirle</button>` : '<button class="btn" data-a="copiar">Copiar mensaje</button>'}<button class="btn" data-a="ver">Ver mensaje</button>
           <button class="btn" data-a="editar" style="margin-left:auto">${ger.cel ? 'Cambiar gerente o celular' : 'Poner celular'}</button></div>
       </div>`; }).join('')}
       ${aldia.length ? `<div class="wa-aldia">Al día: ${aldia.map(esc).join(', ')}.</div>` : ''}</div>
-    <p class="small faint" style="margin:8px 2px 0">Entra lo vencido, lo que vence hoy, lo devuelto a la tienda y lo de prioridad alta, más la autosupervisión si pasó de ${Number(st.d.cfg.DIAS_AUTOSUPERVISION) || 7} días. Los celulares están en la hoja privada, pestaña "WhatsApp gerentes".</p>`;
-  $('#waAuto').onclick = () => { waLS('waAuto', autoOn ? 'no' : 'si'); renderWA(); };
+    <p class="small faint" style="margin:8px 2px 0">«Ya actualizó» = la tienda movió algún pendiente después del aviso. «Escribirle» abre tu WhatsApp con un mensaje listo para esa tienda. Los celulares están en la hoja privada, pestaña "WhatsApp gerentes".</p>`;
   el.querySelectorAll('.wa-it').forEach(box => {
     const nombre = box.dataset.t, ta = box.querySelector('textarea'), ger = G[nombre] || {};
     const alto = () => { if (!ta.offsetParent) return; ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 2 + 'px'; };   // con la pestaña oculta no se mide (quedaba aplastado) requestAnimationFrame(alto); ta.oninput = alto;
     const marcar = () => { waLS('wa:' + hoy + ':' + nombre, new Date().toTimeString().slice(0, 5)); setTimeout(renderWA, 400); };
-    box.querySelector('[data-a="copiar"]').onclick = async () => {
+    box.querySelector('[data-a="ver"]').onclick = () => { ta.hidden = !ta.hidden; alto(); };
+    const cp = box.querySelector('[data-a="copiar"]');
+    if (cp) cp.onclick = async () => {
       try { await navigator.clipboard.writeText(ta.value); } catch (e) { ta.select(); try { document.execCommand('copy'); } catch (e2) {} }
       toast('Mensaje copiado. Pégalo en el chat de ' + (ger.nombre || nombre) + '.'); marcar();
     };
@@ -3634,12 +3680,14 @@ function nuevaSupervision(){
   $('#drawer').innerHTML = `<div class="drawer-bg"><div class="drawer" role="dialog" aria-label="Nueva supervisión">
     <div style="display:flex;justify-content:space-between;align-items:center"><h2>Nueva supervisión</h2><button class="btn" id="dClose">Cerrar</button></div>
     <p class="small muted" style="margin:0">Elige la tienda. El formulario se abre en otra pestaña y, al guardarlo, aparece aquí al pulsar Actualizar.</p>
+    <label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="nsExp"> ⚡ Express: 25 puntos clave (cuenta como supervisión completa; lo que no revises cuenta como Cumple)</label>
     <div>${L.map(fila).join('')}</div>
   </div></div>`;
   const cerrar = () => $('#drawer').innerHTML = '';
   $('#dClose').onclick = cerrar;
   $('.drawer-bg').onclick = e => { if (e.target.classList.contains('drawer-bg')) cerrar(); };
-  document.querySelectorAll('#drawer a.ns-row').forEach(a => a.addEventListener('click', () => setTimeout(cerrar, 100)));
+  document.querySelectorAll('#drawer a.ns-row').forEach(a => { a.dataset.base = a.getAttribute('href'); a.addEventListener('click', () => setTimeout(cerrar, 100)); });
+  $('#nsExp').onchange = e => document.querySelectorAll('#drawer a.ns-row').forEach(a => a.href = a.dataset.base + (e.target.checked ? '&sup=' + encodeURIComponent('Administrador') + '&exp=1' : ''));   // ex1: supervisión express
 }
 $('#nuevaSup').onclick = nuevaSupervision;
 $('#anNuevo').onclick = () => { const a = $('#anuncios'); a.classList.toggle('nuevo'); $('#anNuevo').textContent = a.classList.contains('nuevo') ? 'Cerrar' : 'Nuevo anuncio'; if (a.classList.contains('nuevo') && $('#anTit')) $('#anTit').focus(); };
@@ -4089,6 +4137,8 @@ function peEnlazar(el){
   });
 }
 window.peAbrir = () => { if (!PE.listo) peIniciar(); else pePintar(); };
+(async () => { const u = await window.claude?.use?.('user'); const b = document.querySelector('#tabs button[data-v="fuentes"]');   // ef1
+  if (b && u && await u.isOwner().catch(() => false)) b.hidden = false; })();
 (async () => { const u = await window.claude?.use?.('user'); const b = document.querySelector('#tabs button[data-v="perchas"]');
   if (b && u && await u.isOwner().catch(() => false)) b.hidden = false; })();
 if (typeof st !== 'undefined' && st.tab === 'perchas') peAbrir();
@@ -5154,8 +5204,8 @@ function CAL_YO(){ const r = (st.sv || []).slice(1).find(r => /diego/i.test(Stri
 <script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "Buscar: inventario, Mall Sol, caja chica, política…",
-  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy", "calendario", "mispendientes"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "reclamos"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "whatsapp", "inventario", "transferencias", "perchas"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Personas", "vistas": ["equipo"]}, {"id": "ajustes", "nombre": "Contactos", "vistas": ["enlaces"]}],
-  items: [{"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Mis pendientes con otras áreas", "v": "mispendientes", "sub": "Hoy · solo tú", "kw": "tareas todo lista bodega cedis contabilidad talento humano rrhh compras sistemas gerencia marketing areas departamentos"}, {"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa, validar y anuncios", "kw": "inicio resumen mapa validar anuncios actividades caja chica avisos"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Transferencias", "v": "transferencias", "sub": "Tiendas · solo tú", "kw": "transferencias traslados envios agencias cedis semaforo diferencias faltantes sobrantes arregladas gestion erp producto codigo"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Inventario en vivo", "v": "inventario", "sub": "Tiendas · quién está contando ahora", "kw": "conteo vivo contando ahora", "go": () => TEM_ABRIR("#cvBox")}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Clientes", "v": "reclamos", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Garantías extendidas", "v": "flash", "sub": "Ventas", "kw": "garantia garantias extendidas", "go": () => TEM_ABRIR("#garBody")}, {"t": "WhatsApp a gerentes", "v": "whatsapp", "sub": "Tiendas · vencidos, vencen hoy y devueltos", "kw": "whatsapp mensajes avisos gerentes kapso"}, {"t": "Perchas", "v": "perchas", "sub": "Tiendas · exhibición", "kw": "perchas exhibicion layout planograma"}, {"t": "Equipo de supervisores", "v": "equipo", "sub": "Personas", "kw": "supervisores equipo visitas ranking personas"}, {"t": "Contactos de tiendas", "v": "enlaces", "sub": "Contactos", "kw": "contactos telefono llamar whatsapp correo direccion horario tienda numero"}, {"t": "Enlaces para compartir", "v": "enlaces", "sub": "Contactos", "kw": "enlaces links claves compartir gerentes supervisores portal ajustes configuracion"}, {"t": "Nueva supervisión", "sub": "Abrir el formulario", "kw": "supervisar visita checklist nueva supervision", "go": () => document.querySelector("#nuevaSup").click()}],
+  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy", "calendario", "mispendientes", "fuentes"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "reclamos"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "whatsapp", "inventario", "transferencias", "perchas"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Personas", "vistas": ["equipo"]}, {"id": "ajustes", "nombre": "Contactos", "vistas": ["enlaces"]}],
+  items: [{"t": "Estado de la información", "v": "fuentes", "sub": "Hoy · solo tú", "kw": "fuentes datos actualizado actualizacion erp onedrive codex pos atrasado ultima extraccion estado informacion"}, {"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Mis pendientes con otras áreas", "v": "mispendientes", "sub": "Hoy · solo tú", "kw": "tareas todo lista bodega cedis contabilidad talento humano rrhh compras sistemas gerencia marketing areas departamentos"}, {"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa, validar y anuncios", "kw": "inicio resumen mapa validar anuncios actividades caja chica avisos"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Transferencias", "v": "transferencias", "sub": "Tiendas · solo tú", "kw": "transferencias traslados envios agencias cedis semaforo diferencias faltantes sobrantes arregladas gestion erp producto codigo"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Inventario en vivo", "v": "inventario", "sub": "Tiendas · quién está contando ahora", "kw": "conteo vivo contando ahora", "go": () => TEM_ABRIR("#cvBox")}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Clientes", "v": "reclamos", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Garantías extendidas", "v": "flash", "sub": "Ventas", "kw": "garantia garantias extendidas", "go": () => TEM_ABRIR("#garBody")}, {"t": "WhatsApp a gerentes", "v": "whatsapp", "sub": "Tiendas · vencidos, vencen hoy y devueltos", "kw": "whatsapp mensajes avisos gerentes kapso"}, {"t": "Perchas", "v": "perchas", "sub": "Tiendas · exhibición", "kw": "perchas exhibicion layout planograma"}, {"t": "Equipo de supervisores", "v": "equipo", "sub": "Personas", "kw": "supervisores equipo visitas ranking personas"}, {"t": "Contactos de tiendas", "v": "enlaces", "sub": "Contactos", "kw": "contactos telefono llamar whatsapp correo direccion horario tienda numero"}, {"t": "Enlaces para compartir", "v": "enlaces", "sub": "Contactos", "kw": "enlaces links claves compartir gerentes supervisores portal ajustes configuracion"}, {"t": "Nueva supervisión", "sub": "Abrir el formulario", "kw": "supervisar visita checklist nueva supervision", "go": () => document.querySelector("#nuevaSup").click()}],
   extra: function(){
     const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
     (S.d.tiendas || []).filter(t => t.activa).forEach(t => out.push({grupo: 'Tiendas', t: t.nombre, sub: 'Pendientes de ' + t.nombre, kw: 'tienda local', v: 'pendientes',
@@ -5273,6 +5323,56 @@ window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "af
     const t = e.target, escribe = t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable);
     if (e.key === '/' && !escribe && !e.metaKey && !e.ctrlKey) { e.preventDefault(); inp.focus(); }
   });
+})();
+</script>
+<style>/* pm1: Pendientes en el celular (Diego 2026-10-28): filtros en una fila, pestañas por estado, tarjetas bajas, "Más fallan" plegado, buscador que se esconde al bajar */
+.pm-tabs{display:none}
+@media(max-width:700px){
+  #explorer .filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;gap:6px;margin-bottom:10px}
+  #explorer .filters::-webkit-scrollbar{display:none}
+  #explorer .filters select{flex:0 0 auto;max-width:55vw;border-radius:999px;padding:6px 12px;font-size:14px}
+  #explorer .filters .chip,#explorer .filters #fEstado{flex:0 0 auto;white-space:nowrap}
+  #masFallan{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+  #masFallan:not(:empty)::before{content:"▸ "}
+  #masFallan.pm-abierto{white-space:normal}
+  #masFallan.pm-abierto::before{content:"▾ "}
+  .pm-tabs{display:flex;gap:6px;margin-bottom:10px}
+  .pm-tabs button{flex:1 1 0;min-width:0;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:7px 4px;font-weight:600;font-size:14px;white-space:nowrap}
+  .pm-tabs button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .pm-tabs b{margin-left:5px;opacity:.85}
+  #plist .board{grid-template-columns:minmax(0,1fr)!important;overflow:visible}
+  #plist .kcol:not(.pm-on){display:none!important}
+  #plist .kcol{background:none;padding:0;min-height:0;border:0}
+  #plist .kcol .kh,#plist .board+p{display:none}
+  #plist .kcard{padding:8px 10px;gap:3px}
+  #plist .kcard .kt{-webkit-line-clamp:2}
+  #plist .kcard .kmeta{gap:6px}
+  #plist .kcard .mv{display:none!important}
+  .tem-buscar{transition:max-height .2s,margin .2s,opacity .2s;max-height:64px}
+  body.pm-baja .tem-buscar{max-height:0;opacity:0;margin-top:0!important;margin-bottom:0!important;overflow:hidden}
+}
+</style>
+<script>
+(function(){   /* pm1 */
+  const plist = document.getElementById('plist'); if (!plist) return;
+  let col = 'Pendiente'; try { col = sessionStorage.getItem('pmCol') || col; } catch (e) {}
+  const pintar = () => {
+    const b = plist.querySelector('.board'); if (!b) return;
+    const cols = Array.from(b.querySelectorAll('.kcol')); if (!cols.length) return;
+    if (!cols.some(c => c.dataset.col === col)) col = cols[0].dataset.col;
+    let t = plist.querySelector('.pm-tabs');
+    if (!t) { t = document.createElement('div'); t.className = 'pm-tabs'; plist.insertBefore(t, b); }
+    const html = cols.map(c => { const kh = c.querySelector('.kh'), nom = kh && kh.querySelector('b') ? kh.querySelector('b').textContent : c.dataset.col, n = kh && kh.querySelector('span') ? kh.querySelector('span').textContent : '';
+      return '<button type="button" data-c="' + c.dataset.col + '" class="' + (c.dataset.col === col ? 'on' : '') + '">' + nom + '<b>' + n + '</b></button>'; }).join('');
+    if (t.innerHTML !== html) t.innerHTML = html;
+    cols.forEach(c => c.classList.toggle('pm-on', c.dataset.col === col));
+  };
+  plist.addEventListener('click', e => { const bt = e.target.closest('.pm-tabs button'); if (!bt) return; col = bt.dataset.c; try { sessionStorage.setItem('pmCol', col); } catch (x) {} pintar(); });
+  new MutationObserver(pintar).observe(plist, {childList: true});
+  pintar();
+  const mf = document.getElementById('masFallan'); if (mf) mf.addEventListener('click', () => mf.classList.toggle('pm-abierto'));
+  let y0 = window.scrollY;
+  addEventListener('scroll', () => { const y = window.scrollY; if (Math.abs(y - y0) < 12) return; document.body.classList.toggle('pm-baja', y > y0 && y > 120); y0 = y; }, {passive: true});
 })();
 </script>
 </body></html>
