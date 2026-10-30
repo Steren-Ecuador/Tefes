@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (90bbc694a0c7). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (76605d8b9180). No editar a mano. -->
 <html lang="es" data-theme="light">
 <head>
 <base target="_top">
@@ -2183,7 +2183,7 @@ function detalleTienda(nombre){
 }
 
 /* ---------- inventario: Muestreo Top 50 de la semana, solo lectura (vía apiInventarioPanel) ---------- */
-function renderInventario(){
+function renderInventarioV1(){
   const el = $('#invBody'); if (!el || !st.d || st.inv === undefined) return;
   if (!st.inv) { el.innerHTML = '<section class="panel"><div class="empty">No se pudo leer el Muestreo Top 50. Pulsa Actualizar.</div></section>'; return; }
   const I = st.inv, hoy = st.d.hoy, lu = new Date(I.vence + 'T12:00'); lu.setDate(lu.getDate() - 2);
@@ -2247,6 +2247,115 @@ function renderInventario(){
   el.querySelectorAll('[data-pr]').forEach(d => d.onclick = () => { const x = pendRev[+d.dataset.pr]; invDetalle(x.t, x.sem, x.cic ? 'cic' : ''); if (st.ivUI) { st.ivUI.ver = 'sinrev'; invPintar(); } });
   el.querySelectorAll('[data-ord]').forEach(b => b.onclick = e => { e.stopPropagation(); const k = b.dataset.ord; st.invOrd = st.invOrd.k === k ? {k, d: -st.invOrd.d} : {k, d: +b.dataset.d0};
     try { localStorage.setItem('invOrdSup', JSON.stringify(st.invOrd)); } catch (x) {} renderInventario(); });
+  const bi = $('#invBusca'); bi.oninput = () => { st.invQ = bi.value; invBuscar(); }; invBuscar();
+}
+/* iv2 (panel de supervisores): lo que el panel de Diego ya tiene y aquí falta. Documentos de cobro se lee por apiInvLeer (solo sus tiendas). */
+const semanaIso = d => { const f = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); f.setUTCDate(f.getUTCDate() - (f.getUTCDay() + 6) % 7 + 3);
+  const e4 = new Date(Date.UTC(f.getUTCFullYear(), 0, 4)); return f.getUTCFullYear() + '-S' + String(1 + Math.round(((f - e4) / 864e5 - 3 + (e4.getUTCDay() + 6) % 7) / 7)).padStart(2, '0'); };
+const lunesDe = sem => { const m = /^(\d{4})-S(\d{2})$/.exec(sem), e4 = new Date(Date.UTC(+m[1], 0, 4)); return new Date(e4.getTime() - ((e4.getUTCDay() + 6) % 7) * 864e5 + (+m[2] - 1) * 7 * 864e5); };
+const CBD_TAB = "'Documentos de cobro'";
+const cbNum = v => { const s = String(v == null ? '' : v).trim(); if (!s) return 0; const n = Number(s.indexOf(',') >= 0 ? s.replace(/\./g, '').replace(',', '.') : s); return isNaN(n) ? 0 : n; };
+const cbFilas = () => [];   // los cobros por persona son solo del panel de Diego
+function cbLeer(){ if (st.cbd !== undefined || !st.yo) return; st.cbd = null; getRange(CBD_TAB + '!A1:M').then(d => { st.cbd = d || []; }, () => { st.cbd = []; }).then(renderInventario); }
+/* iv2: Inventarios por semana → tienda → estado (Diego 2026-10-30). Reemplaza la pantalla anterior (tabla, En vivo, pendientes, cobros con valores).
+   Estados: Programado · Contando · Enviado a revisión · Revisado sin novedades / con novedades (→ facturado, acta firmada) · Informe a RRHH y Auditoría · Cerrado.
+   Documentos por informe en la pestaña privada 'Documentos de cobro' (C Acta · E Factura · I RRHH · L Auditoría · M Fecha auditoría). */
+function iv2Tomas(){
+  const me = (st.mue.me || []).slice(1).filter(r => r[0] && r[1]), ml = (st.mue.ml || []).slice(1).filter(r => r[0] && r[1]);
+  const esCic = r => /c[ií]clico/i.test(String(r[6] || '')), T = {};
+  const add = (sem, t, tipo) => { const k = sem + '|' + t + '|' + tipo; return T[k] = T[k] || {k, sem, t, tipo, fase: '', act: '', por: '', n: 0}; };
+  ml.forEach(r => add(String(r[0]), r[1], esCic(r) ? 'Cíclico' : 'Top 50').n++);
+  me.forEach(r => ['Top 50', 'Cíclico'].forEach(tipo => { const x = T[r[0] + '|' + r[1] + '|' + tipo]; if (x || tipo === 'Top 50') Object.assign(add(String(r[0]), r[1], tipo), {fase: r[2] || '', act: r[3] || '', por: r[4] || ''}); }));
+  const inf = {}; ((st.mue.inf) || []).slice(1).filter(r => r[0] && r[13] !== 'Archivado').forEach(r => { inf[r[3] + '|' + r[4] + '|' + (/c[ií]clico/i.test(r[5]) ? 'Cíclico' : 'Top 50')] = r; });
+  const cbs = cbFilas();
+  // actas hechas a mano (antes de la app): semana según la fecha del inventario
+  [...new Set(cbs.filter(x => /^Acta /.test(x.org)).map(x => x.org))].forEach(o => { const x = cbs.find(c => c.org === o), d = new Date(x.fecha + 'T12:00:00');
+    if (!isNaN(d)) Object.assign(add(semanaIso(d), x.t, 'Completo'), {fase: 'Enviado', manual: o}); });
+  return Object.values(T).map(x => {
+    const ir = inf[x.k], id = x.manual || (ir ? ir[0] : ''), des = x.manual ? cbs.filter(c => c.org === id).reduce((a, c) => a + c.v, 0) : ir ? cbNum(ir[11]) : 0;
+    const L = id ? cbs.filter(c => c.org === id) : [], d = id ? iv2Doc(id) : null, nov = des > 0.005;
+    const aOk = !!d && (d.acta === 'Firmada' || (L.length && L.every(c => c.est === 'Firmado'))), fOk = !!d && (d.fac === 'Emitida' || d.fac === 'Sin factura');
+    const env = x.fase === 'Enviado', cont = /contando|segundo|por enviar/i.test(x.fase);
+    let e, c, falta = '';
+    if (!env) { e = cont ? 'Contando' : 'Programado'; c = cont ? 'p-warn' : 'p-na'; }
+    else if (!id) { e = 'Enviado a revisión'; c = 'p-bad'; falta = 'Revisar y hacer el informe'; }
+    else if (!nov) { e = d.aud === 'Enviado' ? 'Cerrado' : 'Revisado sin novedades'; c = d.aud === 'Enviado' ? 'p-good' : 'p-acc'; if (d.aud !== 'Enviado') falta = 'Entregar el informe a Auditoría'; }
+    else if (!aOk || !fOk) { e = 'Revisado con novedades'; c = 'p-warn'; falta = 'Falta ' + [!fOk && 'la factura', !aOk && 'el acta firmada'].filter(Boolean).join(' y '); }
+    else if (d.rh !== 'Enviado' || d.aud !== 'Enviado') { e = 'Informe a RRHH y Auditoría'; c = 'p-acc'; falta = 'Entregar a ' + [d.rh !== 'Enviado' && 'RRHH', d.aud !== 'Enviado' && 'Auditoría'].filter(Boolean).join(' y '); }
+    else { e = 'Cerrado'; c = 'p-good'; }
+    return Object.assign(x, {id, nov, d, aOk, fOk, e, c, falta, tienda0: (L[0] || {}).t || x.t});
+  });
+}
+function iv2Doc(id){ const D = st.cbd || [], i = D.findIndex((r, k) => k && r && r[0] === id), r = i > 0 ? D[i] : [];
+  return {n: i > 0 ? i + 1 : 0, org: id, acta: r[2] || 'Pendiente', fActa: r[3] || '', fac: r[4] || 'Pendiente', nFac: r[5] || '', fFac: r[6] || '', motivo: r[7] || '', rh: r[8] || 'Pendiente', fRh: r[9] || '', aud: r[11] || 'Pendiente', fAud: r[12] || ''}; }
+async function iv2DocGuardar(d, tienda){
+  const v = [d.org, tienda || '', d.acta, d.fActa, d.fac, safe(d.nFac || ''), d.fFac, safe(d.motivo || ''), d.rh, d.fRh, stamp(), d.aud, d.fAud];
+  try {
+    let n = d.n; if (!n) { const a = await getRange(CBD_TAB + '!A1:A', true, CLAVES); n = Math.max(a.length, 1) + 1; }
+    await setRange(CBD_TAB + '!A' + n + ':M' + n, [v], CLAVES);
+    if (!st.cbd || !st.cbd.length) st.cbd = [[]]; while (st.cbd.length < n - 1) st.cbd.push([]); st.cbd[n - 1] = v; toast('Guardado');
+  } catch (e) { toast('No se pudo guardar: ' + (e && e.code ? errorCopy(e) : (e && e.message || e)), 5000); }
+  renderInventario();
+}
+const iv2RO = () => typeof ivPuede === 'function';   // panel de supervisores: solo ver (sin factura, acta ni entregas)
+const IV2_ORDEN = ['Enviado a revisión', 'Revisado con novedades', 'Informe a RRHH y Auditoría', 'Revisado sin novedades', 'Contando', 'Programado', 'Cerrado'];
+function renderInventario(){
+  const el = $('#invBody'); if (!el || !st.d) return;
+  const cv = document.getElementById('cvBox'); if (cv) cv.hidden = true;
+  if (!document.getElementById('iv2Css')) document.head.insertAdjacentHTML('beforeend', '<style id="iv2Css">.iv2-sems{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.iv2-sems::-webkit-scrollbar{display:none}.iv2-sems .chip{white-space:nowrap;font-weight:600}.iv2-sems .chip b{margin-left:4px;font-size:12px;opacity:.8}.iv2-li summary .faint{font-size:13px}.iv2-pasos{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:0}.iv2-pasos li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;padding:0 0 12px;position:relative;font-size:14px}.iv2-pasos li::before{content:"";position:absolute;left:10px;top:20px;bottom:0;width:2px;background:var(--line)}.iv2-pasos li:last-child::before{display:none}.iv2-pasos i{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;background:var(--surface-2);color:var(--fg-3);border:2px solid var(--line)}.iv2-pasos li.ok i{background:var(--good);border-color:var(--good);color:var(--surface)}.iv2-pasos li.ya i{border-color:var(--accent);color:var(--accent)}.iv2-pasos li.ya>div>b{color:var(--accent)}.iv2-pasos .acc{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.iv2-pasos input{width:180px}</style>');
+  if (iv2RO() && !st.mue) { el.innerHTML = !st.yo ? '<section class="panel"><div class="empty">Identifícate para ver los inventarios de tus tiendas.</div></section>' : st.pendRevErr ? '<section class="panel"><div class="empty">No se pudieron leer los inventarios. Pulsa Actualizar.</div></section>' : '<div class="skeleton">Cargando inventario…</div>';
+    if (st.yo && !st.pendRevErr) invPendCargar(); return; }
+  if (st.mue === undefined) { el.innerHTML = '<div class="skeleton">Cargando inventario…</div>'; return; }
+  if (!st.mue) { el.innerHTML = '<section class="panel"><div class="empty">No se pudo leer el inventario de la hoja privada.</div></section>'; return; }
+  if (st.cb === undefined) cbLeer();
+  const T = iv2Tomas().filter(x => enCiudad(x.t)), sems = [...new Set(T.map(x => x.sem))].sort().reverse();
+  if (!sems.length) { el.innerHTML = '<section class="panel"><div class="empty">Todavía no hay inventarios programados.</div></section>'; return; }
+  const hoySem = semanaIso(new Date()); let sem = st.iv2Sem && sems.indexOf(st.iv2Sem) >= 0 ? st.iv2Sem : (sems.indexOf(hoySem) >= 0 ? hoySem : sems.find(s => s <= hoySem) || sems[0]); st.iv2Sem = sem;
+  const abiertos = s => T.filter(x => x.sem === s && x.e !== 'Cerrado' && x.e !== 'Programado').length;
+  const lu = lunesDe(sem), do_ = new Date(lu.getTime() + 6 * 864e5), fd = x => x.getUTCDate() + ' ' + MESES_S[x.getUTCMonth()];
+  const W = T.filter(x => x.sem === sem).sort((a, b) => IV2_ORDEN.indexOf(a.e) - IV2_ORDEN.indexOf(b.e) || a.t.localeCompare(b.t) || a.tipo.localeCompare(b.tipo));
+  const cuenta = {}; W.forEach(x => cuenta[x.e] = (cuenta[x.e] || 0) + 1);
+  const ro = iv2RO(), paso = (est, tit, sub, acc) => `<li class="${est}"><i>${est === 'ok' ? '✓' : ''}</i><div><b>${tit}</b>${sub ? `<div class="small faint">${sub}</div>` : ''}${acc && !(ro && /data-iv2doc/.test(acc)) ? `<div class="acc">${acc}</div>` : ''}</div></li>`;
+  const pasos = x => { const d = x.d || iv2Doc(''), env = x.fase === 'Enviado', cont = env || /contando|segundo|por enviar/i.test(x.fase), k = esc(x.k);
+    const L = [paso('ok', 'Programado', x.manual ? 'Inventario completo hecho a mano' : x.n ? x.n + ' productos' : ''),
+      paso(env ? 'ok' : cont ? 'ya' : '', 'Contando', cont && x.por ? esc(x.por) + (x.fase && !env ? ' · ' + esc(x.fase) : '') : ''),
+      paso(x.id ? 'ok' : env ? 'ya' : '', 'Enviado a revisión', env && x.act ? esc(x.act) : '', env && !x.id ? `<button class="btn primary" data-iv2rev="${k}">Revisar y hacer el informe</button>` : ''),
+      paso(x.id ? 'ok' : '', x.id ? (x.nov ? 'Revisado con novedades' : 'Revisado sin novedades') : 'Revisado', x.id ? esc(x.id) + (x.nov ? ' · hay descuento al personal' : '') : '', x.id && !x.manual ? `<button class="btn" data-iv2rev="${k}">Ver revisión</button>` : '')];
+    if (x.nov) L.push(
+      paso(x.fOk ? 'ok' : x.id ? 'ya' : '', 'Facturado', d.fac === 'Emitida' ? 'Factura ' + esc(d.nFac) + ' · ' + esc(d.fFac) : d.fac === 'Sin factura' ? 'Sin factura · ' + esc(d.motivo) : '',
+        x.fOk ? `<button class="btn" data-iv2doc="${k}" data-q="facx">Cambiar</button>` : `<input type="text" data-iv2nf="${k}" placeholder="No. de factura o motivo" aria-label="Número de factura o motivo sin factura"><button class="btn" data-iv2doc="${k}" data-q="fac">Factura</button><button class="btn" data-iv2doc="${k}" data-q="sin">Sin factura</button>`),
+      paso(x.aOk ? 'ok' : x.id ? 'ya' : '', 'Acta firmada', x.aOk && d.fActa ? esc(d.fActa) : '', x.aOk ? '' : `<button class="btn" data-iv2doc="${k}" data-q="acta">Acta firmada</button>`));
+    const listo = x.id && (!x.nov || (x.aOk && x.fOk));
+    L.push(paso(x.e === 'Cerrado' ? 'ok' : listo ? 'ya' : '', x.nov ? 'Informe a RRHH y Auditoría' : 'Informe a Auditoría',
+      [x.nov && d.rh === 'Enviado' && 'RRHH ' + esc(d.fRh), d.aud === 'Enviado' && 'Auditoría ' + esc(d.fAud)].filter(Boolean).join(' · '),
+      listo ? [x.nov && d.rh !== 'Enviado' && `<button class="btn primary" data-iv2doc="${k}" data-q="rh">Entregado a RRHH</button>`, d.aud !== 'Enviado' && `<button class="btn primary" data-iv2doc="${k}" data-q="aud">Entregado a Auditoría</button>`].filter(Boolean).join('') : ''));
+    L.push(paso(x.e === 'Cerrado' ? 'ok' : '', 'Cerrado', '', x.e === 'Cerrado' ? `<button class="btn" data-iv2doc="${k}" data-q="reabrir">Reabrir</button>` : ''));
+    return `<ol class="iv2-pasos">${L.join('')}</ol>`; };
+  el.innerHTML = `<div><div class="sec-h"><h2>Inventarios</h2><span class="hint">Semana del ${fd(lu)} al ${fd(do_)}</span></div>
+    <div class="iv2-sems" role="group" aria-label="Semana">${sems.map(s => `<button class="chip${s === sem ? ' on' : ''}" data-iv2sem="${esc(s)}">Semana ${esc(s.slice(-2))}${abiertos(s) ? `<b>${abiertos(s)}</b>` : ''}</button>`).join('')}</div>
+    <p class="small faint" style="margin:10px 0">${IV2_ORDEN.filter(e => cuenta[e]).map(e => cuenta[e] + ' ' + e.replace(/^./, c => c.toLowerCase())).join(' · ')}</p>
+    <div class="panel flush">${W.map(x => `<details class="li iv2-li"${st.iv2Abierto === x.k ? ' open' : ''} data-iv2k="${esc(x.k)}"><summary><div><div class="store">${esc(x.t)}${x.tipo !== 'Top 50' ? ` <span class="small faint">· ${esc(x.tipo === 'Completo' ? 'inventario completo' : 'cíclico')}</span>` : ''}</div>
+      ${x.falta ? `<div class="small faint">${esc(x.falta)}</div>` : ''}</div><span class="pill ${x.c}">${esc(x.e)}</span></summary>${pasos(x)}</details>`).join('')}</div></div>
+    <div class="iv-glob"><input type="search" id="invBusca" placeholder="Buscar un código en todas las tiendas" aria-label="Buscar un código en todas las tiendas" autocomplete="off" value="${esc(st.invQ || '')}"><div id="invBuscaRes"></div></div>`;
+  $('#nInv').textContent = T.filter(x => x.e === 'Enviado a revisión').length || '';
+  el.querySelectorAll('[data-iv2sem]').forEach(b => b.onclick = () => { st.iv2Sem = b.dataset.iv2sem; st.iv2Abierto = null; renderInventario(); });
+  el.querySelectorAll('details[data-iv2k]').forEach(d => d.ontoggle = () => { if (d.open) st.iv2Abierto = d.dataset.iv2k; else if (st.iv2Abierto === d.dataset.iv2k) st.iv2Abierto = null; });
+  const por = k => W.find(x => x.k === k);
+  el.querySelectorAll('[data-iv2rev]').forEach(b => b.onclick = () => { const x = por(b.dataset.iv2rev); (typeof invAbrir === 'function' ? invAbrir : invDetalle)(x.t, x.sem, x.tipo === 'Cíclico' ? 'cic' : ''); });
+  el.querySelectorAll('[data-iv2doc]').forEach(b => b.onclick = async () => {
+    const x = por(b.dataset.iv2doc), q = b.dataset.q, d = Object.assign({}, x.d || iv2Doc(x.id)), hoy = hoyISO();
+    const inp = el.querySelector('[data-iv2nf="' + CSS.escape(x.k) + '"]'), s = inp ? inp.value.trim() : '';
+    if ((q === 'fac' || q === 'sin') && !s) { toast(q === 'fac' ? 'Escribe el número de factura' : 'Escribe el motivo por el que no hay factura'); return; }
+    b.disabled = true;
+    if (q === 'fac') Object.assign(d, {fac: 'Emitida', nFac: s, fFac: hoy, motivo: ''});
+    if (q === 'sin') Object.assign(d, {fac: 'Sin factura', nFac: '', fFac: hoy, motivo: s});
+    if (q === 'facx') Object.assign(d, {fac: 'Pendiente', nFac: '', fFac: '', motivo: ''});
+    if (q === 'rh') Object.assign(d, {rh: 'Enviado', fRh: hoy});
+    if (q === 'aud') Object.assign(d, {aud: 'Enviado', fAud: hoy});
+    if (q === 'reabrir') Object.assign(d, {aud: 'Pendiente', fAud: '', rh: 'Pendiente', fRh: ''});
+    if (q === 'acta') { Object.assign(d, {acta: 'Firmada', fActa: hoy}); const L = cbFilas().filter(c => c.org === x.id); if (L.length) await cbGuardar(L.map(c => Object.assign({}, c, {est: 'Firmado'}))); }
+    iv2DocGuardar(d, x.tienda0);
+  });
   const bi = $('#invBusca'); bi.oninput = () => { st.invQ = bi.value; invBuscar(); }; invBuscar();
 }
 /* un código (o parte de él, o barras) en todas las tiendas y semanas, igual que el admin.
