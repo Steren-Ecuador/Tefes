@@ -2422,6 +2422,15 @@ async function invAbrir(tienda, sem, filtro){
 const IV_VEND = 'Vendido antes del conteo';
 const IV_DEC = ['Cuadra, fue error de conteo', IV_VEND, 'Ajustar en el sistema', 'Faltante a cargo del personal', 'Sobrante cargar a la tienda', 'Pendiente para el próximo inventario', 'Sigue en revisión'];
 const ivDecN = d => d === 'Faltante a cargo de la tienda' ? 'Faltante a cargo del personal' : d;   // nombre anterior de la decisión
+/* pt2: un producto no queda pendiente más de 4 semanas (Diego 2026-10-31) */
+const IV_PEND = 'Pendiente para el próximo inventario';
+function ivPendTope(o){
+  const ui = st.ivUI, n = s => Number(String(s).slice(0, 4)) * 53 + Number(String(s).slice(6)) || 0, porSem = {};
+  ((st.mue && st.mue.co) || []).slice(1).forEach(r => { if (r[2] === ui.tienda && sinApo(r[3]) === o.cod && r[1] < ui.sem) porSem[r[1]] = r[10]; });
+  let primera = '';
+  Object.keys(porSem).sort().reverse().every(s => porSem[s] === IV_PEND ? (primera = s, true) : false);
+  return !!primera && n(ui.sem) - n(primera) >= 4;
+}
 const sinApo = v => String(v == null ? '' : v).replace(/^'/, '');
 /* material de exhibición (góndolas, charolas, porta precios): no es mercadería, no se muestra ni se descuenta */
 const ivExhib = r => /^ARQ\//i.test(String(r[5] || '').trim()) || /^E-/i.test(sinApo(r[3]).trim());
@@ -2815,7 +2824,8 @@ function invForm(o){
     <div class="fila"><label class="r-lbl" for="ivRec">Tu recuento</label><input type="number" id="ivRec" inputmode="numeric" min="0" step="1" value="${esc(cr[7] != null ? cr[7] : '')}" placeholder="—">
       <span class="small faint" id="ivRecTxt">Déjalo vacío si no recontaste.</span></div>
     <div class="r-lbl">Decisión</div>
-    <div class="an-chips" id="ivDec">${IV_DEC.filter(d => !['Ajustar en el sistema', 'Sigue en revisión'].includes(d) || cr[10] === d).map(d => `<button type="button" class="chip${ivDecN(cr[10]) === d ? ' on' : ''}" data-d="${esc(d)}">${esc(d)}</button>`).join('')}</div>
+    <div class="an-chips" id="ivDec">${IV_DEC.filter(d => !['Ajustar en el sistema', 'Sigue en revisión'].includes(d) && !(d === IV_PEND && ivPendTope(o)) || cr[10] === d).map(d => `<button type="button" class="chip${ivDecN(cr[10]) === d ? ' on' : ''}" data-d="${esc(d)}">${esc(d)}</button>`).join('')}</div>
+    ${ivPendTope(o) ? '<p class="small faint" style="margin:4px 0 0">Ya lleva 4 semanas pendiente: hay que decidir.</p>' : ''}
     <div class="fila" id="ivVendBox" ${cr[10] === IV_VEND ? '' : 'hidden'}><label class="r-lbl" for="ivVend">Unidades vendidas antes del conteo</label>
       <input type="number" id="ivVend" inputmode="numeric" min="1" step="1" value="${esc(cr[10] === IV_VEND && num(cr[8]) != null && o.dif != null ? num(cr[8]) - o.dif : o.dif < 0 ? -o.dif : 1)}">
       <span class="small faint">El archivo del sistema todavía las tenía; no son faltante.</span></div>
