@@ -2918,7 +2918,7 @@ const cbMes = s => { const m = /^(\d{4})-(\d{2})/.exec(String(s || '')); return 
 async function cbLeer(fresh){
   if (st.cbLeyendo || (!fresh && st.cbT && Date.now() - st.cbT < 120000)) return;
   st.cbLeyendo = true;
-  try { const [a, d, s] = await Promise.all([getRange(CB_TAB + '!A1:L', true, CLAVES), getRange(CBD_TAB + '!A1:M', true, CLAVES).catch(() => st.cbd || []), getRange(SG_TAB + '!A1:H', true, CLAVES).catch(() => st.sg || [])]); st.cb = a; st.cbd = d; st.sg = s; } catch (e) { if (!st.cb) st.cb = null; }
+  try { const [a, d, s] = await Promise.all([getRange(CB_TAB + '!A1:L', true, CLAVES), getRange(CBD_TAB + '!A1:O', true, CLAVES).catch(() => st.cbd || []), getRange(SG_TAB + '!A1:H', true, CLAVES).catch(() => st.sg || [])]); st.cb = a; st.cbd = d; st.sg = s; } catch (e) { if (!st.cb) st.cb = null; }
   st.cbLeyendo = false; st.cbT = Date.now(); cbPintar(); if (document.querySelector('.iv2-sems')) renderInventario();
 }
 function cbFilas(){ return ((st.cb || []).slice(1)).map((r, i) => ({n: i + 2, org: r[0] || '', fecha: r[1] || '', t: r[2] || '', per: r[3] || '', cargo: r[4] || '', v: cbNum(r[5]),
@@ -3034,19 +3034,19 @@ function iv2Tomas(){
   });
 }
 function iv2Doc(id){ const D = st.cbd || [], i = D.findIndex((r, k) => k && r && r[0] === id), r = i > 0 ? D[i] : [];
-  return {n: i > 0 ? i + 1 : 0, org: id, acta: r[2] || 'Pendiente', fActa: r[3] || '', fac: r[4] || 'Pendiente', nFac: r[5] || '', fFac: r[6] || '', motivo: r[7] || '', rh: r[8] || 'Pendiente', fRh: r[9] || '', aud: r[11] || 'Pendiente', fAud: r[12] || ''}; }
+  return {n: i > 0 ? i + 1 : 0, org: id, acta: r[2] || 'Pendiente', fActa: r[3] || '', fac: r[4] || 'Pendiente', nFac: r[5] || '', fFac: r[6] || '', motivo: r[7] || '', rh: r[8] || 'Pendiente', fRh: r[9] || '', aud: r[11] || 'Pendiente', fAud: r[12] || '', fis: r[13] || 'Pendiente', fFis: r[14] || ''}; }
 async function iv2DocGuardar(d, tienda){
-  const v = [d.org, tienda || '', d.acta, d.fActa, d.fac, safe(d.nFac || ''), d.fFac, safe(d.motivo || ''), d.rh, d.fRh, stamp(), d.aud, d.fAud];
+  const v = [d.org, tienda || '', d.acta, d.fActa, d.fac, safe(d.nFac || ''), d.fFac, safe(d.motivo || ''), d.rh, d.fRh, stamp(), d.aud, d.fAud, d.fis || 'Pendiente', d.fFis || ''];
   try {
     let n = d.n; if (!n) { const a = await getRange(CBD_TAB + '!A1:A', true, CLAVES); n = Math.max(a.length, 1) + 1; }
-    await setRange(CBD_TAB + '!A' + n + ':M' + n, [v], CLAVES);
+    await setRange(CBD_TAB + '!A' + n + ':O' + n, [v], CLAVES);
     if (!st.cbd || !st.cbd.length) st.cbd = [[]]; while (st.cbd.length < n - 1) st.cbd.push([]); st.cbd[n - 1] = v; toast('Guardado');
   } catch (e) { toast('No se pudo guardar: ' + (e && e.code ? errorCopy(e) : (e && e.message || e)), 5000); }
   renderInventario();
 }
 const iv2RO = () => typeof ivPuede === 'function';   // panel de supervisores: solo ver (sin factura, acta ni entregas)
 const IV2_ORDEN = ['Enviado a revisión', 'Revisado con novedades', 'Informe a RRHH y Auditoría', 'Revisado sin novedades', 'Contando', 'Programado', 'Cerrado'];
-function renderInventario(){
+function renderInventarioIv2(){
   const el = $('#invBody'); if (!el || !st.d) return;
   const cv = document.getElementById('cvBox'); if (cv) cv.hidden = true;
   if (!document.getElementById('iv2Css')) document.head.insertAdjacentHTML('beforeend', '<style id="iv2Css">.iv2-sems{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.iv2-sems::-webkit-scrollbar{display:none}.iv2-sems .chip{white-space:nowrap;font-weight:600}.iv2-sems .chip b{margin-left:4px;font-size:12px;opacity:.8}.iv2-li summary .faint{font-size:13px}.iv2-pasos{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:0}.iv2-pasos li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;padding:0 0 12px;position:relative;font-size:14px}.iv2-pasos li::before{content:"";position:absolute;left:10px;top:20px;bottom:0;width:2px;background:var(--line)}.iv2-pasos li:last-child::before{display:none}.iv2-pasos i{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;background:var(--surface-2);color:var(--fg-3);border:2px solid var(--line)}.iv2-pasos li.ok i{background:var(--good);border-color:var(--good);color:var(--surface)}.iv2-pasos li.ya i{border-color:var(--accent);color:var(--accent)}.iv2-pasos li.ya>div>b{color:var(--accent)}.iv2-pasos .acc{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.iv2-pasos input{width:180px}</style>');
@@ -3101,6 +3101,139 @@ function renderInventario(){
     if (q === 'aud') Object.assign(d, {aud: 'Enviado', fAud: hoy});
     if (q === 'reabrir') Object.assign(d, {aud: 'Pendiente', fAud: '', rh: 'Pendiente', fRh: ''});
     if (q === 'acta') { Object.assign(d, {acta: 'Firmada', fActa: hoy}); const L = cbFilas().filter(c => c.org === x.id); if (L.length) await cbGuardar(L.map(c => Object.assign({}, c, {est: 'Firmado'}))); }
+    iv2DocGuardar(d, x.tienda0);
+  });
+  const bi = $('#invBusca'); bi.oninput = () => { st.invQ = bi.value; invBuscar(); }; invBuscar();
+}
+/* iv3: Inventario según el proceso (Diego 2026-10-30, solo admin). 7 etapas; cada inventario está en la primera que le falta terminar: Archivos ·
+   Publicar lista · Contando · Revisión (Diego o Marco, con ajustes según la política) · Factura y acta (solo con descuento) · Entrega a RRHH y archivo físico (solo con descuento) · Cerrado. Cada paso se puede deshacer.
+   2026-10-30 Diego: sin Auditoría por ahora; sin descuento el inventario se cierra al guardar el informe.
+   Plazos: contar hasta el miércoles, revisar hasta el viernes, documentos 3 días hábiles después del informe, entrega con corte el día 20. */
+const IV3_CORTO = ['Archivos', 'Lista', 'Conteo', 'Revisión', 'Factura y acta', 'RRHH y archivo', 'Cerrado'];
+const IV3_PASOS = ['Archivos', 'Publicar lista', 'Contando', 'Revisión', 'Factura y acta', 'RRHH y archivo', 'Cerrado'];
+const iv3Habiles = (iso, n) => { const d = new Date(iso + 'T12:00:00'); while (n > 0) { d.setDate(d.getDate() + 1); if (d.getDay() % 6) n--; } return d.toISOString().slice(0, 10); };
+const iv3Corte = iso => { const d = new Date(iso + 'T12:00:00'); if (d.getDate() > 20) d.setMonth(d.getMonth() + 1); d.setDate(20); return d.toISOString().slice(0, 10); };
+function iv3Tomas(){
+  const ml = (st.mue.ml || []).slice(1), pub = {}, inf = {};
+  ml.forEach(r => { if (r[0] && r[1] && r[18]) pub[r[0] + '|' + r[1] + '|' + (/c[ií]clico/i.test(String(r[6] || '')) ? 'Cíclico' : 'Top 50')] = 1; });
+  (st.mue.inf || []).slice(1).forEach(r => { if (r[0]) inf[r[0]] = r; });
+  const hoy = hoyISO();
+  // Inventarios completos hechos a mano antes de la app (Mall Sol 8-oct, Samborondón 15-oct, Urdesa 19-oct): todos en la semana 42 (Diego 2026-10-30).
+  // Mall Sol no está en Cobros: el faltante se descontó en una liquidación, así que se agrega aquí ya cerrado.
+  const base = iv2Tomas();
+  if (!base.some(x => x.manual && x.t === 'Mall Sol')) base.push({sem: '2026-S42', t: 'Mall Sol', tipo: 'Completo', fase: 'Enviado', act: '', por: '', n: 0, manual: 'Inventario Mall Sol 8-oct', fechaManual: '2026-10-08',
+    id: 'Inventario Mall Sol 8-oct', nov: true, d: null, aOk: true, fOk: true, tienda0: 'Mall Sol', cerrado: 'Faltante descontado en la liquidación (detalle en el informe)', informe: 'https://claude.ai/artifact/8YkBTLCsztaRYKQX7keMgv'});
+  base.forEach(x => { if (x.manual) { x.sem = '2026-S42'; x.k = x.sem + '|' + x.t + '|Completo'; } });
+  return base.map(x => {
+    const d = x.d || iv2Doc(''), env = x.fase === 'Enviado', cont = /contando|segundo|por enviar/i.test(x.fase);
+    const fInf = x.manual ? (x.fechaManual || (cbFilas().find(c => c.org === x.id) || {}).fecha || '') : x.id && inf[x.id] ? String(inf[x.id][1] || '') : '';
+    const rhOk = !x.nov || d.rh === 'Enviado', fisOk = !x.nov || d.fis === 'Archivado';
+    // i = etapa en la que está (la primera que falta terminar)
+    const i = !x.manual && !x.n ? 0 : !x.manual && !pub[x.k] && !cont && !env ? 1 : !x.manual && !env ? 2 : !x.id ? 3 : x.nov && !(x.aOk && x.fOk) ? 4 : !(rhOk && fisOk) && !x.cerrado ? 5 : 6;
+    const lu = lunesDe(x.sem), dia = n => new Date(lu.getTime() + n * 864e5).toISOString().slice(0, 10);
+    let plazo = '', falta = '', quien = '';
+    if (i <= 1) { plazo = dia(0); falta = i ? 'Publicar la lista para la tienda' : 'Subir los archivos para armar la lista'; quien = 'Diego'; }
+    else if (i === 2) { plazo = dia(2); falta = cont ? 'Terminar el conteo y enviarlo' : 'Empezar a contar'; quien = 'Tienda'; }
+    else if (i === 3) { plazo = dia(4); falta = 'Revisar, ajustar y hacer el informe'; quien = 'Diego o Marco'; }
+    else if (i === 4) { plazo = fInf ? iv3Habiles(fInf, 3) : ''; falta = 'Falta ' + [!x.fOk && 'la factura', !x.aOk && 'el acta firmada'].filter(Boolean).join(' y '); quien = 'Tienda'; }
+    else if (i === 5) { plazo = fInf ? iv3Corte(iv3Habiles(fInf, 3)) : ''; falta = [!rhOk && 'Entregar a RRHH', !fisOk && 'archivar el físico en la carpeta'].filter(Boolean).join(' y ').replace(/^a/, 'A'); quien = 'Diego'; }
+    const atraso = plazo && i < 6 ? dias(plazo, hoy) : 0;
+    return Object.assign(x, {i, d, fInf, rhOk, fisOk, plazo, falta, quien, atraso: atraso > 0 ? atraso : 0});
+  });
+}
+// la leyenda pegajosa (celular) va justo debajo de la barra y de su buscador, que sobresale de la barra
+function iv3Ley(){ const b = document.querySelector('.bar'); if (!b) return;
+  const y = Math.round(Math.max(0, ...[b, ...b.querySelectorAll('input')].map(e => e.getBoundingClientRect().bottom))) + 'px';
+  document.querySelectorAll('.iv3-ley,.iv3-tl').forEach(l => { if (l.offsetParent) l.style.top = y; }); }
+function renderInventario(){
+  const el = $('#invBody'); if (!el || !st.d) return;
+  const cv = document.getElementById('cvBox'); if (cv) cv.hidden = true;
+  if (!document.getElementById('iv3Css')) document.head.insertAdjacentHTML('beforeend', '<style id="iv3Css">'
+    + '.iv3-tl{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.iv3-tl button{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 4px 7px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}'
+    + '.iv3-tl button.on{border-color:var(--accent);background:var(--accent-soft)}.iv3-tl b{font-family:var(--f-display);font-size:24px;line-height:1}.iv3-tl b.cero{color:var(--fg-3);font-weight:500}'
+    + '.iv3-tl span{font-size:11.5px;line-height:1.2;text-align:center;color:var(--fg-2);overflow-wrap:anywhere}.iv3-tl em{font-style:normal;font-size:11px;font-weight:700;color:var(--bad)}'
+    + '.iv3-row{display:block;padding:12px 14px;border-top:1px solid var(--line)}.iv3-row:first-child{border-top:0}.iv3-row>summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:7px}.iv3-row>summary::-webkit-details-marker{display:none}'
+    + '.iv3-cab{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.iv3-cab .store{font-size:15.5px}'
+    + '.iv3-bar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}.iv3-bar i{height:20px;border-radius:4px;background:var(--surface-2);font-style:normal;font-size:11px;font-weight:700;display:grid;place-items:center;color:var(--fg-3)}'
+    + '.iv3-bar i.ok{background:var(--good);color:var(--surface)}.iv3-bar i.ya{background:var(--accent);color:var(--accent-ink)}.iv3-bar i.late{background:var(--bad);color:#fff}.iv3-bar i.na{background:none;border:1px dashed var(--line);color:transparent}'
+    + '.iv3-falta{font-size:13.5px;color:var(--fg-2)}.iv3-falta b{color:var(--fg)}.iv3-falta .late{color:var(--bad);font-weight:700}'
+    + '.iv3-pasos{list-style:none;margin:12px 0 2px;padding:12px 0 0;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:10px}'
+    + '.iv3-pasos li{display:grid;grid-template-columns:24px minmax(0,1fr);gap:10px;font-size:14px}.iv3-pasos li>i{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;background:var(--surface-2);color:var(--fg-3)}'
+    + '.iv3-pasos li.ok{color:inherit;font-weight:inherit}.iv3-pasos li.ok>i{background:var(--good);color:var(--surface)}.iv3-pasos li.ya>i{background:var(--accent);color:var(--accent-ink)}.iv3-pasos li.late>i{background:var(--bad);color:#fff}.iv3-pasos li.na{opacity:.5}'
+    + '.iv3-pasos .acc{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px}.iv3-pasos input{width:200px}.iv3-x{border:0;background:none;color:var(--accent);font-weight:600;font-size:13px;padding:2px 4px}'
+    + '.iv2-sems{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}.iv2-sems::-webkit-scrollbar{display:none}.iv2-sems .chip{white-space:nowrap;font-weight:600}.iv2-sems .chip b{margin-left:6px;font-size:12px;opacity:.8}'
+    + '.iv3-bar i span{margin-left:5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.iv3-bar i{display:flex;justify-content:center;align-items:center;padding:0 4px;min-width:0}.iv3-bar i.na span{color:var(--fg-3)}.iv3-bar i.na{color:var(--fg-3)}'
+    + '@media(min-width:701px){.iv3-tl{position:sticky;z-index:4;background:var(--bg);padding:8px 0;margin:-8px 0}.iv3-tl button{padding:6px 4px 5px}.iv3-tl b{font-size:20px}}'
+    + '.iv3-ley{display:none}@media(max-width:700px){.iv3-bar i span{display:none}.iv3-ley{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;position:sticky;z-index:4;background:var(--bg);padding:8px 15px 6px;margin:12px -1px -6px;border-bottom:1px solid var(--line)}.iv3-ley span{font-size:10.5px;line-height:1.15;text-align:center;color:var(--fg-2);font-weight:600;overflow-wrap:anywhere}}'
+    + '@media(max-width:560px){.iv3-tl{grid-template-columns:repeat(4,minmax(0,1fr))}.iv3-tl span{font-size:11px}}</style>');
+  if (st.mue === undefined) { el.innerHTML = '<div class="skeleton">Cargando inventario…</div>'; return; }
+  if (!st.mue) { el.innerHTML = '<section class="panel"><div class="empty">No se pudo leer el inventario de la hoja privada.</div></section>'; return; }
+  if (st.cb === undefined) cbLeer();
+  const T = iv3Tomas().filter(x => enCiudad(x.t)), sems = [...new Set(T.map(x => x.sem))].sort().reverse();
+  if (!sems.length) { el.innerHTML = '<section class="panel"><div class="empty">Todavía no hay inventarios.</div></section>'; return; }
+  const sem = st.iv3Sem && (st.iv3Sem === 'abiertos' || sems.indexOf(st.iv3Sem) >= 0) ? st.iv3Sem : 'abiertos'; st.iv3Sem = sem;
+  const abiertos = T.filter(x => x.i < 6), B = sem === 'abiertos' ? abiertos : T.filter(x => x.sem === sem);
+  const paso = st.iv3Paso != null && B.some(x => x.i === st.iv3Paso) ? st.iv3Paso : null; st.iv3Paso = paso;
+  const W = B.filter(x => paso == null || x.i === paso).sort((a, b) => (b.atraso > 0) - (a.atraso > 0) || a.i - b.i || a.sem.localeCompare(b.sem) || a.t.localeCompare(b.t) || a.tipo.localeCompare(b.tipo));
+  const fd = iso => { if (!iso) return ''; const d = new Date(iso.slice(0, 10) + 'T12:00:00'); return isNaN(d) ? esc(iso) : d.getDate() + ' ' + MESES_S[d.getMonth()]; };
+  const nombre = x => esc(x.t) + (x.tipo !== 'Top 50' ? ` <span class="small faint">· ${x.tipo === 'Completo' ? 'inventario completo del ' + fd(x.fInf) + ' (no es el Top 50)' : 'cíclico'}</span>` : '') + (sem === 'abiertos' && x.tipo !== 'Completo' ? ` <span class="small faint">· semana ${esc(x.sem.slice(-2))}</span>` : '');
+  const cls = (x, j) => !x.nov && (j === 4 || j === 5) && x.id ? 'na' : j < x.i || x.i === 6 ? 'ok' : j === x.i ? (x.atraso ? 'late' : 'ya') : '';
+  const seg = (x, j) => `<i class="${cls(x, j)}">${j + 1}<span>${IV3_CORTO[j]}</span></i>`;
+  const etq = x => IV3_PASOS[x.i];
+  const pill = x => x.i === 6 ? '<span class="pill p-good">Cerrado</span>' : x.atraso ? `<span class="pill p-bad">${esc(etq(x))} · ${x.atraso} d tarde</span>` : `<span class="pill p-acc">${esc(etq(x))}</span>`;
+  const k = x => esc(x.k), d0 = x => x.d;
+  const detalle = x => { const d = d0(x), L = [], st_ = j => cls(x, j);
+    const li = (j, sub, acc) => { if (x.cerrado && (j === 4 || j === 5)) { sub = 'No aplica: se descontó en la liquidación'; acc = ''; } return `<li class="${st_(j)}"><i>${j + 1}</i><div><b>${IV3_PASOS[j]}</b>${sub ? `<div class="small faint">${sub}</div>` : ''}${acc ? `<div class="acc">${acc}</div>` : ''}</div></li>`; };
+    L.push(li(0, x.manual ? 'Inventario completo hecho a mano' : x.n ? x.n + ' productos en la lista' : 'Diego sube los archivos y Claude arma la lista'));
+    L.push(li(1, x.i >= 2 ? 'Lista publicada para la tienda' : 'Publica la lista desde el muestreo'));
+    L.push(li(2, x.i === 2 ? (x.fase ? esc(x.fase) + (x.por ? ' · ' + esc(x.por) : '') + (x.act ? ' · ' + fd(x.act) : '') : 'Todavía no empieza') + ' · plazo: miércoles' : x.i > 2 && x.act ? 'Enviado el ' + fd(x.act) + (x.por ? ' por ' + esc(x.por) : '') : ''));
+    L.push(li(3, x.id ? esc(x.id) + (x.fInf ? ' · ' + fd(x.fInf) : '') + (x.nov ? ' · con descuento al personal' : ' · sin descuento') : 'Diego o Marco ajustan sobrantes y faltantes según la política' + (x.i === 3 ? ' · plazo: viernes' : ''),
+      x.i === 3 ? `<button class="btn primary" data-iv3rev="${k(x)}">Revisar y hacer el informe</button>` : x.manual ? `<a class="btn" href="${x.informe || 'https://claude.ai/artifact/XaqSBVJ3Arek7HFmYSubyB'}" target="_blank" rel="noopener">Ver informe del inventario completo</a>` : x.id ? `<button class="btn primary" data-iv3pdf="${esc(x.id)}">Ver informe (PDF)</button><button class="btn" data-iv3rev="${k(x)}">Ver revisión</button>` : ''));
+    if (x.nov) {
+      const fac = d.fac === 'Emitida' ? `Factura ${esc(d.nFac)} · ${fd(d.fFac)} <button class="iv3-x" data-iv3doc="${k(x)}" data-q="facx">Deshacer</button>` : d.fac === 'Sin factura' ? `Sin factura: ${esc(d.motivo)} <button class="iv3-x" data-iv3doc="${k(x)}" data-q="facx">Deshacer</button>` : '';
+      const acta = x.aOk ? `Acta firmada${d.fActa ? ' · ' + fd(d.fActa) : ''} <button class="iv3-x" data-iv3doc="${k(x)}" data-q="actax">Deshacer</button>` : '';
+      L.push(li(4, [fac, acta].filter(Boolean).join('<br>') || (x.plazo && x.i === 4 ? 'Plazo: ' + fd(x.plazo) : ''), x.i >= 4 ? [!x.fOk && `<input type="text" data-iv3nf="${k(x)}" placeholder="No. de factura o motivo" aria-label="Número de factura o motivo sin factura"><button class="btn" data-iv3doc="${k(x)}" data-q="fac">Factura</button><button class="btn" data-iv3doc="${k(x)}" data-q="sin">Sin factura</button>`, !x.aOk && `<button class="btn" data-iv3doc="${k(x)}" data-q="acta">Acta firmada</button>`].filter(Boolean).join('') : ''));
+    } else L.push(li(4, x.id ? 'No aplica: sin descuento' : 'Solo si hay descuento'));
+    const ent = [d.rh === 'Enviado' ? `RRHH · ${fd(d.fRh)} <button class="iv3-x" data-iv3doc="${k(x)}" data-q="rhx">Deshacer</button>` : '', d.fis === 'Archivado' ? `Archivo físico en carpeta · ${fd(d.fFis)} <button class="iv3-x" data-iv3doc="${k(x)}" data-q="fisx">Deshacer</button>` : ''].filter(Boolean).join('<br>');
+    if (x.nov) L.push(li(5, ent || (x.i === 5 && x.plazo ? 'Corte: ' + fd(x.plazo) : ''), x.i >= 5 ? [d.rh !== 'Enviado' && `<button class="btn primary" data-iv3doc="${k(x)}" data-q="rh">Entregado a RRHH</button>`, d.fis !== 'Archivado' && `<button class="btn" data-iv3doc="${k(x)}" data-q="fis">Archivado en carpeta física</button>`].filter(Boolean).join('') : ''));
+    else L.push(li(5, x.id ? 'No aplica: sin descuento' : 'Solo si hay descuento'));
+    L.push(li(6, x.cerrado ? esc(x.cerrado) : x.i === 6 ? 'Todo entregado' : ''));
+    return `<ol class="iv3-pasos">${L.join('')}</ol>`; };
+  const cuenta = j => B.filter(x => x.i === j).length, tarde = j => B.filter(x => x.i === j && x.atraso).length;
+  const nAtr = abiertos.filter(x => x.atraso).length;
+  el.innerHTML = `<div><div class="sec-h"><h2>Inventarios</h2><span class="hint">${nAtr ? `<span class="bad-t"><b>${nAtr}</b> atrasados</span> · ` : ''}${abiertos.length} abiertos</span></div>
+    <div class="iv2-sems" role="group" aria-label="Semana" style="margin-bottom:12px"><button class="chip${sem === 'abiertos' ? ' on' : ''}" data-iv3sem="abiertos">Todo lo abierto<b>${abiertos.length}</b></button>${sems.map(s => { const n = abiertos.filter(x => x.sem === s).length; return `<button class="chip${s === sem ? ' on' : ''}" data-iv3sem="${esc(s)}">Semana ${esc(s.slice(-2))}${n ? `<b>${n}</b>` : ''}</button>`; }).join('')}</div>
+    <div class="iv3-tl" role="group" aria-label="Pasos del proceso">${IV3_PASOS.map((p, j) => { const n = cuenta(j), t = tarde(j); return `<button class="${paso === j ? 'on' : ''}" data-iv3paso="${j}" aria-pressed="${paso === j}"><b class="${n ? '' : 'cero'}">${n}</b><span>${j + 1}. ${p}</span>${t ? `<em>${t} atrasado${t > 1 ? 's' : ''}</em>` : ''}</button>`; }).join('')}</div>
+    ${paso != null ? `<p class="small faint" style="margin:10px 0 0">Mostrando solo el paso ${paso + 1}. <button class="iv3-x" data-iv3paso="${paso}">Ver todos</button></p>` : ''}
+    <div class="iv3-ley" aria-hidden="true">${['Archivo', 'Lista', 'Conteo', 'Revisión', 'Fact. y acta', 'RRHH y archivo', 'Cerrado'].map((p, j) => `<span>${j + 1}<br>${p}</span>`).join('')}</div>
+    <div class="panel flush" style="margin-top:12px">${W.length ? W.map(x => `<details class="iv3-row"${st.iv3Abierto === x.k ? ' open' : ''} data-iv3k="${k(x)}"><summary>
+      <div class="iv3-cab"><div class="store">${nombre(x)}</div>${pill(x)}</div>
+      <div class="iv3-bar" aria-label="Paso ${x.i + 1} de 7: ${esc(IV3_PASOS[x.i])}">${IV3_PASOS.map((p, j) => seg(x, j)).join('')}</div>
+      ${x.i < 6 ? `<div class="iv3-falta"><b>${esc(x.quien)}:</b> ${esc(x.falta)}${x.plazo ? (x.atraso ? ` · <span class="late">venció el ${fd(x.plazo)}</span>` : ` · hasta el ${fd(x.plazo)}`) : ''}</div>` : ''}
+      </summary>${detalle(x)}</details>`).join('') : '<div class="empty">Nada abierto aquí.</div>'}</div></div>
+    <div class="iv-glob"><input type="search" id="invBusca" placeholder="Buscar un código en todas las tiendas" aria-label="Buscar un código en todas las tiendas" autocomplete="off" value="${esc(st.invQ || '')}"><div id="invBuscaRes"></div></div>`;
+  $('#nInv').textContent = nAtr || '';
+  iv3Ley(); if (!window.iv3Alto) { window.iv3Alto = 1; addEventListener('scroll', iv3Ley, {passive: true}); addEventListener('resize', iv3Ley); }
+  el.querySelectorAll('[data-iv3sem]').forEach(b => b.onclick = () => { st.iv3Sem = b.dataset.iv3sem; st.iv3Paso = null; st.iv3Abierto = null; renderInventario(); });
+  el.querySelectorAll('[data-iv3paso]').forEach(b => b.onclick = () => { const j = +b.dataset.iv3paso; st.iv3Paso = st.iv3Paso === j ? null : j; renderInventario(); });
+  el.querySelectorAll('details[data-iv3k]').forEach(d => d.ontoggle = () => { if (d.open) st.iv3Abierto = d.dataset.iv3k; else if (st.iv3Abierto === d.dataset.iv3k) st.iv3Abierto = null; });
+  const por = kk => W.find(x => x.k === kk);
+  el.querySelectorAll('[data-iv3pdf]').forEach(b => b.onclick = ev => { ev.preventDefault(); const r = infFilas().find(x => x[0] === b.dataset.iv3pdf), f = r && infDatos(r); if (f) infPdf(f, b); else toast('Este informe no tiene datos para el PDF.'); });
+  el.querySelectorAll('[data-iv3rev]').forEach(b => b.onclick = () => { const x = por(b.dataset.iv3rev); invDetalle(x.t, x.sem, x.tipo === 'Cíclico' ? 'cic' : ''); });
+  el.querySelectorAll('[data-iv3doc]').forEach(b => b.onclick = async ev => {
+    ev.preventDefault(); const x = por(b.dataset.iv3doc), q = b.dataset.q, d = Object.assign({}, x.d.n ? x.d : iv2Doc(x.id)), hoy = hoyISO();
+    const inp = el.querySelector('[data-iv3nf="' + CSS.escape(x.k) + '"]'), s = inp ? inp.value.trim() : '';
+    if ((q === 'fac' || q === 'sin') && !s) { toast(q === 'fac' ? 'Escribe el número de factura' : 'Escribe el motivo por el que no hay factura'); return; }
+    b.disabled = true;
+    if (q === 'fac') Object.assign(d, {fac: 'Emitida', nFac: s, fFac: hoy, motivo: ''});
+    if (q === 'sin') Object.assign(d, {fac: 'Sin factura', nFac: '', fFac: hoy, motivo: s});
+    if (q === 'facx') Object.assign(d, {fac: 'Pendiente', nFac: '', fFac: '', motivo: ''});
+    if (q === 'rh') Object.assign(d, {rh: 'Enviado', fRh: hoy});
+    if (q === 'rhx') Object.assign(d, {rh: 'Pendiente', fRh: ''});
+    if (q === 'fis') Object.assign(d, {fis: 'Archivado', fFis: hoy});
+    if (q === 'fisx') Object.assign(d, {fis: 'Pendiente', fFis: ''});
+    if (q === 'acta' || q === 'actax') { const ok = q === 'acta'; Object.assign(d, {acta: ok ? 'Firmada' : 'Pendiente', fActa: ok ? hoy : ''});
+      const L = cbFilas().filter(c => c.org === x.id && (ok ? c.est !== 'Firmado' && c.est !== 'Cobrado' : c.est === 'Firmado')); if (L.length) await cbGuardar(L.map(c => Object.assign({}, c, {est: ok ? 'Firmado' : 'Por firmar'}))); }
     iv2DocGuardar(d, x.tienda0);
   });
   const bi = $('#invBusca'); bi.oninput = () => { st.invQ = bi.value; invBuscar(); }; invBuscar();
