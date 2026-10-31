@@ -5,12 +5,15 @@
 - Se quitan "Ajustar en el sistema" y "Sigue en revisión" (solo se ve en revisiones viejas que ya lo tenían).
 - "Faltante a cargo de la tienda" pasa a "Faltante a cargo del personal"; nueva "Sobrante cargar a la tienda".
   Solo se ofrece Faltante si hay faltante y Sobrante si hay sobrante.
+- Nueva "Pendiente para el próximo inventario": no se descuenta y el ítem entra en la lista del próximo Top 50 (Muestreo.gs).
 - En vivo quitado: sin luz, sin lecturas, sin cuadro, fuera del buscador.
 Uso: python3 aplicar_revision_rapida.py Panel.html [panel.html ...]  (idempotente)"""
 import sys
 R = [
 ("'Faltante a cargo de la tienda', 'Sigue en revisión'];",
- "'Faltante a cargo del personal', 'Sobrante cargar a la tienda', 'Sigue en revisión'];\nconst ivDecN = d => d === 'Faltante a cargo de la tienda' ? 'Faltante a cargo del personal' : d;   // nombre anterior de la decisión"),
+ "'Faltante a cargo del personal', 'Sobrante cargar a la tienda', 'Pendiente para el próximo inventario', 'Sigue en revisión'];\nconst ivDecN = d => d === 'Faltante a cargo de la tienda' ? 'Faltante a cargo del personal' : d;   // nombre anterior de la decisión"),
+("const INF_NO_DESC = ['Ajustar en el sistema', 'Sigue en revisión', 'Cuadra, fue error de conteo'];",
+ "const INF_NO_DESC = ['Ajustar en el sistema', 'Sigue en revisión', 'Cuadra, fue error de conteo', 'Pendiente para el próximo inventario'];   // el pendiente entra solo en la lista del próximo Top 50"),
 ("<div class=\"an-chips\" id=\"ivDec\">${IV_DEC.map(d => `<button type=\"button\" class=\"chip${cr[10] === d ? ' on' : ''}\" data-d=",
  "<div class=\"an-chips\" id=\"ivDec\">${IV_DEC.filter(d => !['Ajustar en el sistema', 'Sigue en revisión'].includes(d) || cr[10] === d).map(d => `<button type=\"button\" class=\"chip${ivDecN(cr[10]) === d ? ' on' : ''}\" data-d="),
 ("let dec = o.cr ? o.cr[10] : '';", "let dec = o.cr ? ivDecN(o.cr[10]) : '';"),
