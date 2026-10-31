@@ -37,6 +37,11 @@ R = [
 ]
 for f in sys.argv[1:]:
     s = open(f, encoding='utf-8').read()
+    if 'rv2:' in s and 'Pendiente para el próximo inventario' not in s:   # tenía la primera versión de rv2
+        for a, b in [("'Sobrante cargar a la tienda', 'Sigue en revisión'];", "'Sobrante cargar a la tienda', 'Pendiente para el próximo inventario', 'Sigue en revisión'];"), R[1]]:
+            if s.count(a) != 1: sys.exit(f'{f}: ancla encontrada {s.count(a)} veces: {a[:70]!r}')
+            s = s.replace(a, b)
+        open(f, 'w', encoding='utf-8').write(s); print(f, 'OK (pendiente agregado)'); continue
     if 'rv2:' in s: print(f, 'ya aplicado'); continue
     for a, b in R:
         n = s.count(a)
