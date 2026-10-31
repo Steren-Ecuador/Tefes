@@ -34,6 +34,13 @@
     var h = 0; for (var i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) % 997;
     var cant = 4 + h % 23; return {cant: cant, usd: cant * (7.5 + (h % 9))};
   }
+  function ventaHtml(n) {
+    var h = 0; for (var i = 0; i < n.length; i++) h = (h * 37 + n.charCodeAt(i)) % 991;
+    var mes = 6000 + h * 9.7, ayer = 180 + h % 400, usd = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD', maximumFractionDigits: 0});
+    return '<div class="card"><div class="fl-cab"><h3>Mi venta</h3><span class="tiny muted">según ERP, referencial</span></div>' +
+      '<div class="as-num"><div><span class="tiny muted">Ayer</span><b>' + usd.format(ayer) + '</b></div><div><span class="tiny muted">En el mes</span><b>' + usd.format(mes) + '</b></div></div>' +
+      '<div class="tiny muted" style="margin-top:6px">Se actualiza cada noche. Para comisiones vale el POS del cierre del mes. Ejemplo de prueba.</div></div>';
+  }
   function garantiasHtml(n) {
     var g = misGarantias(n), usd = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD'});
     var f = new Date(S.data.hoy + 'T12:00:00'); f.setDate(f.getDate() - 1);
@@ -51,7 +58,7 @@
     var h = '<div class="as-yo"><b>Hola, ' + esc(n.split(' ')[0]) + '</b><button class="link tiny" id="asCambiar">No soy yo</button></div>' +
       '<div class="sec-t" id="anuncios"><h3>Anuncios</h3><span class="tiny muted">Semana del ' + fechaCorta(sem[0]) + ' al ' + fechaCorta(sem[1]) + '</span></div>' +
       (act.length ? act.map(anuncioHtml).join('') : '<div class="card muted small">No hay anuncios nuevos.</div>') +
-      '<div style="margin-top:16px"></div>' + garantiasHtml(n) + fl;
+      '<div style="margin-top:16px"></div>' + ventaHtml(n) + garantiasHtml(n) + fl;
     $('#main').innerHTML = h;
     enlazarYo();
     document.querySelectorAll('[data-conf]').forEach(function (b) { b.onclick = function () { modalConfirmar(A.find(function (x) { return x.id === b.closest('[data-an]').dataset.an; })); }; });
