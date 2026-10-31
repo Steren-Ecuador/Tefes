@@ -144,7 +144,7 @@ const EQUIPO = [   // venta del mes (ERP referencial), meta personal (la reparte
 ];
 EQUIPO.forEach(p => { p.mes *= F; p.garUsd *= F; p.gar = Math.max(Math.round(p.gar * F), 0); });
 const YO = EQUIPO[0];
-const SUELDO = {fijo: 470, pct: 0.015, garantia: 0.10};   // ejemplo: en la app real sale de Sueldos y Comisiones (solo lo de cada uno)
+const SUELDO = {fijo: 470, pct: 0.015};   // ejemplo: en la app real sale de Sueldos y Comisiones (solo lo de cada uno). La comisión es sobre la venta TOTAL, garantía extendida incluida (Diego 2026-10-31)
 const iniciales = n => n.split(' ').filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase();
 const colorDe = id => COLORES[EQUIPO.findIndex(p => p.id === id) % COLORES.length] || COLORES[0];
 const avatar = (p, cls) => '<span class="av ' + (cls || '') + '" style="background:' + colorDe(p.id) + '">' + iniciales(p.nombre) + '</span>';
@@ -238,20 +238,20 @@ function perfil(p){
 /* ================= MI META ================= */
 function diasTrabajoRestantes(){ let n = 0; for (let d = HOY.getDate(); d <= finMes; d++){ const x = new Date(HOY.getFullYear(), HOY.getMonth(), d); if (TURNOS.rosa[(x.getDay() + 6) % 7] !== 'Libre') n++; } return n; }
 function renderMeta(){
-  const proy = YO.mes / ritmo, comProy = proy * SUELDO.pct, garProy = YO.garUsd / ritmo * SUELDO.garantia;
-  const ingProy = SUELDO.fijo + comProy + garProy, ingHoy = SUELDO.fijo + YO.mes * SUELDO.pct + YO.garUsd * SUELDO.garantia;
+  const proy = YO.mes / ritmo, comProy = proy * SUELDO.pct;
+  const ingProy = SUELDO.fijo + comProy, ingHoy = SUELDO.fijo + YO.mes * SUELDO.pct;
   const dr = diasTrabajoRestantes();
   let h = '<div class="card"><div class="fila"><h3 style="margin:0">Así vas a ganar este mes</h3><span class="chip azul">Proyección</span></div>' +
     '<div class="grande" style="margin-top:8px">' + usd0(ingProy) + '</div><div class="tiny muted">si sigues al ritmo de los primeros ' + diaMes + ' días</div>' +
-    '<div class="suma"><span>Sueldo fijo</span><b>' + usd2(SUELDO.fijo) + '</b><span>Comisión por ventas (' + (SUELDO.pct * 100).toFixed(1).replace('.', ',') + '% de ' + usd0(proy) + ')</span><b>' + usd2(comProy) + '</b>' +
-    '<span>Comisión por garantías</span><b>' + usd2(garProy) + '</b><span class="t">Total proyectado</span><b class="t">' + usd2(ingProy) + '</b></div>' +
-    '<div class="tiny muted" style="margin-top:8px">Llevas ganado hasta ayer: <b>' + usd2(ingHoy) + '</b>. Valores de ejemplo: en la app saldrán de tu esquema de sueldo y comisión (solo tú los ves).</div></div>';
+    '<div class="suma"><span>Sueldo fijo</span><b>' + usd2(SUELDO.fijo) + '</b><span>Comisión (' + (SUELDO.pct * 100).toFixed(1).replace('.', ',') + '% de tu venta total con garantías: ' + usd0(proy) + ')</span><b>' + usd2(comProy) + '</b>' +
+    '<span class="t">Total proyectado</span><b class="t">' + usd2(ingProy) + '</b></div>' +
+    '<div class="tiny muted" style="margin-top:8px">Llevas ganado hasta ayer: <b>' + usd2(ingHoy) + '</b>. La garantía extendida suma a tu venta, así que también sube tu comisión. Valores de ejemplo: en la app saldrán de tu esquema de sueldo y comisión (solo tú los ves).</div></div>';
   if (!E.metaGanar){
     h += '<div class="card"><h3>¿Cuánto quieres ganar este mes?</h3><p class="small muted" style="margin:0 0 6px">Ponte una meta. Te decimos cuánto necesitas vender por día y vas viendo tu avance.</p>' +
       '<div class="dos"><input class="i" id="mg" inputmode="decimal" placeholder="Ej.: 800"><button class="btn pri" id="mgOk">Guardar mi meta</button></div>' +
       '<div class="btns">' + [700, 800, 900, 1000].map(v => '<button class="btn" data-mg="' + v + '">' + usd0(v) + '</button>').join('') + '</div></div>';
   } else {
-    const ventaNec = Math.max((E.metaGanar - SUELDO.fijo - garProy) / SUELDO.pct, 0), avance = YO.mes / ventaNec, falta = Math.max(ventaNec - YO.mes, 0);
+    const ventaNec = Math.max((E.metaGanar - SUELDO.fijo) / SUELDO.pct, 0), avance = YO.mes / ventaNec, falta = Math.max(ventaNec - YO.mes, 0);
     const col = avance >= 1 ? 'var(--ok)' : avance >= ritmo ? 'var(--ok)' : 'var(--warn)';
     h += '<div class="card" style="text-align:center"><div class="fila"><h3 style="margin:0">Mi meta: ganar ' + usd0(E.metaGanar) + '</h3><button class="btn" id="mgCambiar" style="padding:5px 9px;font-size:12.5px">Cambiar</button></div>' +
       '<div class="anillo" style="background:' + anillo(avance, col) + '"><div><b>' + Math.round(Math.min(avance, 9.99) * 100) + '%</b><span class="tiny muted">de la venta que necesitas</span></div></div>' +
