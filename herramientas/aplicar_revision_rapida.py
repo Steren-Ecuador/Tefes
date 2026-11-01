@@ -35,6 +35,7 @@ R = [
 ('{"t": "Inventario en vivo", "v": "inventario", "sub": "Tiendas · quién está contando ahora", "kw": "conteo vivo contando ahora", "go": () => TEM_ABRIR("#cvBox")}, ', ''),
 ('<details class="panel cv-box" id="cvBox"', '<details hidden class="panel cv-box" id="cvBox"'),
 ]
+OPCIONALES = [a for a, b in R[-3:]]   # partes de En vivo: si otro cambio ya las quitó, se saltan
 for f in sys.argv[1:]:
     s = open(f, encoding='utf-8').read()
     if 'rv2:' in s and 'Pendiente para el próximo inventario' not in s:   # tenía la primera versión de rv2
@@ -45,6 +46,7 @@ for f in sys.argv[1:]:
     if 'rv2:' in s: print(f, 'ya aplicado'); continue
     for a, b in R:
         n = s.count(a)
+        if n == 0 and a in OPCIONALES: print(f, '(En vivo ya no estaba:', a[:40] + '…)'); continue
         if n != 1: sys.exit(f'{f}: ancla encontrada {n} veces: {a[:70]!r}')
         s = s.replace(a, b)
     open(f, 'w', encoding='utf-8').write(s); print(f, 'OK')
