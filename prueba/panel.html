@@ -920,6 +920,7 @@ function cvTab(){
 }
 function cvVisible(){ const v = document.querySelector('.view[data-view="inventario"]'), b = document.getElementById('cvBox'); return v && !v.hidden && b && b.open && !document.hidden; }
 function cvIniciar(){
+  return;   // En vivo quitado definitivamente (Diego 2026-10-31): sin luz, sin lecturas
   if (CV.timer) return;
   cvCargar();
   CV.timer = setInterval(() => { if (cvVisible()) cvCargar(); else if (Date.now() - (CV.ult || 0) > 120000) { CV.ult = Date.now(); cvCargar(); } }, 30000);
@@ -1131,7 +1132,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   </div>
 
   <div class="view" data-view="inventario" hidden>
-    <details class="panel cv-box" id="cvBox" ontoggle="if(this.open&&window.cvRender){cvRender();cvCargar();}"><summary><span class="cv-dot" id="cvLuz"></span><b>En vivo</b><span class="hint" id="cvLuzTxt">Revisando…</span></summary><div id="vivoBody" style="margin-top:12px"><div class="skeleton">Cargando conteos…</div></div></details>
+    <details hidden class="panel cv-box" id="cvBox" ontoggle="if(this.open&&window.cvRender){cvRender();cvCargar();}"><summary><span class="cv-dot" id="cvLuz"></span><b>En vivo</b><span class="hint" id="cvLuzTxt">Revisando…</span></summary><div id="vivoBody" style="margin-top:12px"><div class="skeleton">Cargando conteos…</div></div></details>
     <div id="invBody"><div class="skeleton">Cargando inventario…</div></div>
   </div>
 
@@ -2357,7 +2358,17 @@ async function invAbrir(tienda, sem, filtro){
 }
 /* ---------- detalle de inventario de una tienda: producto por producto y revisión de Diego (hoja privada MueCorrecciones) ---------- */
 const IV_VEND = 'Vendido antes del conteo';
-const IV_DEC = ['Cuadra, fue error de conteo', IV_VEND, 'Ajustar en el sistema', 'Faltante a cargo de la tienda', 'Sigue en revisión'];
+const IV_DEC = ['Cuadra, fue error de conteo', IV_VEND, 'Ajustar en el sistema', 'Faltante a cargo del personal', 'Sobrante cargar a la tienda', 'Pendiente para el próximo inventario', 'Sigue en revisión'];
+const ivDecN = d => d === 'Faltante a cargo de la tienda' ? 'Faltante a cargo del personal' : d;   // nombre anterior de la decisión
+/* pt2: un producto no queda pendiente más de 4 semanas (Diego 2026-10-31) */
+const IV_PEND = 'Pendiente para el próximo inventario';
+function ivPendTope(o){
+  const ui = st.ivUI, n = s => Number(String(s).slice(0, 4)) * 53 + Number(String(s).slice(6)) || 0, porSem = {};
+  ((st.mue && st.mue.co) || []).slice(1).forEach(r => { if (r[2] === ui.tienda && sinApo(r[3]) === o.cod && r[1] < ui.sem) porSem[r[1]] = r[10]; });
+  let primera = '';
+  Object.keys(porSem).sort().reverse().every(s => porSem[s] === IV_PEND ? (primera = s, true) : false);
+  return !!primera && n(ui.sem) - n(primera) >= 4;
+}
 const sinApo = v => String(v == null ? '' : v).replace(/^'/, '');
 /* material de exhibición (góndolas, charolas, porta precios): no es mercadería, no se muestra ni se descuenta */
 const ivExhib = r => /^ARQ\//i.test(String(r[5] || '').trim()) || /^E-/i.test(sinApo(r[3]).trim());
@@ -2538,7 +2549,7 @@ function infHTML(f){
 
 const INF_TAB = "'Informes de inventario'";
 const INF_ENC = ['ID', 'Fecha', 'Hora', 'Semana', 'Tienda', 'Tipo', 'Elaboró', 'Líder', 'Personal', 'Faltante PVP', 'Sobrante PVP', 'A descontar', 'Reparto', 'Estado', 'Observaciones', 'Datos'];
-const INF_NO_DESC = ['Ajustar en el sistema', 'Sigue en revisión', 'Cuadra, fue error de conteo'];
+const INF_NO_DESC = ['Ajustar en el sistema', 'Sigue en revisión', 'Cuadra, fue error de conteo', 'Pendiente para el próximo inventario'];   // el pendiente entra solo en la lista del próximo Top 50
 const INF_TOL = 10;
 const ivMon = n => '$' + Math.abs(Number(n) || 0).toLocaleString('es-EC', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 const infFilas = () => ((st.mue && st.mue.inf) || []).slice(1).filter(r => r[0]);
@@ -2751,7 +2762,8 @@ function invForm(o){
     <div class="fila"><label class="r-lbl" for="ivRec">Tu recuento</label><input type="number" id="ivRec" inputmode="numeric" min="0" step="1" value="${esc(cr[7] != null ? cr[7] : '')}" placeholder="—">
       <span class="small faint" id="ivRecTxt">Déjalo vacío si no recontaste.</span></div>
     <div class="r-lbl">Decisión</div>
-    <div class="an-chips" id="ivDec">${IV_DEC.map(d => `<button type="button" class="chip${cr[10] === d ? ' on' : ''}" data-d="${esc(d)}">${esc(d)}</button>`).join('')}</div>
+    <div class="an-chips" id="ivDec">${IV_DEC.filter(d => !['Ajustar en el sistema', 'Sigue en revisión'].includes(d) && !(d === IV_PEND && ivPendTope(o)) || cr[10] === d).map(d => `<button type="button" class="chip${ivDecN(cr[10]) === d ? ' on' : ''}" data-d="${esc(d)}">${esc(d)}</button>`).join('')}</div>
+    ${ivPendTope(o) ? '<p class="small faint" style="margin:4px 0 0">Ya lleva 4 semanas pendiente: hay que decidir.</p>' : ''}
     <div class="fila" id="ivVendBox" ${cr[10] === IV_VEND ? '' : 'hidden'}><label class="r-lbl" for="ivVend">Unidades vendidas antes del conteo</label>
       <input type="number" id="ivVend" inputmode="numeric" min="1" step="1" value="${esc(cr[10] === IV_VEND && num(cr[8]) != null && o.dif != null ? num(cr[8]) - o.dif : o.dif < 0 ? -o.dif : 1)}">
       <span class="small faint">El archivo del sistema todavía las tenía; no son faltante.</span></div>
@@ -2761,13 +2773,18 @@ function invForm(o){
   </div>`;
 }
 function invFormEventos(o){
-  const ui = st.ivUI; let dec = o.cr ? o.cr[10] : '';
+  const ui = st.ivUI; let dec = o.cr ? ivDecN(o.cr[10]) : '';
   const rec = $('#ivRec'), txt = $('#ivRecTxt');
-  const marcar = () => { $('#ivDec').querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.d === dec)); $('#ivVendBox').hidden = dec !== IV_VEND; };
-  const ver = () => { const v = rec.value.trim(); if (v === '') { txt.textContent = 'Déjalo vacío si no recontaste.'; return; }
+  /* rv2: con Cuadra o Vendido antes del conteo el comentario es opcional; si el recuento cuadra con el sistema se elige Cuadra solo */
+  const IV_SIN_COM = [IV_DEC[0], IV_VEND];
+  const marcar = () => { $('#ivDec').querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.d === dec)); $('#ivVendBox').hidden = dec !== IV_VEND;
+    const dd = rec.value.trim() !== '' ? Number(rec.value) - o.teo : o.dif;   // faltante o sobrante: solo se ofrece la decisión que corresponde
+    $('#ivDec').querySelectorAll('.chip').forEach(c => { const x = c.dataset.d; c.hidden = x !== dec && (x === 'Faltante a cargo del personal' && !(dd < 0) || x === 'Sobrante cargar a la tienda' && !(dd > 0)); });
+    $('#ivCom').placeholder = IV_SIN_COM.includes(dec) ? 'Comentario (opcional)' : 'Comentario: qué encontraste, con quién lo revisaste'; };
+  const ver = escribio => { const v = rec.value.trim(); if (v === '') { txt.textContent = 'Déjalo vacío si no recontaste.'; marcar(); return; }
     const d = Number(v) - o.teo; txt.innerHTML = d === 0 ? '<span class="good-t">Cuadra con el sistema</span>' : `Diferencia <b class="${d < 0 ? 'bad-t' : ''}">${ivSig(d)}</b> · ${ivDin(Math.round(d * o.costo * 100) / 100)}`;
-    if (d === 0 && !dec) { dec = IV_DEC[0]; marcar(); } };
-  rec.oninput = ver; ver();
+    if (d === 0 && (escribio || !dec || dec === IV_VEND)) dec = IV_DEC[0]; marcar(); };
+  rec.oninput = () => ver(true); ver(); marcar();
   $('#ivDec').querySelectorAll('.chip').forEach(c => c.onclick = () => { dec = c.dataset.d; marcar(); });
   $('#ivCancel').onclick = () => { ui.abierto = null; invPintar(); };
   $('#ivGuardar').onclick = async () => {
@@ -2775,7 +2792,8 @@ function invFormEventos(o){
     const vend = dec === IV_VEND ? $('#ivVend').value.trim() : '';
     const msg = !dec ? 'Elige una decisión.' : v !== '' && (!/^\d+$/.test(v)) ? 'El recuento debe ser un número entero.' :
       dec === IV_VEND && !/^[1-9]\d*$/.test(vend) ? 'Pon cuántas unidades se vendieron antes del conteo.' : dec === IV_VEND && v === '' && o.dif == null ? 'Pon tu recuento: la tienda todavía no cierra este conteo.' :
-      com.length < 3 ? 'Escribe un comentario corto.' : '';
+      dec === IV_VEND && v !== '' && Number(v) === o.teo ? 'Tu recuento ya cuadra con el sistema: elige "Cuadra, fue error de conteo".' :
+      !IV_SIN_COM.includes(dec) && com.length < 3 ? 'Escribe un comentario corto.' : '';
     if (msg) { falta.textContent = msg; falta.hidden = false; return; }
     const fin = dec === IV_VEND ? (v !== '' ? Number(v) - o.teo : o.dif) + Number(vend) : v !== '' ? Number(v) - o.teo : dec === IV_DEC[0] ? 0 : (o.dif == null ? '' : o.dif);
     const fila = [stamp(), ui.sem, ui.tienda, "'" + o.cod, safe(o.desc), o.teo, o.contado == null ? '' : o.contado, v === '' ? '' : Number(v),
@@ -3556,7 +3574,7 @@ button.cal-fila:hover{background:var(--surface-2)}
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "¿Qué buscas? Inventario, Scala, política…",
   temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy", "calendario"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "clientes"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "supervision", "inventario"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Contactos", "vistas": ["contactos"]}],
-  items: [{"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa, validar y anuncios", "kw": "inicio resumen mapa validar anuncios actividades caja chica avisos"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Clientes", "v": "clientes", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Supervisión", "v": "supervision", "sub": "Tiendas · hacer o revisar una supervisión", "kw": "supervisar visita checklist nueva supervision puntaje hoja"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Inventario en vivo", "v": "inventario", "sub": "Tiendas · quién está contando ahora", "kw": "conteo vivo contando ahora", "go": () => TEM_ABRIR("#cvBox")}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Contactos de tiendas", "v": "contactos", "sub": "Contactos · por ciudad, con encargado y celular del gerente", "kw": "telefono whatsapp correo llamar personas gerente tienda encargado celular ciudad contactos"}],
+  items: [{"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa, validar y anuncios", "kw": "inicio resumen mapa validar anuncios actividades caja chica avisos"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Clientes", "v": "clientes", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Supervisión", "v": "supervision", "sub": "Tiendas · hacer o revisar una supervisión", "kw": "supervisar visita checklist nueva supervision puntaje hoja"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Contactos de tiendas", "v": "contactos", "sub": "Contactos · por ciudad, con encargado y celular del gerente", "kw": "telefono whatsapp correo llamar personas gerente tienda encargado celular ciudad contactos"}],
   extra: function(){
     const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
     (S.d.tiendas || []).filter(t => t.activa).forEach(t => out.push({grupo: 'Tiendas', t: t.nombre, sub: 'Pendientes de ' + t.nombre, kw: 'tienda local', v: 'pendientes',
