@@ -380,19 +380,42 @@ function formProforma(){
     ocupado('#ok'); llamar('apiPFRegistrar', TOKEN, Object.assign(d, {asesor: YO.nombre, acepta: true})).then(p => { E.proformas.push(p); cerrar(); toast('Proforma guardada. Te recordamos el día del contacto.'); render(); }, e => { libre('#ok'); toast(e.message); });
   };
 }
+let CAT = null;
+const normal = t => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+function buscarCat(q){
+  q = normal(q).trim(); if (!CAT || q.length < 2) return [];
+  const cod = q.toUpperCase(), pal = q.split(/\s+/), out = [];
+  CAT.forEach(p => { const pc = p[0].toUpperCase(), d = normal(p[1]); let sc = pc === cod ? 100 : pc.indexOf(cod) === 0 ? 50 : 0;
+    if (!sc && pal.every(w => d.indexOf(w) >= 0 || pc.toLowerCase().indexOf(w) >= 0)) sc = 10; if (sc) out.push([sc, p]); });
+  return out.sort((a, b) => b[0] - a[0]).slice(0, 6).map(x => x[1]);
+}
 function formFutura(){
-  abrir('<h3>Nueva venta futura</h3><label class="f">Producto que pide el cliente</label><input class="i" id="fP" placeholder="Código o nombre">' +
+  let prod = null;
+  abrir('<h3>Nueva venta futura</h3><label class="f">Producto Steren (código o nombre)</label><input class="i" id="fP" autocomplete="off" placeholder="Ej.: CAR-150 o adaptador carplay">' +
+    '<div id="fSug"></div><div id="fSel" class="tiny" style="margin-top:4px"></div>' +
+    '<label class="small" style="display:flex;gap:8px;margin-top:8px;align-items:flex-start"><input type="checkbox" id="fRef" style="margin-top:3px"> No está en la lista: registrar como <b>otra referencia</b> (nombre o modelo que pide el cliente; se pasa a Compras).</label>' +
     '<div class="dos"><div><label class="f">Cantidad</label><input class="i" id="fQ" inputmode="numeric" value="1"></div><div><label class="f">Celular</label><input class="i" id="fT" inputmode="tel" placeholder="09…"></div></div>' +
     '<label class="f">Cliente</label><input class="i" id="fC" placeholder="Nombre">' +
     '<label class="f">Nota para recordar al cliente</label><input class="i" id="fN" placeholder="Opcional">' + consent +
     '<div class="dos" style="margin-top:14px"><button class="btn" id="cx">Cancelar</button><button class="btn pri" id="ok">Guardar</button></div>');
+  const inp = $('#fP');
+  const elegir = p => { prod = p; inp.value = p[0]; $('#fSug').innerHTML = ''; $('#fRef').checked = false;
+    $('#fSel').innerHTML = '<b>' + esc(p[0]) + '</b> ' + esc(p[1]) + (p[3] > 0 ? ' · <b style="color:var(--ok)">hay ' + p[3] + ' en tu tienda: véndelo ahora</b>' : p[4] + p[5] > 0 ? ' · hay en otras tiendas o bodega' : ' · sin stock'); };
+  const pintar = () => { prod = null; $('#fSel').innerHTML = ''; const R = buscarCat(inp.value);
+    $('#fSug').innerHTML = R.map((p, i) => '<button class="btn block" style="margin-top:6px;text-align:left;font-weight:400" data-ci="' + i + '"><b>' + esc(p[0]) + '</b> ' + esc(p[1]) + '</button>').join('') +
+      (!CAT && inp.value.trim().length > 1 ? '<div class="tiny muted">Cargando productos…</div>' : '');
+    document.querySelectorAll('[data-ci]').forEach(b => b.onclick = () => elegir(R[+b.dataset.ci])); };
+  inp.oninput = pintar;
+  if (!CAT) llamar('apiVFCatalogo', TOKEN).then(c => { CAT = (c && c.p) || []; if (inp.value.trim()) pintar(); }, () => { CAT = []; });
   $('#cx').onclick = cerrar;
   $('#ok').onclick = () => {
-    const d = {producto: $('#fP').value.trim(), cant: Number($('#fQ').value) || 1, cel: $('#fT').value.trim(), cliente: $('#fC').value.trim(), nota: $('#fN').value.trim()};
-    const falta = !d.producto ? 'Escribe el producto.' : d.cliente.length < 3 ? 'Escribe el nombre del cliente.' : !/^0\d{9}$/.test(d.cel.replace(/\D/g, '')) ? 'El celular debe tener 10 dígitos.' : !$('#cons').checked ? 'Marca que el cliente aceptó que lo contactemos.' : '';
+    const ref = !prod && $('#fRef').checked, txt = inp.value.trim();
+    const d = {producto: prod ? prod[1] : txt, cant: Number($('#fQ').value) || 1, cel: $('#fT').value.trim(), cliente: $('#fC').value.trim(), nota: $('#fN').value.trim()};
+    const falta = !txt ? 'Escribe el producto.' : !prod && !ref && CAT && CAT.length ? 'Elige el producto de la lista o marca "otra referencia".' : ref && txt.length < 3 ? 'Escribe el nombre o la referencia del producto.' :
+      d.cliente.length < 3 ? 'Escribe el nombre del cliente.' : !/^0\d{9}$/.test(d.cel.replace(/\D/g, '')) ? 'El celular debe tener 10 dígitos.' : !$('#cons').checked ? 'Marca que el cliente aceptó que lo contactemos.' : '';
     if (falta) return toast(falta);
-    ocupado('#ok'); llamar('apiVFRegistrar', TOKEN, {cod: d.producto, prod: d.producto, cant: d.cant, asesor: YO.nombre, cliente: d.cliente, celular: d.cel, obs: d.nota, contacto: 'WhatsApp', acepta: true})
-      .then(v => { E.futuras.unshift(vfLocal(v)); cerrar(); toast('Registrada. Te avisamos cuando llegue.'); render(); }, e => { libre('#ok'); toast(e.message); });
+    ocupado('#ok'); llamar('apiVFRegistrar', TOKEN, {cod: prod ? prod[0] : txt, prod: d.producto, ref: ref, cant: d.cant, asesor: YO.nombre, cliente: d.cliente, celular: d.cel, obs: d.nota, contacto: 'WhatsApp', acepta: true})
+      .then(v => { E.futuras.unshift(vfLocal(v)); cerrar(); toast(ref ? 'Registrada como otra referencia: se pasa a Compras.' : 'Registrada. Te avisamos cuando llegue.'); render(); }, e => { libre('#ok'); toast(e.message); });
   };
 }
 
@@ -471,10 +494,10 @@ const PREGUNTAS = [
 function renderApr(){
   const pend = LECTURAS.filter(l => !E.leidos[l.id]), leidas = LECTURAS.length - pend.length;
     const pd = PREGUNTAS[Math.floor(HOY / 864e5) % PREGUNTAS.length], resp = E.preg && E.preg.dia === iso(HOY) ? E.preg.r : null;
-  // Universidad Steren (el avance por persona llega cuando haya reporte de Universidad Steren, punto C01)
+  // Universidad Steren: solo el botón para seguir los cursos (no hay dato de avance por persona; Diego 2026-11-02)
   let h = '<div class="card" style="background:linear-gradient(135deg,#0b3b5c,#0078be);color:#fff"><div class="tiny" style="opacity:.85;letter-spacing:.5px">UNIVERSIDAD STEREN</div>' +
-    '<div style="font-size:20px;font-weight:900;margin-top:2px">Tu formación</div><div class="small" style="margin-top:6px">Meta: 90% de avance y perfil completo (datos y foto). Tu avance aparecerá aquí.</div>' +
-    '<a href="' + UNI.url + '" target="_blank" rel="noopener" class="btn block" style="margin-top:12px;text-align:center;text-decoration:none;color:#0078be;background:#fff;border-color:#fff;font-size:16px">Entrar a Universidad Steren ↗</a></div>';
+    '<div style="font-size:20px;font-weight:900;margin-top:2px">Aprende y vende más</div><div class="small" style="margin-top:6px;line-height:1.5">Cada curso que terminas te da más respuestas para tus clientes: conoces mejor los productos, explicas con seguridad y cierras más ventas. Dale 15 minutos al día y sigue avanzando.</div>' +
+    '<a href="' + UNI.url + '" target="_blank" rel="noopener" class="btn block" style="margin-top:12px;text-align:center;text-decoration:none;color:#0078be;background:#fff;border-color:#fff;font-size:16px">Seguir mis cursos en Universidad Steren ↗</a></div>';
   // pregunta del día
   h += '<div class="card"><div class="fila"><h3 style="margin:0">🧠 Pregunta del día</h3><span class="chip azul">1 min</span></div><div style="font-weight:700;margin:10px 0 8px">' + esc(pd.q) + '</div>' +
     pd.o.map((o, i) => { const sel = resp === i, okI = i === pd.ok, ver = resp != null;
