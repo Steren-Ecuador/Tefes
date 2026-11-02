@@ -96,7 +96,13 @@ textarea.i{min-height:64px;resize:vertical}
 .sec-cab{font-size:20px;font-weight:900;margin:18px 2px 10px;display:flex;align-items:center;gap:6px}
 .seccion:first-child .sec-cab{margin-top:4px}
 /* navegación */
-nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:4px 2px calc(4px + env(safe-area-inset-bottom));z-index:30}
+.com-foto{position:relative;border-radius:12px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;font-size:88px;margin:0 0 8px;overflow:hidden;background-size:cover;background-position:center}
+.com-foto .tag{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px}
+.reac{display:flex;gap:6px;flex-wrap:wrap}.reac button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer}.reac button.on{border-color:var(--brand);background:#e8f3fb;color:var(--brand)}
+.coms{margin-top:8px;font-size:13px}.coms div{margin-top:3px}
+.part{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.part .av{width:34px;height:34px;font-size:12px}.part .no{opacity:.3;filter:grayscale(1)}
+.reto{background:linear-gradient(135deg,#ff7a59,#d6336c);color:#fff;border-radius:16px;padding:14px;margin-bottom:12px}.reto .btn{background:#fff;color:#d6336c;border:0}
+nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);padding:4px 2px calc(4px + env(safe-area-inset-bottom));z-index:30}
 nav button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:11px;font-weight:600;color:var(--muted);padding:4px 0;min-height:50px;position:relative;cursor:pointer}
 nav button.on{color:var(--brand);font-weight:800}
 nav svg{width:25px;height:25px}
@@ -113,6 +119,7 @@ nav .dot{position:absolute;top:4px;left:50%;margin-left:8px;width:9px;height:9px
 <main id="main"></main>
 <nav id="nav">
   <button data-v="muro" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio<span class="dot" id="dMuro" hidden></span></button>
+  <button data-v="com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Comunidad<span class="dot" id="dCom" hidden></span></button>
   <button data-v="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>Mi meta</button>
   <button data-v="cli"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Clientes<span class="dot" id="dCli" hidden></span></button>
   <button data-v="hor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Horario</button>
@@ -217,7 +224,7 @@ function renderMuro(){
   ANUNCIOS.forEach(a => posts.push({id: a.id, tipo: 'anuncio', html: '<div class="pc"><span class="av" style="background:#16202b">T</span><div><b>' + esc(a.de) + '</b><span class="tiny muted">' + fCorta(a.fecha) + ' · Anuncio</span></div></div>' +
     '<p class="txt"><b>' + esc(a.titulo) + '</b><br>' + esc(a.txt) + '</p>' + (E.leidos[a.id] ? '<span class="chip verde">✓ Confirmaste que lo leíste</span>' : '<button class="btn pri block" data-leer="' + a.id + '">Confirmo que leí</button>')}));
   posts.push({id: 'L-ayer', html: '<div class="pc">' + avatar(top) + '<div><b>' + esc(top.nombre) + '</b><span class="tiny muted">' + fCorta(sumar(HOY, -1)) + ' · Logro</span></div></div><p class="txt">🔥 Fue quien más vendió ayer en ' + esc(TIENDA.nombre) + '.</p><div class="big">' + usd0(top.ayer) + '</div>'});
-  posts.push({id: 'L-gar', html: '<div class="pc">' + avatar(garTop) + '<div><b>' + esc(garTop.nombre) + '</b><span class="tiny muted">Este mes · Garantías</span></div></div><p class="txt">🛡️ Lleva <b>' + garTop.gar + ' garantías extendidas</b> vendidas este mes. ¡Nadie en la tienda tiene más!</p>'});
+  posts.push({id: 'L-gar', html: '<div class="pc">' + avatar(garTop) + '<div><b>' + esc(garTop.nombre) + '</b><span class="tiny muted">Este mes · Garantías</span></div></div><p class="txt">🛡️ Lleva <b>' + garTop.gar + (garTop.gar === 1 ? ' garantía extendida' : ' garantías extendidas') + '</b> vendidas este mes. ¡Nadie en la tienda tiene más!</p>'});
   const cerca = EQUIPO.filter(p => p.mes / p.meta >= 0.9 && p.mes < p.meta)[0];
   if (cerca) posts.push({id: 'L-cerca', html: '<div class="pc">' + avatar(cerca) + '<div><b>' + esc(cerca.nombre) + '</b><span class="tiny muted">Meta personal</span></div></div><p class="txt">🎯 Está a <b>' + usd0(cerca.meta - cerca.mes) + '</b> de cumplir su meta del mes. ¡Vamos!</p>'});
   const cumplio = EQUIPO.filter(p => p.mes >= p.meta)[0];
@@ -454,8 +461,15 @@ function renderHor(){
 /* ================= APRENDER (Universidad Steren, políticas y guías, pregunta del día) ================= */
 const UNI = {url: 'https://universidadsteren.com/#signin', credencial: true, perfil: false, avance: 0.82, cursos: 9, asignados: 11};   // ejemplo: en la app real sale del reporte de Universidad Steren (punto C01)
 const LECTURAS = [
-  {id: 'P1', tipo: 'Política', ic: '🛡️', t: 'Garantía extendida', d: 'Cómo ofrecerla, cuánto cuesta y el holograma.', min: 3},
-  {id: 'P2', tipo: 'Política', ic: '📦', t: 'Ventas futuras', d: 'Qué registrar cuando el cliente pide algo que no hay.', min: 2},
+  {id: 'P006', tipo: 'Política', ic: '🧾', t: 'Consumidor final', d: 'Por qué siempre recomendamos factura con los datos del cliente.', min: 3,
+    txt: 'Recomienda siempre la factura a nombre del cliente: es su respaldo para soporte y servicio técnico. Con una factura a consumidor final no hay nota de crédito, ni cambio, ni devolución. Una nota de crédito con datos la autoriza el gerente de tienda.',
+    qs: [{q: 'Un cliente con factura a consumidor final quiere devolver el producto. ¿Qué pasa?', o: ['Se le hace nota de crédito', 'No hay devolución ni cambio', 'Lo decide el asesor'], ok: 1},
+         {q: '¿Quién autoriza una nota de crédito con datos?', o: ['El asesor', 'El gerente de tienda', 'El cliente'], ok: 1},
+         {q: '¿Qué le recomiendas siempre al cliente?', o: ['Factura con sus datos', 'Consumidor final, es más rápido', 'Que no pida factura'], ok: 0}]},
+  {id: 'P008', tipo: 'Política', ic: '💬', t: 'WhatsApp de la tienda', d: 'Para qué sí y para qué no se usa.', min: 2,
+    txt: 'El WhatsApp de la tienda es para consultas, cotizaciones y llamadas de clientes. Está prohibido enviar publicidad o mensajes masivos: ya se suspendieron dos cuentas por spam. Puedes publicar en estados, y mandar contenido comercial solo si el cliente lo pide.',
+    qs: [{q: '¿Se pueden mandar promociones a todos los contactos?', o: ['Sí, una vez por semana', 'No, está prohibido', 'Solo en Black Month'], ok: 1},
+         {q: '¿Cuándo puedes mandar contenido comercial a un cliente?', o: ['Cuando él lo pide', 'Siempre', 'Nunca'], ok: 0}]},
   {id: 'G1', tipo: 'Guía', ic: '💳', t: 'Black Month DeUna', d: 'Cashback del 15 al 30 de noviembre: paso a paso en caja.', min: 4},
   {id: 'G2', tipo: 'Guía', ic: '🤝', t: 'Atención al cliente', d: 'Saludo, demostración y cierre de la venta.', min: 5}
 ];
@@ -490,10 +504,32 @@ function renderApr(){
     '<div class="bar"><i class="' + (pend.length ? '' : 'ok') + '" style="width:' + leidas / LECTURAS.length * 100 + '%"></i></div>' +
     LECTURAS.slice().sort((x, y) => !!E.leidos[x.id] - !!E.leidos[y.id]).map(l => { const ya = !!E.leidos[l.id];
       return '<div class="rk" style="align-items:flex-start"><span style="font-size:26px">' + l.ic + '</span><div class="q"><b>' + esc(l.t) + '</b><span class="tiny muted" style="display:block">' + l.tipo + ' · ' + l.min + ' min · ' + esc(l.d) + '</span>' +
-        (ya ? '<div class="tiny" style="color:var(--ok);font-weight:700;margin-top:4px">✓ Leída</div>' : '<button class="btn pri" data-leer="' + l.id + '" style="margin-top:6px;padding:6px 12px;font-size:13px">Leí y entendí</button>') + '</div></div>'; }).join('') + '</div>';
+        (ya ? '<div class="tiny" style="color:var(--ok);font-weight:700;margin-top:4px">✓ ' + (l.qs ? 'Aprobada' : 'Leída') + '</div>' : (l.qs ? ((E.fallos || {})[l.id] ? '<div class="tiny" style="color:var(--bad);font-weight:700;margin-top:4px">✗ Falló ' + E.fallos[l.id] + ' vez' + (E.fallos[l.id] > 1 ? 'es' : '') + ': vuelve a leerla</div>' : '') + '<button class="btn pri" data-pol="' + l.id + '" style="margin-top:6px;padding:6px 12px;font-size:13px">Leer y responder (' + l.qs.length + ' preguntas)</button>' : '<button class="btn pri" data-leer="' + l.id + '" style="margin-top:6px;padding:6px 12px;font-size:13px">Leí y entendí</button>')) + '</div></div>'; }).join('') + '</div>';
   sec('apr').innerHTML = h;
   document.querySelectorAll('[data-leer]').forEach(b => b.onclick = () => { E.leidos[b.dataset.leer] = new Date().toISOString(); guardar(); toast(pend.length === 1 ? '🏆 ¡Leíste todo! Quedó registrado con tu nombre.' : 'Gracias, quedó registrado con tu nombre.'); render(); });
   document.querySelectorAll('[data-pq]').forEach(b => b.onclick = () => { E.preg = {dia: iso(HOY), r: Number(b.dataset.pq)}; guardar(); renderApr(); });
+  document.querySelectorAll('[data-pol]').forEach(b => b.onclick = () => politica(LECTURAS.find(l => l.id === b.dataset.pol)));
+}
+/* Política: se aprueba solo respondiendo bien TODAS sus preguntas (igual que en la app de la tienda; en la app real se guarda en "Lecturas de políticas") */
+function politica(l){
+  const r = {};
+  const pinta = () => {
+    abrir('<div class="tiny muted">' + l.id + ' · Política</div><h3 style="margin:2px 0 8px">' + l.ic + ' ' + esc(l.t) + '</h3><p class="small" style="line-height:1.5">' + esc(l.txt) + '</p>' +
+      '<div class="tiny muted" style="margin:10px 0 6px;font-weight:700">RESPONDE PARA APROBAR</div>' +
+      l.qs.map((q, i) => '<div style="margin-bottom:10px"><div class="small"><b>' + (i + 1) + '. ' + esc(q.q) + '</b></div>' +
+        q.o.map((o, j) => '<button class="btn block" data-r="' + i + ':' + j + '" style="text-align:left;margin-top:5px;' + (r[i] === j ? 'border-color:var(--brand);background:#e8f3fb;color:var(--brand)' : '') + '">' + esc(o) + '</button>').join('') + '</div>').join('') +
+      '<button class="btn pri block" id="polOk"' + (Object.keys(r).length < l.qs.length ? ' disabled style="opacity:.5"' : '') + '>Enviar respuestas</button>');
+    document.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { const [i, j] = b.dataset.r.split(':').map(Number); r[i] = j; pinta(); });
+    $('#polOk').onclick = () => {
+      if (Object.keys(r).length < l.qs.length) return;
+      const mal = l.qs.filter((q, i) => r[i] !== q.ok).length;
+      cerrar();
+      if (!mal) { E.leidos[l.id] = new Date().toISOString(); guardar(); toast('🏆 ¡Aprobada! Quedó registrada con tu nombre.'); }
+      else { E.fallos = E.fallos || {}; E.fallos[l.id] = (E.fallos[l.id] || 0) + 1; guardar(); toast('Tuviste ' + mal + ' respuesta' + (mal > 1 ? 's' : '') + ' mal. Vuelve a leerla e inténtalo otra vez.'); }
+      render();
+    };
+  };
+  pinta();
 }
 
 /* ================= PRIMER INGRESO: conocerte (foto obligatoria) ================= */
@@ -545,14 +581,98 @@ function pintarCab(){
   $('#miNom').textContent = (E.perfil && E.perfil.apodo) || YO.nombre;
 }
 
+
+/* ================= COMUNIDAD: fotos de la tienda, red social interna ================= */
+const RETO = {tag: '#MiVitrinaFavorita', t: 'Reto de la semana', d: 'Toma una foto de la exhibición de tu tienda que más te guste y cuéntanos por qué.', vence: sumar(lunes, 6)};
+const TEMAS = [['reto', '🏆 Reto de la semana'], ['vitrina', '🛍️ Mi vitrina'], ['equipo', '🙌 Mi equipo'], ['fav', '⭐ Mi producto favorito'], ['cliente', '😊 Cliente feliz'], ['detras', '🎬 Detrás de cámaras']];
+const IDEAS = ['La vitrina que armaste hoy', 'Tu producto favorito y para qué sirve', 'Tu equipo antes de abrir', 'Un cliente feliz con su compra (con su permiso)', 'Un truco para vender más'];
+const OTROS = [{id: 'jairo', nombre: 'Jairo Barsallo', t: 'Scala'}, {id: 'karla', nombre: 'Karla Mena', t: 'Condado'}, {id: 'dario', nombre: 'Darío Cevallos', t: 'Tumbaco'}];
+const PART_TIENDAS = [['Scala', 1], ['Condado', 0.8], ['Mall Sol', 0], ['Tumbaco', 0.6], ['Jardín', 0.5], ['Urdesa', 0.5], ['Portal', 0.4], ['Samborondón', 0.33], ['Megamaxi', 0.25], ['Megakywi', 0.2]];
+const POSTS_EJ = [
+  {id: 'C1', de: 'joaquin', tema: 'reto', bg: 'linear-gradient(135deg,#1e3c72,#2a5298)', ic: '🎧', txt: 'Armé la isla de audio en la entrada: los clientes se paran a probar las bocinas. #MiVitrinaFavorita', h: -1, r: {'❤️': 6, '🔥': 4, '👏': 3}, c: [['maria', '¡Quedó brutal!'], ['bruno', 'Así se hace 👏']]},
+  {id: 'C2', de: 'jairo', tienda: 'Scala', tema: 'equipo', bg: 'linear-gradient(135deg,#f7971e,#ffd200)', ic: '🙌', txt: 'Equipo Scala listo para el Black Month. ¡Vamos con todo!', h: -1, r: {'❤️': 12, '🔥': 7, '👏': 9}, c: [['karla', '¡Éxitos, Scala!']]},
+  {id: 'C3', de: 'maria', tema: 'fav', bg: 'linear-gradient(135deg,#11998e,#38ef7d)', ic: '📹', txt: 'Mi favorito: la cámara WiFi para casa. La vendo explicando que la ves desde el celular. ¿Ustedes cuál recomiendan?', h: -2, r: {'❤️': 4, '👏': 2}, c: []},
+  {id: 'C4', de: 'karla', tienda: 'Condado', tema: 'cliente', bg: 'linear-gradient(135deg,#ee0979,#ff6a00)', ic: '😊', txt: 'Don Luis volvió a agradecer: su videoportero funciona perfecto. (Nos dio permiso de contarlo 🙂)', h: -3, r: {'❤️': 15, '👏': 6}, c: []}
+];
+const persona = id => EQUIPO.find(p => p.id === id) || OTROS.find(p => p.id === id) || YO;
+const semanaIso = () => iso(lunes);
+function publicaron(){ const ya = new Set(['joaquin', 'maria']);  /* ejemplo: ya publicaron esta semana */ if ((E.posts || []).some(p => p.f >= semanaIso())) ya.add(YO.id); return ya; }
+function renderCom(){
+  E.posts = E.posts || []; E.reac = E.reac || {}; E.coms = E.coms || {};
+  const ya = publicaron(), yo = ya.has(YO.id), filtro = E.comFiltro || 'tienda';
+  let h = '<div class="reto"><div class="tiny" style="opacity:.9;font-weight:700">🏆 ' + RETO.t.toUpperCase() + ' · hasta el ' + fCorta(RETO.vence) + '</div><div style="font-size:20px;font-weight:800;margin:4px 0">' + RETO.tag + '</div><div class="small" style="margin-bottom:10px">' + esc(RETO.d) + '</div><button class="btn" data-pub="reto">📸 Participar</button></div>';
+  // participación de mi tienda
+  h += '<div class="card"><div class="fila"><h3 style="margin:0">Esta semana en ' + esc(TIENDA.nombre) + '</h3><span class="chip ' + (ya.size === EQUIPO.length ? 'verde' : 'amb') + '">' + ya.size + ' de ' + EQUIPO.length + ' publicaron</span></div>' +
+    '<div class="part">' + EQUIPO.map(p => '<span class="' + (ya.has(p.id) ? '' : 'no') + '" title="' + esc(p.nombre) + '">' + avatar(p) + '</span>').join('') + '</div>' +
+    '<div class="tiny muted">' + (yo ? '✅ Ya publicaste esta semana. ' + (ya.size < EQUIPO.length ? 'Anima a quien falta: si todos publican, la tienda sube en el ranking.' : '¡Tienda al 100 %!') : 'Te falta tu foto de la semana. Con una basta para contar.') + '</div>' +
+    (yo ? '' : '<button class="btn pri block" data-pub="" style="margin-top:8px">📸 Publicar mi foto</button>') + '</div>';
+  // tiendas más participativas (por % del equipo, así una tienda chica compite igual)
+  const pt = PART_TIENDAS.map(([t, v]) => [t, t === TIENDA.nombre ? ya.size / EQUIPO.length : v]).sort((a, b) => b[1] - a[1]);
+  h += '<div class="card"><h3 style="margin:0 0 4px">Tiendas más participativas</h3><div class="tiny muted" style="margin-bottom:8px">% del equipo que publicó esta semana. Gana la tienda, no la persona.</div>' +
+    pt.slice(0, 5).map(([t, v], i) => '<div class="fila small" style="margin:5px 0"><span>' + ['🥇', '🥈', '🥉', '4.', '5.'][i] + ' ' + (t === TIENDA.nombre ? '<b>' + t + '</b>' : t) + '</span><span class="bar" style="flex:1;margin:0 10px;height:8px"><i class="' + (v >= 1 ? 'ok' : '') + '" style="width:' + v * 100 + '%"></i></span><b>' + Math.round(v * 100) + ' %</b></div>').join('') +
+    (pt.findIndex(x => x[0] === TIENDA.nombre) >= 5 ? '<div class="tiny muted">' + TIENDA.nombre + ' va en el puesto ' + (pt.findIndex(x => x[0] === TIENDA.nombre) + 1) + '.</div>' : '') + '</div>';
+  // insignias
+  const n = E.posts.length;
+  h += '<div class="card"><h3 style="margin:0 0 8px">Tus insignias</h3><div style="display:flex;gap:8px;flex-wrap:wrap">' +
+    [['📸', 'Primera foto', n >= 1], ['🔥', '4 semanas seguidas', false], ['⭐', 'Foto de la semana', false], ['💬', '10 comentarios', Object.keys(E.coms).length >= 10]].map(([i, t, ok]) => '<span class="chip ' + (ok ? 'verde' : '') + '" style="' + (ok ? '' : 'opacity:.45') + '">' + i + ' ' + t + '</span>').join('') + '</div></div>';
+  // muro de fotos
+  h += '<div class="seg" style="margin-bottom:10px"><button data-cf="tienda" class="' + (filtro === 'tienda' ? 'on' : '') + '">Mi tienda</button><button data-cf="todas" class="' + (filtro === 'todas' ? 'on' : '') + '">Todas las tiendas</button></div>';
+  const lista = E.posts.map(p => Object.assign({mio: true, de: YO.id, r: {}, c: []}, p)).concat(POSTS_EJ).filter(p => filtro === 'todas' || !p.tienda);
+  h += lista.map(p => { const quien = persona(p.de), tema = (TEMAS.find(t => t[0] === p.tema) || ['', ''])[1];
+    const fecha = p.mio ? 'Hoy' : fCorta(sumar(HOY, p.h));
+    const reac = ['❤️', '🔥', '👏'].map(e => { const k = p.id + e, on = !!E.reac[k]; const c = ((p.r || {})[e] || 0) + (on ? 1 : 0); return '<button data-re="' + k + '" class="' + (on ? 'on' : '') + '">' + e + (c ? ' ' + c : '') + '</button>'; }).join('');
+    const coms = (p.c || []).concat((E.coms[p.id] || []).map(t => [YO.id, t]));
+    return '<div class="card post"><div class="pc">' + avatar(quien) + '<div><b>' + esc(quien.nombre) + '</b><span class="tiny muted">' + (p.tienda ? 'Steren ' + p.tienda + ' · ' : '') + fecha + (tema ? ' · ' + tema : '') + '</span></div></div>' +
+      '<div class="com-foto" style="' + (p.foto ? 'background-image:url(' + p.foto + ')' : 'background:' + p.bg) + '">' + (p.foto ? '' : p.ic) + (p.tema === 'reto' ? '<span class="tag">' + RETO.tag + '</span>' : '') + '</div>' +
+      '<p class="txt">' + esc(p.txt) + '</p><div class="reac">' + reac + '<button data-co="' + p.id + '">💬 Comentar</button></div>' +
+      (coms.length ? '<div class="coms">' + coms.map(([d, t]) => '<div><b>' + esc(nombreCorto(persona(d).nombre)) + '</b> ' + esc(t) + '</div>').join('') + '</div>' : '') + '</div>'; }).join('');
+  h += '<div class="tiny muted" style="text-align:center;margin:6px 0 4px">Solo el equipo TEFES ve estas fotos. Nada de precios de la competencia ni datos de clientes. Si algo no va, tócalo y repórtalo.</div>';
+  sec('com').innerHTML = h;
+  document.querySelectorAll('[data-pub]').forEach(b => b.onclick = () => publicar(b.dataset.pub));
+  document.querySelectorAll('[data-cf]').forEach(b => b.onclick = () => { E.comFiltro = b.dataset.cf; guardar(); renderCom(); });
+  document.querySelectorAll('[data-re]').forEach(b => b.onclick = () => { E.reac[b.dataset.re] = !E.reac[b.dataset.re]; guardar(); renderCom(); });
+  document.querySelectorAll('[data-co]').forEach(b => b.onclick = () => comentar(b.dataset.co));
+}
+function comentar(id){
+  abrir('<h3 style="margin:0 0 8px">💬 Comentar</h3><div class="reac" style="margin-bottom:8px">' + ['¡Quedó brutal! 🔥', '¡Así se hace! 👏', 'Me encanta ❤️', '¿Cómo lo armaste?'].map(t => '<button data-rq="' + esc(t) + '">' + esc(t) + '</button>').join('') + '</div>' +
+    '<input id="coTxt" maxlength="120" placeholder="Escribe algo bonito…" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit"><button class="btn pri block" id="coOk" style="margin-top:8px">Enviar</button>');
+  const ok = t => { t = (t || '').trim(); if (!t) return; (E.coms[id] = E.coms[id] || []).push(t); guardar(); cerrar(); renderCom(); };
+  document.querySelectorAll('[data-rq]').forEach(b => b.onclick = () => ok(b.dataset.rq));
+  $('#coOk').onclick = () => ok($('#coTxt').value);
+}
+function publicar(tema){
+  const D = {tema: tema || '', foto: '', txt: '', permiso: false};
+  const pinta = () => {
+    abrir('<h3 style="margin:0 0 8px">📸 Nueva publicación</h3>' +
+      '<label style="display:block;cursor:pointer"><input type="file" accept="image/*" id="pubFoto" hidden>' +
+      (D.foto ? '<div class="com-foto" style="background-image:url(' + D.foto + ')"></div>' : '<div class="com-foto" style="background:#f3f5f8;border:2px dashed var(--line);font-size:15px;color:var(--muted);flex-direction:column;gap:6px"><span style="font-size:44px">📷</span>Toca para tomar o elegir la foto</div>') + '</label>' +
+      '<div class="tiny muted" style="font-weight:700;margin:6px 0 4px">TEMA</div><div class="reac">' + TEMAS.map(([k, t]) => '<button data-tm="' + k + '" class="' + (D.tema === k ? 'on' : '') + '">' + t + '</button>').join('') + '</div>' +
+      (D.tema === 'cliente' ? '<label class="small" style="display:flex;gap:8px;margin-top:8px"><input type="checkbox" id="pubPer"' + (D.permiso ? ' checked' : '') + '> El cliente aceptó salir en la foto</label>' : '') +
+      '<textarea id="pubTxt" maxlength="200" rows="2" placeholder="Cuéntanos algo (opcional)" style="width:100%;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit">' + esc(D.txt) + '</textarea>' +
+      '<div class="tiny muted" style="margin:4px 0 8px">¿Sin ideas? ' + esc(IDEAS[HOY.getDate() % IDEAS.length]) + '.</div>' +
+      '<button class="btn pri block" id="pubOk"' + (D.foto && D.tema && (D.tema !== 'cliente' || D.permiso) ? '' : ' disabled style="opacity:.5"') + '>Publicar</button>');
+    $('#pubFoto').onchange = e => { const f = e.target.files[0]; if (!f) return; const u = URL.createObjectURL(f), img = new Image();
+      img.onload = () => { const c = document.createElement('canvas'), z = 720, m = Math.min(img.width, img.height); c.width = c.height = z;
+        c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, z, z); D.foto = c.toDataURL('image/jpeg', 0.8); URL.revokeObjectURL(u); D.txt = $('#pubTxt').value; pinta(); }; img.src = u; };
+    document.querySelectorAll('[data-tm]').forEach(b => b.onclick = () => { D.tema = b.dataset.tm; D.txt = $('#pubTxt').value; pinta(); });
+    if ($('#pubPer')) $('#pubPer').onchange = e => { D.permiso = e.target.checked; D.txt = $('#pubTxt').value; pinta(); };
+    $('#pubOk').onclick = () => { if (!D.foto || !D.tema) return;
+      E.posts.unshift({id: 'M' + Date.now(), tema: D.tema, foto: D.foto, txt: $('#pubTxt').value.trim() + (D.tema === 'reto' ? ' ' + RETO.tag : ''), f: iso(HOY)});
+      try { guardar(); } catch (e) {}
+      cerrar(); toast(E.posts.length === 1 ? '📸 ¡Primera foto! Ganaste tu primera insignia.' : '¡Publicado! Tu equipo ya lo puede ver.'); render(); ir('com'); };
+  };
+  pinta();
+}
+
 /* ================= navegación: todo en un solo scroll, como Instagram ================= */
-const SECCIONES = [['muro', '🏠 Inicio', renderMuro], ['meta', '🎯 Mi meta', renderMeta], ['cli', '👥 Mis clientes', renderCli], ['hor', '📅 Mi horario', renderHor], ['apr', '🎓 Aprender', renderApr]];
+const SECCIONES = [['muro', '🏠 Inicio', renderMuro], ['com', '📸 Comunidad', renderCom], ['meta', '🎯 Mi meta', renderMeta], ['cli', '👥 Mis clientes', renderCli], ['hor', '📅 Mi horario', renderHor], ['apr', '🎓 Aprender', renderApr]];
 const sec = id => document.getElementById('s-' + id);
 $('#main').innerHTML = SECCIONES.map(([id, t]) => '<section id="w-' + id + '" class="seccion"><div class="sec-cab">' + t + '</div><div id="s-' + id + '"></div></section>').join('');
 function render(){
   $('#dMuro').hidden = !ANUNCIOS.some(a => !E.leidos[a.id]);
   $('#dCli').hidden = !porContactar();
   $('#dApr').hidden = !LECTURAS.some(l => !E.leidos[l.id]);
+  $('#dCom').hidden = publicaron().has(YO.id);
   SECCIONES.forEach(([id, , fn]) => fn());
 }
 const marcar = v => document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x.dataset.v === v));
