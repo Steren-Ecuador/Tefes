@@ -92,6 +92,9 @@ textarea.i{min-height:64px;resize:vertical}
 .dia .h{flex:1}
 .dia.hoy{background:#eaf4fb;border-radius:10px;padding-left:8px;padding-right:8px;border-top-color:transparent}
 .dia.libre .h{color:var(--muted)}
+.seccion{margin-bottom:18px}
+.sec-cab{font-size:20px;font-weight:900;margin:18px 2px 10px;display:flex;align-items:center;gap:6px}
+.seccion:first-child .sec-cab{margin-top:4px}
 /* navegación */
 nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:4px 2px calc(4px + env(safe-area-inset-bottom));z-index:30}
 nav button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:11px;font-weight:600;color:var(--muted);padding:4px 0;min-height:50px;position:relative;cursor:pointer}
@@ -219,7 +222,7 @@ function renderMuro(){
   if (cumplio) posts.push({id: 'L-cumplio', html: '<div class="pc">' + avatar(cumplio) + '<div><b>' + esc(cumplio.nombre) + '</b><span class="tiny muted">Meta personal</span></div></div><p class="txt">🏆 ¡Cumplió su meta del mes! ' + usd0(cumplio.mes) + ' de ' + usd0(cumplio.meta) + '.</p>'});
   const muro = posts.map(p => { const n = (E.aplausos[p.id] || 0), yo = !!E.aplausos[p.id + ':yo'];
     return '<div class="card post">' + p.html + (p.tipo === 'anuncio' ? '' : '<div class="acc"><button data-apl="' + p.id + '" class="' + (yo ? 'on' : '') + '">👏 Aplaudir' + (n + 3 > 0 ? ' · ' + (n + 3) : '') + '</button></div>') + '</div>'; }).join('');
-  $('#main').innerHTML = '<div class="hist">' + hist + '</div>' + tienda + rank + muro;
+  sec('muro').innerHTML = '<div class="hist">' + hist + '</div>' + tienda + rank + muro;
   document.querySelectorAll('[data-rk]').forEach(b => b.onclick = () => { segRank = b.dataset.rk; renderMuro(); });
   document.querySelectorAll('[data-per]').forEach(b => b.onclick = () => perfil(EQUIPO.find(p => p.id === b.dataset.per)));
   document.querySelectorAll('[data-leer]').forEach(b => b.onclick = () => { E.leidos[b.dataset.leer] = new Date().toISOString(); guardar(); toast('Gracias, quedó registrado con tu nombre.'); render(); });
@@ -306,7 +309,7 @@ function renderMeta(){
   h += '<div class="card"><h3 style="margin-bottom:4px">¿Para qué es tu meta?</h3><div class="tiny muted">Así te damos frases a tu medida.</div><div class="btns">' +
     MOTIVOS.map(([k, l]) => '<button class="btn" data-mot="' + k + '" style="' + (E.motivo === k ? 'background:#eaf4fb;border-color:var(--brand);color:var(--brand)' : '') + '">' + l + '</button>').join('') + '</div></div>';
   h += '<div class="card" style="text-align:center;background:#fff8e6"><div style="font-size:26px">💬</div><div style="font-size:17px;font-weight:800;margin:4px 0">"' + esc(frase()) + '"</div><div class="tiny muted">Frase del día</div></div>';
-  $('#main').innerHTML = h;
+  sec('meta').innerHTML = h;
   const ok = v => { v = Number(String(v).replace(',', '.'));
     if (!(v > ganaMin)) return sello(false, 'Esa meta es muy baja.', 'Tu meta tiene que ser mayor a lo que ganas con la mínima (' + usd0(ganaMin) + '). Apunta más alto.');
     E.metaGanar = v; guardar(); sello(true, '¡Meta de ' + usd0(v) + ' aprobada!', 'Para lograrla necesitas vender ' + usd0((v - SUELDO.fijo) / SUELDO.pct) + ' este mes. Tú puedes.'); };
@@ -345,7 +348,7 @@ function renderCli(){
       (v.estado === 'Llegó' ? '<div class="btns"><a class="btn" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" href="' + wa(v.cel, 'Hola ' + nombreCorto(v.cliente) + ', te saluda ' + nombreCorto(YO.nombre) + ' de Steren ' + TIENDA.nombre + '. ¡Ya llegó ' + v.producto + '! Te lo separamos.') + '">Avisar por WhatsApp</a><button class="btn" data-vc="' + v.id + '" style="color:var(--ok)">Compró</button><button class="btn" data-vn="' + v.id + '" style="color:var(--muted)">No compró</button></div>' : '') + '</div>').join('')
       : '<div class="card vacio">Cuando un cliente pida algo que no tenemos, regístralo aquí. Te avisamos cuando llegue.</div>';
   }
-  $('#main').innerHTML = h;
+  sec('cli').innerHTML = h;
   document.querySelectorAll('[data-sc]').forEach(b => b.onclick = () => { segCli = b.dataset.sc; renderCli(); });
   const pf = id => E.proformas.find(p => p.id === id), vf = id => E.futuras.find(v => v.id === id);
   document.querySelectorAll('[data-pc]').forEach(b => b.onclick = () => { pf(b.dataset.pc).estado = 'Compró'; guardar(); toast('¡Bien! Venta cerrada 🎉'); render(); });
@@ -441,7 +444,7 @@ function renderHor(){
             : '<div style="position:absolute;inset:0;display:flex;align-items:center;font-size:12px;color:var(--muted)">🌴 libre</div>') + '</div></div>'; }).join('') +
     '</div><div class="tiny muted">🔥 La franja naranja es la hora pico: de 18:00 a 20:00 entran más clientes.</div></div>';
   h += '<div class="tiny muted" style="text-align:center;margin:4px 0 8px">Lo arma tu gerente. Si ves un error, avísale.</div>';
-  $('#main').innerHTML = h;
+  sec('hor').innerHTML = h;
   document.querySelectorAll('[data-hd]').forEach(b => b.onclick = () => { horSel = Number(b.dataset.hd); renderHor(); });
 }
 
@@ -485,23 +488,34 @@ function renderApr(){
     LECTURAS.slice().sort((x, y) => !!E.leidos[x.id] - !!E.leidos[y.id]).map(l => { const ya = !!E.leidos[l.id];
       return '<div class="rk" style="align-items:flex-start"><span style="font-size:26px">' + l.ic + '</span><div class="q"><b>' + esc(l.t) + '</b><span class="tiny muted" style="display:block">' + l.tipo + ' · ' + l.min + ' min · ' + esc(l.d) + '</span>' +
         (ya ? '<div class="tiny" style="color:var(--ok);font-weight:700;margin-top:4px">✓ Leída</div>' : '<button class="btn pri" data-leer="' + l.id + '" style="margin-top:6px;padding:6px 12px;font-size:13px">Leí y entendí</button>') + '</div></div>'; }).join('') + '</div>';
-  $('#main').innerHTML = h;
+  sec('apr').innerHTML = h;
   document.querySelectorAll('[data-leer]').forEach(b => b.onclick = () => { E.leidos[b.dataset.leer] = new Date().toISOString(); guardar(); toast(pend.length === 1 ? '🏆 ¡Leíste todo! Quedó registrado con tu nombre.' : 'Gracias, quedó registrado con tu nombre.'); render(); });
   document.querySelectorAll('[data-pq]').forEach(b => b.onclick = () => { E.preg = {dia: iso(HOY), r: Number(b.dataset.pq)}; guardar(); renderApr(); });
 }
 
-/* ================= navegación ================= */
+/* ================= navegación: todo en un solo scroll, como Instagram ================= */
+const SECCIONES = [['muro', '🏠 Inicio', renderMuro], ['meta', '🎯 Mi meta', renderMeta], ['cli', '👥 Mis clientes', renderCli], ['hor', '📅 Mi horario', renderHor], ['apr', '🎓 Aprender', renderApr]];
+const sec = id => document.getElementById('s-' + id);
+$('#main').innerHTML = SECCIONES.map(([id, t]) => '<section id="w-' + id + '" class="seccion"><div class="sec-cab">' + t + '</div><div id="s-' + id + '"></div></section>').join('');
 function render(){
   $('#dMuro').hidden = !ANUNCIOS.some(a => !E.leidos[a.id]);
   $('#dCli').hidden = !porContactar();
   $('#dApr').hidden = !LECTURAS.some(l => !E.leidos[l.id]);
-  ({muro: renderMuro, meta: renderMeta, cli: renderCli, hor: renderHor, apr: renderApr})[vista]();
+  SECCIONES.forEach(([id, , fn]) => fn());
 }
-document.querySelectorAll('nav button').forEach(b => b.onclick = () => { vista = b.dataset.v; document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b)); window.scrollTo(0, 0); render(); });
+const marcar = v => document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x.dataset.v === v));
+const ir = v => { const el = document.getElementById('w-' + v); if (!el) return; const y = el.getBoundingClientRect().top + window.scrollY - document.querySelector('header').offsetHeight - 4; window.scrollTo({top: y, behavior: 'smooth'}); marcar(v); };
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => ir(b.dataset.v));
+// el menú de abajo sigue la sección que se está viendo
+window.addEventListener('scroll', () => { const top = window.innerHeight * 0.4; let act = 'muro';
+  SECCIONES.forEach(([id]) => { const el = document.getElementById('w-' + id); if (el && el.getBoundingClientRect().top <= top) act = id; });
+  if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 4) act = 'apr';
+  marcar(act); }, {passive: true});
 $('#miAv').style.background = colorDe(YO.id); $('#miAv').textContent = iniciales(YO.nombre);
 $('#miNom').textContent = YO.nombre; $('#miSub').textContent = YO.cargo + ' · Steren ' + TIENDA.nombre;
 $('#reiniciar').onclick = e => { e.preventDefault(); localStorage.removeItem(KEY); E = semilla(); render(); toast('Datos de ejemplo reiniciados.'); };
-const q = new URLSearchParams(location.search).get('v'); if (q && ['muro','meta','cli','hor','apr'].includes(q)) document.querySelector('nav button[data-v="' + q + '"]').click(); else render();
+render();
+const q = new URLSearchParams(location.search).get('v'); if (q && SECCIONES.some(x => x[0] === q)) setTimeout(() => ir(q), 50);
 })();
 </script>
 </body>
