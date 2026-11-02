@@ -151,7 +151,9 @@ const YO = EQUIPO[0];
 const SUELDO = {fijo: 470, pct: 0.015};   // ejemplo: en la app real sale de Sueldos y Comisiones (solo lo de cada uno). La comisión es sobre la venta TOTAL, garantía extendida incluida (Diego 2026-10-31)
 const iniciales = n => n.split(' ').filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase();
 const colorDe = id => COLORES[EQUIPO.findIndex(p => p.id === id) % COLORES.length] || COLORES[0];
-const avatar = (p, cls) => '<span class="av ' + (cls || '') + '" style="background:' + colorDe(p.id) + '">' + iniciales(p.nombre) + '</span>';
+const miFoto = () => (typeof E !== 'undefined' && E.perfil && E.perfil.foto) || '';
+const avatar = (p, cls) => (p === YO && miFoto()) ? '<span class="av ' + (cls || '') + '" style="background:#ddd url(' + miFoto() + ') center/cover"></span>'
+  : '<span class="av ' + (cls || '') + '" style="background:' + colorDe(p.id) + '">' + iniciales(p.nombre) + '</span>';
 const nombreCorto = n => n.split(' ')[0];
 
 /* horario de la semana (ejemplo, en la app real sale del archivo de horarios de la tienda) */
@@ -222,7 +224,8 @@ function renderMuro(){
   if (cumplio) posts.push({id: 'L-cumplio', html: '<div class="pc">' + avatar(cumplio) + '<div><b>' + esc(cumplio.nombre) + '</b><span class="tiny muted">Meta personal</span></div></div><p class="txt">🏆 ¡Cumplió su meta del mes! ' + usd0(cumplio.mes) + ' de ' + usd0(cumplio.meta) + '.</p>'});
   const muro = posts.map(p => { const n = (E.aplausos[p.id] || 0), yo = !!E.aplausos[p.id + ':yo'];
     return '<div class="card post">' + p.html + (p.tipo === 'anuncio' ? '' : '<div class="acc"><button data-apl="' + p.id + '" class="' + (yo ? 'on' : '') + '">👏 Aplaudir' + (n + 3 > 0 ? ' · ' + (n + 3) : '') + '</button></div>') + '</div>'; }).join('');
-  sec('muro').innerHTML = '<div class="hist">' + hist + '</div>' + tienda + rank + muro;
+  const cumple = E.perfil && E.perfil.cumple && E.perfil.cumple === iso(HOY).slice(5) ? '<div class="card" style="text-align:center;background:#fff1f6"><div style="font-size:40px">🎂</div><b>¡Feliz cumpleaños, ' + esc(E.perfil.apodo || nombreCorto(YO.nombre)) + '!</b><div class="small muted">Todo el equipo de ' + esc(TIENDA.nombre) + ' te saluda hoy.</div></div>' : '';
+  sec('muro').innerHTML = cumple + '<div class="hist">' + hist + '</div>' + tienda + rank + muro;
   document.querySelectorAll('[data-rk]').forEach(b => b.onclick = () => { segRank = b.dataset.rk; renderMuro(); });
   document.querySelectorAll('[data-per]').forEach(b => b.onclick = () => perfil(EQUIPO.find(p => p.id === b.dataset.per)));
   document.querySelectorAll('[data-leer]').forEach(b => b.onclick = () => { E.leidos[b.dataset.leer] = new Date().toISOString(); guardar(); toast('Gracias, quedó registrado con tu nombre.'); render(); });
@@ -493,6 +496,55 @@ function renderApr(){
   document.querySelectorAll('[data-pq]').forEach(b => b.onclick = () => { E.preg = {dia: iso(HOY), r: Number(b.dataset.pq)}; guardar(); renderApr(); });
 }
 
+/* ================= PRIMER INGRESO: conocerte (foto obligatoria) ================= */
+const VENDER = [['audio', '🎧 Audio y bocinas'], ['seguridad', '📹 Cámaras y seguridad'], ['celular', '📱 Celular y accesorios'], ['compu', '💻 Computación'], ['hogar', '💡 Hogar inteligente'], ['herramientas', '🔧 Herramientas']];
+const RECON = [['publico', '📣 Que lo vea todo el equipo'], ['privado', '🤫 En privado, me da pena']];
+let OB = null;
+function bienvenida(editar){
+  OB = Object.assign({paso: 0, foto: '', apodo: '', cumple: '', motivo: E.motivo || '', sueno: '', vender: [], recon: ''}, editar ? E.perfil || {} : {}, {paso: 0});
+  pasoOB();
+}
+function pasoOB(){
+  const P = [
+    {t: '¡Hola, ' + esc(nombreCorto(YO.nombre)) + '! 👋', sub: 'Antes de empezar, queremos conocerte. Son 6 preguntas rápidas.', html: '<div style="font-size:72px;text-align:center;margin:20px 0">🙌</div>', ok: () => true, btn: 'Empezar'},
+    {t: 'Tu foto de perfil 📸', sub: 'Es obligatoria: así te reconoce tu equipo en el ranking y en el muro. Que se vea bien tu cara.',
+      html: '<label style="display:block;width:150px;height:150px;border-radius:50%;margin:16px auto;border:3px dashed var(--brand);background:#eaf4fb ' + (OB.foto ? 'url(' + OB.foto + ') center/cover' : '') + ';cursor:pointer;position:relative">' +
+        (OB.foto ? '' : '<span style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--brand);font-weight:800"><span style="font-size:40px">📷</span>Tomar foto</span>') +
+        '<input type="file" accept="image/*" capture="user" id="obFoto" style="display:none"></label>' + (OB.foto ? '<div class="tiny muted" style="text-align:center">Toca la foto para cambiarla.</div>' : ''),
+      ok: () => !!OB.foto, falta: 'La foto es obligatoria para continuar.'},
+    {t: '¿Cómo te gusta que te digan?', sub: 'Así te saludamos en la app.', html: '<input class="i" id="obApodo" placeholder="Ej.: ' + esc(nombreCorto(YO.nombre)) + '" value="' + esc(OB.apodo) + '" style="font-size:18px;margin-top:10px">' +
+      '<label class="f" style="margin-top:16px">¿Cuándo es tu cumpleaños? 🎂</label><input class="i" type="date" id="obCumple" value="' + (OB.cumple ? '2000-' + OB.cumple : '') + '"><div class="tiny muted" style="margin-top:4px">Solo usamos el día y el mes para saludarte.</div>',
+      leer: () => { OB.apodo = $('#obApodo').value.trim(); const c = $('#obCumple').value; OB.cumple = c ? c.slice(5) : ''; }, ok: () => true},
+    {t: '¿Qué te motiva a trabajar? 💪', sub: 'Elige lo más importante para ti este año.', html: '<div class="btns" style="margin-top:12px">' + MOTIVOS.map(([k, l]) => '<button class="btn" data-obm="' + k + '" style="' + (OB.motivo === k ? 'background:#eaf4fb;border-color:var(--brand);color:var(--brand)' : '') + '">' + l + '</button>').join('') + '</div>' +
+      '<label class="f" style="margin-top:16px">¿Cuál es tu sueño para este año?</label><input class="i" id="obSueno" maxlength="80" placeholder="Ej.: viajar a Galápagos con mi familia" value="' + esc(OB.sueno) + '">',
+      leer: () => { OB.sueno = $('#obSueno').value.trim(); }, ok: () => !!OB.motivo, falta: 'Elige qué te motiva.'},
+    {t: '¿Qué te gusta vender más? 🛍️', sub: 'Puedes elegir varios. Te mandaremos tips de lo que más te gusta.', html: '<div class="btns" style="margin-top:12px">' + VENDER.map(([k, l]) => '<button class="btn" data-obv="' + k + '" style="' + (OB.vender.includes(k) ? 'background:#eaf4fb;border-color:var(--brand);color:var(--brand)' : '') + '">' + l + '</button>').join('') + '</div>', ok: () => OB.vender.length > 0, falta: 'Elige al menos uno.'},
+    {t: 'Cuando logres algo grande… 🏆', sub: '¿Cómo te gusta que te reconozcan?', html: '<div style="margin-top:12px">' + RECON.map(([k, l]) => '<button class="btn block" data-obr="' + k + '" style="text-align:left;margin-bottom:8px;' + (OB.recon === k ? 'background:#eaf4fb;border-color:var(--brand);color:var(--brand)' : '') + '">' + l + '</button>').join('') + '</div>', ok: () => !!OB.recon, falta: 'Elige una opción.', btn: 'Terminar'}
+  ];
+  const st = P[OB.paso], n = P.length;
+  let el = document.getElementById('onb'); if (!el){ el = document.createElement('div'); el.id = 'onb'; document.body.appendChild(el); }
+  el.style.cssText = 'position:fixed;inset:0;z-index:80;background:#fff;overflow:auto';
+  el.innerHTML = '<div style="max-width:520px;margin:0 auto;padding:18px 18px calc(24px + env(safe-area-inset-bottom));min-height:100%;display:flex;flex-direction:column">' +
+    '<div style="display:flex;gap:4px;margin-bottom:22px">' + P.map((x, i) => '<div style="flex:1;height:4px;border-radius:2px;background:' + (i <= OB.paso ? 'var(--brand)' : '#e2e7ee') + '"></div>').join('') + '</div>' +
+    '<div style="font-size:24px;font-weight:900">' + st.t + '</div><div class="muted" style="margin-top:6px">' + st.sub + '</div>' + st.html +
+    '<div style="flex:1"></div><div class="dos" style="margin-top:24px">' + (OB.paso ? '<button class="btn" id="obAtras">Atrás</button>' : '<span></span>') + '<button class="btn pri" id="obSig">' + (st.btn || 'Siguiente') + '</button></div></div>';
+  const f = $('#obFoto'); if (f) f.onchange = () => { const file = f.files[0]; if (!file) return; const img = new Image(), u = URL.createObjectURL(file);
+    img.onload = () => { const c = document.createElement('canvas'), z = 360, m = Math.min(img.width, img.height); c.width = c.height = z;
+      c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, z, z); OB.foto = c.toDataURL('image/jpeg', 0.8); URL.revokeObjectURL(u); pasoOB(); }; img.src = u; };
+  el.querySelectorAll('[data-obm]').forEach(b => b.onclick = () => { if (st.leer) st.leer(); OB.motivo = b.dataset.obm; pasoOB(); });
+  el.querySelectorAll('[data-obv]').forEach(b => b.onclick = () => { const k = b.dataset.obv; OB.vender = OB.vender.includes(k) ? OB.vender.filter(x => x !== k) : OB.vender.concat(k); pasoOB(); });
+  el.querySelectorAll('[data-obr]').forEach(b => b.onclick = () => { OB.recon = b.dataset.obr; pasoOB(); });
+  if ($('#obAtras')) $('#obAtras').onclick = () => { if (st.leer) st.leer(); OB.paso--; pasoOB(); };
+  $('#obSig').onclick = () => { if (st.leer) st.leer(); if (!st.ok()) return toast(st.falta || 'Completa este paso.');
+    if (OB.paso < n - 1){ OB.paso++; return pasoOB(); }
+    E.perfil = {foto: OB.foto, apodo: OB.apodo, cumple: OB.cumple, sueno: OB.sueno, vender: OB.vender, recon: OB.recon}; E.motivo = OB.motivo; guardar();
+    el.remove(); pintarCab(); render(); toast('¡Listo, ' + (OB.apodo || nombreCorto(YO.nombre)) + '! Bienvenido a tu panel 🎉'); };
+}
+function pintarCab(){
+  const a = $('#miAv'); if (miFoto()){ a.textContent = ''; a.style.background = '#ddd url(' + miFoto() + ') center/cover'; } else { a.style.background = colorDe(YO.id); a.textContent = iniciales(YO.nombre); }
+  $('#miNom').textContent = (E.perfil && E.perfil.apodo) || YO.nombre;
+}
+
 /* ================= navegación: todo en un solo scroll, como Instagram ================= */
 const SECCIONES = [['muro', '🏠 Inicio', renderMuro], ['meta', '🎯 Mi meta', renderMeta], ['cli', '👥 Mis clientes', renderCli], ['hor', '📅 Mi horario', renderHor], ['apr', '🎓 Aprender', renderApr]];
 const sec = id => document.getElementById('s-' + id);
@@ -511,10 +563,10 @@ window.addEventListener('scroll', () => { const top = window.innerHeight * 0.4; 
   SECCIONES.forEach(([id]) => { const el = document.getElementById('w-' + id); if (el && el.getBoundingClientRect().top <= top) act = id; });
   if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 4) act = 'apr';
   marcar(act); }, {passive: true});
-$('#miAv').style.background = colorDe(YO.id); $('#miAv').textContent = iniciales(YO.nombre);
-$('#miNom').textContent = YO.nombre; $('#miSub').textContent = YO.cargo + ' · Steren ' + TIENDA.nombre;
-$('#reiniciar').onclick = e => { e.preventDefault(); localStorage.removeItem(KEY); E = semilla(); render(); toast('Datos de ejemplo reiniciados.'); };
+pintarCab(); $('#miAv').style.cursor = 'pointer'; $('#miAv').onclick = () => bienvenida(true); $('#miSub').textContent = YO.cargo + ' · Steren ' + TIENDA.nombre;
+$('#reiniciar').onclick = e => { e.preventDefault(); localStorage.removeItem(KEY); E = semilla(); pintarCab(); render(); bienvenida(); };
 render();
+if (!E.perfil || !E.perfil.foto) bienvenida();
 const q = new URLSearchParams(location.search).get('v'); if (q && SECCIONES.some(x => x[0] === q)) setTimeout(() => ir(q), 50);
 })();
 </script>
