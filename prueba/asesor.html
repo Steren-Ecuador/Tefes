@@ -238,14 +238,11 @@ function perfil(p){
 /* ================= MI META ================= */
 function diasTrabajoRestantes(){ let n = 0; for (let d = HOY.getDate(); d <= finMes; d++){ const x = new Date(HOY.getFullYear(), HOY.getMonth(), d); if (TURNOS.rosa[(x.getDay() + 6) % 7] !== 'Libre') n++; } return n; }
 function renderMeta(){
-  const proy = YO.mes / ritmo, comProy = proy * SUELDO.pct;
-  const ingProy = SUELDO.fijo + comProy, ingHoy = SUELDO.fijo + YO.mes * SUELDO.pct;
-  const dr = diasTrabajoRestantes();
-  let h = '<div class="card"><div class="fila"><h3 style="margin:0">Así vas a ganar este mes</h3><span class="chip azul">Proyección</span></div>' +
-    '<div class="grande" style="margin-top:8px">' + usd0(ingProy) + '</div><div class="tiny muted">si sigues al ritmo de los primeros ' + diaMes + ' días</div>' +
-    '<div class="suma"><span>Sueldo fijo</span><b>' + usd2(SUELDO.fijo) + '</b><span>Comisión (' + (SUELDO.pct * 100).toFixed(1).replace('.', ',') + '% de tu venta total con garantías: ' + usd0(proy) + ')</span><b>' + usd2(comProy) + '</b>' +
-    '<span class="t">Total proyectado</span><b class="t">' + usd2(ingProy) + '</b></div>' +
-    '<div class="tiny muted" style="margin-top:8px">Llevas ganado hasta ayer: <b>' + usd2(ingHoy) + '</b>. La garantía extendida suma a tu venta, así que también sube tu comisión. Valores de ejemplo: en la app saldrán de tu esquema de sueldo y comisión (solo tú los ves).</div></div>';
+  const dr = diasTrabajoRestantes(), pctTxt = (SUELDO.pct * 100).toFixed(1).replace('.', ',') + '%';
+  let h = '<div class="card"><h3>Tu comisión</h3><div class="grande">' + pctTxt + '</div>' +
+    '<div class="small" style="margin-top:4px">de toda tu venta, <b>con la garantía extendida incluida</b>.</div>' +
+    '<div class="small muted" style="margin-top:6px">Por cada $100 que vendes ganas ' + usd2(100 * SUELDO.pct) + ' de comisión. Cada garantía que vendes también suma a tu venta.</div>' +
+    '<div class="tiny muted" style="margin-top:8px">El valor final de tu comisión se calcula al cierre del mes con el POS. Ejemplo de prueba.</div></div>';
   if (!E.metaGanar){
     h += '<div class="card"><h3>¿Cuánto quieres ganar este mes?</h3><p class="small muted" style="margin:0 0 6px">Ponte una meta. Te decimos cuánto necesitas vender por día y vas viendo tu avance.</p>' +
       '<div class="dos"><input class="i" id="mg" inputmode="decimal" placeholder="Ej.: 800"><button class="btn pri" id="mgOk">Guardar mi meta</button></div>' +
