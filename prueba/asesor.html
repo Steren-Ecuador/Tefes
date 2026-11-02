@@ -445,19 +445,49 @@ function renderHor(){
   document.querySelectorAll('[data-hd]').forEach(b => b.onclick = () => { horSel = Number(b.dataset.hd); renderHor(); });
 }
 
-/* ================= APRENDER (políticas y guías) ================= */
+/* ================= APRENDER (Universidad Steren, políticas y guías, pregunta del día) ================= */
+const UNI = {url: 'https://universidadsteren.com/#signin', credencial: true, perfil: false, avance: 0.82, cursos: 9, asignados: 11};   // ejemplo: en la app real sale del reporte de Universidad Steren (punto C01)
 const LECTURAS = [
-  {id: 'P1', tipo: 'Política', t: 'Garantía extendida', d: 'Cómo ofrecerla, cuánto cuesta y el holograma.'},
-  {id: 'P2', tipo: 'Política', t: 'Ventas futuras', d: 'Qué registrar cuando el cliente pide algo que no hay.'},
-  {id: 'G1', tipo: 'Guía', t: 'Black Month DeUna', d: 'Cashback del 15 al 30 de noviembre: paso a paso en caja.'},
-  {id: 'G2', tipo: 'Guía', t: 'Atención al cliente', d: 'Saludo, demostración y cierre de la venta.'}
+  {id: 'P1', tipo: 'Política', ic: '🛡️', t: 'Garantía extendida', d: 'Cómo ofrecerla, cuánto cuesta y el holograma.', min: 3},
+  {id: 'P2', tipo: 'Política', ic: '📦', t: 'Ventas futuras', d: 'Qué registrar cuando el cliente pide algo que no hay.', min: 2},
+  {id: 'G1', tipo: 'Guía', ic: '💳', t: 'Black Month DeUna', d: 'Cashback del 15 al 30 de noviembre: paso a paso en caja.', min: 4},
+  {id: 'G2', tipo: 'Guía', ic: '🤝', t: 'Atención al cliente', d: 'Saludo, demostración y cierre de la venta.', min: 5}
+];
+const PREGUNTAS = [
+  {q: '¿Cuánto cuesta la garantía extendida?', o: ['5% del precio', '10% del precio', '$5 fijos'], ok: 1, x: 'Es el 10% del precio del producto y suma un año de garantía.'},
+  {q: '¿Desde qué precio se puede ofrecer garantía extendida en productos Steren?', o: ['Desde $19,99', 'Desde $49,99', 'En todos'], ok: 1, x: 'En productos Steren de más de $49,99, solo al momento de la compra.'},
+  {q: 'Un cliente pide un producto que no hay. ¿Qué haces?', o: ['Le digo que no hay', 'Lo registro como venta futura', 'Le pido que vuelva otro día'], ok: 1, x: 'Lo registras en Clientes › Ventas futuras y te avisamos cuando llegue.'},
+  {q: '¿Cuándo se paga el cashback de DeUna en Black Month?', o: ['Del 15 al 30 de noviembre', 'Todo noviembre', 'Solo el Black Friday'], ok: 0, x: 'La promoción va del 15 al 30 de noviembre.'}
 ];
 function renderApr(){
-  const pend = LECTURAS.filter(l => !E.leidos[l.id]);
-  $('#main').innerHTML = (pend.length ? '<div class="card" style="border-left:4px solid var(--warn)"><b>Tienes ' + pend.length + ' por leer</b><div class="small muted">Léelas y confirma: así queda registrado que las conoces.</div></div>' : '') +
-    LECTURAS.map(l => '<div class="card"><div class="fila"><span class="chip">' + l.tipo + '</span>' + (E.leidos[l.id] ? '<span class="chip verde">✓ Leída</span>' : '<span class="chip amb">Por leer</span>') + '</div><h3 style="margin:8px 0 2px">' + esc(l.t) + '</h3><div class="small muted">' + esc(l.d) + '</div>' +
-      (E.leidos[l.id] ? '' : '<button class="btn pri block" style="margin-top:10px" data-leer="' + l.id + '">Leí y entendí</button>') + '</div>').join('');
-  document.querySelectorAll('[data-leer]').forEach(b => b.onclick = () => { E.leidos[b.dataset.leer] = new Date().toISOString(); guardar(); toast('Gracias, quedó registrado con tu nombre.'); render(); });
+  const pend = LECTURAS.filter(l => !E.leidos[l.id]), leidas = LECTURAS.length - pend.length;
+  const meta = UNI.avance >= 0.9 && UNI.credencial && UNI.perfil;
+  const pd = PREGUNTAS[Math.floor(HOY / 864e5) % PREGUNTAS.length], resp = E.preg && E.preg.dia === iso(HOY) ? E.preg.r : null;
+  // Universidad Steren
+  let h = '<div class="card" style="background:linear-gradient(135deg,#0b3b5c,#0078be);color:#fff">' +
+    '<div class="fila"><div><div class="tiny" style="opacity:.85;letter-spacing:.5px">UNIVERSIDAD STEREN</div><div style="font-size:20px;font-weight:900;margin-top:2px">Tu formación</div></div><span style="font-size:34px">🎓</span></div>' +
+    '<div style="display:flex;align-items:center;gap:14px;margin:12px 0">' +
+      '<div style="width:86px;height:86px;border-radius:50%;flex:none;background:conic-gradient(#fff ' + UNI.avance * 360 + 'deg, rgba(255,255,255,.25) 0);display:flex;align-items:center;justify-content:center"><div style="width:68px;height:68px;border-radius:50%;background:#0a5f96;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900">' + Math.round(UNI.avance * 100) + '%</div></div>' +
+      '<div class="small" style="line-height:1.7">' + (UNI.credencial ? '✅' : '⬜') + ' Credencial activa<br>' + (UNI.perfil ? '✅' : '⬜') + ' Perfil completo (datos y foto)<br>📚 ' + UNI.cursos + ' de ' + UNI.asignados + ' cursos certificados</div></div>' +
+    '<div class="small" style="background:rgba(255,255,255,.15);border-radius:10px;padding:8px 10px">' + (meta ? '🏆 ¡Cumples la meta de la tienda! Sigue sumando cursos.' :
+      'Meta: 90% de avance y perfil completo. ' + (UNI.perfil ? '' : 'Te falta completar tu perfil. ') + (UNI.avance < 0.9 ? (n => 'Te ' + (n === 1 ? 'falta 1 curso.' : 'faltan ' + n + ' cursos.'))(Math.max(Math.ceil(UNI.asignados * 0.9) - UNI.cursos, 1)) : '')) + '</div>' +
+    '<a href="' + UNI.url + '" target="_blank" rel="noopener" class="btn block" style="margin-top:12px;text-align:center;text-decoration:none;color:#0078be;background:#fff;border-color:#fff;font-size:16px">Entrar a Universidad Steren ↗</a>' +
+    '<div class="tiny" style="opacity:.75;margin-top:6px;text-align:center">Entra con tu usuario de Universidad Steren. Ejemplo de avance.</div></div>';
+  // pregunta del día
+  h += '<div class="card"><div class="fila"><h3 style="margin:0">🧠 Pregunta del día</h3><span class="chip azul">1 min</span></div><div style="font-weight:700;margin:10px 0 8px">' + esc(pd.q) + '</div>' +
+    pd.o.map((o, i) => { const sel = resp === i, okI = i === pd.ok, ver = resp != null;
+      const st = ver ? (okI ? 'background:#e5f4ec;border-color:var(--ok);color:var(--ok)' : sel ? 'background:#fbe9e7;border-color:var(--bad);color:var(--bad)' : 'opacity:.6') : '';
+      return '<button class="btn block" data-pq="' + i + '" style="text-align:left;margin-bottom:6px;' + st + '"' + (ver ? ' disabled' : '') + '>' + (ver && okI ? '✅ ' : ver && sel ? '❌ ' : '') + esc(o) + '</button>'; }).join('') +
+    (resp != null ? '<div class="small" style="margin-top:4px">' + (resp === pd.ok ? '🎉 <b>¡Correcto!</b> ' : '💡 <b>Casi.</b> ') + esc(pd.x) + '</div><div class="tiny muted" style="margin-top:4px">Mañana hay otra pregunta.</div>' : '') + '</div>';
+  // políticas y guías
+  h += '<div class="card"><div class="fila"><h3 style="margin:0">📖 Cómo trabajamos</h3><span class="chip ' + (pend.length ? 'amb' : 'verde') + '">' + leidas + ' de ' + LECTURAS.length + ' leídas</span></div>' +
+    '<div class="bar"><i class="' + (pend.length ? '' : 'ok') + '" style="width:' + leidas / LECTURAS.length * 100 + '%"></i></div>' +
+    LECTURAS.slice().sort((x, y) => !!E.leidos[x.id] - !!E.leidos[y.id]).map(l => { const ya = !!E.leidos[l.id];
+      return '<div class="rk" style="align-items:flex-start"><span style="font-size:26px">' + l.ic + '</span><div class="q"><b>' + esc(l.t) + '</b><span class="tiny muted" style="display:block">' + l.tipo + ' · ' + l.min + ' min · ' + esc(l.d) + '</span>' +
+        (ya ? '<div class="tiny" style="color:var(--ok);font-weight:700;margin-top:4px">✓ Leída</div>' : '<button class="btn pri" data-leer="' + l.id + '" style="margin-top:6px;padding:6px 12px;font-size:13px">Leí y entendí</button>') + '</div></div>'; }).join('') + '</div>';
+  $('#main').innerHTML = h;
+  document.querySelectorAll('[data-leer]').forEach(b => b.onclick = () => { E.leidos[b.dataset.leer] = new Date().toISOString(); guardar(); toast(pend.length === 1 ? '🏆 ¡Leíste todo! Quedó registrado con tu nombre.' : 'Gracias, quedó registrado con tu nombre.'); render(); });
+  document.querySelectorAll('[data-pq]').forEach(b => b.onclick = () => { E.preg = {dia: iso(HOY), r: Number(b.dataset.pq)}; guardar(); renderApr(); });
 }
 
 /* ================= navegación ================= */
