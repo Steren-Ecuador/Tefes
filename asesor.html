@@ -110,6 +110,7 @@ nav .dot{position:absolute;top:4px;left:50%;margin-left:8px;width:9px;height:9px
 .modal .box{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:640px;max-height:90vh;overflow:auto;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
 .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#16202b;color:#fff;padding:10px 16px;border-radius:10px;z-index:60;font-size:14px}
 .vacio{text-align:center;padding:20px 10px;color:var(--muted)}
+@keyframes latido{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
 </style>
 </head>
 <body>
@@ -508,14 +509,22 @@ function renderApr(){
     const CAR = ['Onboarding', 'Fundamentos xpert', 'Gestión operativa', 'Productos xpert'];
     const fecha = new Date(U.fecha + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'short'});
     const ring = 'background:conic-gradient(#fff ' + pct * 3.6 + 'deg, rgba(255,255,255,.25) 0)';
-    h = '<div class="card" style="background:linear-gradient(135deg,#0b3b5c,#0078be);color:#fff">' +
+    const rojo = dias > 14 || (uy.semana === 0 && faltan > 0), nar = !rojo && (dias > 7 || faltan > 10);
+    const quien = esc(nombreCorto(YO.nombre));
+    h = rojo ? '<div class="card" style="background:#c62828;color:#fff;border:0;animation:latido 1.6s ease-in-out infinite"><div style="font-size:19px;font-weight:900">🚨 ' + quien + ', te estás quedando atrás</div><div class="small" style="margin-top:6px;line-height:1.5">' +
+        (dias > 14 ? 'Llevas <b>' + dias + ' días sin entrar</b> a la Universidad' : 'Esta semana <b>no aprobaste ningún curso</b>') + (faltan ? ' y tienes <b>' + faltan + (faltan === 1 ? ' curso pendiente' : ' cursos pendientes') + '</b>' : '') +
+        '. Tus compañeros siguen avanzando y tú bajas en el ranking.</div>' + boton('Entrar hoy y ponerme al día').replace('color:#0078be', 'color:#c62828') + '</div>'
+      : nar ? '<div class="card" style="background:#fff3e0;border-color:#f0a35b"><div style="font-weight:900;color:#b25c00">⚠️ Atención, ' + quien + '</div><div class="small" style="margin-top:4px">' +
+        (dias > 7 ? 'Hace ' + dias + ' días que no entras a la Universidad.' : 'Tienes ' + faltan + ' cursos pendientes.') + ' 15 minutos hoy y vuelves al ritmo.</div></div>' : '';
+    h += '<div class="card" style="background:linear-gradient(135deg,#0b3b5c,#0078be);color:#fff">' +
       '<div class="fila"><div class="tiny" style="opacity:.85;letter-spacing:.5px">UNIVERSIDAD STEREN</div><span class="chip" style="background:rgba(255,255,255,.18);color:#fff">' + nivel[0] + ' ' + nivel[1] + '</span></div>' +
       '<div style="display:flex;gap:14px;align-items:center;margin-top:8px"><div style="width:74px;height:74px;border-radius:50%;flex:none;display:grid;place-items:center;' + ring + '"><div style="width:58px;height:58px;border-radius:50%;background:#0a4d7a;display:grid;place-items:center;font-weight:900;font-size:18px">' + pct + '%</div></div>' +
       '<div><div style="font-size:18px;font-weight:900;line-height:1.2">Aprobaste ' + uy.ok + ' de ' + uy.asig + ' cursos</div><div class="small" style="opacity:.9;margin-top:3px">' +
-      (faltan ? 'Te ' + (faltan === 1 ? 'falta 1 curso' : 'faltan ' + faltan + ' cursos') + ' cargados para completar todo.' : '¡Tienes todos tus cursos aprobados!') + (uy.cert ? ' · ' + uy.cert + ' certificados' : '') + '</div></div></div>' +
+      (faltan ? 'Te ' + (faltan === 1 ? 'falta 1 curso' : 'faltan ' + faltan + ' cursos') + ' para completar todo.' : '¡Tienes todos tus cursos aprobados!') + (uy.cert ? ' · ' + uy.cert + ' certificados' : '') + '</div></div></div>' +
       '<div style="margin-top:10px">' + CAR.map((c, i) => '<div class="tiny" style="display:flex;justify-content:space-between;margin-top:6px"><span>' + c + '</span><b>' + uy.car[i] + '%</b></div><div style="height:6px;border-radius:3px;background:rgba(255,255,255,.25)"><i style="display:block;height:6px;border-radius:3px;background:' + (uy.car[i] >= 100 ? '#7be0a5' : '#fff') + ';width:' + Math.min(uy.car[i], 100) + '%"></i></div>').join('') + '</div>' +
       (uy.sigue.length ? '<div class="small" style="margin-top:12px;font-weight:700">Sigue con</div>' + uy.sigue.map(x => '<div class="tiny" style="display:flex;justify-content:space-between;gap:8px;margin-top:4px;opacity:.95"><span>▶ ' + esc(x.c) + '</span><span>' + x.p + '%</span></div>').join('') : '') +
-      (dias > 7 ? '<div class="small" style="margin-top:10px;background:rgba(255,255,255,.15);border-radius:10px;padding:8px">👋 Hace ' + dias + ' días que no entras. 15 minutos hoy y vuelves al ritmo.</div>' : '') +
+      '<div style="display:flex;gap:8px;margin-top:12px"><div style="flex:1;background:rgba(255,255,255,.15);border-radius:10px;padding:8px"><div class="tiny" style="opacity:.85">Último ingreso</div><b>' + (uy.visita ? new Date(uy.visita + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'short'}) + '</b><div class="tiny" style="opacity:.85">' + (dias <= 0 ? 'hoy' : dias === 1 ? 'ayer' : 'hace ' + dias + ' días') : '—</b><div class="tiny">') + '</div></div>' +
+      '<div style="flex:1;background:rgba(255,255,255,.15);border-radius:10px;padding:8px"><div class="tiny" style="opacity:.85">Última semana</div><b>' + (uy.semana == null ? '—' : (uy.semana === 1 ? '1 curso' : uy.semana + ' cursos')) + '</b><div class="tiny" style="opacity:.85">' + (uy.semana == null ? 'se mide desde la próxima lectura' : 'aprobados') + '</div></div></div>' +
       boton(faltan ? 'Seguir mis cursos' : 'Ver cursos nuevos') + '</div>';
     // ranking TEFES por cursos aprobados: podio + mi puesto + a quién alcanzo
     const med = ['🥇', '🥈', '🥉'];
