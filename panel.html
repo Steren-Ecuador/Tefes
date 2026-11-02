@@ -1584,7 +1584,7 @@ function render(){
 }
 
 /* ---------- actividades del mes de las tiendas (actividades-mes, vía apiActividadesPanel; solo lectura) ---------- */
-/* uni1: informe de actividad en Universidad Steren (pestaña privada "Universidad asesores", se lee cada lunes) */
+/* uni1: informe de actividad en Universidad Steren (pestaña privada "Universidad asesores", se lee cada mañana) */
 function uniInformeHtml(U, todas, filtro){
   const fd = i => new Date(i + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'short'});
   const F = (U && U.filas || []).filter(x => !filtro || filtro(x));
@@ -1592,7 +1592,7 @@ function uniInformeHtml(U, todas, filtro){
   const ord = {rojo: 0, naranja: 1, ok: 2}, L = F.slice().sort((a, b) => ord[a.estado] - ord[b.estado] || a.pos - b.pos);
   const n = e => L.filter(x => x.estado === e).length;
   const chip = e => e === 'rojo' ? '<span class="uni-e r">🚨 Alerta</span>' : e === 'naranja' ? '<span class="uni-e a">⚠️ Atención</span>' : '<span class="uni-e o">✓ Al día</span>';
-  return '<div class="uni-s">Actualizado al <b>' + fd(U.fecha) + '</b> · se lee cada lunes</div>' +
+  return '<div class="uni-s">Actualizado al <b>' + fd(U.fecha) + '</b> · se lee cada día</div>' +
     '<div class="uni-res">' + (n('rojo') ? '<span class="uni-e r">' + n('rojo') + ' en alerta</span>' : '') + (n('naranja') ? '<span class="uni-e a">' + n('naranja') + ' en atención</span>' : '') + '<span class="uni-e o">' + n('ok') + ' al día</span></div>' +
     '<div class="uni-t"><table><thead><tr><th>Persona</th>' + (todas ? '<th>Tienda</th>' : '') + '<th>Aprobados</th><th>Última semana</th><th>Último ingreso</th><th>Ranking</th><th>Estado</th></tr></thead><tbody>' +
     L.map(x => '<tr><td class="n"><b>' + esc(x.n) + '</b><div class="uni-s">' + esc(x.rol) + '</div></td>' + (todas ? '<td class="n">' + esc(x.t) + '</td>' : '') +
