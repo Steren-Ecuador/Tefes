@@ -52,6 +52,7 @@ h3{margin:0 0 8px;font-size:16px}
 .rk .av{width:34px;height:34px;font-size:13px}
 .rk .q{flex:1;min-width:0}
 .rk .q b{display:block;font-size:14px}
+.rk .q .small b,.rk .q .tiny b{display:inline;font-size:inherit}
 .rk .v{text-align:right;font-weight:800}
 .rk.yo{background:#eaf4fb;border-radius:10px;padding-left:6px;padding-right:6px;border-top-color:transparent}
 .seg{display:flex;background:#e7ecf2;border-radius:10px;padding:3px;margin-bottom:10px}
@@ -239,30 +240,44 @@ function perfil(p){
 function diasTrabajoRestantes(){ let n = 0; for (let d = HOY.getDate(); d <= finMes; d++){ const x = new Date(HOY.getFullYear(), HOY.getMonth(), d); if (TURNOS.rosa[(x.getDay() + 6) % 7] !== 'Libre') n++; } return n; }
 function renderMeta(){
   const dr = diasTrabajoRestantes(), pctTxt = (SUELDO.pct * 100).toFixed(1).replace('.', ',') + '%';
-  let h = '<div class="card"><h3>Tu comisión</h3><div class="grande">' + pctTxt + '</div>' +
+  const minV = YO.meta, ganaMin = SUELDO.fijo + minV * SUELDO.pct;               // meta mínima (la asigna el gerente) y lo que se gana al cumplirla
+  const miV = E.metaGanar ? Math.max((E.metaGanar - SUELDO.fijo) / SUELDO.pct, 0) : 0;   // venta para ganar lo que quiere
+  const porDia = falta => falta <= 0 ? '' : dr ? 'unos <b>' + usd0(falta / dr) + ' por día</b> en tus ' + dr + (dr === 1 ? ' día' : ' días') + ' de trabajo que quedan' : 'no te quedan días de trabajo este mes';
+  const tope = Math.max(minV, miV, YO.mes) * 1.08, pos = v => Math.min(v / tope, 1) * 100;
+  const cMin = YO.mes / minV, cMi = miV ? YO.mes / miV : 0;
+  // barra con las dos metas marcadas
+  let h = '<div class="card"><div class="fila"><h3 style="margin:0">Mis metas del mes</h3><span class="tiny muted">al ' + fCorta(sumar(HOY, -1)) + '</span></div>' +
+    '<div class="tiny muted" style="margin-top:8px">Llevas vendido</div><div class="grande">' + usd0(YO.mes) + '</div>' +
+    '<div style="position:relative;height:46px;margin:6px 0 2px">' +
+      '<div class="bar" style="position:absolute;left:0;right:0;top:18px;margin:0;height:12px"><i class="' + (cMin >= 1 ? 'ok' : '') + '" style="width:' + pos(YO.mes) + '%"></i></div>' +
+      '<div style="position:absolute;left:' + pos(minV) + '%;top:0;transform:translateX(-50%);text-align:center"><span class="tiny" style="font-weight:800;color:var(--warn);white-space:nowrap">Mínima</span><div style="width:3px;height:30px;margin:0 auto;background:var(--warn)"></div></div>' +
+      (miV ? '<div style="position:absolute;left:' + pos(miV) + '%;top:0;transform:translateX(-' + (pos(miV) > 85 ? 100 : 50) + '%);text-align:center"><span class="tiny" style="font-weight:800;color:var(--ok);white-space:nowrap">Mi meta 🚀</span><div style="width:3px;height:30px;margin:0 ' + (pos(miV) > 85 ? '0 0 auto' : 'auto') + ';background:var(--ok)"></div></div>' : '') +
+    '</div>' +
+    // meta mínima
+    '<div class="rk" style="margin-top:8px"><span style="font-size:22px">🎯</span><div class="q"><b>Meta mínima: ' + usd0(minV) + '</b><span class="tiny muted">Te la asigna tu gerente. Es lo mínimo del mes.</span>' +
+      '<div class="small" style="margin-top:3px">' + (cMin >= 1 ? '✅ ¡Cumplida! Ahora ve por tu meta.' : 'Te faltan <b>' + usd0(minV - YO.mes) + '</b>: ' + porDia(minV - YO.mes) + '.') + '</div></div>' +
+      '<span class="chip ' + (cMin >= 1 ? 'verde' : cMin >= ritmo ? 'verde' : 'amb') + '">' + Math.round(cMin * 100) + '%</span></div>';
+  // meta personal
+  if (!E.metaGanar){
+    const base = Math.ceil(ganaMin / 50) * 50, ops = [base + 100, base + 200, base + 300, base + 500];
+    h += '<div class="rk" style="align-items:flex-start"><span style="font-size:22px">🚀</span><div class="q"><b>Mi meta personal</b><span class="tiny muted">¿Cuánto quieres ganar este mes? Al cumplir la mínima ganarías unos ' + usd0(ganaMin) + '. Apunta más alto.</span>' +
+      '<div class="dos" style="margin-top:8px"><input class="i" id="mg" inputmode="decimal" placeholder="Ej.: ' + ops[1] + '"><button class="btn pri" id="mgOk">Guardar</button></div>' +
+      '<div class="btns">' + ops.map(v => '<button class="btn" data-mg="' + v + '">' + usd0(v) + '</button>').join('') + '</div></div></div>';
+  } else {
+    h += '<div class="rk"><span style="font-size:22px">🚀</span><div class="q"><b>Mi meta: ganar ' + usd0(E.metaGanar) + '</b><span class="tiny muted">Para eso necesitas vender ' + usd0(miV) + '.</span>' +
+      '<div class="small" style="margin-top:3px">' + (cMi >= 1 ? '🏆 ¡Lo lograste! Lo que vendas desde hoy es extra.' : 'Te faltan <b>' + usd0(miV - YO.mes) + '</b>: ' + porDia(miV - YO.mes) + '.') + '</div>' +
+      '<button class="link tiny" id="mgCambiar" style="background:none;border:0;color:var(--brand);padding:4px 0 0;font-weight:700;cursor:pointer">Cambiar mi meta</button></div>' +
+      '<span class="chip ' + (cMi >= 1 ? 'verde' : 'azul') + '">' + Math.round(cMi * 100) + '%</span></div>';
+  }
+  h += '<div class="tiny muted" style="margin-top:8px">Venta según ERP, referencial. Ayer vendiste <b>' + usd0(YO.ayer) + '</b>. Tu meta personal solo la ves tú.</div></div>';
+  h += '<div class="card"><h3>Tu comisión</h3><div class="grande">' + pctTxt + '</div>' +
     '<div class="small" style="margin-top:4px">de toda tu venta, <b>con la garantía extendida incluida</b>.</div>' +
     '<div class="small muted" style="margin-top:6px">Por cada $100 que vendes ganas ' + usd2(100 * SUELDO.pct) + ' de comisión. Cada garantía que vendes también suma a tu venta.</div>' +
     '<div class="tiny muted" style="margin-top:8px">El valor final de tu comisión se calcula al cierre del mes con el POS. Ejemplo de prueba.</div></div>';
-  if (!E.metaGanar){
-    h += '<div class="card"><h3>¿Cuánto quieres ganar este mes?</h3><p class="small muted" style="margin:0 0 6px">Ponte una meta. Te decimos cuánto necesitas vender por día y vas viendo tu avance.</p>' +
-      '<div class="dos"><input class="i" id="mg" inputmode="decimal" placeholder="Ej.: 800"><button class="btn pri" id="mgOk">Guardar mi meta</button></div>' +
-      '<div class="btns">' + [700, 800, 900, 1000].map(v => '<button class="btn" data-mg="' + v + '">' + usd0(v) + '</button>').join('') + '</div></div>';
-  } else {
-    const ventaNec = Math.max((E.metaGanar - SUELDO.fijo) / SUELDO.pct, 0), avance = YO.mes / ventaNec, falta = Math.max(ventaNec - YO.mes, 0);
-    const col = avance >= 1 ? 'var(--ok)' : avance >= ritmo ? 'var(--ok)' : 'var(--warn)';
-    h += '<div class="card" style="text-align:center"><div class="fila"><h3 style="margin:0">Mi meta: ganar ' + usd0(E.metaGanar) + '</h3><button class="btn" id="mgCambiar" style="padding:5px 9px;font-size:12.5px">Cambiar</button></div>' +
-      '<div class="anillo" style="background:' + anillo(avance, col) + '"><div><b>' + Math.round(Math.min(avance, 9.99) * 100) + '%</b><span class="tiny muted">de la venta que necesitas</span></div></div>' +
-      '<div class="kpis"><div><span class="tiny muted">Necesitas vender</span><b>' + usd0(ventaNec) + '</b></div><div><span class="tiny muted">Llevas</span><b>' + usd0(YO.mes) + '</b></div><div><span class="tiny muted">Te falta</span><b>' + usd0(falta) + '</b></div></div>' +
-      '<p class="small" style="margin:10px 0 0;color:' + col + '">' + (falta <= 0 ? '🏆 ¡Lo lograste! Todo lo que vendas desde hoy es extra.' :
-        (dr ? 'Te quedan <b>' + dr + (dr === 1 ? ' día de trabajo' : ' días de trabajo') + '</b> según tu horario: vende unos <b>' + usd0(falta / dr) + ' por día</b>.' : 'No te quedan días de trabajo este mes.') +
-        (avance >= ritmo ? ' Vas a buen ritmo 💪' : ' Vas un poco atrás: tú puedes.')) + '</p></div>';
-  }
-  const c = YO.mes / YO.meta;
-  h += '<div class="card"><div class="fila"><h3 style="margin:0">Meta que te dio la tienda</h3><span class="chip ' + (c >= ritmo ? 'verde' : 'amb') + '">' + Math.round(c * 100) + '%</span></div>' +
-    '<div class="bar"><i class="' + (c >= ritmo ? 'ok' : 'warn') + '" style="width:' + Math.min(c, 1) * 100 + '%"></i><u style="left:' + ritmo * 100 + '%"></u></div>' +
-    '<div class="small">' + usd0(YO.mes) + ' de ' + usd0(YO.meta) + ' · ayer vendiste <b>' + usd0(YO.ayer) + '</b></div><div class="tiny muted" style="margin-top:4px">La línea es el ritmo esperado a la fecha. Venta según ERP, referencial: para comisiones vale el POS del cierre.</div></div>';
   $('#main').innerHTML = h;
-  const ok = v => { v = Number(String(v).replace(',', '.')); if (!(v > SUELDO.fijo)) return toast('Pon un valor mayor a tu sueldo fijo (' + usd0(SUELDO.fijo) + ').'); E.metaGanar = v; guardar(); toast('¡Meta guardada! A darle.'); renderMeta(); };
+  const ok = v => { v = Number(String(v).replace(',', '.'));
+    if (!(v > ganaMin)) return toast('Tu meta debe ser mayor a lo que ganas con la mínima (' + usd0(ganaMin) + ').');
+    E.metaGanar = v; guardar(); toast('¡Meta guardada! A darle 💪'); renderMeta(); };
   if ($('#mgOk')) $('#mgOk').onclick = () => ok($('#mg').value);
   document.querySelectorAll('[data-mg]').forEach(b => b.onclick = () => ok(b.dataset.mg));
   if ($('#mgCambiar')) $('#mgCambiar').onclick = () => { E.metaGanar = 0; guardar(); renderMeta(); };
