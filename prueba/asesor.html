@@ -395,16 +395,54 @@ function formFutura(){
 }
 
 /* ================= HORARIO ================= */
+let horSel = null;
+const hm = t => { const [h, m] = t.split(':').map(Number); return h * 60 + (m || 0); };
+const tramo = t => t === 'Libre' ? null : t.split('–').map(hm);
+const tipoTurno = t => { const r = tramo(t); return !r ? {ic: '🌴', n: 'Libre', c: '#1a8f7a', bg: '#e3f5ef'} : r[0] < 11 * 60 ? {ic: '☀️', n: 'Mañana', c: '#b26a00', bg: '#fff4e0'} : r[0] < 12 * 60 ? {ic: '🌤️', n: 'Media', c: '#0078be', bg: '#eaf4fb'} : {ic: '🌙', n: 'Tarde', c: '#5b3fa8', bg: '#efeafb'}; };
+const durTxt = m => { const h = Math.floor(m / 60), r = Math.round(m % 60); return (h ? h + ' h' : '') + (h && r ? ' ' : '') + (r ? r + ' min' : (h ? '' : '0 min')); };
 function renderHor(){
-  const t = TURNOS.rosa, hoyI = (HOY.getDay() + 6) % 7, horas = t.filter(x => x !== 'Libre').length * 8;
-  let h = '<div class="card"><div class="fila"><h3 style="margin:0">Mi horario</h3><span class="tiny muted">Semana del ' + fCorta(lunes) + '</span></div>' +
-    t.map((x, i) => { const d = sumar(lunes, i), libre = x === 'Libre', con = EQUIPO.filter(p => p !== YO && TURNOS[p.id][i] !== 'Libre');
-      return '<div class="dia' + (i === hoyI ? ' hoy' : '') + (libre ? ' libre' : '') + '"><div class="d"><span class="tiny muted">' + DIAS[d.getDay()] + '</span><b>' + d.getDate() + '</b></div><div class="h"><b>' + (libre ? 'Libre 🌴' : x) + '</b>' +
-        (libre ? '' : '<div class="tiny muted">Con ' + con.map(p => esc(nombreCorto(p.nombre))).join(', ') + '</div>') + '</div>' + (i === hoyI ? '<span class="chip azul">Hoy</span>' : '') + '</div>'; }).join('') +
-    '<div class="tiny muted" style="margin-top:8px">' + horas + ' horas esta semana. Lo arma tu gerente; si ves un error, avísale.</div></div>';
-  const hoyEq = EQUIPO.filter(p => TURNOS[p.id][hoyI] !== 'Libre');
-  h += '<div class="card"><h3>Hoy en la tienda</h3>' + hoyEq.map(p => '<div class="rk' + (p === YO ? ' yo' : '') + '">' + avatar(p) + '<div class="q"><b>' + (p === YO ? 'Tú' : esc(p.nombre)) + '</b><span class="tiny muted">' + esc(p.cargo) + '</span></div><span class="v small">' + TURNOS[p.id][hoyI] + '</span></div>').join('') + '</div>';
+  const t = TURNOS.rosa, hoyI = (HOY.getDay() + 6) % 7; if (horSel == null) horSel = hoyI;
+  const ahora = new Date(), mins = ahora.getHours() * 60 + ahora.getMinutes();
+  const hoyT = t[hoyI], r = tramo(hoyT), tt = tipoTurno(hoyT);
+  // próximo libre
+  let prox = 0; for (let i = 1; i <= 14; i++) if (t[(hoyI + i) % 7] === 'Libre'){ prox = i; break; }
+  const horas = t.reduce((s, x) => { const q = tramo(x); return s + (q ? (q[1] - q[0]) / 60 : 0); }, 0);
+  // tarjeta de hoy
+  let estado = '', pctT = 0;
+  if (!r) estado = 'Hoy descansas. ¡Disfruta! 🌴';
+  else if (mins < r[0]) estado = 'Entras en <b>' + durTxt(r[0] - mins) + '</b>';
+  else if (mins < r[1]) { pctT = (mins - r[0]) / (r[1] - r[0]); estado = 'Te quedan <b>' + durTxt(r[1] - mins) + '</b> de turno 💪'; }
+  else estado = 'Turno terminado. ¡Buen trabajo! 👏';
+  const conHoy = EQUIPO.filter(p => p !== YO && TURNOS[p.id][hoyI] !== 'Libre');
+  let h = '<div class="card" style="background:linear-gradient(135deg,' + (r ? '#0078be,#5b3fa8' : '#1a8f7a,#38b48b') + ');color:#fff">' +
+    '<div class="fila"><span class="tiny" style="opacity:.85">HOY · ' + fCorta(HOY).toUpperCase() + '</span><span style="font-size:30px">' + tt.ic + '</span></div>' +
+    '<div style="font-size:34px;font-weight:900;margin:2px 0">' + (r ? hoyT.replace('–', ' – ') : 'Libre') + '</div>' +
+    '<div class="small">' + estado + '</div>' +
+    (r ? '<div style="height:8px;border-radius:5px;background:rgba(255,255,255,.25);margin:10px 0 4px;overflow:hidden"><div style="height:100%;width:' + pctT * 100 + '%;background:#fff;border-radius:5px"></div></div>' : '') +
+    (r && conHoy.length ? '<div style="display:flex;align-items:center;gap:6px;margin-top:10px"><span class="tiny" style="opacity:.85">Hoy con</span>' + conHoy.map(p => '<span class="av" style="width:30px;height:30px;font-size:11px;border:2px solid #fff;margin-left:-4px;background:' + colorDe(p.id) + '">' + iniciales(p.nombre) + '</span>').join('') + '</div>' : '') + '</div>';
+  // chips resumen
+  h += '<div class="kpis" style="margin:0 0 12px"><div style="background:#fff"><span class="tiny muted">Próximo libre</span><b>' + (t[hoyI] === 'Libre' ? 'Hoy 🌴' : prox ? (prox === 1 ? 'Mañana' : 'En ' + prox + ' días') : '—') + '</b></div>' +
+    '<div style="background:#fff"><span class="tiny muted">Esta semana</span><b>' + horas + ' h</b></div>' +
+    '<div style="background:#fff"><span class="tiny muted">Hora pico</span><b>18–20 🔥</b></div></div>';
+  // tira de la semana
+  h += '<div class="card"><h3>Mi semana</h3><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px">' + t.map((x, i) => { const d = sumar(lunes, i), k = tipoTurno(x), sel = i === horSel;
+      return '<button data-hd="' + i + '" style="border:2px solid ' + (sel ? k.c : 'transparent') + ';background:' + k.bg + ';border-radius:12px;padding:6px 0;cursor:pointer;text-align:center' + (i === hoyI ? ';box-shadow:0 0 0 2px #fff inset' : '') + '">' +
+        '<div class="tiny" style="color:' + k.c + ';font-weight:700">' + DIAS[d.getDay()] + '</div><div style="font-size:18px;font-weight:900">' + d.getDate() + '</div><div style="font-size:16px">' + k.ic + '</div>' +
+        (i === hoyI ? '<div style="font-size:9px;font-weight:800;color:' + k.c + '">HOY</div>' : '<div style="font-size:9px">&nbsp;</div>') + '</button>'; }).join('') + '</div>' +
+    '<div class="tiny muted" style="margin-top:8px">☀️ Mañana · 🌤️ Media · 🌙 Tarde · 🌴 Libre</div></div>';
+  // quién está el día elegido: línea de tiempo 10:00–21:00
+  const dSel = sumar(lunes, horSel), I = 10 * 60, F = 21 * 60, X = m => (m - I) / (F - I) * 100;
+  const filas = EQUIPO.map(p => ({p: p, t: TURNOS[p.id][horSel]})).sort((a, b) => (tramo(a.t) || [9999])[0] - (tramo(b.t) || [9999])[0]);
+  h += '<div class="card"><div class="fila"><h3 style="margin:0">' + (horSel === hoyI ? 'Hoy en la tienda' : DIAS[dSel.getDay()] + ' ' + dSel.getDate() + ' en la tienda') + '</h3><span class="tiny muted">10:00 – 21:00</span></div>' +
+    '<div style="position:relative;margin:12px 0 4px">' +
+      filas.map(f => { const q = tramo(f.t), yo = f.p === YO;
+        return '<div style="display:flex;align-items:center;gap:6px;height:36px;position:relative"><div style="width:54px;flex:none;font-size:12px;font-weight:' + (yo ? 800 : 600) + '">' + (yo ? 'Tú' : esc(nombreCorto(f.p.nombre))) + '</div>' +
+          '<div style="flex:1;position:relative;height:22px"><div style="position:absolute;left:' + X(18 * 60) + '%;width:' + (X(20 * 60) - X(18 * 60)) + '%;top:-7px;bottom:-7px;background:#ffe9d6"></div>' + (q ? '<div style="position:absolute;left:' + X(q[0]) + '%;width:' + (X(q[1]) - X(q[0])) + '%;z-index:1;top:0;bottom:0;border-radius:11px;background:' + (yo ? 'var(--brand)' : colorDe(f.p.id) + '99') + ';color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;white-space:nowrap">' + f.t + '</div>'
+            : '<div style="position:absolute;inset:0;display:flex;align-items:center;font-size:12px;color:var(--muted)">🌴 libre</div>') + '</div></div>'; }).join('') +
+    '</div><div class="tiny muted">🔥 La franja naranja es la hora pico: de 18:00 a 20:00 entran más clientes.</div></div>';
+  h += '<div class="tiny muted" style="text-align:center;margin:4px 0 8px">Lo arma tu gerente. Si ves un error, avísale.</div>';
   $('#main').innerHTML = h;
+  document.querySelectorAll('[data-hd]').forEach(b => b.onclick = () => { horSel = Number(b.dataset.hd); renderHor(); });
 }
 
 /* ================= APRENDER (políticas y guías) ================= */
