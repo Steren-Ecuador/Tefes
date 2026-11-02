@@ -471,7 +471,7 @@ function renderHor(){
 }
 
 /* ================= APRENDER (Universidad Steren, políticas y guías, pregunta del día) ================= */
-const UNI = {url: 'https://universidadsteren.com/#signin', credencial: true, perfil: false, avance: 0.82, cursos: 9, asignados: 11};   // ejemplo: en la app real sale del reporte de Universidad Steren (punto C01)
+let UNI = {url: 'https://universidadsteren.com/#signin', d: null};   // d = apiAsesor().uni (pestaña privada "Universidad asesores")
 const LECTURAS = [
   {id: 'P006', tipo: 'Política', ic: '🧾', t: 'Consumidor final', d: 'Por qué siempre recomendamos factura con los datos del cliente.', min: 3,
     txt: 'Recomienda siempre la factura a nombre del cliente: es su respaldo para soporte y servicio técnico. Con una factura a consumidor final no hay nota de crédito, ni cambio, ni devolución. Una nota de crédito con datos la autoriza el gerente de tienda.',
@@ -494,10 +494,37 @@ const PREGUNTAS = [
 function renderApr(){
   const pend = LECTURAS.filter(l => !E.leidos[l.id]), leidas = LECTURAS.length - pend.length;
     const pd = PREGUNTAS[Math.floor(HOY / 864e5) % PREGUNTAS.length], resp = E.preg && E.preg.dia === iso(HOY) ? E.preg.r : null;
-  // Universidad Steren: solo el botón para seguir los cursos (no hay dato de avance por persona; Diego 2026-11-02)
-  let h = '<div class="card" style="background:linear-gradient(135deg,#0b3b5c,#0078be);color:#fff"><div class="tiny" style="opacity:.85;letter-spacing:.5px">UNIVERSIDAD STEREN</div>' +
-    '<div style="font-size:20px;font-weight:900;margin-top:2px">Aprende y vende más</div><div class="small" style="margin-top:6px;line-height:1.5">Cada curso que terminas te da más respuestas para tus clientes: conoces mejor los productos, explicas con seguridad y cierras más ventas. Dale 15 minutos al día y sigue avanzando.</div>' +
-    '<a href="' + UNI.url + '" target="_blank" rel="noopener" class="btn block" style="margin-top:12px;text-align:center;text-decoration:none;color:#0078be;background:#fff;border-color:#fff;font-size:16px">Seguir mis cursos en Universidad Steren ↗</a></div>';
+  // Universidad Steren: mis cursos, carreras, qué sigue y ranking (si no hay datos, solo el botón)
+  const U = UNI.d, uy = U && U.yo, boton = txt => '<a href="' + UNI.url + '" target="_blank" rel="noopener" class="btn block" style="margin-top:12px;text-align:center;text-decoration:none;color:#0078be;background:#fff;border-color:#fff;font-size:16px">' + txt + ' ↗</a>';
+  let h;
+  if (!uy) {
+    h = '<div class="card" style="background:linear-gradient(135deg,#0b3b5c,#0078be);color:#fff"><div class="tiny" style="opacity:.85;letter-spacing:.5px">UNIVERSIDAD STEREN</div>' +
+      '<div style="font-size:20px;font-weight:900;margin-top:2px">Aprende y vende más</div><div class="small" style="margin-top:6px;line-height:1.5">Cada curso que terminas te da más respuestas para tus clientes: conoces mejor los productos, explicas con seguridad y cierras más ventas. Dale 15 minutos al día y sigue avanzando.</div>' +
+      boton('Seguir mis cursos en Universidad Steren') + '</div>';
+  } else {
+    const pct = uy.asig ? Math.round(uy.ok / uy.asig * 100) : 0, faltan = Math.max(uy.asig - uy.ok, 0), car4 = uy.car.filter(x => x >= 100).length;
+    const nivel = pct >= 100 && car4 === 4 ? ['🏆', 'Leyenda'] : pct >= 90 ? ['⭐', 'Xpert'] : pct >= 50 ? ['🚀', 'Experto'] : ['🌱', 'Novato'];
+    const dias = uy.visita ? Math.round((HOY - new Date(uy.visita + 'T12:00:00')) / 864e5) : 99;
+    const CAR = ['Onboarding', 'Fundamentos xpert', 'Gestión operativa', 'Productos xpert'];
+    const fecha = new Date(U.fecha + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'short'});
+    const ring = 'background:conic-gradient(#fff ' + pct * 3.6 + 'deg, rgba(255,255,255,.25) 0)';
+    h = '<div class="card" style="background:linear-gradient(135deg,#0b3b5c,#0078be);color:#fff">' +
+      '<div class="fila"><div class="tiny" style="opacity:.85;letter-spacing:.5px">UNIVERSIDAD STEREN</div><span class="chip" style="background:rgba(255,255,255,.18);color:#fff">' + nivel[0] + ' ' + nivel[1] + '</span></div>' +
+      '<div style="display:flex;gap:14px;align-items:center;margin-top:8px"><div style="width:74px;height:74px;border-radius:50%;flex:none;display:grid;place-items:center;' + ring + '"><div style="width:58px;height:58px;border-radius:50%;background:#0a4d7a;display:grid;place-items:center;font-weight:900;font-size:18px">' + pct + '%</div></div>' +
+      '<div><div style="font-size:18px;font-weight:900;line-height:1.2">Aprobaste ' + uy.ok + ' de ' + uy.asig + ' cursos</div><div class="small" style="opacity:.9;margin-top:3px">' +
+      (faltan ? 'Te ' + (faltan === 1 ? 'falta 1 curso' : 'faltan ' + faltan + ' cursos') + ' cargados para completar todo.' : '¡Tienes todos tus cursos aprobados!') + (uy.cert ? ' · ' + uy.cert + ' certificados' : '') + '</div></div></div>' +
+      '<div style="margin-top:10px">' + CAR.map((c, i) => '<div class="tiny" style="display:flex;justify-content:space-between;margin-top:6px"><span>' + c + '</span><b>' + uy.car[i] + '%</b></div><div style="height:6px;border-radius:3px;background:rgba(255,255,255,.25)"><i style="display:block;height:6px;border-radius:3px;background:' + (uy.car[i] >= 100 ? '#7be0a5' : '#fff') + ';width:' + Math.min(uy.car[i], 100) + '%"></i></div>').join('') + '</div>' +
+      (uy.sigue.length ? '<div class="small" style="margin-top:12px;font-weight:700">Sigue con</div>' + uy.sigue.map(x => '<div class="tiny" style="display:flex;justify-content:space-between;gap:8px;margin-top:4px;opacity:.95"><span>▶ ' + esc(x.c) + '</span><span>' + x.p + '%</span></div>').join('') : '') +
+      (dias > 7 ? '<div class="small" style="margin-top:10px;background:rgba(255,255,255,.15);border-radius:10px;padding:8px">👋 Hace ' + dias + ' días que no entras. 15 minutos hoy y vuelves al ritmo.</div>' : '') +
+      boton(faltan ? 'Seguir mis cursos' : 'Ver cursos nuevos') + '</div>';
+    // ranking TEFES por cursos aprobados: podio + mi puesto + a quién alcanzo
+    const med = ['🥇', '🥈', '🥉'];
+    h += '<div class="card"><div class="fila"><h3 style="margin:0">🏅 Ranking Universidad</h3><span class="chip azul">#' + uy.pos + ' de ' + U.total + '</span></div>' +
+      '<div class="tiny muted" style="margin-top:2px">Todo TEFES, por cursos aprobados · datos al ' + fecha + '</div>' +
+      U.top.map((x, i) => '<div class="rk"><span style="font-size:22px">' + (med[x.pos - 1] || '#' + x.pos) + '</span><div class="q"><b>' + esc(x.n) + (x.n === YO.nombre ? ' (tú)' : '') + '</b><span class="tiny muted" style="display:block">Steren ' + esc(x.t) + '</span></div><b>' + x.ok + '</b></div>').join('') +
+      (uy.pos > 3 ? '<div class="rk" style="background:#eef6fc;border-radius:10px"><span style="font-size:16px;font-weight:900">#' + uy.pos + '</span><div class="q"><b>Tú</b></div><b>' + uy.ok + '</b></div>' : '') +
+      '<div class="small" style="margin-top:8px">' + (U.arriba ? '🎯 Aprueba <b>' + (U.arriba.ok - uy.ok + 1) + (U.arriba.ok - uy.ok + 1 === 1 ? ' curso' : ' cursos') + '</b> y pasas a <b>' + esc(U.arriba.n) + '</b> (#' + U.arriba.pos + ').' : '👑 Vas primero en TEFES. ¡Que nadie te alcance!') + '</div></div>';
+  }
   // pregunta del día
   h += '<div class="card"><div class="fila"><h3 style="margin:0">🧠 Pregunta del día</h3><span class="chip azul">1 min</span></div><div style="font-weight:700;margin:10px 0 8px">' + esc(pd.q) + '</div>' +
     pd.o.map((o, i) => { const sel = resp === i, okI = i === pd.ok, ver = resp != null;
@@ -698,6 +725,7 @@ function aplicar(d){
   DIARIO = d.yo.diario || [];
   TURNOS = {}; ((d.horario && d.horario.turnos) || []).forEach(t => { TURNOS[slug(t.persona)] = t.dias; });
   E.proformas = d.proformas || [];
+  UNI.d = d.uni || null;
   // sin meta repartida todavía: se usa la meta mínima del esquema (venta base) para que el anillo tenga referencia
   EQUIPO.forEach(p => { if (!p.meta) p.meta = Math.max(p.mes, 1); });
 }
