@@ -145,7 +145,7 @@ const fCorta = d => DIAS[d.getDay()].toLowerCase() + ' ' + d.getDate() + ' ' + M
 
 let TIENDA = {nombre: '', presupuesto: 0, mes: 0, ayer: 0};
 const COLORES = ['#0078be', '#7b4bc4', '#d0477a', '#1a8f7a', '#e07b16', '#3d5a80'];
-let EQUIPO = [], YO = null, SUELDO = {fijo: 0, pct: 0}, DIARIO = [], CORTE = '';
+let EQUIPO = [], YO = null, SUELDO = {fijo: 0, pct: 0}, DIARIO = [], CORTE = '', CIERRE = null;   // CIERRE = mes cerrado (POS), pestaña privada "Comisión mes"
 const slug = n => String(n).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-');
 const iniciales = n => n.split(' ').filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase();
 const colorDe = id => COLORES[Math.max(EQUIPO.findIndex(p => p.id === id), 0) % COLORES.length];
@@ -268,6 +268,15 @@ function renderMeta(){
   const porDia = falta => falta <= 0 ? '' : dr ? 'unos <b>' + usd0(falta / dr) + ' por día</b> en tus ' + dr + (dr === 1 ? ' día' : ' días') + ' de trabajo que quedan' : 'no te quedan días de trabajo este mes';
   const cMin = YO.mes / minV, cMi = miV ? YO.mes / miV : 0;
   let h = '';
+  /* 0. MES CERRADO: resultado oficial del POS y comisión a cobrar (solo si Diego lo publicó) */
+  if (CIERRE && CIERRE.mes){
+    const mN = MESES[Number(CIERRE.mes.slice(5, 7)) - 1], pago = CIERRE.pago ? new Date(CIERRE.pago + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'long'}) : '';
+    h += '<div class="card" style="background:linear-gradient(135deg,#0f6b3f,#1a9a5c);color:#fff"><div class="fila"><span class="tiny" style="opacity:.85">' + mN.toUpperCase() + ' CERRADO · DATO OFICIAL DEL POS</span><span style="font-size:20px">🏁</span></div>' +
+      '<div class="tiny" style="opacity:.85;margin-top:6px">Tu comisión de ' + mN + '</div><div style="font-size:34px;font-weight:900;margin:2px 0">' + usd2(CIERRE.comision) + '</div>' +
+      '<div class="tiny" style="opacity:.9">Vendiste ' + usd2(CIERRE.venta) + (CIERRE.gar ? ' · ' + CIERRE.gar + (CIERRE.gar === 1 ? ' garantía' : ' garantías') : '') + (CIERRE.pct ? ' · ' + (CIERRE.pct * 100).toFixed(1).replace('.', ',') + '% de comisión' : '') + '</div>' +
+      (pago ? '<div style="margin-top:10px;background:rgba(255,255,255,.15);border-radius:10px;padding:8px 10px;font-weight:800">Se paga el ' + pago + ' 💰</div>' : '') +
+      '<div class="tiny" style="opacity:.8;margin-top:6px">Tu sueldo fijo va aparte.</div></div>';
+  }
   /* 1. MI META (primero) */
   if (!E.metaGanar){
     const base = Math.ceil(ganaMin / 50) * 50, ops = [base + 100, base + 200, base + 300, base + 500];
@@ -735,6 +744,7 @@ function aplicar(d){
   TURNOS = {}; ((d.horario && d.horario.turnos) || []).forEach(t => { TURNOS[slug(t.persona)] = t.dias; });
   E.proformas = d.proformas || [];
   UNI.d = d.uni || null;
+  CIERRE = d.cierre || null;
   // sin meta repartida todavía: se usa la meta mínima del esquema (venta base) para que el anillo tenga referencia
   EQUIPO.forEach(p => { if (!p.meta) p.meta = Math.max(p.mes, 1); });
 }
