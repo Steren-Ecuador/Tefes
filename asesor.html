@@ -730,7 +730,16 @@ window.addEventListener('scroll', () => { const top = window.innerHeight * 0.4; 
   if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 4) act = 'apr';
   marcar(act); }, {passive: true});
 function aviso(t){ const a = $('#aviso'); a.hidden = !t; a.textContent = t || ''; }
+/* registro de ingreso (hoja privada Registro, panel Tienda): quién abrió la app y si llegó desde su correo */
+const DE = Q.get('de') || '', SES = Math.random().toString(36).slice(2, 10);
+const DISP = /iPhone|iPad/.test(navigator.userAgent) ? 'iPhone' : /Android/.test(navigator.userAgent) ? 'Android' : 'Computadora';
+const avisados = {};
+function registrarIngreso(det){
+  if (avisados[det]) return; avisados[det] = 1;
+  llamar('apiRegistroTienda', TOKEN, SES, DISP, [{ev: 'Ingreso', det: det + (DE ? ' · correo ' + DE : ''), seg: 0, t: Date.now(), n: 1}]).catch(() => {});
+}
 function quienSoy(equipo){
+  registrarIngreso('Asesor: (eligiendo nombre)');
   $('#main').innerHTML = '<section class="seccion"><div class="card"><h3>¿Quién eres?</h3><div class="small muted">Elige tu nombre. Lo recordamos en este teléfono.</div>' +
     equipo.map(p => '<button class="btn block" style="margin-top:8px;text-align:left" data-yo="' + esc(p.nombre) + '">' + esc(ver(p.nombre)) + ' <span class="tiny muted">· ' + esc(p.cargo) + '</span></button>').join('') + '</div></section>';
   document.querySelectorAll('[data-yo]').forEach(b => b.onclick = () => { guardarYo(b.dataset.yo); arrancar(); });
@@ -756,8 +765,11 @@ function arrancar(){
   const yo = leerYo(); cargando('Cargando tu panel…');
   llamar('apiAsesor', TOKEN, yo).then(d => {
     ALIAS = d.alias || {};
+    // enlace personal del correo (&de=nombre): entra directo sin elegir de la lista
+    if (!yo && DE) { const m = (d.equipo || []).find(p => slug(p.nombre) === DE); if (m) { guardarYo(m.nombre); return arrancar(); } }
     if (!yo || !d.yo) { guardarYo(''); document.querySelector('header').style.visibility = 'hidden'; return quienSoy(d.equipo || []); }
     document.querySelector('header').style.visibility = '';
+    registrarIngreso('Asesor: ' + yo);
     KEY = 'tefes_asesor_v1_' + slug(yo); cargarE(); aplicar(d);
     if (!SUELDO.pct) aviso('Tu esquema de comisión aún no está cargado: pídele a tu gerente que lo revise.');
     else if (!d.yo.diario || !d.yo.diario.length) aviso('Aún no hay ventas tuyas este mes en el sistema (se actualiza cada mañana).');
