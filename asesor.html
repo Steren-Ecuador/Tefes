@@ -145,13 +145,15 @@ const fCorta = d => DIAS[d.getDay()].toLowerCase() + ' ' + d.getDate() + ' ' + M
 
 let TIENDA = {nombre: '', presupuesto: 0, mes: 0, ayer: 0};
 const COLORES = ['#0078be', '#7b4bc4', '#d0477a', '#1a8f7a', '#e07b16', '#3d5a80'];
+let ALIAS = {};   // nombre corto → cómo le gusta que le digan (pestaña privada "Alias")
+const ver = n => ALIAS[n] || n;
 let EQUIPO = [], YO = null, SUELDO = {fijo: 0, pct: 0}, DIARIO = [], CORTE = '', CIERRE = null;   // CIERRE = mes cerrado (POS), pestaña privada "Comisión mes"
 const slug = n => String(n).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-');
 const iniciales = n => n.split(' ').filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase();
 const colorDe = id => COLORES[Math.max(EQUIPO.findIndex(p => p.id === id), 0) % COLORES.length];
 const miFoto = () => (typeof E !== 'undefined' && E.perfil && E.perfil.foto) || '';
 const avatar = (p, cls) => (p === YO && miFoto()) ? '<span class="av ' + (cls || '') + '" style="background:#ddd url(' + miFoto() + ') center/cover"></span>'
-  : '<span class="av ' + (cls || '') + '" style="background:' + colorDe(p.id) + '">' + iniciales(p.nombre) + '</span>';
+  : '<span class="av ' + (cls || '') + '" style="background:' + colorDe(p.id) + '">' + iniciales(ver(p.nombre)) + '</span>';
 const nombreCorto = n => String(n || '').split(' ')[0];
 
 /* horario de la semana: pestaña privada "Horarios asesores" (sale de los archivos de horarios de Jaqui) */
@@ -191,33 +193,33 @@ const ANUNCIOS = [];   // anuncios para asesores: falta la fuente (pestaña Anun
 function rankOrden(k){ return EQUIPO.slice().sort((a, b) => k === 'gar' ? b.gar - a.gar : (k === 'pct' ? b.mes / b.meta - a.mes / a.meta : b.mes - a.mes)); }
 function renderMuro(){
   const hist = EQUIPO.map(p => { const c = p.mes / p.meta;
-    return '<button class="st" data-per="' + p.id + '"><div class="ring" style="background:' + anillo(c, c >= ritmo ? 'var(--ok)' : 'var(--warn)') + '">' + avatar(p) + '<span class="pct">' + Math.round(c * 100) + '%</span></div><small>' + (p === YO ? 'Tú' : esc(nombreCorto(p.nombre))) + '</small><em>' + usd0(p.mes) + '</em></button>'; }).join('');
+    return '<button class="st" data-per="' + p.id + '"><div class="ring" style="background:' + anillo(c, c >= ritmo ? 'var(--ok)' : 'var(--warn)') + '">' + avatar(p) + '<span class="pct">' + Math.round(c * 100) + '%</span></div><small>' + (p === YO ? 'Tú' : esc(nombreCorto(ver(p.nombre)))) + '</small><em>' + usd0(p.mes) + '</em></button>'; }).join('');
   const ct = TIENDA.mes / TIENDA.presupuesto, falta = Math.max(TIENDA.presupuesto - TIENDA.mes, 0), quedan = finMes - diaMes;
   const tienda = '<div class="card"><div class="fila"><h3 style="margin:0">' + esc(TIENDA.nombre) + ' en ' + MESES[HOY.getMonth()] + '</h3><span class="chip ' + (ct >= ritmo ? 'verde' : 'amb') + '">' + Math.round(ct * 100) + '% de la meta</span></div>' +
     '<div class="bar"><i class="' + (ct >= ritmo ? 'ok' : 'warn') + '" style="width:' + Math.min(ct, 1) * 100 + '%"></i><u style="left:' + ritmo * 100 + '%"></u></div>' +
     '<div class="kpis"><div><span class="tiny muted">Ayer</span><b>' + usd0(TIENDA.ayer) + '</b></div><div><span class="tiny muted">Mes</span><b>' + usd0(TIENDA.mes) + '</b></div><div><span class="tiny muted">Meta</span><b>' + usd0(TIENDA.presupuesto) + '</b></div></div>' +
     '<p class="small" style="margin:8px 0 0">' + (falta ? 'Entre todos faltan <b>' + usd0(falta) + '</b>' + (quedan > 0 ? ', unos <b>' + usd0(falta / quedan) + ' por día</b>.' : '.') : '¡Meta de la tienda cumplida! 🎉') + '</p></div>';
   const R = rankOrden(segRank), val = p => segRank === 'gar' ? p.gar + ' gar.' : segRank === 'pct' ? Math.round(p.mes / p.meta * 100) + '%' : usd0(p.mes);
-  const pod = i => { const p = R[i]; return p ? '<div class="p' + (i + 1) + '">' + avatar(p) + '<small>' + (p === YO ? 'Tú' : esc(nombreCorto(p.nombre))) + '</small><span class="tiny muted">' + val(p) + '</span><div class="base">' + (i + 1) + '</div></div>' : '<div></div>'; };
+  const pod = i => { const p = R[i]; return p ? '<div class="p' + (i + 1) + '">' + avatar(p) + '<small>' + (p === YO ? 'Tú' : esc(nombreCorto(ver(p.nombre)))) + '</small><span class="tiny muted">' + val(p) + '</span><div class="base">' + (i + 1) + '</div></div>' : '<div></div>'; };
   const rank = '<div class="card"><div class="fila"><h3 style="margin:0">Ranking del mes</h3><span class="tiny muted">al ' + fCorta(sumar(HOY, -1)) + '</span></div>' +
     '<div class="seg" style="margin-top:10px">' + [['venta', 'Venta'], ['pct', '% de su meta'], ['gar', 'Garantías']].map(([k, l]) => '<button data-rk="' + k + '" class="' + (k === segRank ? 'on' : '') + '">' + l + '</button>').join('') + '</div>' +
     '<div class="podio">' + pod(1) + pod(0) + pod(2) + '</div>' +
-    R.slice(3).map((p, i) => '<div class="rk' + (p === YO ? ' yo' : '') + '"><span class="n">' + (i + 4) + '</span>' + avatar(p) + '<div class="q"><b>' + (p === YO ? 'Tú' : esc(p.nombre)) + '</b><span class="tiny muted">' + esc(p.cargo) + '</span></div><span class="v">' + val(p) + '</span></div>').join('') +
+    R.slice(3).map((p, i) => '<div class="rk' + (p === YO ? ' yo' : '') + '"><span class="n">' + (i + 4) + '</span>' + avatar(p) + '<div class="q"><b>' + (p === YO ? 'Tú' : esc(ver(p.nombre))) + '</b><span class="tiny muted">' + esc(p.cargo) + '</span></div><span class="v">' + val(p) + '</span></div>').join('') +
     '<div class="tiny muted" style="margin-top:6px">Venta según ERP (referencial); garantías del POS. Se actualiza cada noche.</div></div>';
   /* publicaciones automáticas a partir de los datos de cada noche */
   const top = EQUIPO.slice().sort((a, b) => b.ayer - a.ayer)[0], garTop = EQUIPO.slice().sort((a, b) => b.gar - a.gar)[0];
   const posts = [];
   ANUNCIOS.forEach(a => posts.push({id: a.id, tipo: 'anuncio', html: '<div class="pc"><span class="av" style="background:#16202b">T</span><div><b>' + esc(a.de) + '</b><span class="tiny muted">' + fCorta(a.fecha) + ' · Anuncio</span></div></div>' +
     '<p class="txt"><b>' + esc(a.titulo) + '</b><br>' + esc(a.txt) + '</p>' + (E.leidos[a.id] ? '<span class="chip verde">✓ Confirmaste que lo leíste</span>' : '<button class="btn pri block" data-leer="' + a.id + '">Confirmo que leí</button>')}));
-  posts.push({id: 'L-ayer', html: '<div class="pc">' + avatar(top) + '<div><b>' + esc(top.nombre) + '</b><span class="tiny muted">' + fCorta(sumar(HOY, -1)) + ' · Logro</span></div></div><p class="txt">🔥 Fue quien más vendió ayer en ' + esc(TIENDA.nombre) + '.</p><div class="big">' + usd0(top.ayer) + '</div>'});
-  posts.push({id: 'L-gar', html: '<div class="pc">' + avatar(garTop) + '<div><b>' + esc(garTop.nombre) + '</b><span class="tiny muted">Este mes · Garantías</span></div></div><p class="txt">🛡️ Lleva <b>' + garTop.gar + (garTop.gar === 1 ? ' garantía extendida' : ' garantías extendidas') + '</b> vendidas este mes. ¡Nadie en la tienda tiene más!</p>'});
+  posts.push({id: 'L-ayer', html: '<div class="pc">' + avatar(top) + '<div><b>' + esc(ver(top.nombre)) + '</b><span class="tiny muted">' + fCorta(sumar(HOY, -1)) + ' · Logro</span></div></div><p class="txt">🔥 Fue quien más vendió ayer en ' + esc(TIENDA.nombre) + '.</p><div class="big">' + usd0(top.ayer) + '</div>'});
+  posts.push({id: 'L-gar', html: '<div class="pc">' + avatar(garTop) + '<div><b>' + esc(ver(garTop.nombre)) + '</b><span class="tiny muted">Este mes · Garantías</span></div></div><p class="txt">🛡️ Lleva <b>' + garTop.gar + (garTop.gar === 1 ? ' garantía extendida' : ' garantías extendidas') + '</b> vendidas este mes. ¡Nadie en la tienda tiene más!</p>'});
   const cerca = EQUIPO.filter(p => p.mes / p.meta >= 0.9 && p.mes < p.meta)[0];
-  if (cerca) posts.push({id: 'L-cerca', html: '<div class="pc">' + avatar(cerca) + '<div><b>' + esc(cerca.nombre) + '</b><span class="tiny muted">Meta personal</span></div></div><p class="txt">🎯 Está a <b>' + usd0(cerca.meta - cerca.mes) + '</b> de cumplir su meta del mes. ¡Vamos!</p>'});
+  if (cerca) posts.push({id: 'L-cerca', html: '<div class="pc">' + avatar(cerca) + '<div><b>' + esc(ver(cerca.nombre)) + '</b><span class="tiny muted">Meta personal</span></div></div><p class="txt">🎯 Está a <b>' + usd0(cerca.meta - cerca.mes) + '</b> de cumplir su meta del mes. ¡Vamos!</p>'});
   const cumplio = EQUIPO.filter(p => p.mes >= p.meta)[0];
-  if (cumplio) posts.push({id: 'L-cumplio', html: '<div class="pc">' + avatar(cumplio) + '<div><b>' + esc(cumplio.nombre) + '</b><span class="tiny muted">Meta personal</span></div></div><p class="txt">🏆 ¡Cumplió su meta del mes! ' + usd0(cumplio.mes) + ' de ' + usd0(cumplio.meta) + '.</p>'});
+  if (cumplio) posts.push({id: 'L-cumplio', html: '<div class="pc">' + avatar(cumplio) + '<div><b>' + esc(ver(cumplio.nombre)) + '</b><span class="tiny muted">Meta personal</span></div></div><p class="txt">🏆 ¡Cumplió su meta del mes! ' + usd0(cumplio.mes) + ' de ' + usd0(cumplio.meta) + '.</p>'});
   const muro = posts.map(p => { const n = (E.aplausos[p.id] || 0), yo = !!E.aplausos[p.id + ':yo'];
     return '<div class="card post">' + p.html + (p.tipo === 'anuncio' ? '' : '<div class="acc"><button data-apl="' + p.id + '" class="' + (yo ? 'on' : '') + '">👏 Aplaudir' + (n + 3 > 0 ? ' · ' + (n + 3) : '') + '</button></div>') + '</div>'; }).join('');
-  const cumple = E.perfil && E.perfil.cumple && E.perfil.cumple === iso(HOY).slice(5) ? '<div class="card" style="text-align:center;background:#fff1f6"><div style="font-size:40px">🎂</div><b>¡Feliz cumpleaños, ' + esc(E.perfil.apodo || nombreCorto(YO.nombre)) + '!</b><div class="small muted">Todo el equipo de ' + esc(TIENDA.nombre) + ' te saluda hoy.</div></div>' : '';
+  const cumple = E.perfil && E.perfil.cumple && E.perfil.cumple === iso(HOY).slice(5) ? '<div class="card" style="text-align:center;background:#fff1f6"><div style="font-size:40px">🎂</div><b>¡Feliz cumpleaños, ' + esc(E.perfil.apodo || nombreCorto(ver(YO.nombre))) + '!</b><div class="small muted">Todo el equipo de ' + esc(TIENDA.nombre) + ' te saluda hoy.</div></div>' : '';
   sec('muro').innerHTML = cumple + '<div class="hist">' + hist + '</div>' + tienda + rank + muro;
   document.querySelectorAll('[data-rk]').forEach(b => b.onclick = () => { segRank = b.dataset.rk; renderMuro(); });
   document.querySelectorAll('[data-per]').forEach(b => b.onclick = () => perfil(EQUIPO.find(p => p.id === b.dataset.per)));
@@ -226,8 +228,8 @@ function renderMuro(){
 }
 function perfil(p){
   const c = p.meta ? p.mes / p.meta : 0, dias = turnosDe(p.id);
-  abrir('<div style="text-align:center">' + '<span class="av" style="width:72px;height:72px;font-size:24px;margin:0 auto 6px;background:' + colorDe(p.id) + '">' + iniciales(p.nombre) + '</span>' +
-    '<h3 style="margin:4px 0 0">' + esc(p.nombre) + '</h3><div class="tiny muted">' + esc(p.cargo) + ' · ' + esc(TIENDA.nombre) + '</div></div>' +
+  abrir('<div style="text-align:center">' + '<span class="av" style="width:72px;height:72px;font-size:24px;margin:0 auto 6px;background:' + colorDe(p.id) + '">' + iniciales(ver(p.nombre)) + '</span>' +
+    '<h3 style="margin:4px 0 0">' + esc(ver(p.nombre)) + '</h3><div class="tiny muted">' + esc(p.cargo) + ' · ' + esc(TIENDA.nombre) + '</div></div>' +
     '<div class="kpis" style="margin-top:12px"><div><span class="tiny muted">Venta mes</span><b>' + usd0(p.mes) + '</b></div><div><span class="tiny muted">Su meta</span><b>' + Math.round(c * 100) + '%</b></div><div><span class="tiny muted">Garantías</span><b>' + p.gar + '</b></div></div>' +
     '<div class="bar"><i class="' + (c >= ritmo ? 'ok' : 'warn') + '" style="width:' + Math.min(c, 1) * 100 + '%"></i><u style="left:' + ritmo * 100 + '%"></u></div>' +
     '<div class="tiny muted">Hoy: ' + esc(dias[(HOY.getDay() + 6) % 7] || '—') + '</div>' +
@@ -333,7 +335,7 @@ function renderCli(){
       '<button class="btn pri block" id="nPro" style="margin-bottom:12px">+ Registrar proforma</button>';
     h += ab.length ? ab.map(p => '<div class="card"><div class="fila"><b>' + esc(p.cliente) + '</b>' + chipContacto(p) + '</div><div class="small" style="margin-top:4px">' + esc(p.productos) + ' · <b>' + usd2(p.monto) + '</b></div>' +
       (p.nota ? '<div class="tiny muted" style="margin-top:4px">📝 ' + esc(p.nota) + '</div>' : '') + '<div class="tiny muted">Proforma del ' + fCorta(new Date(p.creada + 'T12:00:00')) + '</div>' +
-      '<div class="btns"><a class="btn" target="_blank" rel="noopener" href="' + wa(p.cel, 'Hola ' + nombreCorto(p.cliente) + ', te saluda ' + nombreCorto(YO.nombre) + ' de Steren ' + TIENDA.nombre + '. Te escribo por la proforma de ' + p.productos + '. ¿Pudiste revisarla?') + '" style="text-decoration:none;color:inherit">WhatsApp</a>' +
+      '<div class="btns"><a class="btn" target="_blank" rel="noopener" href="' + wa(p.cel, 'Hola ' + nombreCorto(p.cliente) + ', te saluda ' + nombreCorto(ver(YO.nombre)) + ' de Steren ' + TIENDA.nombre + '. Te escribo por la proforma de ' + p.productos + '. ¿Pudiste revisarla?') + '" style="text-decoration:none;color:inherit">WhatsApp</a>' +
       '<button class="btn" data-pp="' + p.id + '">Contacté: nueva fecha</button><button class="btn" data-pc="' + p.id + '" style="color:var(--ok)">Compró</button><button class="btn" data-pn="' + p.id + '" style="color:var(--muted)">No compró</button></div></div>').join('')
       : '<div class="card vacio">No tienes proformas abiertas.</div>';
     if (ce.length) h += '<details class="card"><summary class="small"><b>Cerradas (' + ce.length + ')</b></summary>' + ce.map(p => '<div class="fila small" style="padding:6px 0;border-top:1px solid var(--line)"><span>' + esc(p.cliente) + ' · ' + usd2(p.monto) + '</span><span class="chip ' + (p.estado === 'Compró' ? 'verde' : '') + '">' + p.estado + '</span></div>').join('') + '</details>';
@@ -343,7 +345,7 @@ function renderCli(){
     h += '<button class="btn pri block" id="nVf" style="margin-bottom:12px">+ Registrar venta futura</button>';
     h += ab.length ? ab.map(v => '<div class="card"><div class="fila"><b>' + esc(v.producto) + '</b><span class="chip ' + (v.estado === 'Llegó' ? 'verde' : 'amb') + '">' + v.estado + '</span></div><div class="small" style="margin-top:4px">' + esc(v.cliente) + ' · ' + v.cant + (v.cant > 1 ? ' unidades' : ' unidad') + '</div>' +
       (v.nota ? '<div class="tiny muted">📝 ' + esc(v.nota) + '</div>' : '') + '<div class="tiny muted">Registrada el ' + fCorta(new Date(v.fecha + 'T12:00:00')) + '</div>' +
-      (v.estado === 'Llegó' ? '<div class="btns"><a class="btn" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" href="' + wa(v.cel, 'Hola ' + nombreCorto(v.cliente) + ', te saluda ' + nombreCorto(YO.nombre) + ' de Steren ' + TIENDA.nombre + '. ¡Ya llegó ' + v.producto + '! Te lo separamos.') + '">Avisar por WhatsApp</a><button class="btn" data-vc="' + v.id + '" style="color:var(--ok)">Compró</button><button class="btn" data-vn="' + v.id + '" style="color:var(--muted)">No compró</button></div>' : '') + '</div>').join('')
+      (v.estado === 'Llegó' ? '<div class="btns"><a class="btn" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" href="' + wa(v.cel, 'Hola ' + nombreCorto(v.cliente) + ', te saluda ' + nombreCorto(ver(YO.nombre)) + ' de Steren ' + TIENDA.nombre + '. ¡Ya llegó ' + v.producto + '! Te lo separamos.') + '">Avisar por WhatsApp</a><button class="btn" data-vc="' + v.id + '" style="color:var(--ok)">Compró</button><button class="btn" data-vn="' + v.id + '" style="color:var(--muted)">No compró</button></div>' : '') + '</div>').join('')
       : '<div class="card vacio">Cuando un cliente pida algo que no tenemos, regístralo aquí. Te avisamos cuando llegue.</div>';
   }
   sec('cli').innerHTML = h;
@@ -454,7 +456,7 @@ function renderHor(){
     '<div style="font-size:34px;font-weight:900;margin:2px 0">' + (r ? hoyT.replace('–', ' – ') : 'Libre') + '</div>' +
     '<div class="small">' + estado + '</div>' +
     (r ? '<div style="height:8px;border-radius:5px;background:rgba(255,255,255,.25);margin:10px 0 4px;overflow:hidden"><div style="height:100%;width:' + pctT * 100 + '%;background:#fff;border-radius:5px"></div></div>' : '') +
-    (r && conHoy.length ? '<div style="display:flex;align-items:center;gap:6px;margin-top:10px"><span class="tiny" style="opacity:.85">Hoy con</span>' + conHoy.map(p => '<span class="av" style="width:30px;height:30px;font-size:11px;border:2px solid #fff;margin-left:-4px;background:' + colorDe(p.id) + '">' + iniciales(p.nombre) + '</span>').join('') + '</div>' : '') + '</div>';
+    (r && conHoy.length ? '<div style="display:flex;align-items:center;gap:6px;margin-top:10px"><span class="tiny" style="opacity:.85">Hoy con</span>' + conHoy.map(p => '<span class="av" style="width:30px;height:30px;font-size:11px;border:2px solid #fff;margin-left:-4px;background:' + colorDe(p.id) + '">' + iniciales(ver(p.nombre)) + '</span>').join('') + '</div>' : '') + '</div>';
   // chips resumen
   h += '<div class="kpis" style="margin:0 0 12px"><div style="background:#fff"><span class="tiny muted">Próximo libre</span><b>' + (t[hoyI] === 'Libre' ? 'Hoy 🌴' : prox ? (prox === 1 ? 'Mañana' : 'En ' + prox + ' días') : '—') + '</b></div>' +
     '<div style="background:#fff"><span class="tiny muted">Esta semana</span><b>' + horas + ' h</b></div>' +
@@ -471,7 +473,7 @@ function renderHor(){
   h += '<div class="card"><div class="fila"><h3 style="margin:0">' + (horSel === hoyI ? 'Hoy en la tienda' : DIAS[dSel.getDay()] + ' ' + dSel.getDate() + ' en la tienda') + '</h3><span class="tiny muted">10:00 – 21:00</span></div>' +
     '<div style="position:relative;margin:12px 0 4px">' +
       filas.map(f => { const q = tramo(f.t), yo = f.p === YO;
-        return '<div style="display:flex;align-items:center;gap:6px;height:36px;position:relative"><div style="width:54px;flex:none;font-size:12px;font-weight:' + (yo ? 800 : 600) + '">' + (yo ? 'Tú' : esc(nombreCorto(f.p.nombre))) + '</div>' +
+        return '<div style="display:flex;align-items:center;gap:6px;height:36px;position:relative"><div style="width:54px;flex:none;font-size:12px;font-weight:' + (yo ? 800 : 600) + '">' + (yo ? 'Tú' : esc(nombreCorto(ver(f.p.nombre)))) + '</div>' +
           '<div style="flex:1;position:relative;height:22px"><div style="position:absolute;left:' + X(18 * 60) + '%;width:' + (X(20 * 60) - X(18 * 60)) + '%;top:-7px;bottom:-7px;background:#ffe9d6"></div>' + (q ? '<div style="position:absolute;left:' + X(q[0]) + '%;width:' + (X(q[1]) - X(q[0])) + '%;z-index:1;top:0;bottom:0;border-radius:11px;background:' + (yo ? 'var(--brand)' : colorDe(f.p.id) + '99') + ';color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;white-space:nowrap">' + f.t + '</div>'
             : '<div style="position:absolute;inset:0;display:flex;align-items:center;font-size:12px;color:var(--muted)">🌴 libre</div>') + '</div></div>'; }).join('') +
     '</div><div class="tiny muted">🔥 La franja naranja es la hora pico: de 18:00 a 20:00 entran más clientes.</div></div>';
@@ -519,7 +521,7 @@ function renderApr(){
     const fecha = new Date(U.fecha + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'short'});
     const ring = 'background:conic-gradient(#fff ' + pct * 3.6 + 'deg, rgba(255,255,255,.25) 0)';
     const rojo = dias > 14 || (uy.semana === 0 && faltan > 0), nar = !rojo && (dias > 7 || faltan > 10);
-    const quien = esc(nombreCorto(YO.nombre));
+    const quien = esc(nombreCorto(ver(YO.nombre)));
     h = rojo ? '<div class="card" style="background:#c62828;color:#fff;border:0;animation:latido 1.6s ease-in-out infinite"><div style="font-size:19px;font-weight:900">🚨 ' + quien + ', te estás quedando atrás</div><div class="small" style="margin-top:6px;line-height:1.5">' +
         (dias > 14 ? 'Llevas <b>' + dias + ' días sin entrar</b> a la Universidad' : 'Esta semana <b>no aprobaste ningún curso</b>') + (faltan ? ' y tienes <b>' + faltan + (faltan === 1 ? ' curso pendiente' : ' cursos pendientes') + '</b>' : '') +
         '. Tus compañeros siguen avanzando y tú bajas en el ranking.</div>' + boton('Entrar hoy y ponerme al día').replace('color:#0078be', 'color:#c62828') + '</div>'
@@ -539,9 +541,9 @@ function renderApr(){
     const med = ['🥇', '🥈', '🥉'];
     h += '<div class="card"><div class="fila"><h3 style="margin:0">🏅 Ranking Universidad</h3><span class="chip azul">#' + uy.pos + ' de ' + U.total + '</span></div>' +
       '<div class="tiny muted" style="margin-top:2px">Todo TEFES, por cursos aprobados · datos al ' + fecha + '</div>' +
-      U.top.map((x, i) => '<div class="rk"><span style="font-size:22px">' + (med[x.pos - 1] || '#' + x.pos) + '</span><div class="q"><b>' + esc(x.n) + (x.n === YO.nombre ? ' (tú)' : '') + '</b><span class="tiny muted" style="display:block">Steren ' + esc(x.t) + '</span></div><b>' + x.ok + '</b></div>').join('') +
+      U.top.map((x, i) => '<div class="rk"><span style="font-size:22px">' + (med[x.pos - 1] || '#' + x.pos) + '</span><div class="q"><b>' + esc(ver(x.n)) + (x.n === YO.nombre ? ' (tú)' : '') + '</b><span class="tiny muted" style="display:block">Steren ' + esc(x.t) + '</span></div><b>' + x.ok + '</b></div>').join('') +
       (uy.pos > 3 ? '<div class="rk" style="background:#eef6fc;border-radius:10px"><span style="font-size:16px;font-weight:900">#' + uy.pos + '</span><div class="q"><b>Tú</b></div><b>' + uy.ok + '</b></div>' : '') +
-      '<div class="small" style="margin-top:8px">' + (U.arriba ? '🎯 Aprueba <b>' + (U.arriba.ok - uy.ok + 1) + (U.arriba.ok - uy.ok + 1 === 1 ? ' curso' : ' cursos') + '</b> y pasas a <b>' + esc(U.arriba.n) + '</b> (#' + U.arriba.pos + ').' : '👑 Vas primero en TEFES. ¡Que nadie te alcance!') + '</div></div>';
+      '<div class="small" style="margin-top:8px">' + (U.arriba ? '🎯 Aprueba <b>' + (U.arriba.ok - uy.ok + 1) + (U.arriba.ok - uy.ok + 1 === 1 ? ' curso' : ' cursos') + '</b> y pasas a <b>' + esc(ver(U.arriba.n)) + '</b> (#' + U.arriba.pos + ').' : '👑 Vas primero en TEFES. ¡Que nadie te alcance!') + '</div></div>';
   }
   // pregunta del día
   h += '<div class="card"><div class="fila"><h3 style="margin:0">🧠 Pregunta del día</h3><span class="chip azul">1 min</span></div><div style="font-weight:700;margin:10px 0 8px">' + esc(pd.q) + '</div>' +
@@ -592,13 +594,13 @@ function bienvenida(editar){
 }
 function pasoOB(){
   const P = [
-    {t: '¡Hola, ' + esc(nombreCorto(YO.nombre)) + '! 👋', sub: 'Antes de empezar, queremos conocerte. Son 6 preguntas rápidas.', html: '<div style="font-size:72px;text-align:center;margin:20px 0">🙌</div>', ok: () => true, btn: 'Empezar'},
+    {t: '¡Hola, ' + esc(nombreCorto(ver(YO.nombre))) + '! 👋', sub: 'Antes de empezar, queremos conocerte. Son 6 preguntas rápidas.', html: '<div style="font-size:72px;text-align:center;margin:20px 0">🙌</div>', ok: () => true, btn: 'Empezar'},
     {t: 'Tu foto de perfil 📸', sub: 'Es obligatoria: así te reconoce tu equipo en el ranking y en el muro. Que se vea bien tu cara.',
       html: '<label style="display:block;width:150px;height:150px;border-radius:50%;margin:16px auto;border:3px dashed var(--brand);background:#eaf4fb ' + (OB.foto ? 'url(' + OB.foto + ') center/cover' : '') + ';cursor:pointer;position:relative">' +
         (OB.foto ? '' : '<span style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--brand);font-weight:800"><span style="font-size:40px">📷</span>Tomar foto</span>') +
         '<input type="file" accept="image/*" capture="user" id="obFoto" style="display:none"></label>' + (OB.foto ? '<div class="tiny muted" style="text-align:center">Toca la foto para cambiarla.</div>' : ''),
       ok: () => !!OB.foto, falta: 'La foto es obligatoria para continuar.'},
-    {t: '¿Cómo te gusta que te digan?', sub: 'Así te saludamos en la app.', html: '<input class="i" id="obApodo" placeholder="Ej.: ' + esc(nombreCorto(YO.nombre)) + '" value="' + esc(OB.apodo) + '" style="font-size:18px;margin-top:10px">' +
+    {t: '¿Cómo te gusta que te digan?', sub: 'Así te saludamos en la app.', html: '<input class="i" id="obApodo" placeholder="Ej.: ' + esc(nombreCorto(ver(YO.nombre))) + '" value="' + esc(OB.apodo) + '" style="font-size:18px;margin-top:10px">' +
       '<label class="f" style="margin-top:16px">¿Cuándo es tu cumpleaños? 🎂</label><input class="i" type="date" id="obCumple" value="' + (OB.cumple ? '2000-' + OB.cumple : '') + '"><div class="tiny muted" style="margin-top:4px">Solo usamos el día y el mes para saludarte.</div>',
       leer: () => { OB.apodo = $('#obApodo').value.trim(); const c = $('#obCumple').value; OB.cumple = c ? c.slice(5) : ''; }, ok: () => true},
     {t: '¿Qué te motiva a trabajar? 💪', sub: 'Elige lo más importante para ti este año.', html: '<div class="btns" style="margin-top:12px">' + MOTIVOS.map(([k, l]) => '<button class="btn" data-obm="' + k + '" style="' + (OB.motivo === k ? 'background:#eaf4fb;border-color:var(--brand);color:var(--brand)' : '') + '">' + l + '</button>').join('') + '</div>' +
@@ -624,11 +626,11 @@ function pasoOB(){
   $('#obSig').onclick = () => { if (st.leer) st.leer(); if (!st.ok()) return toast(st.falta || 'Completa este paso.');
     if (OB.paso < n - 1){ OB.paso++; return pasoOB(); }
     E.perfil = {foto: OB.foto, apodo: OB.apodo, cumple: OB.cumple, sueno: OB.sueno, vender: OB.vender, recon: OB.recon}; E.motivo = OB.motivo; guardar();
-    el.remove(); pintarCab(); render(); toast('¡Listo, ' + (OB.apodo || nombreCorto(YO.nombre)) + '! Bienvenido a tu panel 🎉'); };
+    el.remove(); pintarCab(); render(); toast('¡Listo, ' + (OB.apodo || nombreCorto(ver(YO.nombre))) + '! Bienvenido a tu panel 🎉'); };
 }
 function pintarCab(){
-  const a = $('#miAv'); if (miFoto()){ a.textContent = ''; a.style.background = '#ddd url(' + miFoto() + ') center/cover'; } else { a.style.background = colorDe(YO.id); a.textContent = iniciales(YO.nombre); }
-  $('#miNom').textContent = (E.perfil && E.perfil.apodo) || YO.nombre;
+  const a = $('#miAv'); if (miFoto()){ a.textContent = ''; a.style.background = '#ddd url(' + miFoto() + ') center/cover'; } else { a.style.background = colorDe(YO.id); a.textContent = iniciales(ver(YO.nombre)); }
+  $('#miNom').textContent = (E.perfil && E.perfil.apodo) || ver(YO.nombre);
 }
 
 
@@ -648,7 +650,7 @@ function renderCom(){
   let h = '<div class="reto"><div class="tiny" style="opacity:.9;font-weight:700">🏆 ' + RETO.t.toUpperCase() + ' · hasta el ' + fCorta(RETO.vence) + '</div><div style="font-size:20px;font-weight:800;margin:4px 0">' + RETO.tag + '</div><div class="small" style="margin-bottom:10px">' + esc(RETO.d) + '</div><button class="btn" data-pub="reto">📸 Participar</button></div>';
   // participación de mi tienda
   h += '<div class="card"><div class="fila"><h3 style="margin:0">Esta semana en ' + esc(TIENDA.nombre) + '</h3><span class="chip ' + (ya.size === EQUIPO.length ? 'verde' : 'amb') + '">' + ya.size + ' de ' + EQUIPO.length + ' publicaron</span></div>' +
-    '<div class="part">' + EQUIPO.map(p => '<span class="' + (ya.has(p.id) ? '' : 'no') + '" title="' + esc(p.nombre) + '">' + avatar(p) + '</span>').join('') + '</div>' +
+    '<div class="part">' + EQUIPO.map(p => '<span class="' + (ya.has(p.id) ? '' : 'no') + '" title="' + esc(ver(p.nombre)) + '">' + avatar(p) + '</span>').join('') + '</div>' +
     '<div class="tiny muted">' + (yo ? '✅ Ya publicaste esta semana. ' + (ya.size < EQUIPO.length ? 'Anima a quien falta: si todos publican, la tienda sube en el ranking.' : '¡Tienda al 100 %!') : 'Te falta tu foto de la semana. Con una basta para contar.') + '</div>' +
     (yo ? '' : '<button class="btn pri block" data-pub="" style="margin-top:8px">📸 Publicar mi foto</button>') + '</div>';
   // tiendas más participativas (por % del equipo, así una tienda chica compite igual)
@@ -667,10 +669,10 @@ function renderCom(){
     const fecha = p.mio ? 'Hoy' : fCorta(sumar(HOY, p.h));
     const reac = ['❤️', '🔥', '👏'].map(e => { const k = p.id + e, on = !!E.reac[k]; const c = ((p.r || {})[e] || 0) + (on ? 1 : 0); return '<button data-re="' + k + '" class="' + (on ? 'on' : '') + '">' + e + (c ? ' ' + c : '') + '</button>'; }).join('');
     const coms = (p.c || []).concat((E.coms[p.id] || []).map(t => [YO.id, t]));
-    return '<div class="card post"><div class="pc">' + avatar(quien) + '<div><b>' + esc(quien.nombre) + '</b><span class="tiny muted">' + (p.tienda ? 'Steren ' + p.tienda + ' · ' : '') + fecha + (tema ? ' · ' + tema : '') + '</span></div></div>' +
+    return '<div class="card post"><div class="pc">' + avatar(quien) + '<div><b>' + esc(ver(quien.nombre)) + '</b><span class="tiny muted">' + (p.tienda ? 'Steren ' + p.tienda + ' · ' : '') + fecha + (tema ? ' · ' + tema : '') + '</span></div></div>' +
       '<div class="com-foto" style="' + (p.foto ? 'background-image:url(' + p.foto + ')' : 'background:' + p.bg) + '">' + (p.foto ? '' : p.ic) + (p.tema === 'reto' ? '<span class="tag">' + RETO.tag + '</span>' : '') + '</div>' +
       '<p class="txt">' + esc(p.txt) + '</p><div class="reac">' + reac + '<button data-co="' + p.id + '">💬 Comentar</button></div>' +
-      (coms.length ? '<div class="coms">' + coms.map(([d, t]) => '<div><b>' + esc(nombreCorto(persona(d).nombre)) + '</b> ' + esc(t) + '</div>').join('') + '</div>' : '') + '</div>'; }).join('');
+      (coms.length ? '<div class="coms">' + coms.map(([d, t]) => '<div><b>' + esc(nombreCorto(ver(persona(d).nombre))) + '</b> ' + esc(t) + '</div>').join('') + '</div>' : '') + '</div>'; }).join('');
   h += '<div class="tiny muted" style="text-align:center;margin:6px 0 4px">Solo el equipo TEFES ve estas fotos. Nada de precios de la competencia ni datos de clientes. Si algo no va, tócalo y repórtalo.</div>';
   sec('com').innerHTML = h;
   document.querySelectorAll('[data-pub]').forEach(b => b.onclick = () => publicar(b.dataset.pub));
@@ -730,7 +732,7 @@ window.addEventListener('scroll', () => { const top = window.innerHeight * 0.4; 
 function aviso(t){ const a = $('#aviso'); a.hidden = !t; a.textContent = t || ''; }
 function quienSoy(equipo){
   $('#main').innerHTML = '<section class="seccion"><div class="card"><h3>¿Quién eres?</h3><div class="small muted">Elige tu nombre. Lo recordamos en este teléfono.</div>' +
-    equipo.map(p => '<button class="btn block" style="margin-top:8px;text-align:left" data-yo="' + esc(p.nombre) + '">' + esc(p.nombre) + ' <span class="tiny muted">· ' + esc(p.cargo) + '</span></button>').join('') + '</div></section>';
+    equipo.map(p => '<button class="btn block" style="margin-top:8px;text-align:left" data-yo="' + esc(p.nombre) + '">' + esc(ver(p.nombre)) + ' <span class="tiny muted">· ' + esc(p.cargo) + '</span></button>').join('') + '</div></section>';
   document.querySelectorAll('[data-yo]').forEach(b => b.onclick = () => { guardarYo(b.dataset.yo); arrancar(); });
 }
 function cargando(t){ $('#main').innerHTML = '<div class="card vacio" style="margin:20px 12px">' + esc(t) + '</div>'; }
@@ -744,6 +746,7 @@ function aplicar(d){
   TURNOS = {}; ((d.horario && d.horario.turnos) || []).forEach(t => { TURNOS[slug(t.persona)] = t.dias; });
   E.proformas = d.proformas || [];
   UNI.d = d.uni || null;
+  ALIAS = d.alias || {};
   CIERRE = d.cierre || null;
   // sin meta repartida todavía: se usa la meta mínima del esquema (venta base) para que el anillo tenga referencia
   EQUIPO.forEach(p => { if (!p.meta) p.meta = Math.max(p.mes, 1); });
@@ -752,6 +755,7 @@ function arrancar(){
   if (!TOKEN) { cargando('Enlace no válido. Pide a tu gerente el enlace de tu tienda.'); return; }
   const yo = leerYo(); cargando('Cargando tu panel…');
   llamar('apiAsesor', TOKEN, yo).then(d => {
+    ALIAS = d.alias || {};
     if (!yo || !d.yo) { guardarYo(''); document.querySelector('header').style.visibility = 'hidden'; return quienSoy(d.equipo || []); }
     document.querySelector('header').style.visibility = '';
     KEY = 'tefes_asesor_v1_' + slug(yo); cargarE(); aplicar(d);
