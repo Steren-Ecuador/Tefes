@@ -112,6 +112,7 @@ nav .dot{position:absolute;top:4px;left:50%;margin-left:8px;width:9px;height:9px
 .vacio{text-align:center;padding:20px 10px;color:var(--muted)}
 @keyframes latido{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
 </style>
+<style>.dato-dia{display:flex;gap:10px;align-items:flex-start;background:linear-gradient(90deg,#fff7e0,#fffdf6);border:1px solid #f2d58a;border-radius:12px;padding:10px 14px;margin:0 0 12px;color:#5a4300}.dato-dia b{display:block;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#a07400;margin-bottom:2px}.dato-dia .dd-ico{font-size:22px;line-height:1}@media (prefers-color-scheme:dark){.dato-dia{background:#3a3010;border-color:#6b5520;color:#f5e6b8}.dato-dia b{color:#e8c25a}}</style>
 </head>
 <body>
 <div class="prueba" id="aviso" hidden></div>
@@ -760,6 +761,7 @@ function aplicar(d){
   // sin meta repartida todavía: se usa la meta mínima del esquema (venta base) para que el anillo tenga referencia
   EQUIPO.forEach(p => { if (!p.meta) p.meta = Math.max(p.mes, 1); });
 }
+function datoHtml(x){ /* dd1 */ if (!x || !x.texto) return ''; const t = String(x.texto); const m = t.match(/^\p{Extended_Pictographic}\uFE0F?\s*/u); return '<div class="dato-dia"><span class="dd-ico">' + (m ? m[0].trim() : '🌟') + '</span><div><b>Dato positivo del día</b>' + esc(m ? t.slice(m[0].length) : t) + '</div></div>'; }
 function arrancar(){
   if (!TOKEN) { cargando('Enlace no válido. Pide a tu gerente el enlace de tu tienda.'); return; }
   const yo = leerYo(); cargando('Cargando tu panel…');
@@ -774,6 +776,7 @@ function arrancar(){
     if (!SUELDO.pct) aviso('Tu esquema de comisión aún no está cargado: pídele a tu gerente que lo revise.');
     else if (!d.yo.diario || !d.yo.diario.length) aviso('Aún no hay ventas tuyas este mes en el sistema (se actualiza cada mañana).');
     $('#main').innerHTML = SECCIONES.map(([id, t]) => '<section id="w-' + id + '" class="seccion"><div class="sec-cab">' + t + '</div><div id="s-' + id + '"></div></section>').join('');
+    $('#main').insertAdjacentHTML('afterbegin', datoHtml(d.dato));   // dd1
     pintarCab(); $('#miAv').style.cursor = 'pointer'; $('#miAv').onclick = () => bienvenida(true); $('#miSub').textContent = YO.cargo + ' · Steren ' + TIENDA.nombre;
     render();
     if (!E.perfil || !E.perfil.foto) bienvenida();
