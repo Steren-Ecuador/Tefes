@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (76605d8b9180). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (dcfda1f1400f). No editar a mano. -->
 <html lang="es" data-theme="light">
 <head>
 <base target="_top">
@@ -709,6 +709,7 @@ tr.on td{background:var(--accent-soft)}
 @media(min-width:701px){.tem-on{display:none!important}}
 @media(max-width:700px){.tem-nav,.tem-sub{display:none!important}.tem-buscar{flex-basis:100%;max-width:none;order:9;margin:4px 0 6px}}
 </style>
+<style>.dato-dia{display:flex;gap:10px;align-items:flex-start;background:linear-gradient(90deg,#fff7e0,#fffdf6);border:1px solid #f2d58a;border-radius:12px;padding:10px 14px;margin:0 0 12px;color:#5a4300}.dato-dia b{display:block;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#a07400;margin-bottom:2px}.dato-dia .dd-ico{font-size:22px;line-height:1}@media (prefers-color-scheme:dark){.dato-dia{background:#3a3010;border-color:#6b5520;color:#f5e6b8}.dato-dia b{color:#e8c25a}}</style>
 </head>
 <body>
 <script>
@@ -1129,6 +1130,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   </div>
 
   <div class="view" data-view="hoy">
+    <div id="datoDia"></div>
     <div class="kpis" id="kpis"></div>
     <div class="hoy-top">
       <section class="panel mapa" id="mapa" aria-label="Mapa de tiendas">
@@ -1291,6 +1293,7 @@ function desdeGuardado(){
 }
 function guardarPanel(){ try { const c = JSON.parse(localStorage.getItem(CACHE_P) || '{}'); Object.assign(c, arguments[0], {t: Date.now()}); localStorage.setItem(CACHE_P, JSON.stringify(c)); } catch (e) {} }
 // liviano = true: actualización automática o tras un cambio; no recarga lo que cambia poco (avisos, textos, contactos, uso)
+function datoHtml(x){ /* dd1 */ if (!x || !x.texto) return ''; const t = String(x.texto); const m = t.match(/^\p{Extended_Pictographic}\uFE0F?\s*/u); return '<div class="dato-dia"><span class="dd-ico">' + (m ? m[0].trim() : '🌟') + '</span><div><b>Dato positivo del día</b>' + esc(m ? t.slice(m[0].length) : t) + '</div></div>'; }
 async function cargar(liviano){
   $('#status').textContent = 'Actualizando…';
   $('#refresh').disabled = true;
@@ -1301,6 +1304,7 @@ async function cargar(liviano){
     $('#status').textContent = 'Actualizado ' + fmtF(hoyISO(), new Date().toTimeString().slice(0,5));
     if (!liviano) miUso();
     render();
+    api('apiDatoPanel').then(x => { const el = $('#datoDia'); if (el) el.innerHTML = datoHtml(x); }).catch(() => {});   // dd1c
     api('apiVentasPanel').then(v => { st.ventas = v; guardarPanel({v: v}); render(); }).catch(() => {});
     api('apiInventarioPanel').then(x => { st.inv = x; renderInventario(); }).catch(() => { st.inv = null; renderInventario(); });
     api('apiPoliticasPanel').then(x => { st.pol = x; renderPoliticas(); }).catch(() => { st.pol = null; renderPoliticas(); });
