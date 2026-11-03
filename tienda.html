@@ -529,6 +529,8 @@ input[type=tel],input[type=email]{width:100%;border:1px solid var(--line);border
 .fl-t tr.sub td{color:var(--muted);font-size:12px;font-weight:600;padding-top:12px}
 .fl details summary{cursor:pointer;color:var(--brand);font-weight:600;font-size:14px;padding:6px 0}
 @media(max-width:420px){.fl-t .hs{display:none}.fl-mia b{font-size:16px}}
+/* uni1: informe Universidad Steren */
+.uni-t{overflow-x:auto;-webkit-overflow-scrolling:touch}.uni-t table{width:100%;border-collapse:collapse;font-size:13px}.uni-t th{text-align:left;font-weight:600;opacity:.7;padding:6px 6px;border-bottom:1px solid rgba(127,127,127,.3);white-space:nowrap}.uni-t td{padding:7px 6px;border-bottom:1px solid rgba(127,127,127,.18);vertical-align:top}.uni-t td.n{white-space:nowrap}.uni-e{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;white-space:nowrap}.uni-e.r{background:#fde9e7;color:#c0352b}.uni-e.a{background:#fff3e0;color:#b25c00}.uni-e.o{background:#e5f5ec;color:#1a7f4b}.uni-res{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.uni-s{font-size:12px;opacity:.7}
 </style>
 <style>
 :root{--tem-head:var(--brand);--tem-ink:#fff;--tem-2:rgba(255,255,255,.8);--tem-chip:rgba(255,255,255,.18)}
@@ -1262,6 +1264,7 @@ function vfFormulario(){
   openModal('<h3>Registrar venta futura</h3>' +
     '<label class="f">Producto (código o nombre)</label><input type="text" id="vfCod" autocomplete="off" autocapitalize="characters" placeholder="Ej.: CAR-150 o adaptador carplay">' +
     '<div id="vfSug" class="vf-sug"></div><div id="vfSel"></div>' +
+    '<label class="vf-chk"><input type="checkbox" id="vfRef"> <span>No está en la lista: registrar como <b>otra referencia</b> (nombre o modelo que pide el cliente; se pasa a Compras).</span></label>' +
     '<div class="grid2"><div><label class="f">Cantidad</label><input type="number" id="vfCant" min="1" value="1" inputmode="numeric"></div>' +
     '<div><label class="f">Asesor que atiende</label>' + vfQuien('vfAse') + '</div></div>' +
     '<label class="f">Nombre del cliente</label><input type="text" id="vfCli" autocomplete="off" autocapitalize="words">' +
@@ -1287,10 +1290,11 @@ function vfFormulario(){
   vfCatalogo().then(() => { if (inp.value.trim()) pintar(); });
   $('#vfNo').onclick = closeModal;
   $('#vfSi').onclick = async () => {
-    const d = {cod: prod ? prod[0] : inp.value.trim(), prod: prod ? prod[1] : inp.value.trim(), cant: $('#vfCant').value, asesor: $('#vfAse').value.trim(),
+    const ref = !prod && $('#vfRef').checked;
+    const d = {cod: prod ? prod[0] : inp.value.trim(), prod: prod ? prod[1] : inp.value.trim(), ref: ref, cant: $('#vfCant').value, asesor: $('#vfAse').value.trim(),
       cliente: $('#vfCli').value.trim(), celular: $('#vfCel').value.trim(), correo: $('#vfMail').value.trim(), contacto: contacto,
       obs: $('#vfObs').value.trim(), acepta: $('#vfAcepta').checked};
-    const falta = !d.cod ? 'Escribe el producto.' : !d.asesor ? 'Elige tu nombre.' : d.cliente.length < 3 ? 'Escribe el nombre del cliente.' :
+    const falta = !d.cod ? 'Escribe el producto.' : !prod && !ref && VFS.cat && VFS.cat.p && VFS.cat.p.length ? 'Elige el producto de la lista o marca "otra referencia".' : !d.asesor ? 'Elige tu nombre.' : d.cliente.length < 3 ? 'Escribe el nombre del cliente.' :
       vfCel(d.celular).length < 9 ? 'Revisa el celular (al menos 9 números).' : !d.acepta ? 'Pregunta al cliente si acepta que lo contactemos y marca la casilla.' : '';
     if (falta) { toast(falta, 3500); return; }
     const b = $('#vfSi'); b.disabled = true; b.textContent = 'Guardando…';
@@ -1375,6 +1379,34 @@ function modalActividad(a){
   };
 }
 document.addEventListener('click', e => { const b = e.target.closest('[data-actv]'); if (!b) return; const k = b.dataset.actv; const a = (S.data.actividades || []).find(x => x.id + '|' + x.periodo === k); if (a) modalActividad(a); });
+/* uni1: informe de actividad en Universidad Steren (pestaña privada "Universidad asesores", se lee cada mañana) */
+function uniInformeHtml(U, todas, filtro){
+  const fd = i => new Date(i + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'short'});
+  const F = (U && U.filas || []).filter(x => !filtro || filtro(x));
+  if (!U || !U.fecha || !F.length) return '<div class="uni-s">Todavía no hay datos de la Universidad para mostrar.</div>';
+  const ord = {rojo: 0, naranja: 1, ok: 2}, L = F.slice().sort((a, b) => ord[a.estado] - ord[b.estado] || a.pos - b.pos);
+  const n = e => L.filter(x => x.estado === e).length;
+  const chip = e => e === 'rojo' ? '<span class="uni-e r">🚨 Alerta</span>' : e === 'naranja' ? '<span class="uni-e a">⚠️ Atención</span>' : '<span class="uni-e o">✓ Al día</span>';
+  return '<div class="uni-s">Actualizado al <b>' + fd(U.fecha) + '</b> · se lee cada día</div>' +
+    '<div class="uni-res">' + (n('rojo') ? '<span class="uni-e r">' + n('rojo') + ' en alerta</span>' : '') + (n('naranja') ? '<span class="uni-e a">' + n('naranja') + ' en atención</span>' : '') + '<span class="uni-e o">' + n('ok') + ' al día</span></div>' +
+    '<div class="uni-t"><table><thead><tr><th>Persona</th>' + (todas ? '<th>Tienda</th>' : '') + '<th>Aprobados</th><th>Última semana</th><th>Último ingreso</th><th>Ranking</th><th>Estado</th></tr></thead><tbody>' +
+    L.map(x => '<tr><td class="n"><b>' + esc(x.n) + '</b><div class="uni-s">' + esc(x.rol) + '</div></td>' + (todas ? '<td class="n">' + esc(x.t) + '</td>' : '') +
+      '<td class="n">' + x.ok + ' de ' + x.asig + ' <span class="uni-s">' + (x.asig ? Math.round(x.ok / x.asig * 100) : 0) + '%</span></td>' +
+      '<td class="n">' + (x.semana == null ? '—' : x.semana === 1 ? '1 curso' : x.semana + ' cursos') + '</td>' +
+      '<td class="n">' + (x.visita ? fd(x.visita) + ' <span class="uni-s">hace ' + x.dias + ' d</span>' : '—') + '</td>' +
+      '<td class="n">#' + x.pos + ' de ' + U.total + '</td><td>' + chip(x.estado) + '</td></tr>').join('') + '</tbody></table></div>' +
+    '<div class="uni-s" style="margin-top:8px">🚨 Alerta: más de 14 días sin entrar, o ningún curso aprobado en la semana teniendo pendientes. ⚠️ Atención: de 8 a 14 días sin entrar o más de 10 cursos pendientes. "Última semana" se mide desde la segunda lectura.</div>';
+}
+let UNI_T = null;
+function uniTiendaCargar(){ if (UNI_T) return Promise.resolve(UNI_T); return api('apiUniTienda').then(U => (UNI_T = U)); }
+function uniDetalle(){ const el = document.getElementById('uniDet'); if (!el || !UNI_T) return; const r = UNI_T.filas.filter(x => x.estado === 'rojo').length;
+  el.textContent = UNI_T.filas.length ? (r ? r + ' en alerta' : 'Todos al día o en atención') + ' · actualizado al ' + new Date(UNI_T.fecha + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'short'}) : 'Sin datos todavía';
+  el.style.color = r ? 'var(--bad)' : 'var(--muted)'; }
+function uniAbrir(){
+  openModal('<h3 style="margin-top:0">Universidad Steren · ' + esc(S.data.tienda) + '</h3><div id="uniB" class="small muted">Cargando…</div><button class="btn" id="uniX" style="width:100%;margin-top:12px">Cerrar</button>');
+  $('#uniX').onclick = closeModal;
+  uniTiendaCargar().then(U => { const b = $('#uniB'); if (b) { b.className = ''; b.innerHTML = uniInformeHtml(U, false); } }, e => { const b = $('#uniB'); if (b) b.textContent = e.message; });
+}
 function renderInicio(){
   const D = S.data, A = D.anuncios || [], hoy = D.hoy, sem = semanaDe(hoy);
   const act = A.filter(activo), ant = A.filter(a => !activo(a));
@@ -1397,7 +1429,7 @@ function renderInicio(){
     linea('Autosupervisión de la semana', auto ? 'Hecha el ' + fechaCorta(auto.fecha) + ' · ' + pct(auto.total) : 'Todavía no se hace',
       auto ? 'var(--muted)' : 'var(--warn)', auto ? '' : '<button class="btn primary" data-ir="sup">Hacer</button>') +
     (D.inventario ? linea('Muestreo Top 50', esc(invTexto(D.inventario)), D.inventario.fase && D.inventario.fase !== 'Enviado' ? 'var(--warn)' : 'var(--muted)', '<button class="btn" data-ir="inv">Ver</button>') : '') +
-    actToca(linea) + vfToca(linea) + polToca(linea) + guiaToca(linea) + '<details' + (primera ? ' open' : '') + '><summary>¿Cómo funciona?</summary><ol class="pasos">' +
+    actToca(linea) + vfToca(linea) + polToca(linea) + guiaToca(linea) + linea('Universidad Steren del equipo', '<span id="uniDet">Avance de cada persona</span>', 'var(--muted)', '<button class="btn" id="uniVer">Ver</button>') + '<details' + (primera ? ' open' : '') + '><summary>¿Cómo funciona?</summary><ol class="pasos">' +
       '<li>Cada persona lee los anuncios y confirma con su nombre.</li>' +
       '<li>En <b>Pendientes</b>, corrige lo que encontró el supervisor y envíalo con foto.</li>' +
       '<li>En <b>Inventario</b>, haz el Muestreo Top 50 con el teléfono y registra las ventas futuras: lo que un cliente pide y no tenemos.</li>' +
@@ -1406,6 +1438,8 @@ function renderInicio(){
   document.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => { irA(b.dataset.ir); const an = b.dataset.ancla; if (an) setTimeout(() => { const x = document.getElementById(an); if (x) window.scrollTo(0, x.getBoundingClientRect().top + window.scrollY - (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hh')) || 0) - 8); }, 60); });
   document.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => modalConfirmar(A.find(x => x.id === b.closest('[data-an]').dataset.an)));
   confetiFx();
+  const ub = $('#uniVer'); if (ub) ub.onclick = uniAbrir;
+  uniTiendaCargar().then(uniDetalle, () => {});
 }
 function marcaInicio(){ const el = $('#bIni'); if (el) el.hidden = !(S.data.anuncios || []).some(a => activo(a) && (faltan(a).length || !gente().length && !a.lecturas.length)); }
 

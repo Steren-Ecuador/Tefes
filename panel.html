@@ -669,6 +669,8 @@ tr.on td{background:var(--accent-soft)}
 .cum-p .faint{grid-column:1/-1;font-size:12.5px}
 .cum-bar{height:5px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:6px}
 .cum-bar i{display:block;height:100%;background:var(--good)}
+/* uni1: informe Universidad Steren */
+.uni-t{overflow-x:auto;-webkit-overflow-scrolling:touch}.uni-t table{width:100%;border-collapse:collapse;font-size:13px}.uni-t th{text-align:left;font-weight:600;opacity:.7;padding:6px 6px;border-bottom:1px solid rgba(127,127,127,.3);white-space:nowrap}.uni-t td{padding:7px 6px;border-bottom:1px solid rgba(127,127,127,.18);vertical-align:top}.uni-t td.n{white-space:nowrap}.uni-e{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;white-space:nowrap}.uni-e.r{background:#fde9e7;color:#c0352b}.uni-e.a{background:#fff3e0;color:#b25c00}.uni-e.o{background:#e5f5ec;color:#1a7f4b}.uni-res{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.uni-s{font-size:12px;opacity:.7}
 </style>
 
 <style>
@@ -1168,6 +1170,10 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
       <div class="panel-h"><h2>Avisos de la semana<span class="cfil"></span></h2><span class="small faint">Lo mismo que ve cada tienda en su Inicio. Para que estés enterado; no tienes que confirmar.</span></div>
       <div id="avBody"><div class="skeleton">Cargando avisos…</div></div>
     </section>
+    <section class="panel" id="universidad" hidden>
+      <div class="panel-h"><h2>Universidad Steren<span class="cfil"></span></h2><span class="small faint">Actividad de cada persona en los cursos: aprobados, última semana y último ingreso. Cada tienda ve solo a su equipo.</span></div>
+      <div id="uniBody"></div>
+    </section>
     <section class="panel" id="actividades" hidden>
       <div class="panel-h"><h2>Actividades del mes<span class="cfil"></span></h2><span class="small faint">Lo que cada tienda marca en su Inicio, como el sobre de caja chica. Solo para consultar.</span></div>
       <div id="acBody"></div>
@@ -1305,6 +1311,7 @@ async function cargar(liviano){
     if (liviano && st.avisos !== undefined) return;
     api('apiAvisosPanel').then(a => { st.avisos = a; renderAvisos(); }).catch(() => {});
     api('apiActividadesPanel').then(a => { st.act = a; renderActividades(); }).catch(() => {});
+    api('apiUniPanel').then(u => { st.uni = u; renderUniversidad(); }).catch(() => {});   // uni1:
     api('apiPoliticasTextoPanel').then(x => { st.polTx = x; renderPoliticas(); }).catch(() => { st.polTx = null; renderPoliticas(); });
     api('apiContactosPanel').then(c => { st.contactos = c; renderContactos(); }).catch(() => { st.contactos = []; renderContactos(); });
   } catch (e) {
@@ -1567,7 +1574,7 @@ function render(){
   $('#fSec').innerHTML = '<option value="">Todas las secciones</option>' + SECS.map(s => `<option value="${esc(SEC_NAMES[s])}" ${st.fSec === SEC_NAMES[s] ? 'selected' : ''}>${s}) ${esc(SEC_NAMES[s])}</option>`).join('');
   renderPend();
   renderContactos();
-  renderAvisos(); renderActividades();
+  renderAvisos(); renderActividades(); renderUniversidad();
   renderSupervision();
   renderInventario();
   renderPoliticas();
@@ -1577,6 +1584,28 @@ function render(){
 }
 
 /* ---------- actividades del mes de las tiendas (actividades-mes, vía apiActividadesPanel; solo lectura) ---------- */
+/* uni1: informe de actividad en Universidad Steren (pestaña privada "Universidad asesores", se lee cada mañana) */
+function uniInformeHtml(U, todas, filtro){
+  const fd = i => new Date(i + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'short'});
+  const F = (U && U.filas || []).filter(x => !filtro || filtro(x));
+  if (!U || !U.fecha || !F.length) return '<div class="uni-s">Todavía no hay datos de la Universidad para mostrar.</div>';
+  const ord = {rojo: 0, naranja: 1, ok: 2}, L = F.slice().sort((a, b) => ord[a.estado] - ord[b.estado] || a.pos - b.pos);
+  const n = e => L.filter(x => x.estado === e).length;
+  const chip = e => e === 'rojo' ? '<span class="uni-e r">🚨 Alerta</span>' : e === 'naranja' ? '<span class="uni-e a">⚠️ Atención</span>' : '<span class="uni-e o">✓ Al día</span>';
+  return '<div class="uni-s">Actualizado al <b>' + fd(U.fecha) + '</b> · se lee cada día</div>' +
+    '<div class="uni-res">' + (n('rojo') ? '<span class="uni-e r">' + n('rojo') + ' en alerta</span>' : '') + (n('naranja') ? '<span class="uni-e a">' + n('naranja') + ' en atención</span>' : '') + '<span class="uni-e o">' + n('ok') + ' al día</span></div>' +
+    '<div class="uni-t"><table><thead><tr><th>Persona</th>' + (todas ? '<th>Tienda</th>' : '') + '<th>Aprobados</th><th>Última semana</th><th>Último ingreso</th><th>Ranking</th><th>Estado</th></tr></thead><tbody>' +
+    L.map(x => '<tr><td class="n"><b>' + esc(x.n) + '</b><div class="uni-s">' + esc(x.rol) + '</div></td>' + (todas ? '<td class="n">' + esc(x.t) + '</td>' : '') +
+      '<td class="n">' + x.ok + ' de ' + x.asig + ' <span class="uni-s">' + (x.asig ? Math.round(x.ok / x.asig * 100) : 0) + '%</span></td>' +
+      '<td class="n">' + (x.semana == null ? '—' : x.semana === 1 ? '1 curso' : x.semana + ' cursos') + '</td>' +
+      '<td class="n">' + (x.visita ? fd(x.visita) + ' <span class="uni-s">hace ' + x.dias + ' d</span>' : '—') + '</td>' +
+      '<td class="n">#' + x.pos + ' de ' + U.total + '</td><td>' + chip(x.estado) + '</td></tr>').join('') + '</tbody></table></div>' +
+    '<div class="uni-s" style="margin-top:8px">🚨 Alerta: más de 14 días sin entrar, o ningún curso aprobado en la semana teniendo pendientes. ⚠️ Atención: de 8 a 14 días sin entrar o más de 10 cursos pendientes. "Última semana" se mide desde la segunda lectura.</div>';
+}
+function renderUniversidad(){
+  const sec = $('#universidad'), el = $('#uniBody'); if (!sec || !st.uni) return;
+  sec.hidden = !st.uni.fecha; el.innerHTML = uniInformeHtml(st.uni, true, x => enCiudad(x.t));
+}
 function renderActividades(){
   const sec = $('#actividades'), el = $('#acBody'); if (!sec || !st.act) return;
   const hoy = new Date().toLocaleDateString('en-CA', {timeZone: 'America/Guayaquil'});

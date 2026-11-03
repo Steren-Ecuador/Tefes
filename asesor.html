@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TEFES · Asesores</title>
+<!-- TEFES · Panel del asesor (real). Se arma con asesores/pantallas/armar_asesor.py desde la maqueta aprobada. Datos: apiAsesor (hoja privada). -->
+<style>
+:root{--brand:#0078be;--brand2:#005a8f;--ok:#1a7f4b;--bad:#c0352b;--warn:#b26a00;--muted:#5d6b7a;--line:#e2e7ee;--bg:#f3f5f8;--card:#fff;--oro:#d4a017;--plata:#9aa4ae;--bronce:#b8733a}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:#16202b;font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif}
+button,input,select,textarea{font:inherit}
+.prueba{font-size:11px;color:#9aa4ae;text-align:right;padding:2px 10px;background:#fff}
+header{background:var(--brand);color:#fff;padding:12px 16px 14px;position:sticky;top:0;z-index:20}
+.cab{display:flex;align-items:center;gap:12px}
+.av{width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex:none}
+.cab .av{border:2px solid #fff}
+.cab b{display:block;font-size:17px}
+.cab span{font-size:13px;opacity:.85}
+main{padding:12px 12px 96px;max-width:640px;margin:0 auto}
+.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(16,32,48,.06)}
+h3{margin:0 0 8px;font-size:16px}
+.muted{color:var(--muted)}.tiny{font-size:12px}.small{font-size:13px}
+.fila{display:flex;align-items:center;justify-content:space-between;gap:8px}
+/* historias */
+.hist{display:flex;gap:14px;overflow-x:auto;padding:4px 2px 10px;margin:0 -2px 6px;scrollbar-width:none}
+.hist::-webkit-scrollbar{display:none}
+.st{flex:none;width:66px;text-align:center;background:none;border:0;padding:0;cursor:pointer}
+.ring{width:62px;height:62px;border-radius:50%;padding:3px;margin:0 auto 4px;position:relative}
+.ring .av{width:100%;height:100%;border:2px solid #fff;font-size:17px}
+.st small{display:block;font-size:11.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st em{font-style:normal;font-size:11px;color:var(--muted)}
+.st .pct{position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);background:#fff;border-radius:9px;font-size:10.5px;font-weight:800;padding:0 5px;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+/* barra */
+.bar{height:10px;border-radius:6px;background:#e7ecf2;position:relative;overflow:hidden;margin:8px 0 4px}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:var(--brand)}
+.bar i.ok{background:var(--ok)}.bar i.warn{background:var(--warn)}
+.bar u{position:absolute;top:-2px;bottom:-2px;width:2px;background:#16202b;opacity:.55}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.kpis div{background:var(--bg);border-radius:10px;padding:8px}
+.kpis b{display:block;font-size:18px}
+/* ranking */
+.podio{display:grid;grid-template-columns:1fr 1.15fr 1fr;align-items:end;gap:8px;margin:8px 0 10px;text-align:center}
+.podio .av{width:52px;height:52px;margin:0 auto 4px;font-size:16px}
+.podio .p1 .av{width:64px;height:64px;font-size:19px}
+.podio .base{border-radius:10px 10px 0 0;color:#fff;font-weight:800;padding:6px 0}
+.podio .p1 .base{background:var(--oro);height:58px}.podio .p2 .base{background:var(--plata);height:42px}.podio .p3 .base{background:var(--bronce);height:30px}
+.podio small{display:block;font-size:12px;font-weight:700}
+.rk{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.rk .n{width:20px;text-align:center;font-weight:800;color:var(--muted)}
+.rk .av{width:34px;height:34px;font-size:13px}
+.rk .q{flex:1;min-width:0}
+.rk .q b{display:block;font-size:14px}
+.rk .q .small b,.rk .q .tiny b{display:inline;font-size:inherit}
+.rk .v{text-align:right;font-weight:800}
+.rk.yo{background:#eaf4fb;border-radius:10px;padding-left:6px;padding-right:6px;border-top-color:transparent}
+.seg{display:flex;background:#e7ecf2;border-radius:10px;padding:3px;margin-bottom:10px}
+.seg button{flex:1;border:0;background:none;padding:7px;border-radius:8px;font-weight:700;color:var(--muted);cursor:pointer}
+.seg button.on{background:#fff;color:var(--brand);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+/* publicaciones */
+.post .pc{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.post .pc .av{width:38px;height:38px;font-size:14px}
+.post .pc b{display:block;font-size:14px}
+.post .txt{margin:0 0 10px}
+.post .big{font-size:22px;font-weight:800;margin:2px 0 6px}
+.acc{display:flex;gap:6px;border-top:1px solid var(--line);padding-top:8px}
+.acc button{flex:1;border:0;background:none;border-radius:8px;padding:7px 4px;font-weight:700;color:var(--muted);cursor:pointer}
+.acc button.on{color:var(--brand);background:#eaf4fb}
+.chip{display:inline-block;font-size:11.5px;font-weight:700;border-radius:20px;padding:2px 8px;background:#e7ecf2;color:var(--muted)}
+.chip.rojo{background:#fbe9e7;color:var(--bad)}.chip.amb{background:#fff4e0;color:var(--warn)}.chip.verde{background:#e5f4ec;color:var(--ok)}.chip.azul{background:#eaf4fb;color:var(--brand)}
+.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.block{display:block;width:100%}
+.btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.btns .btn{padding:7px 10px;font-size:13px}
+label.f{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin:10px 0 4px}
+input.i,textarea.i,select.i{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}
+textarea.i{min-height:64px;resize:vertical}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+/* meta */
+.grande{font-size:30px;font-weight:800;line-height:1.1}
+.suma{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:14px;margin-top:6px}
+.suma .t{border-top:1px solid var(--line);padding-top:6px;font-weight:800}
+.anillo{width:150px;height:150px;border-radius:50%;margin:6px auto 8px;display:flex;align-items:center;justify-content:center}
+.anillo div{width:118px;height:118px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.anillo b{font-size:28px}
+/* horario */
+.dia{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.dia:first-child{border-top:0}
+.dia .d{width:46px;text-align:center}
+.dia .d b{display:block;font-size:18px}
+.dia .h{flex:1}
+.dia.hoy{background:#eaf4fb;border-radius:10px;padding-left:8px;padding-right:8px;border-top-color:transparent}
+.dia.libre .h{color:var(--muted)}
+.seccion{margin-bottom:18px}
+.sec-cab{font-size:20px;font-weight:900;margin:18px 2px 10px;display:flex;align-items:center;gap:6px}
+.seccion:first-child .sec-cab{margin-top:4px}
+/* navegación */
+.com-foto{position:relative;border-radius:12px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;font-size:88px;margin:0 0 8px;overflow:hidden;background-size:cover;background-position:center}
+.com-foto .tag{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px}
+.reac{display:flex;gap:6px;flex-wrap:wrap}.reac button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 10px;font-size:13px;font-weight:700;cursor:pointer}.reac button.on{border-color:var(--brand);background:#e8f3fb;color:var(--brand)}
+.coms{margin-top:8px;font-size:13px}.coms div{margin-top:3px}
+.part{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.part .av{width:34px;height:34px;font-size:12px}.part .no{opacity:.3;filter:grayscale(1)}
+.reto{background:linear-gradient(135deg,#ff7a59,#d6336c);color:#fff;border-radius:16px;padding:14px;margin-bottom:12px}.reto .btn{background:#fff;color:#d6336c;border:0}
+nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);padding:4px 2px calc(4px + env(safe-area-inset-bottom));z-index:30}
+nav button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:11px;font-weight:600;color:var(--muted);padding:4px 0;min-height:50px;position:relative;cursor:pointer}
+nav button.on{color:var(--brand);font-weight:800}
+nav svg{width:25px;height:25px}
+nav .dot{position:absolute;top:4px;left:50%;margin-left:8px;width:9px;height:9px;border-radius:50%;background:var(--bad)}
+.modal{position:fixed;inset:0;background:rgba(10,20,30,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.modal .box{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:640px;max-height:90vh;overflow:auto;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#16202b;color:#fff;padding:10px 16px;border-radius:10px;z-index:60;font-size:14px}
+.vacio{text-align:center;padding:20px 10px;color:var(--muted)}
+@keyframes latido{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
+</style>
+</head>
+<body>
+<div class="prueba" id="aviso" hidden></div>
+<header><div class="cab"><span class="av" id="miAv"></span><div><b id="miNom"></b><span id="miSub"></span></div></div></header>
+<main id="main"></main>
+<nav id="nav">
+  <button data-v="muro" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio<span class="dot" id="dMuro" hidden></span></button>
+  <button data-v="com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Comunidad<span class="dot" id="dCom" hidden></span></button>
+  <button data-v="meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>Mi meta</button>
+  <button data-v="cli"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>Clientes<span class="dot" id="dCli" hidden></span></button>
+  <button data-v="hor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Horario</button>
+  <button data-v="apr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h7v14H4zM13 5h7v14h-7z"/></svg>Aprender<span class="dot" id="dApr" hidden></span></button>
+</nav>
+<div id="modal"></div>
+<script>
+(function(){
+/* ================= DATOS DE EJEMPLO ================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const usd0 = n => (n < -0.5 ? '−' : '') + '$' + Math.abs(Math.round(n)).toLocaleString('es-EC');
+const usd2 = n => (n < -0.005 ? '−' : '') + '$' + Math.abs(n).toLocaleString('es-EC', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const HOY = new Date(); HOY.setHours(12, 0, 0, 0);
+const iso = d => d.toISOString().slice(0, 10);
+const sumar = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const finMes = new Date(HOY.getFullYear(), HOY.getMonth() + 1, 0).getDate();
+const diaMes = Math.max(HOY.getDate() - 1, 1);   // datos hasta ayer
+const ritmo = diaMes / finMes;
+const fCorta = d => DIAS[d.getDay()].toLowerCase() + ' ' + d.getDate() + ' ' + MESES[d.getMonth()].slice(0, 3);
+
+let TIENDA = {nombre: '', presupuesto: 0, mes: 0, ayer: 0};
+const COLORES = ['#0078be', '#7b4bc4', '#d0477a', '#1a8f7a', '#e07b16', '#3d5a80'];
+let EQUIPO = [], YO = null, SUELDO = {fijo: 0, pct: 0}, DIARIO = [], CORTE = '', CIERRE = null;   // CIERRE = mes cerrado (POS), pestaña privada "Comisión mes"
+const slug = n => String(n).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-');
+const iniciales = n => n.split(' ').filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase();
+const colorDe = id => COLORES[Math.max(EQUIPO.findIndex(p => p.id === id), 0) % COLORES.length];
+const miFoto = () => (typeof E !== 'undefined' && E.perfil && E.perfil.foto) || '';
+const avatar = (p, cls) => (p === YO && miFoto()) ? '<span class="av ' + (cls || '') + '" style="background:#ddd url(' + miFoto() + ') center/cover"></span>'
+  : '<span class="av ' + (cls || '') + '" style="background:' + colorDe(p.id) + '">' + iniciales(p.nombre) + '</span>';
+const nombreCorto = n => String(n || '').split(' ')[0];
+
+/* horario de la semana: pestaña privada "Horarios asesores" (sale de los archivos de horarios de Jaqui) */
+const lunes = sumar(HOY, -((HOY.getDay() + 6) % 7));
+let TURNOS = {};
+const SIN = ['Sin horario', 'Sin horario', 'Sin horario', 'Sin horario', 'Sin horario', 'Sin horario', 'Sin horario'];
+const turnosDe = id => TURNOS[id] || SIN;
+
+/* ---------- conexión con la app (misma /exec que el resto del portal) ---------- */
+const APP = 'https://script.google.com/macros/s/AKfycbxvxIW9iw7D6IyKTMx5Xyj9BW4d_u7G4BMVwRzaI9ug1MIB1tdfVCAWhu2iIWjbz0lgMA/exec';
+const Q = new URLSearchParams(location.search), TOKEN = Q.get('ase') || Q.get('t') || '';
+function llamar(fn, ...args){
+  if (window.TEFES_SERVIDOR) return new Promise((ok, ko) => setTimeout(() => { try { ok(JSON.parse(JSON.stringify(window.TEFES_SERVIDOR[fn](...JSON.parse(JSON.stringify(args)))))); } catch (e) { ko(e); } }, 150));
+  return fetch(APP, {method: 'POST', body: JSON.stringify({fn: fn, args: args}), headers: {'Content-Type': 'text/plain;charset=utf-8'}})
+    .then(r => { if (!r.ok) throw new Error('Sin conexión con el servidor (' + r.status + ').'); return r.json(); }, () => { throw new Error('Sin conexión. Revisa el internet e intenta de nuevo.'); })
+    .then(j => { if (!j || !j.ok) throw new Error((j && j.error) || 'Error del servidor.'); return j.r; });
+}
+const YO_KEY = 'tefes_asesor_yo_' + TOKEN.slice(-8);
+const leerYo = () => { try { return localStorage.getItem(YO_KEY) || ''; } catch (e) { return ''; } };
+const guardarYo = n => { try { if (n) localStorage.setItem(YO_KEY, n); else localStorage.removeItem(YO_KEY); } catch (e) {} };
+
+/* estado guardado en el navegador */
+let KEY = 'tefes_asesor_v1';
+const semilla = () => ({metaGanar: 0, aplausos: {}, leidos: {}, proformas: [], futuras: []});
+let E = semilla();
+const cargarE = () => { try { E = Object.assign(semilla(), JSON.parse(localStorage.getItem(KEY)) || {}, {proformas: [], futuras: []}); } catch (e) { E = semilla(); } };
+const guardar = () => { try { const c = Object.assign({}, E); delete c.proformas; delete c.futuras; localStorage.setItem(KEY, JSON.stringify(c)); } catch (e) {} };
+let vista = 'muro', segCli = 'pro', segRank = 'venta';
+
+function toast(m){ document.querySelectorAll('.toast').forEach(t => t.remove()); const d = document.createElement('div'); d.className = 'toast'; d.textContent = m; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
+function abrir(h){ $('#modal').innerHTML = '<div class="modal"><div class="box">' + h + '</div></div>'; $('#modal .modal').onclick = e => { if (e.target.classList.contains('modal')) cerrar(); }; }
+function cerrar(){ $('#modal').innerHTML = ''; }
+const anillo = (pct, color) => 'conic-gradient(' + color + ' ' + Math.min(pct, 1) * 360 + 'deg, #e2e7ee 0)';
+
+/* ================= INICIO (muro) ================= */
+const ANUNCIOS = [];   // anuncios para asesores: falta la fuente (pestaña Anuncios con público 'asesores')
+function rankOrden(k){ return EQUIPO.slice().sort((a, b) => k === 'gar' ? b.gar - a.gar : (k === 'pct' ? b.mes / b.meta - a.mes / a.meta : b.mes - a.mes)); }
+function renderMuro(){
+  const hist = EQUIPO.map(p => { const c = p.mes / p.meta;
+    return '<button class="st" data-per="' + p.id + '"><div class="ring" style="background:' + anillo(c, c >= ritmo ? 'var(--ok)' : 'var(--warn)') + '">' + avatar(p) + '<span class="pct">' + Math.round(c * 100) + '%</span></div><small>' + (p === YO ? 'Tú' : esc(nombreCorto(p.nombre))) + '</small><em>' + usd0(p.mes) + '</em></button>'; }).join('');
+  const ct = TIENDA.mes / TIENDA.presupuesto, falta = Math.max(TIENDA.presupuesto - TIENDA.mes, 0), quedan = finMes - diaMes;
+  const tienda = '<div class="card"><div class="fila"><h3 style="margin:0">' + esc(TIENDA.nombre) + ' en ' + MESES[HOY.getMonth()] + '</h3><span class="chip ' + (ct >= ritmo ? 'verde' : 'amb') + '">' + Math.round(ct * 100) + '% de la meta</span></div>' +
+    '<div class="bar"><i class="' + (ct >= ritmo ? 'ok' : 'warn') + '" style="width:' + Math.min(ct, 1) * 100 + '%"></i><u style="left:' + ritmo * 100 + '%"></u></div>' +
+    '<div class="kpis"><div><span class="tiny muted">Ayer</span><b>' + usd0(TIENDA.ayer) + '</b></div><div><span class="tiny muted">Mes</span><b>' + usd0(TIENDA.mes) + '</b></div><div><span class="tiny muted">Meta</span><b>' + usd0(TIENDA.presupuesto) + '</b></div></div>' +
+    '<p class="small" style="margin:8px 0 0">' + (falta ? 'Entre todos faltan <b>' + usd0(falta) + '</b>' + (quedan > 0 ? ', unos <b>' + usd0(falta / quedan) + ' por día</b>.' : '.') : '¡Meta de la tienda cumplida! 🎉') + '</p></div>';
+  const R = rankOrden(segRank), val = p => segRank === 'gar' ? p.gar + ' gar.' : segRank === 'pct' ? Math.round(p.mes / p.meta * 100) + '%' : usd0(p.mes);
+  const pod = i => { const p = R[i]; return p ? '<div class="p' + (i + 1) + '">' + avatar(p) + '<small>' + (p === YO ? 'Tú' : esc(nombreCorto(p.nombre))) + '</small><span class="tiny muted">' + val(p) + '</span><div class="base">' + (i + 1) + '</div></div>' : '<div></div>'; };
+  const rank = '<div class="card"><div class="fila"><h3 style="margin:0">Ranking del mes</h3><span class="tiny muted">al ' + fCorta(sumar(HOY, -1)) + '</span></div>' +
+    '<div class="seg" style="margin-top:10px">' + [['venta', 'Venta'], ['pct', '% de su meta'], ['gar', 'Garantías']].map(([k, l]) => '<button data-rk="' + k + '" class="' + (k === segRank ? 'on' : '') + '">' + l + '</button>').join('') + '</div>' +
+    '<div class="podio">' + pod(1) + pod(0) + pod(2) + '</div>' +
+    R.slice(3).map((p, i) => '<div class="rk' + (p === YO ? ' yo' : '') + '"><span class="n">' + (i + 4) + '</span>' + avatar(p) + '<div class="q"><b>' + (p === YO ? 'Tú' : esc(p.nombre)) + '</b><span class="tiny muted">' + esc(p.cargo) + '</span></div><span class="v">' + val(p) + '</span></div>').join('') +
+    '<div class="tiny muted" style="margin-top:6px">Venta según ERP (referencial); garantías del POS. Se actualiza cada noche.</div></div>';
+  /* publicaciones automáticas a partir de los datos de cada noche */
+  const top = EQUIPO.slice().sort((a, b) => b.ayer - a.ayer)[0], garTop = EQUIPO.slice().sort((a, b) => b.gar - a.gar)[0];
+  const posts = [];
+  ANUNCIOS.forEach(a => posts.push({id: a.id, tipo: 'anuncio', html: '<div class="pc"><span class="av" style="background:#16202b">T</span><div><b>' + esc(a.de) + '</b><span class="tiny muted">' + fCorta(a.fecha) + ' · Anuncio</span></div></div>' +
+    '<p class="txt"><b>' + esc(a.titulo) + '</b><br>' + esc(a.txt) + '</p>' + (E.leidos[a.id] ? '<span class="chip verde">✓ Confirmaste que lo leíste</span>' : '<button class="btn pri block" data-leer="' + a.id + '">Confirmo que leí</button>')}));
+  posts.push({id: 'L-ayer', html: '<div class="pc">' + avatar(top) + '<div><b>' + esc(top.nombre) + '</b><span class="tiny muted">' + fCorta(sumar(HOY, -1)) + ' · Logro</span></div></div><p class="txt">🔥 Fue quien más vendió ayer en ' + esc(TIENDA.nombre) + '.</p><div class="big">' + usd0(top.ayer) + '</div>'});
+  posts.push({id: 'L-gar', html: '<div class="pc">' + avatar(garTop) + '<div><b>' + esc(garTop.nombre) + '</b><span class="tiny muted">Este mes · Garantías</span></div></div><p class="txt">🛡️ Lleva <b>' + garTop.gar + (garTop.gar === 1 ? ' garantía extendida' : ' garantías extendidas') + '</b> vendidas este mes. ¡Nadie en la tienda tiene más!</p>'});
+  const cerca = EQUIPO.filter(p => p.mes / p.meta >= 0.9 && p.mes < p.meta)[0];
+  if (cerca) posts.push({id: 'L-cerca', html: '<div class="pc">' + avatar(cerca) + '<div><b>' + esc(cerca.nombre) + '</b><span class="tiny muted">Meta personal</span></div></div><p class="txt">🎯 Está a <b>' + usd0(cerca.meta - cerca.mes) + '</b> de cumplir su meta del mes. ¡Vamos!</p>'});
+  const cumplio = EQUIPO.filter(p => p.mes >= p.meta)[0];
+  if (cumplio) posts.push({id: 'L-cumplio', html: '<div class="pc">' + avatar(cumplio) + '<div><b>' + esc(cumplio.nombre) + '</b><span class="tiny muted">Meta personal</span></div></div><p class="txt">🏆 ¡Cumplió su meta del mes! ' + usd0(cumplio.mes) + ' de ' + usd0(cumplio.meta) + '.</p>'});
+  const muro = posts.map(p => { const n = (E.aplausos[p.id] || 0), yo = !!E.aplausos[p.id + ':yo'];
+    return '<div class="card post">' + p.html + (p.tipo === 'anuncio' ? '' : '<div class="acc"><button data-apl="' + p.id + '" class="' + (yo ? 'on' : '') + '">👏 Aplaudir' + (n + 3 > 0 ? ' · ' + (n + 3) : '') + '</button></div>') + '</div>'; }).join('');
+  const cumple = E.perfil && E.perfil.cumple && E.perfil.cumple === iso(HOY).slice(5) ? '<div class="card" style="text-align:center;background:#fff1f6"><div style="font-size:40px">🎂</div><b>¡Feliz cumpleaños, ' + esc(E.perfil.apodo || nombreCorto(YO.nombre)) + '!</b><div class="small muted">Todo el equipo de ' + esc(TIENDA.nombre) + ' te saluda hoy.</div></div>' : '';
+  sec('muro').innerHTML = cumple + '<div class="hist">' + hist + '</div>' + tienda + rank + muro;
+  document.querySelectorAll('[data-rk]').forEach(b => b.onclick = () => { segRank = b.dataset.rk; renderMuro(); });
+  document.querySelectorAll('[data-per]').forEach(b => b.onclick = () => perfil(EQUIPO.find(p => p.id === b.dataset.per)));
+  document.querySelectorAll('[data-leer]').forEach(b => b.onclick = () => { E.leidos[b.dataset.leer] = new Date().toISOString(); guardar(); toast('Gracias, quedó registrado con tu nombre.'); render(); });
+  document.querySelectorAll('[data-apl]').forEach(b => b.onclick = () => { const k = b.dataset.apl, y = k + ':yo'; E.aplausos[k] = (E.aplausos[k] || 0) + (E.aplausos[y] ? -1 : 1); E.aplausos[y] = !E.aplausos[y]; guardar(); renderMuro(); });
+}
+function perfil(p){
+  const c = p.meta ? p.mes / p.meta : 0, dias = turnosDe(p.id);
+  abrir('<div style="text-align:center">' + '<span class="av" style="width:72px;height:72px;font-size:24px;margin:0 auto 6px;background:' + colorDe(p.id) + '">' + iniciales(p.nombre) + '</span>' +
+    '<h3 style="margin:4px 0 0">' + esc(p.nombre) + '</h3><div class="tiny muted">' + esc(p.cargo) + ' · ' + esc(TIENDA.nombre) + '</div></div>' +
+    '<div class="kpis" style="margin-top:12px"><div><span class="tiny muted">Venta mes</span><b>' + usd0(p.mes) + '</b></div><div><span class="tiny muted">Su meta</span><b>' + Math.round(c * 100) + '%</b></div><div><span class="tiny muted">Garantías</span><b>' + p.gar + '</b></div></div>' +
+    '<div class="bar"><i class="' + (c >= ritmo ? 'ok' : 'warn') + '" style="width:' + Math.min(c, 1) * 100 + '%"></i><u style="left:' + ritmo * 100 + '%"></u></div>' +
+    '<div class="tiny muted">Hoy: ' + esc(dias[(HOY.getDay() + 6) % 7] || '—') + '</div>' +
+    '<button class="btn block" style="margin-top:14px" id="cx">Cerrar</button>');
+  $('#cx').onclick = cerrar;
+}
+
+/* ================= MI META ================= */
+function diasTrabajoRestantes(){ let n = 0; for (let d = HOY.getDate(); d <= finMes; d++){ const x = new Date(HOY.getFullYear(), HOY.getMonth(), d); if (turnosDe(YO.id)[(x.getDay() + 6) % 7] !== 'Libre') n++; } return n; }
+/* frases para motivar: cambian cada día y según lo que lo motiva */
+const MOTIVOS = [['familia', '👨‍👩‍👧 Mi familia'], ['viajar', '✈️ Viajar'], ['estudiar', '🎓 Estudiar'], ['casa', '🏠 Mi casa'], ['auto', '🚗 Un carro'], ['ahorrar', '💰 Ahorrar']];
+const FRASES = {
+  todos: ['Cada cliente que atiendes bien hoy es una venta mañana.', 'No cuentes los días: haz que los días cuenten.', 'La disciplina le gana al talento cuando el talento no trabaja.',
+    'Una garantía más por día cambia tu mes.', 'Los grandes resultados son pequeñas ventas repetidas todos los días.', 'Hoy es un buen día para superar a tu yo de ayer.',
+    'El cliente no compra productos: compra confianza. Dásela.', 'Tú decides cuánto ganas este mes.'],
+  familia: ['Cada venta de hoy es tiempo y tranquilidad para los tuyos.', 'Tu familia es tu porqué. Hoy véndeles un buen mes.'],
+  viajar: ['Ese viaje se paga venta por venta. Hoy sumas kilómetros.', 'Cada cliente te acerca a tu próximo destino.'],
+  estudiar: ['Lo que ganas hoy es inversión en tu futuro.', 'Estudiar cuesta; rendirse cuesta más. Dale.'],
+  casa: ['Ladrillo a ladrillo, venta a venta.', 'Tu casa se construye con constancia. Hoy pones otro ladrillo.'],
+  auto: ['Ese carro no se maneja solo hasta tu garaje: véndelo hoy.', 'Cada garantía es un kilómetro más cerca de tu carro.'],
+  ahorrar: ['Lo que no se mide no se ahorra: hoy mides tu avance.', 'Pequeños montos todos los días hacen grandes ahorros.']
+};
+function frase(){ const m = E.motivo, L = (m && FRASES[m] ? FRASES[m] : []).concat(FRASES.todos), d = Math.floor(HOY / 864e5); return L[d % L.length]; }
+/* venta por día del mes (pestaña privada "Ventas asesores", del ERP: referencial) */
+function ventasDiarias(){ return DIARIO.map(x => ({fecha: new Date(x.f + 'T12:00:00'), venta: x.v})).filter(x => x.venta > 0); }
+function sello(ok, txt, sub){
+  abrir('<div style="text-align:center;padding:10px 0 4px"><div style="font-size:64px;line-height:1">' + (ok ? '🕺' : '🤖') + '</div>' +
+    '<div style="display:inline-block;margin:12px 0 8px;padding:6px 18px;border:4px solid ' + (ok ? 'var(--ok)' : 'var(--bad)') + ';border-radius:10px;color:' + (ok ? 'var(--ok)' : 'var(--bad)') +
+      ';font-size:34px;font-weight:900;letter-spacing:2px;transform:rotate(-6deg)">' + (ok ? 'APROBADO' : 'NO.') + '</div>' +
+    '<div style="font-weight:800;font-size:17px">' + txt + '</div><div class="small muted" style="margin-top:6px">' + sub + '</div>' +
+    '<button class="btn pri block" id="cx" style="margin-top:16px">' + (ok ? '¡A darle!' : 'Volver a intentar') + '</button></div>');
+  $('#cx').onclick = () => { cerrar(); renderMeta(); };
+}
+function renderMeta(){
+  const dr = diasTrabajoRestantes(), pctTxt = (SUELDO.pct * 100).toFixed(1).replace('.', ',') + '%';
+  const minV = YO.meta, ganaMin = SUELDO.fijo + minV * SUELDO.pct;
+  const miV = E.metaGanar ? Math.max((E.metaGanar - SUELDO.fijo) / SUELDO.pct, 0) : 0;
+  const porDia = falta => falta <= 0 ? '' : dr ? 'unos <b>' + usd0(falta / dr) + ' por día</b> en tus ' + dr + (dr === 1 ? ' día' : ' días') + ' de trabajo que quedan' : 'no te quedan días de trabajo este mes';
+  const cMin = YO.mes / minV, cMi = miV ? YO.mes / miV : 0;
+  let h = '';
+  /* 0. MES CERRADO: resultado oficial del POS y comisión a cobrar (solo si Diego lo publicó) */
+  if (CIERRE && CIERRE.mes){
+    const mN = MESES[Number(CIERRE.mes.slice(5, 7)) - 1], pago = CIERRE.pago ? new Date(CIERRE.pago + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'long'}) : '';
+    h += '<div class="card" style="background:linear-gradient(135deg,#0f6b3f,#1a9a5c);color:#fff"><div class="fila"><span class="tiny" style="opacity:.85">' + mN.toUpperCase() + ' CERRADO · DATO OFICIAL DEL POS</span><span style="font-size:20px">🏁</span></div>' +
+      '<div class="tiny" style="opacity:.85;margin-top:6px">Tu comisión de ' + mN + '</div><div style="font-size:34px;font-weight:900;margin:2px 0">' + usd2(CIERRE.comision) + '</div>' +
+      '<div class="tiny" style="opacity:.9">Vendiste ' + usd2(CIERRE.venta) + (CIERRE.gar ? ' · ' + CIERRE.gar + (CIERRE.gar === 1 ? ' garantía' : ' garantías') : '') + (CIERRE.pct ? ' · ' + (CIERRE.pct * 100).toFixed(1).replace('.', ',') + '% de comisión' : '') + '</div>' +
+      (pago ? '<div style="margin-top:10px;background:rgba(255,255,255,.15);border-radius:10px;padding:8px 10px;font-weight:800">Se paga el ' + pago + ' 💰</div>' : '') +
+      '<div class="tiny" style="opacity:.8;margin-top:6px">Tu sueldo fijo va aparte.</div></div>';
+  }
+  /* 1. MI META (primero) */
+  if (!E.metaGanar){
+    const base = Math.ceil(ganaMin / 50) * 50, ops = [base + 100, base + 200, base + 300, base + 500];
+    h += '<div class="card" style="border:2px solid var(--brand)"><h3>🚀 Mi meta del mes</h3><div class="small">¿Cuánto quieres ganar este mes? Tú decides.</div>' +
+      '<div class="tiny muted" style="margin-top:4px">Tiene que ser más de lo que ganas con la meta mínima (unos ' + usd0(ganaMin) + ').</div>' +
+      '<div class="dos" style="margin-top:10px"><input class="i" id="mg" inputmode="decimal" placeholder="Ej.: ' + ops[1] + '"><button class="btn pri" id="mgOk">Guardar</button></div>' +
+      '<div class="btns">' + ops.map(v => '<button class="btn" data-mg="' + v + '">' + usd0(v) + '</button>').join('') + '</div></div>';
+  } else {
+    const col = cMi >= 1 ? 'var(--ok)' : 'var(--brand)';
+    h += '<div class="card" style="text-align:center;border:2px solid var(--brand)"><div class="fila"><h3 style="margin:0">🚀 Mi meta: ganar ' + usd0(E.metaGanar) + '</h3><span class="chip verde">Aprobada</span></div>' +
+      '<div class="anillo" style="background:' + anillo(cMi, col) + '"><div><b>' + Math.round(Math.min(cMi, 9.99) * 100) + '%</b><span class="tiny muted">de ' + usd0(miV) + '</span></div></div>' +
+      '<div class="small">' + (cMi >= 1 ? '🏆 ¡Lo lograste! Lo que vendas desde hoy es extra.' : 'Te faltan <b>' + usd0(miV - YO.mes) + '</b>: ' + porDia(miV - YO.mes) + '.') + '</div>' +
+      '<button id="mgCambiar" style="background:none;border:0;color:var(--brand);padding:8px 0 0;font-weight:700;cursor:pointer">Cambiar mi meta</button></div>';
+  }
+  /* 2. META MÍNIMA */
+  h += '<div class="card"><div class="fila"><h3 style="margin:0">🎯 Meta mínima: ' + usd0(minV) + '</h3><span class="chip ' + (cMin >= 1 || cMin >= ritmo ? 'verde' : 'amb') + '">' + Math.round(cMin * 100) + '%</span></div>' +
+    '<div class="bar"><i class="' + (cMin >= 1 ? 'ok' : cMin >= ritmo ? 'ok' : 'warn') + '" style="width:' + Math.min(cMin, 1) * 100 + '%"></i><u style="left:' + ritmo * 100 + '%"></u></div>' +
+    '<div class="small">' + (cMin >= 1 ? '✅ ¡Cumplida! Ahora ve por tu meta.' : 'Te faltan <b>' + usd0(minV - YO.mes) + '</b>: ' + porDia(minV - YO.mes) + '.') + '</div>' +
+    '<div class="tiny muted" style="margin-top:4px">Te la asigna tu gerente. Es lo mínimo del mes.</div></div>';
+  /* 3. MI CUENTA: lo que va ganando cada día */
+  const D = ventasDiarias(), com = D.map(x => x.venta * SUELDO.pct), saldo = com.reduce((s, x) => s + x, 0), ult = D[D.length - 1];
+  h += '<div class="card" style="background:linear-gradient(135deg,#0b3b5c,#0078be);color:#fff"><div class="fila"><span class="tiny" style="opacity:.8">MI CUENTA DE COMISIONES · ' + MESES[HOY.getMonth()].toUpperCase() + '</span><span style="font-size:20px">💳</span></div>' +
+    '<div style="font-size:34px;font-weight:900;margin:6px 0 2px">' + usd2(saldo) + '</div><div class="tiny" style="opacity:.85">ganados en comisiones hasta ayer · ' + pctTxt + ' de tu venta con garantías</div>' +
+    (ult ? '<div style="margin-top:10px;background:rgba(255,255,255,.15);border-radius:10px;padding:8px 10px;font-weight:800">Último día: +' + usd2(ult.venta * SUELDO.pct) + ' 🎉</div>' : '') + '</div>';
+  h += '<div class="card"><h3>Movimientos</h3>' + (D.length ? D.slice().reverse().slice(0, 10).map((x, i) => '<div class="fila" style="padding:8px 0;border-top:' + (i ? '1px solid var(--line)' : '0') + '"><div><b class="small">' + fCorta(x.fecha) + '</b><div class="tiny muted">Vendiste ' + usd0(x.venta) + '</div></div><b style="color:var(--ok)">+' + usd2(x.venta * SUELDO.pct) + '</b></div>').join('') : '<div class="vacio">Tu primer día de venta aparece aquí mañana.</div>') +
+    '<div class="tiny muted" style="margin-top:6px">Se actualiza cada noche. Es referencial: el valor final se calcula al cierre del mes con el POS. Tu sueldo fijo va aparte.</div></div>';
+  /* 4. ¿QUÉ TE MOTIVA? + frase del día */
+  h += '<div class="card"><h3 style="margin-bottom:4px">¿Para qué es tu meta?</h3><div class="tiny muted">Así te damos frases a tu medida.</div><div class="btns">' +
+    MOTIVOS.map(([k, l]) => '<button class="btn" data-mot="' + k + '" style="' + (E.motivo === k ? 'background:#eaf4fb;border-color:var(--brand);color:var(--brand)' : '') + '">' + l + '</button>').join('') + '</div></div>';
+  h += '<div class="card" style="text-align:center;background:#fff8e6"><div style="font-size:26px">💬</div><div style="font-size:17px;font-weight:800;margin:4px 0">"' + esc(frase()) + '"</div><div class="tiny muted">Frase del día</div></div>';
+  sec('meta').innerHTML = h;
+  const ok = v => { v = Number(String(v).replace(',', '.'));
+    if (!(v > ganaMin)) return sello(false, 'Esa meta es muy baja.', 'Tu meta tiene que ser mayor a lo que ganas con la mínima (' + usd0(ganaMin) + '). Apunta más alto.');
+    E.metaGanar = v; guardar(); sello(true, '¡Meta de ' + usd0(v) + ' aprobada!', 'Para lograrla necesitas vender ' + usd0((v - SUELDO.fijo) / SUELDO.pct) + ' este mes. Tú puedes.'); };
+  if ($('#mgOk')) $('#mgOk').onclick = () => ok($('#mg').value);
+  document.querySelectorAll('[data-mg]').forEach(b => b.onclick = () => ok(b.dataset.mg));
+  if ($('#mgCambiar')) $('#mgCambiar').onclick = () => { E.metaGanar = 0; guardar(); renderMeta(); };
+  document.querySelectorAll('[data-mot]').forEach(b => b.onclick = () => { E.motivo = b.dataset.mot; guardar(); toast('¡Anotado! Tus frases serán para ti.'); renderMeta(); });
+}
+
+/* ================= CLIENTES: proformas y ventas futuras ================= */
+const dif = i => Math.round((new Date(i + 'T12:00:00') - HOY) / 864e5);
+function chipContacto(p){ const d = dif(p.contacto);
+  return d < 0 ? '<span class="chip rojo">Atrasado ' + (-d) + (d === -1 ? ' día' : ' días') + '</span>' : d === 0 ? '<span class="chip rojo">Contactar hoy</span>' : d === 1 ? '<span class="chip amb">Mañana</span>' : '<span class="chip">' + fCorta(new Date(p.contacto + 'T12:00:00')) + '</span>'; }
+const wa = (cel, txt) => 'https://wa.me/593' + String(cel).replace(/\D/g, '').replace(/^0/, '') + '?text=' + encodeURIComponent(txt);
+function porContactar(){ return E.proformas.filter(p => p.estado === 'Abierta' && dif(p.contacto) <= 0).length + E.futuras.filter(v => v.estado === 'Llegó').length; }
+function renderCli(){
+  const seg = '<div class="seg">' + [['pro', 'Proformas'], ['vf', 'Ventas futuras']].map(([k, l]) => '<button data-sc="' + k + '" class="' + (k === segCli ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
+  let h = seg;
+  if (segCli === 'pro'){
+    const ab = E.proformas.filter(p => p.estado === 'Abierta').sort((a, b) => a.contacto < b.contacto ? -1 : 1), ce = E.proformas.filter(p => p.estado !== 'Abierta');
+    const hoy = ab.filter(p => dif(p.contacto) <= 0).length, monto = ab.reduce((a, p) => a + p.monto, 0);
+    h += '<div class="card"><div class="kpis"><div><span class="tiny muted">Abiertas</span><b>' + ab.length + '</b></div><div><span class="tiny muted">Por contactar hoy</span><b style="color:' + (hoy ? 'var(--bad)' : 'inherit') + '">' + hoy + '</b></div><div><span class="tiny muted">En juego</span><b>' + usd0(monto) + '</b></div></div></div>' +
+      '<button class="btn pri block" id="nPro" style="margin-bottom:12px">+ Registrar proforma</button>';
+    h += ab.length ? ab.map(p => '<div class="card"><div class="fila"><b>' + esc(p.cliente) + '</b>' + chipContacto(p) + '</div><div class="small" style="margin-top:4px">' + esc(p.productos) + ' · <b>' + usd2(p.monto) + '</b></div>' +
+      (p.nota ? '<div class="tiny muted" style="margin-top:4px">📝 ' + esc(p.nota) + '</div>' : '') + '<div class="tiny muted">Proforma del ' + fCorta(new Date(p.creada + 'T12:00:00')) + '</div>' +
+      '<div class="btns"><a class="btn" target="_blank" rel="noopener" href="' + wa(p.cel, 'Hola ' + nombreCorto(p.cliente) + ', te saluda ' + nombreCorto(YO.nombre) + ' de Steren ' + TIENDA.nombre + '. Te escribo por la proforma de ' + p.productos + '. ¿Pudiste revisarla?') + '" style="text-decoration:none;color:inherit">WhatsApp</a>' +
+      '<button class="btn" data-pp="' + p.id + '">Contacté: nueva fecha</button><button class="btn" data-pc="' + p.id + '" style="color:var(--ok)">Compró</button><button class="btn" data-pn="' + p.id + '" style="color:var(--muted)">No compró</button></div></div>').join('')
+      : '<div class="card vacio">No tienes proformas abiertas.</div>';
+    if (ce.length) h += '<details class="card"><summary class="small"><b>Cerradas (' + ce.length + ')</b></summary>' + ce.map(p => '<div class="fila small" style="padding:6px 0;border-top:1px solid var(--line)"><span>' + esc(p.cliente) + ' · ' + usd2(p.monto) + '</span><span class="chip ' + (p.estado === 'Compró' ? 'verde' : '') + '">' + p.estado + '</span></div>').join('') + '</details>';
+  } else {
+    const ab = E.futuras.filter(v => ['Esperando', 'Llegó'].includes(v.estado)), lle = ab.filter(v => v.estado === 'Llegó').length;
+    if (lle) h += '<div class="card" style="border-left:4px solid var(--ok)"><b>' + (lle === 1 ? 'Llegó un producto que espera tu cliente' : 'Llegaron ' + lle + ' productos que esperan tus clientes') + '</b><div class="small muted">Contáctalo hoy y sepárale la unidad.</div></div>';
+    h += '<button class="btn pri block" id="nVf" style="margin-bottom:12px">+ Registrar venta futura</button>';
+    h += ab.length ? ab.map(v => '<div class="card"><div class="fila"><b>' + esc(v.producto) + '</b><span class="chip ' + (v.estado === 'Llegó' ? 'verde' : 'amb') + '">' + v.estado + '</span></div><div class="small" style="margin-top:4px">' + esc(v.cliente) + ' · ' + v.cant + (v.cant > 1 ? ' unidades' : ' unidad') + '</div>' +
+      (v.nota ? '<div class="tiny muted">📝 ' + esc(v.nota) + '</div>' : '') + '<div class="tiny muted">Registrada el ' + fCorta(new Date(v.fecha + 'T12:00:00')) + '</div>' +
+      (v.estado === 'Llegó' ? '<div class="btns"><a class="btn" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" href="' + wa(v.cel, 'Hola ' + nombreCorto(v.cliente) + ', te saluda ' + nombreCorto(YO.nombre) + ' de Steren ' + TIENDA.nombre + '. ¡Ya llegó ' + v.producto + '! Te lo separamos.') + '">Avisar por WhatsApp</a><button class="btn" data-vc="' + v.id + '" style="color:var(--ok)">Compró</button><button class="btn" data-vn="' + v.id + '" style="color:var(--muted)">No compró</button></div>' : '') + '</div>').join('')
+      : '<div class="card vacio">Cuando un cliente pida algo que no tenemos, regístralo aquí. Te avisamos cuando llegue.</div>';
+  }
+  sec('cli').innerHTML = h;
+  document.querySelectorAll('[data-sc]').forEach(b => b.onclick = () => { segCli = b.dataset.sc; renderCli(); });
+  const pf = id => E.proformas.find(p => p.id === id), vf = id => E.futuras.find(v => v.id === id);
+  document.querySelectorAll('[data-pc]').forEach(b => b.onclick = () => pfCambio(b.dataset.pc, {estado: 'Compró'}, '¡Bien! Venta cerrada 🎉'));
+  document.querySelectorAll('[data-pn]').forEach(b => b.onclick = () => pfCambio(b.dataset.pn, {estado: 'No compró'}, 'Anotado.'));
+  document.querySelectorAll('[data-pp]').forEach(b => b.onclick = () => nuevaFecha(pf(b.dataset.pp)));
+  document.querySelectorAll('[data-vc]').forEach(b => b.onclick = () => vfCambio(b.dataset.vc, 'Compró', '¡Bien! Venta cerrada 🎉'));
+  document.querySelectorAll('[data-vn]').forEach(b => b.onclick = () => vfCambio(b.dataset.vn, 'No compró', 'Anotado.'));
+  if ($('#nPro')) $('#nPro').onclick = formProforma;
+  if ($('#nVf')) $('#nVf').onclick = formFutura;
+}
+const ocupado = q => { const b = $(q); if (b){ b.disabled = true; b.dataset.t = b.textContent; b.textContent = 'Guardando…'; } };
+const libre = q => { const b = $(q); if (b){ b.disabled = false; b.textContent = b.dataset.t || 'Guardar'; } };
+function pfCambio(id, cambio, msg){
+  llamar('apiPFEstado', TOKEN, id, YO.nombre, cambio).then(p => { const i = E.proformas.findIndex(x => x.id === id); if (i >= 0) E.proformas[i] = p; cerrar(); toast(msg); render(); }, e => { libre('#ok'); toast(e.message); });
+}
+function vfCambio(id, estado, msg){
+  llamar('apiVFEstado', TOKEN, id, estado, YO.nombre, '').then(v => { const i = E.futuras.findIndex(x => x.id === id); if (i >= 0) E.futuras[i] = vfLocal(v); toast(msg); render(); }, e => toast(e.message));
+}
+/* venta futura del servidor (apiVFLista) a como la muestra esta pantalla; "Avisado" cuenta como "Llegó" (falta cerrar) */
+const vfLocal = v => ({id: v.id, producto: v.prod || v.cod, cant: v.cant || 1, cliente: v.cliente, cel: v.celular, nota: v.obs, fecha: v.fecha, estado: v.estado === 'Avisado' ? 'Llegó' : v.estado, asesor: v.asesor});
+function nuevaFecha(p){
+  abrir('<h3>Próximo contacto con ' + esc(p.cliente) + '</h3><label class="f">¿Qué te dijo?</label><textarea class="i" id="nfN" placeholder="Ej.: lo decide el fin de semana"></textarea>' +
+    '<label class="f">Volver a contactar el</label><input class="i" type="date" id="nfF" value="' + iso(sumar(HOY, 2)) + '" min="' + iso(HOY) + '">' +
+    '<div class="dos" style="margin-top:14px"><button class="btn" id="cx">Cancelar</button><button class="btn pri" id="ok">Guardar</button></div>');
+  $('#cx').onclick = cerrar;
+  $('#ok').onclick = () => { const f = $('#nfF').value; if (!f) return toast('Elige la fecha.'); ocupado('#ok'); pfCambio(p.id, {contacto: f, nota: $('#nfN').value.trim()}, 'Listo. Te lo recordamos ese día.'); };
+}
+const consent = '<label class="small" style="display:flex;gap:8px;margin-top:12px;align-items:flex-start"><input type="checkbox" id="cons" style="margin-top:3px"> El cliente aceptó que lo contactemos por este pedido.</label>';
+function formProforma(){
+  abrir('<h3>Nueva proforma</h3><label class="f">Cliente</label><input class="i" id="fC" placeholder="Nombre o empresa">' +
+    '<div class="dos"><div><label class="f">Celular</label><input class="i" id="fT" inputmode="tel" placeholder="09…"></div><div><label class="f">Monto</label><input class="i" id="fM" inputmode="decimal" placeholder="0,00"></div></div>' +
+    '<label class="f">Productos</label><textarea class="i" id="fP" placeholder="Ej.: kit de 4 cámaras + DVR"></textarea>' +
+    '<label class="f">Fecha para contactarlo</label><input class="i" type="date" id="fF" value="' + iso(sumar(HOY, 2)) + '" min="' + iso(HOY) + '">' +
+    '<label class="f">Nota para recordar</label><input class="i" id="fN" placeholder="Opcional">' + consent +
+    '<div class="dos" style="margin-top:14px"><button class="btn" id="cx">Cancelar</button><button class="btn pri" id="ok">Guardar</button></div>');
+  $('#cx').onclick = cerrar;
+  $('#ok').onclick = () => {
+    const d = {cliente: $('#fC').value.trim(), cel: $('#fT').value.trim(), monto: Number($('#fM').value.replace(',', '.')) || 0, productos: $('#fP').value.trim(), contacto: $('#fF').value, nota: $('#fN').value.trim()};
+    const falta = d.cliente.length < 3 ? 'Escribe el nombre del cliente.' : !/^0\d{9}$/.test(d.cel.replace(/\D/g, '')) ? 'El celular debe tener 10 dígitos.' : !d.productos ? 'Escribe los productos.' : !d.contacto ? 'Elige la fecha de contacto.' : !$('#cons').checked ? 'Marca que el cliente aceptó que lo contactemos.' : '';
+    if (falta) return toast(falta);
+    ocupado('#ok'); llamar('apiPFRegistrar', TOKEN, Object.assign(d, {asesor: YO.nombre, acepta: true})).then(p => { E.proformas.push(p); cerrar(); toast('Proforma guardada. Te recordamos el día del contacto.'); render(); }, e => { libre('#ok'); toast(e.message); });
+  };
+}
+let CAT = null;
+const normal = t => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+function buscarCat(q){
+  q = normal(q).trim(); if (!CAT || q.length < 2) return [];
+  const cod = q.toUpperCase(), pal = q.split(/\s+/), out = [];
+  CAT.forEach(p => { const pc = p[0].toUpperCase(), d = normal(p[1]); let sc = pc === cod ? 100 : pc.indexOf(cod) === 0 ? 50 : 0;
+    if (!sc && pal.every(w => d.indexOf(w) >= 0 || pc.toLowerCase().indexOf(w) >= 0)) sc = 10; if (sc) out.push([sc, p]); });
+  return out.sort((a, b) => b[0] - a[0]).slice(0, 6).map(x => x[1]);
+}
+function formFutura(){
+  let prod = null;
+  abrir('<h3>Nueva venta futura</h3><label class="f">Producto Steren (código o nombre)</label><input class="i" id="fP" autocomplete="off" placeholder="Ej.: CAR-150 o adaptador carplay">' +
+    '<div id="fSug"></div><div id="fSel" class="tiny" style="margin-top:4px"></div>' +
+    '<label class="small" style="display:flex;gap:8px;margin-top:8px;align-items:flex-start"><input type="checkbox" id="fRef" style="margin-top:3px"> No está en la lista: registrar como <b>otra referencia</b> (nombre o modelo que pide el cliente; se pasa a Compras).</label>' +
+    '<div class="dos"><div><label class="f">Cantidad</label><input class="i" id="fQ" inputmode="numeric" value="1"></div><div><label class="f">Celular</label><input class="i" id="fT" inputmode="tel" placeholder="09…"></div></div>' +
+    '<label class="f">Cliente</label><input class="i" id="fC" placeholder="Nombre">' +
+    '<label class="f">Nota para recordar al cliente</label><input class="i" id="fN" placeholder="Opcional">' + consent +
+    '<div class="dos" style="margin-top:14px"><button class="btn" id="cx">Cancelar</button><button class="btn pri" id="ok">Guardar</button></div>');
+  const inp = $('#fP');
+  const elegir = p => { prod = p; inp.value = p[0]; $('#fSug').innerHTML = ''; $('#fRef').checked = false;
+    $('#fSel').innerHTML = '<b>' + esc(p[0]) + '</b> ' + esc(p[1]) + (p[3] > 0 ? ' · <b style="color:var(--ok)">hay ' + p[3] + ' en tu tienda: véndelo ahora</b>' : p[4] + p[5] > 0 ? ' · hay en otras tiendas o bodega' : ' · sin stock'); };
+  const pintar = () => { prod = null; $('#fSel').innerHTML = ''; const R = buscarCat(inp.value);
+    $('#fSug').innerHTML = R.map((p, i) => '<button class="btn block" style="margin-top:6px;text-align:left;font-weight:400" data-ci="' + i + '"><b>' + esc(p[0]) + '</b> ' + esc(p[1]) + '</button>').join('') +
+      (!CAT && inp.value.trim().length > 1 ? '<div class="tiny muted">Cargando productos…</div>' : '');
+    document.querySelectorAll('[data-ci]').forEach(b => b.onclick = () => elegir(R[+b.dataset.ci])); };
+  inp.oninput = pintar;
+  if (!CAT) llamar('apiVFCatalogo', TOKEN).then(c => { CAT = (c && c.p) || []; if (inp.value.trim()) pintar(); }, () => { CAT = []; });
+  $('#cx').onclick = cerrar;
+  $('#ok').onclick = () => {
+    const ref = !prod && $('#fRef').checked, txt = inp.value.trim();
+    const d = {producto: prod ? prod[1] : txt, cant: Number($('#fQ').value) || 1, cel: $('#fT').value.trim(), cliente: $('#fC').value.trim(), nota: $('#fN').value.trim()};
+    const falta = !txt ? 'Escribe el producto.' : !prod && !ref && CAT && CAT.length ? 'Elige el producto de la lista o marca "otra referencia".' : ref && txt.length < 3 ? 'Escribe el nombre o la referencia del producto.' :
+      d.cliente.length < 3 ? 'Escribe el nombre del cliente.' : !/^0\d{9}$/.test(d.cel.replace(/\D/g, '')) ? 'El celular debe tener 10 dígitos.' : !$('#cons').checked ? 'Marca que el cliente aceptó que lo contactemos.' : '';
+    if (falta) return toast(falta);
+    ocupado('#ok'); llamar('apiVFRegistrar', TOKEN, {cod: prod ? prod[0] : txt, prod: d.producto, ref: ref, cant: d.cant, asesor: YO.nombre, cliente: d.cliente, celular: d.cel, obs: d.nota, contacto: 'WhatsApp', acepta: true})
+      .then(v => { E.futuras.unshift(vfLocal(v)); cerrar(); toast(ref ? 'Registrada como otra referencia: se pasa a Compras.' : 'Registrada. Te avisamos cuando llegue.'); render(); }, e => { libre('#ok'); toast(e.message); });
+  };
+}
+
+/* ================= HORARIO ================= */
+let horSel = null;
+const hm = t => { const [h, m] = t.split(':').map(Number); return h * 60 + (m || 0); };
+const tramo = t => /^\d{1,2}:\d{2}\s*[–-]\s*\d{1,2}:\d{2}/.test(t || '') ? t.split(/\s*[–-]\s*/).map(hm) : null;
+const tipoTurno = t => { const r = tramo(t); return !r ? (t === 'Libre' ? {ic: '🌴', n: 'Libre', c: '#1a8f7a', bg: '#e3f5ef'} : {ic: '•', n: t || 'Sin horario', c: '#5d6b7a', bg: '#eef1f5'}) : r[0] < 11 * 60 ? {ic: '☀️', n: 'Mañana', c: '#b26a00', bg: '#fff4e0'} : r[0] < 12 * 60 ? {ic: '🌤️', n: 'Media', c: '#0078be', bg: '#eaf4fb'} : {ic: '🌙', n: 'Tarde', c: '#5b3fa8', bg: '#efeafb'}; };
+const durTxt = m => { const h = Math.floor(m / 60), r = Math.round(m % 60); return (h ? h + ' h' : '') + (h && r ? ' ' : '') + (r ? r + ' min' : (h ? '' : '0 min')); };
+function renderHor(){
+  const t = turnosDe(YO.id), hoyI = (HOY.getDay() + 6) % 7; if (horSel == null) horSel = hoyI;
+  const ahora = new Date(), mins = ahora.getHours() * 60 + ahora.getMinutes();
+  const hoyT = t[hoyI], r = tramo(hoyT), tt = tipoTurno(hoyT);
+  // próximo libre
+  let prox = 0; for (let i = 1; i <= 14; i++) if (t[(hoyI + i) % 7] === 'Libre'){ prox = i; break; }
+  const horas = t.reduce((s, x) => { const q = tramo(x); return s + (q ? (q[1] - q[0]) / 60 : 0); }, 0);
+  // tarjeta de hoy
+  let estado = '', pctT = 0;
+  if (!r) estado = 'Hoy descansas. ¡Disfruta! 🌴';
+  else if (mins < r[0]) estado = 'Entras en <b>' + durTxt(r[0] - mins) + '</b>';
+  else if (mins < r[1]) { pctT = (mins - r[0]) / (r[1] - r[0]); estado = 'Te quedan <b>' + durTxt(r[1] - mins) + '</b> de turno 💪'; }
+  else estado = 'Turno terminado. ¡Buen trabajo! 👏';
+  const conHoy = EQUIPO.filter(p => p !== YO && tramo(turnosDe(p.id)[hoyI]));
+  let h = '<div class="card" style="background:linear-gradient(135deg,' + (r ? '#0078be,#5b3fa8' : '#1a8f7a,#38b48b') + ');color:#fff">' +
+    '<div class="fila"><span class="tiny" style="opacity:.85">HOY · ' + fCorta(HOY).toUpperCase() + '</span><span style="font-size:30px">' + tt.ic + '</span></div>' +
+    '<div style="font-size:34px;font-weight:900;margin:2px 0">' + (r ? hoyT.replace('–', ' – ') : 'Libre') + '</div>' +
+    '<div class="small">' + estado + '</div>' +
+    (r ? '<div style="height:8px;border-radius:5px;background:rgba(255,255,255,.25);margin:10px 0 4px;overflow:hidden"><div style="height:100%;width:' + pctT * 100 + '%;background:#fff;border-radius:5px"></div></div>' : '') +
+    (r && conHoy.length ? '<div style="display:flex;align-items:center;gap:6px;margin-top:10px"><span class="tiny" style="opacity:.85">Hoy con</span>' + conHoy.map(p => '<span class="av" style="width:30px;height:30px;font-size:11px;border:2px solid #fff;margin-left:-4px;background:' + colorDe(p.id) + '">' + iniciales(p.nombre) + '</span>').join('') + '</div>' : '') + '</div>';
+  // chips resumen
+  h += '<div class="kpis" style="margin:0 0 12px"><div style="background:#fff"><span class="tiny muted">Próximo libre</span><b>' + (t[hoyI] === 'Libre' ? 'Hoy 🌴' : prox ? (prox === 1 ? 'Mañana' : 'En ' + prox + ' días') : '—') + '</b></div>' +
+    '<div style="background:#fff"><span class="tiny muted">Esta semana</span><b>' + horas + ' h</b></div>' +
+    '<div style="background:#fff"><span class="tiny muted">Hora pico</span><b>18–20 🔥</b></div></div>';
+  // tira de la semana
+  h += '<div class="card"><h3>Mi semana</h3><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px">' + t.map((x, i) => { const d = sumar(lunes, i), k = tipoTurno(x), sel = i === horSel;
+      return '<button data-hd="' + i + '" style="border:2px solid ' + (sel ? k.c : 'transparent') + ';background:' + k.bg + ';border-radius:12px;padding:6px 0;cursor:pointer;text-align:center' + (i === hoyI ? ';box-shadow:0 0 0 2px #fff inset' : '') + '">' +
+        '<div class="tiny" style="color:' + k.c + ';font-weight:700">' + DIAS[d.getDay()] + '</div><div style="font-size:18px;font-weight:900">' + d.getDate() + '</div><div style="font-size:16px">' + k.ic + '</div>' +
+        (i === hoyI ? '<div style="font-size:9px;font-weight:800;color:' + k.c + '">HOY</div>' : '<div style="font-size:9px">&nbsp;</div>') + '</button>'; }).join('') + '</div>' +
+    '<div class="tiny muted" style="margin-top:8px">☀️ Mañana · 🌤️ Media · 🌙 Tarde · 🌴 Libre</div></div>';
+  // quién está el día elegido: línea de tiempo 10:00–21:00
+  const dSel = sumar(lunes, horSel), I = 10 * 60, F = 21 * 60, X = m => (m - I) / (F - I) * 100;
+  const filas = EQUIPO.map(p => ({p: p, t: turnosDe(p.id)[horSel]})).sort((a, b) => (tramo(a.t) || [9999])[0] - (tramo(b.t) || [9999])[0]);
+  h += '<div class="card"><div class="fila"><h3 style="margin:0">' + (horSel === hoyI ? 'Hoy en la tienda' : DIAS[dSel.getDay()] + ' ' + dSel.getDate() + ' en la tienda') + '</h3><span class="tiny muted">10:00 – 21:00</span></div>' +
+    '<div style="position:relative;margin:12px 0 4px">' +
+      filas.map(f => { const q = tramo(f.t), yo = f.p === YO;
+        return '<div style="display:flex;align-items:center;gap:6px;height:36px;position:relative"><div style="width:54px;flex:none;font-size:12px;font-weight:' + (yo ? 800 : 600) + '">' + (yo ? 'Tú' : esc(nombreCorto(f.p.nombre))) + '</div>' +
+          '<div style="flex:1;position:relative;height:22px"><div style="position:absolute;left:' + X(18 * 60) + '%;width:' + (X(20 * 60) - X(18 * 60)) + '%;top:-7px;bottom:-7px;background:#ffe9d6"></div>' + (q ? '<div style="position:absolute;left:' + X(q[0]) + '%;width:' + (X(q[1]) - X(q[0])) + '%;z-index:1;top:0;bottom:0;border-radius:11px;background:' + (yo ? 'var(--brand)' : colorDe(f.p.id) + '99') + ';color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;white-space:nowrap">' + f.t + '</div>'
+            : '<div style="position:absolute;inset:0;display:flex;align-items:center;font-size:12px;color:var(--muted)">🌴 libre</div>') + '</div></div>'; }).join('') +
+    '</div><div class="tiny muted">🔥 La franja naranja es la hora pico: de 18:00 a 20:00 entran más clientes.</div></div>';
+  h += '<div class="tiny muted" style="text-align:center;margin:4px 0 8px">Lo arma tu gerente. Si ves un error, avísale.</div>';
+  sec('hor').innerHTML = h;
+  document.querySelectorAll('[data-hd]').forEach(b => b.onclick = () => { horSel = Number(b.dataset.hd); renderHor(); });
+}
+
+/* ================= APRENDER (Universidad Steren, políticas y guías, pregunta del día) ================= */
+let UNI = {url: 'https://universidadsteren.com/#signin', d: null};   // d = apiAsesor().uni (pestaña privada "Universidad asesores")
+const LECTURAS = [
+  {id: 'P006', tipo: 'Política', ic: '🧾', t: 'Consumidor final', d: 'Por qué siempre recomendamos factura con los datos del cliente.', min: 3,
+    txt: 'Recomienda siempre la factura a nombre del cliente: es su respaldo para soporte y servicio técnico. Con una factura a consumidor final no hay nota de crédito, ni cambio, ni devolución. Una nota de crédito con datos la autoriza el gerente de tienda.',
+    qs: [{q: 'Un cliente con factura a consumidor final quiere devolver el producto. ¿Qué pasa?', o: ['Se le hace nota de crédito', 'No hay devolución ni cambio', 'Lo decide el asesor'], ok: 1},
+         {q: '¿Quién autoriza una nota de crédito con datos?', o: ['El asesor', 'El gerente de tienda', 'El cliente'], ok: 1},
+         {q: '¿Qué le recomiendas siempre al cliente?', o: ['Factura con sus datos', 'Consumidor final, es más rápido', 'Que no pida factura'], ok: 0}]},
+  {id: 'P008', tipo: 'Política', ic: '💬', t: 'WhatsApp de la tienda', d: 'Para qué sí y para qué no se usa.', min: 2,
+    txt: 'El WhatsApp de la tienda es para consultas, cotizaciones y llamadas de clientes. Está prohibido enviar publicidad o mensajes masivos: ya se suspendieron dos cuentas por spam. Puedes publicar en estados, y mandar contenido comercial solo si el cliente lo pide.',
+    qs: [{q: '¿Se pueden mandar promociones a todos los contactos?', o: ['Sí, una vez por semana', 'No, está prohibido', 'Solo en Black Month'], ok: 1},
+         {q: '¿Cuándo puedes mandar contenido comercial a un cliente?', o: ['Cuando él lo pide', 'Siempre', 'Nunca'], ok: 0}]},
+  {id: 'G1', tipo: 'Guía', ic: '💳', t: 'Black Month DeUna', d: 'Cashback del 15 al 30 de noviembre: paso a paso en caja.', min: 4},
+  {id: 'G2', tipo: 'Guía', ic: '🤝', t: 'Atención al cliente', d: 'Saludo, demostración y cierre de la venta.', min: 5}
+];
+const PREGUNTAS = [
+  {q: '¿Cuánto cuesta la garantía extendida?', o: ['5% del precio', '10% del precio', '$5 fijos'], ok: 1, x: 'Es el 10% del precio del producto y suma un año de garantía.'},
+  {q: '¿Desde qué precio se puede ofrecer garantía extendida en productos Steren?', o: ['Desde $19,99', 'Desde $49,99', 'En todos'], ok: 1, x: 'En productos Steren de más de $49,99, solo al momento de la compra.'},
+  {q: 'Un cliente pide un producto que no hay. ¿Qué haces?', o: ['Le digo que no hay', 'Lo registro como venta futura', 'Le pido que vuelva otro día'], ok: 1, x: 'Lo registras en Clientes › Ventas futuras y te avisamos cuando llegue.'},
+  {q: '¿Cuándo se paga el cashback de DeUna en Black Month?', o: ['Del 15 al 30 de noviembre', 'Todo noviembre', 'Solo el Black Friday'], ok: 0, x: 'La promoción va del 15 al 30 de noviembre.'}
+];
+function renderApr(){
+  const pend = LECTURAS.filter(l => !E.leidos[l.id]), leidas = LECTURAS.length - pend.length;
+    const pd = PREGUNTAS[Math.floor(HOY / 864e5) % PREGUNTAS.length], resp = E.preg && E.preg.dia === iso(HOY) ? E.preg.r : null;
+  // Universidad Steren: mis cursos, carreras, qué sigue y ranking (si no hay datos, solo el botón)
+  const U = UNI.d, uy = U && U.yo, boton = txt => '<a href="' + UNI.url + '" target="_blank" rel="noopener" class="btn block" style="margin-top:12px;text-align:center;text-decoration:none;color:#0078be;background:#fff;border-color:#fff;font-size:16px">' + txt + ' ↗</a>';
+  let h;
+  if (!uy) {
+    h = '<div class="card" style="background:linear-gradient(135deg,#0b3b5c,#0078be);color:#fff"><div class="tiny" style="opacity:.85;letter-spacing:.5px">UNIVERSIDAD STEREN</div>' +
+      '<div style="font-size:20px;font-weight:900;margin-top:2px">Aprende y vende más</div><div class="small" style="margin-top:6px;line-height:1.5">Cada curso que terminas te da más respuestas para tus clientes: conoces mejor los productos, explicas con seguridad y cierras más ventas. Dale 15 minutos al día y sigue avanzando.</div>' +
+      boton('Seguir mis cursos en Universidad Steren') + '</div>';
+  } else {
+    const pct = uy.asig ? Math.round(uy.ok / uy.asig * 100) : 0, faltan = Math.max(uy.asig - uy.ok, 0), car4 = uy.car.filter(x => x >= 100).length;
+    const nivel = pct >= 100 && car4 === 4 ? ['🏆', 'Leyenda'] : pct >= 90 ? ['⭐', 'Xpert'] : pct >= 50 ? ['🚀', 'Experto'] : ['🌱', 'Novato'];
+    const dias = uy.visita ? Math.round((HOY - new Date(uy.visita + 'T12:00:00')) / 864e5) : 99;
+    const CAR = ['Onboarding', 'Fundamentos xpert', 'Gestión operativa', 'Productos xpert'];
+    const fecha = new Date(U.fecha + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'short'});
+    const ring = 'background:conic-gradient(#fff ' + pct * 3.6 + 'deg, rgba(255,255,255,.25) 0)';
+    const rojo = dias > 14 || (uy.semana === 0 && faltan > 0), nar = !rojo && (dias > 7 || faltan > 10);
+    const quien = esc(nombreCorto(YO.nombre));
+    h = rojo ? '<div class="card" style="background:#c62828;color:#fff;border:0;animation:latido 1.6s ease-in-out infinite"><div style="font-size:19px;font-weight:900">🚨 ' + quien + ', te estás quedando atrás</div><div class="small" style="margin-top:6px;line-height:1.5">' +
+        (dias > 14 ? 'Llevas <b>' + dias + ' días sin entrar</b> a la Universidad' : 'Esta semana <b>no aprobaste ningún curso</b>') + (faltan ? ' y tienes <b>' + faltan + (faltan === 1 ? ' curso pendiente' : ' cursos pendientes') + '</b>' : '') +
+        '. Tus compañeros siguen avanzando y tú bajas en el ranking.</div>' + boton('Entrar hoy y ponerme al día').replace('color:#0078be', 'color:#c62828') + '</div>'
+      : nar ? '<div class="card" style="background:#fff3e0;border-color:#f0a35b"><div style="font-weight:900;color:#b25c00">⚠️ Atención, ' + quien + '</div><div class="small" style="margin-top:4px">' +
+        (dias > 7 ? 'Hace ' + dias + ' días que no entras a la Universidad.' : 'Tienes ' + faltan + ' cursos pendientes.') + ' 15 minutos hoy y vuelves al ritmo.</div></div>' : '';
+    h += '<div class="card" style="background:linear-gradient(135deg,#0b3b5c,#0078be);color:#fff">' +
+      '<div class="fila"><div class="tiny" style="opacity:.85;letter-spacing:.5px">UNIVERSIDAD STEREN</div><span class="chip" style="background:rgba(255,255,255,.18);color:#fff">' + nivel[0] + ' ' + nivel[1] + '</span></div>' +
+      '<div style="display:flex;gap:14px;align-items:center;margin-top:8px"><div style="width:74px;height:74px;border-radius:50%;flex:none;display:grid;place-items:center;' + ring + '"><div style="width:58px;height:58px;border-radius:50%;background:#0a4d7a;display:grid;place-items:center;font-weight:900;font-size:18px">' + pct + '%</div></div>' +
+      '<div><div style="font-size:18px;font-weight:900;line-height:1.2">Aprobaste ' + uy.ok + ' de ' + uy.asig + ' cursos</div><div class="small" style="opacity:.9;margin-top:3px">' +
+      (faltan ? 'Te ' + (faltan === 1 ? 'falta 1 curso' : 'faltan ' + faltan + ' cursos') + ' para completar todo.' : '¡Tienes todos tus cursos aprobados!') + (uy.cert ? ' · ' + uy.cert + ' certificados' : '') + '</div></div></div>' +
+      '<div style="margin-top:10px">' + CAR.map((c, i) => '<div class="tiny" style="display:flex;justify-content:space-between;margin-top:6px"><span>' + c + '</span><b>' + uy.car[i] + '%</b></div><div style="height:6px;border-radius:3px;background:rgba(255,255,255,.25)"><i style="display:block;height:6px;border-radius:3px;background:' + (uy.car[i] >= 100 ? '#7be0a5' : '#fff') + ';width:' + Math.min(uy.car[i], 100) + '%"></i></div>').join('') + '</div>' +
+      (uy.sigue.length ? '<div class="small" style="margin-top:12px;font-weight:700">Sigue con</div>' + uy.sigue.map(x => '<div class="tiny" style="display:flex;justify-content:space-between;gap:8px;margin-top:4px;opacity:.95"><span>▶ ' + esc(x.c) + '</span><span>' + x.p + '%</span></div>').join('') : '') +
+      '<div style="display:flex;gap:8px;margin-top:12px"><div style="flex:1;background:rgba(255,255,255,.15);border-radius:10px;padding:8px"><div class="tiny" style="opacity:.85">Último ingreso</div><b>' + (uy.visita ? new Date(uy.visita + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'short'}) + '</b><div class="tiny" style="opacity:.85">' + (dias <= 0 ? 'hoy' : dias === 1 ? 'ayer' : 'hace ' + dias + ' días') : '—</b><div class="tiny">') + '</div></div>' +
+      '<div style="flex:1;background:rgba(255,255,255,.15);border-radius:10px;padding:8px"><div class="tiny" style="opacity:.85">Última semana</div><b>' + (uy.semana == null ? '—' : (uy.semana === 1 ? '1 curso' : uy.semana + ' cursos')) + '</b><div class="tiny" style="opacity:.85">' + (uy.semana == null ? 'se mide desde la próxima lectura' : 'aprobados') + '</div></div></div>' +
+      boton(faltan ? 'Seguir mis cursos' : 'Ver cursos nuevos') + '</div>';
+    // ranking TEFES por cursos aprobados: podio + mi puesto + a quién alcanzo
+    const med = ['🥇', '🥈', '🥉'];
+    h += '<div class="card"><div class="fila"><h3 style="margin:0">🏅 Ranking Universidad</h3><span class="chip azul">#' + uy.pos + ' de ' + U.total + '</span></div>' +
+      '<div class="tiny muted" style="margin-top:2px">Todo TEFES, por cursos aprobados · datos al ' + fecha + '</div>' +
+      U.top.map((x, i) => '<div class="rk"><span style="font-size:22px">' + (med[x.pos - 1] || '#' + x.pos) + '</span><div class="q"><b>' + esc(x.n) + (x.n === YO.nombre ? ' (tú)' : '') + '</b><span class="tiny muted" style="display:block">Steren ' + esc(x.t) + '</span></div><b>' + x.ok + '</b></div>').join('') +
+      (uy.pos > 3 ? '<div class="rk" style="background:#eef6fc;border-radius:10px"><span style="font-size:16px;font-weight:900">#' + uy.pos + '</span><div class="q"><b>Tú</b></div><b>' + uy.ok + '</b></div>' : '') +
+      '<div class="small" style="margin-top:8px">' + (U.arriba ? '🎯 Aprueba <b>' + (U.arriba.ok - uy.ok + 1) + (U.arriba.ok - uy.ok + 1 === 1 ? ' curso' : ' cursos') + '</b> y pasas a <b>' + esc(U.arriba.n) + '</b> (#' + U.arriba.pos + ').' : '👑 Vas primero en TEFES. ¡Que nadie te alcance!') + '</div></div>';
+  }
+  // pregunta del día
+  h += '<div class="card"><div class="fila"><h3 style="margin:0">🧠 Pregunta del día</h3><span class="chip azul">1 min</span></div><div style="font-weight:700;margin:10px 0 8px">' + esc(pd.q) + '</div>' +
+    pd.o.map((o, i) => { const sel = resp === i, okI = i === pd.ok, ver = resp != null;
+      const st = ver ? (okI ? 'background:#e5f4ec;border-color:var(--ok);color:var(--ok)' : sel ? 'background:#fbe9e7;border-color:var(--bad);color:var(--bad)' : 'opacity:.6') : '';
+      return '<button class="btn block" data-pq="' + i + '" style="text-align:left;margin-bottom:6px;' + st + '"' + (ver ? ' disabled' : '') + '>' + (ver && okI ? '✅ ' : ver && sel ? '❌ ' : '') + esc(o) + '</button>'; }).join('') +
+    (resp != null ? '<div class="small" style="margin-top:4px">' + (resp === pd.ok ? '🎉 <b>¡Correcto!</b> ' : '💡 <b>Casi.</b> ') + esc(pd.x) + '</div><div class="tiny muted" style="margin-top:4px">Mañana hay otra pregunta.</div>' : '') + '</div>';
+  // políticas y guías
+  h += '<div class="card"><div class="fila"><h3 style="margin:0">📖 Cómo trabajamos</h3><span class="chip ' + (pend.length ? 'amb' : 'verde') + '">' + leidas + ' de ' + LECTURAS.length + ' leídas</span></div>' +
+    '<div class="bar"><i class="' + (pend.length ? '' : 'ok') + '" style="width:' + leidas / LECTURAS.length * 100 + '%"></i></div>' +
+    LECTURAS.slice().sort((x, y) => !!E.leidos[x.id] - !!E.leidos[y.id]).map(l => { const ya = !!E.leidos[l.id];
+      return '<div class="rk" style="align-items:flex-start"><span style="font-size:26px">' + l.ic + '</span><div class="q"><b>' + esc(l.t) + '</b><span class="tiny muted" style="display:block">' + l.tipo + ' · ' + l.min + ' min · ' + esc(l.d) + '</span>' +
+        (ya ? '<div class="tiny" style="color:var(--ok);font-weight:700;margin-top:4px">✓ ' + (l.qs ? 'Aprobada' : 'Leída') + '</div>' : (l.qs ? ((E.fallos || {})[l.id] ? '<div class="tiny" style="color:var(--bad);font-weight:700;margin-top:4px">✗ Falló ' + E.fallos[l.id] + ' vez' + (E.fallos[l.id] > 1 ? 'es' : '') + ': vuelve a leerla</div>' : '') + '<button class="btn pri" data-pol="' + l.id + '" style="margin-top:6px;padding:6px 12px;font-size:13px">Leer y responder (' + l.qs.length + ' preguntas)</button>' : '<button class="btn pri" data-leer="' + l.id + '" style="margin-top:6px;padding:6px 12px;font-size:13px">Leí y entendí</button>')) + '</div></div>'; }).join('') + '</div>';
+  sec('apr').innerHTML = h;
+  document.querySelectorAll('[data-leer]').forEach(b => b.onclick = () => { E.leidos[b.dataset.leer] = new Date().toISOString(); guardar(); toast(pend.length === 1 ? '🏆 ¡Leíste todo! Quedó registrado con tu nombre.' : 'Gracias, quedó registrado con tu nombre.'); render(); });
+  document.querySelectorAll('[data-pq]').forEach(b => b.onclick = () => { E.preg = {dia: iso(HOY), r: Number(b.dataset.pq)}; guardar(); renderApr(); });
+  document.querySelectorAll('[data-pol]').forEach(b => b.onclick = () => politica(LECTURAS.find(l => l.id === b.dataset.pol)));
+}
+/* Política: se aprueba solo respondiendo bien TODAS sus preguntas (igual que en la app de la tienda; en la app real se guarda en "Lecturas de políticas") */
+function politica(l){
+  const r = {};
+  const pinta = () => {
+    abrir('<div class="tiny muted">' + l.id + ' · Política</div><h3 style="margin:2px 0 8px">' + l.ic + ' ' + esc(l.t) + '</h3><p class="small" style="line-height:1.5">' + esc(l.txt) + '</p>' +
+      '<div class="tiny muted" style="margin:10px 0 6px;font-weight:700">RESPONDE PARA APROBAR</div>' +
+      l.qs.map((q, i) => '<div style="margin-bottom:10px"><div class="small"><b>' + (i + 1) + '. ' + esc(q.q) + '</b></div>' +
+        q.o.map((o, j) => '<button class="btn block" data-r="' + i + ':' + j + '" style="text-align:left;margin-top:5px;' + (r[i] === j ? 'border-color:var(--brand);background:#e8f3fb;color:var(--brand)' : '') + '">' + esc(o) + '</button>').join('') + '</div>').join('') +
+      '<button class="btn pri block" id="polOk"' + (Object.keys(r).length < l.qs.length ? ' disabled style="opacity:.5"' : '') + '>Enviar respuestas</button>');
+    document.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { const [i, j] = b.dataset.r.split(':').map(Number); r[i] = j; pinta(); });
+    $('#polOk').onclick = () => {
+      if (Object.keys(r).length < l.qs.length) return;
+      const mal = l.qs.filter((q, i) => r[i] !== q.ok).length;
+      cerrar();
+      if (!mal) { E.leidos[l.id] = new Date().toISOString(); guardar(); toast('🏆 ¡Aprobada! Quedó registrada con tu nombre.'); }
+      else { E.fallos = E.fallos || {}; E.fallos[l.id] = (E.fallos[l.id] || 0) + 1; guardar(); toast('Tuviste ' + mal + ' respuesta' + (mal > 1 ? 's' : '') + ' mal. Vuelve a leerla e inténtalo otra vez.'); }
+      render();
+    };
+  };
+  pinta();
+}
+
+/* ================= PRIMER INGRESO: conocerte (foto obligatoria) ================= */
+const VENDER = [['audio', '🎧 Audio y bocinas'], ['seguridad', '📹 Cámaras y seguridad'], ['celular', '📱 Celular y accesorios'], ['compu', '💻 Computación'], ['hogar', '💡 Hogar inteligente'], ['herramientas', '🔧 Herramientas']];
+const RECON = [['publico', '📣 Que lo vea todo el equipo'], ['privado', '🤫 En privado, me da pena']];
+let OB = null;
+function bienvenida(editar){
+  OB = Object.assign({paso: 0, foto: '', apodo: '', cumple: '', motivo: E.motivo || '', sueno: '', vender: [], recon: ''}, editar ? E.perfil || {} : {}, {paso: 0});
+  pasoOB();
+}
+function pasoOB(){
+  const P = [
+    {t: '¡Hola, ' + esc(nombreCorto(YO.nombre)) + '! 👋', sub: 'Antes de empezar, queremos conocerte. Son 6 preguntas rápidas.', html: '<div style="font-size:72px;text-align:center;margin:20px 0">🙌</div>', ok: () => true, btn: 'Empezar'},
+    {t: 'Tu foto de perfil 📸', sub: 'Es obligatoria: así te reconoce tu equipo en el ranking y en el muro. Que se vea bien tu cara.',
+      html: '<label style="display:block;width:150px;height:150px;border-radius:50%;margin:16px auto;border:3px dashed var(--brand);background:#eaf4fb ' + (OB.foto ? 'url(' + OB.foto + ') center/cover' : '') + ';cursor:pointer;position:relative">' +
+        (OB.foto ? '' : '<span style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--brand);font-weight:800"><span style="font-size:40px">📷</span>Tomar foto</span>') +
+        '<input type="file" accept="image/*" capture="user" id="obFoto" style="display:none"></label>' + (OB.foto ? '<div class="tiny muted" style="text-align:center">Toca la foto para cambiarla.</div>' : ''),
+      ok: () => !!OB.foto, falta: 'La foto es obligatoria para continuar.'},
+    {t: '¿Cómo te gusta que te digan?', sub: 'Así te saludamos en la app.', html: '<input class="i" id="obApodo" placeholder="Ej.: ' + esc(nombreCorto(YO.nombre)) + '" value="' + esc(OB.apodo) + '" style="font-size:18px;margin-top:10px">' +
+      '<label class="f" style="margin-top:16px">¿Cuándo es tu cumpleaños? 🎂</label><input class="i" type="date" id="obCumple" value="' + (OB.cumple ? '2000-' + OB.cumple : '') + '"><div class="tiny muted" style="margin-top:4px">Solo usamos el día y el mes para saludarte.</div>',
+      leer: () => { OB.apodo = $('#obApodo').value.trim(); const c = $('#obCumple').value; OB.cumple = c ? c.slice(5) : ''; }, ok: () => true},
+    {t: '¿Qué te motiva a trabajar? 💪', sub: 'Elige lo más importante para ti este año.', html: '<div class="btns" style="margin-top:12px">' + MOTIVOS.map(([k, l]) => '<button class="btn" data-obm="' + k + '" style="' + (OB.motivo === k ? 'background:#eaf4fb;border-color:var(--brand);color:var(--brand)' : '') + '">' + l + '</button>').join('') + '</div>' +
+      '<label class="f" style="margin-top:16px">¿Cuál es tu sueño para este año?</label><input class="i" id="obSueno" maxlength="80" placeholder="Ej.: viajar a Galápagos con mi familia" value="' + esc(OB.sueno) + '">',
+      leer: () => { OB.sueno = $('#obSueno').value.trim(); }, ok: () => !!OB.motivo, falta: 'Elige qué te motiva.'},
+    {t: '¿Qué te gusta vender más? 🛍️', sub: 'Puedes elegir varios. Te mandaremos tips de lo que más te gusta.', html: '<div class="btns" style="margin-top:12px">' + VENDER.map(([k, l]) => '<button class="btn" data-obv="' + k + '" style="' + (OB.vender.includes(k) ? 'background:#eaf4fb;border-color:var(--brand);color:var(--brand)' : '') + '">' + l + '</button>').join('') + '</div>', ok: () => OB.vender.length > 0, falta: 'Elige al menos uno.'},
+    {t: 'Cuando logres algo grande… 🏆', sub: '¿Cómo te gusta que te reconozcan?', html: '<div style="margin-top:12px">' + RECON.map(([k, l]) => '<button class="btn block" data-obr="' + k + '" style="text-align:left;margin-bottom:8px;' + (OB.recon === k ? 'background:#eaf4fb;border-color:var(--brand);color:var(--brand)' : '') + '">' + l + '</button>').join('') + '</div>', ok: () => !!OB.recon, falta: 'Elige una opción.', btn: 'Terminar'}
+  ];
+  const st = P[OB.paso], n = P.length;
+  let el = document.getElementById('onb'); if (!el){ el = document.createElement('div'); el.id = 'onb'; document.body.appendChild(el); }
+  el.style.cssText = 'position:fixed;inset:0;z-index:80;background:#fff;overflow:auto';
+  el.innerHTML = '<div style="max-width:520px;margin:0 auto;padding:18px 18px calc(24px + env(safe-area-inset-bottom));min-height:100%;display:flex;flex-direction:column">' +
+    '<div style="display:flex;gap:4px;margin-bottom:22px">' + P.map((x, i) => '<div style="flex:1;height:4px;border-radius:2px;background:' + (i <= OB.paso ? 'var(--brand)' : '#e2e7ee') + '"></div>').join('') + '</div>' +
+    '<div style="font-size:24px;font-weight:900">' + st.t + '</div><div class="muted" style="margin-top:6px">' + st.sub + '</div>' + st.html +
+    '<div style="flex:1"></div><div class="dos" style="margin-top:24px">' + (OB.paso ? '<button class="btn" id="obAtras">Atrás</button>' : '<span></span>') + '<button class="btn pri" id="obSig">' + (st.btn || 'Siguiente') + '</button></div></div>';
+  const f = $('#obFoto'); if (f) f.onchange = () => { const file = f.files[0]; if (!file) return; const img = new Image(), u = URL.createObjectURL(file);
+    img.onload = () => { const c = document.createElement('canvas'), z = 360, m = Math.min(img.width, img.height); c.width = c.height = z;
+      c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, z, z); OB.foto = c.toDataURL('image/jpeg', 0.8); URL.revokeObjectURL(u); pasoOB(); }; img.src = u; };
+  el.querySelectorAll('[data-obm]').forEach(b => b.onclick = () => { if (st.leer) st.leer(); OB.motivo = b.dataset.obm; pasoOB(); });
+  el.querySelectorAll('[data-obv]').forEach(b => b.onclick = () => { const k = b.dataset.obv; OB.vender = OB.vender.includes(k) ? OB.vender.filter(x => x !== k) : OB.vender.concat(k); pasoOB(); });
+  el.querySelectorAll('[data-obr]').forEach(b => b.onclick = () => { OB.recon = b.dataset.obr; pasoOB(); });
+  if ($('#obAtras')) $('#obAtras').onclick = () => { if (st.leer) st.leer(); OB.paso--; pasoOB(); };
+  $('#obSig').onclick = () => { if (st.leer) st.leer(); if (!st.ok()) return toast(st.falta || 'Completa este paso.');
+    if (OB.paso < n - 1){ OB.paso++; return pasoOB(); }
+    E.perfil = {foto: OB.foto, apodo: OB.apodo, cumple: OB.cumple, sueno: OB.sueno, vender: OB.vender, recon: OB.recon}; E.motivo = OB.motivo; guardar();
+    el.remove(); pintarCab(); render(); toast('¡Listo, ' + (OB.apodo || nombreCorto(YO.nombre)) + '! Bienvenido a tu panel 🎉'); };
+}
+function pintarCab(){
+  const a = $('#miAv'); if (miFoto()){ a.textContent = ''; a.style.background = '#ddd url(' + miFoto() + ') center/cover'; } else { a.style.background = colorDe(YO.id); a.textContent = iniciales(YO.nombre); }
+  $('#miNom').textContent = (E.perfil && E.perfil.apodo) || YO.nombre;
+}
+
+
+/* ================= COMUNIDAD: fotos de la tienda, red social interna ================= */
+const RETO = {tag: '#MiVitrinaFavorita', t: 'Reto de la semana', d: 'Toma una foto de la exhibición de tu tienda que más te guste y cuéntanos por qué.', vence: sumar(lunes, 6)};
+const TEMAS = [['reto', '🏆 Reto de la semana'], ['vitrina', '🛍️ Mi vitrina'], ['equipo', '🙌 Mi equipo'], ['fav', '⭐ Mi producto favorito'], ['cliente', '😊 Cliente feliz'], ['detras', '🎬 Detrás de cámaras']];
+const IDEAS = ['La vitrina que armaste hoy', 'Tu producto favorito y para qué sirve', 'Tu equipo antes de abrir', 'Un cliente feliz con su compra (con su permiso)', 'Un truco para vender más'];
+const OTROS = [];
+const PART_TIENDAS = [];
+const POSTS_EJ = [];   // fotos del equipo: falta guardar en el servidor (por ahora cada uno ve las suyas)
+const persona = id => EQUIPO.find(p => p.id === id) || OTROS.find(p => p.id === id) || YO;
+const semanaIso = () => iso(lunes);
+function publicaron(){ const ya = new Set(); if ((E.posts || []).some(p => p.f >= semanaIso())) ya.add(YO.id); return ya; }
+function renderCom(){
+  E.posts = E.posts || []; E.reac = E.reac || {}; E.coms = E.coms || {};
+  const ya = publicaron(), yo = ya.has(YO.id), filtro = E.comFiltro || 'tienda';
+  let h = '<div class="reto"><div class="tiny" style="opacity:.9;font-weight:700">🏆 ' + RETO.t.toUpperCase() + ' · hasta el ' + fCorta(RETO.vence) + '</div><div style="font-size:20px;font-weight:800;margin:4px 0">' + RETO.tag + '</div><div class="small" style="margin-bottom:10px">' + esc(RETO.d) + '</div><button class="btn" data-pub="reto">📸 Participar</button></div>';
+  // participación de mi tienda
+  h += '<div class="card"><div class="fila"><h3 style="margin:0">Esta semana en ' + esc(TIENDA.nombre) + '</h3><span class="chip ' + (ya.size === EQUIPO.length ? 'verde' : 'amb') + '">' + ya.size + ' de ' + EQUIPO.length + ' publicaron</span></div>' +
+    '<div class="part">' + EQUIPO.map(p => '<span class="' + (ya.has(p.id) ? '' : 'no') + '" title="' + esc(p.nombre) + '">' + avatar(p) + '</span>').join('') + '</div>' +
+    '<div class="tiny muted">' + (yo ? '✅ Ya publicaste esta semana. ' + (ya.size < EQUIPO.length ? 'Anima a quien falta: si todos publican, la tienda sube en el ranking.' : '¡Tienda al 100 %!') : 'Te falta tu foto de la semana. Con una basta para contar.') + '</div>' +
+    (yo ? '' : '<button class="btn pri block" data-pub="" style="margin-top:8px">📸 Publicar mi foto</button>') + '</div>';
+  // tiendas más participativas (por % del equipo, así una tienda chica compite igual)
+  const pt = (PART_TIENDAS.length ? PART_TIENDAS : [[TIENDA.nombre, 0]]).map(([t, v]) => [t, t === TIENDA.nombre ? ya.size / EQUIPO.length : v]).sort((a, b) => b[1] - a[1]);
+  h += '<div class="card"><h3 style="margin:0 0 4px">Tiendas más participativas</h3><div class="tiny muted" style="margin-bottom:8px">% del equipo que publicó esta semana. Gana la tienda, no la persona.</div>' +
+    pt.slice(0, 5).map(([t, v], i) => '<div class="fila small" style="margin:5px 0"><span>' + ['🥇', '🥈', '🥉', '4.', '5.'][i] + ' ' + (t === TIENDA.nombre ? '<b>' + t + '</b>' : t) + '</span><span class="bar" style="flex:1;margin:0 10px;height:8px"><i class="' + (v >= 1 ? 'ok' : '') + '" style="width:' + v * 100 + '%"></i></span><b>' + Math.round(v * 100) + ' %</b></div>').join('') +
+    (pt.findIndex(x => x[0] === TIENDA.nombre) >= 5 ? '<div class="tiny muted">' + TIENDA.nombre + ' va en el puesto ' + (pt.findIndex(x => x[0] === TIENDA.nombre) + 1) + '.</div>' : '') + '</div>';
+  // insignias
+  const n = E.posts.length;
+  h += '<div class="card"><h3 style="margin:0 0 8px">Tus insignias</h3><div style="display:flex;gap:8px;flex-wrap:wrap">' +
+    [['📸', 'Primera foto', n >= 1], ['🔥', '4 semanas seguidas', false], ['⭐', 'Foto de la semana', false], ['💬', '10 comentarios', Object.keys(E.coms).length >= 10]].map(([i, t, ok]) => '<span class="chip ' + (ok ? 'verde' : '') + '" style="' + (ok ? '' : 'opacity:.45') + '">' + i + ' ' + t + '</span>').join('') + '</div></div>';
+  // muro de fotos
+  h += '<div class="seg" style="margin-bottom:10px"><button data-cf="tienda" class="' + (filtro === 'tienda' ? 'on' : '') + '">Mi tienda</button><button data-cf="todas" class="' + (filtro === 'todas' ? 'on' : '') + '">Todas las tiendas</button></div>';
+  const lista = E.posts.map(p => Object.assign({mio: true, de: YO.id, r: {}, c: []}, p)).concat(POSTS_EJ).filter(p => filtro === 'todas' || !p.tienda);
+  h += lista.map(p => { const quien = persona(p.de), tema = (TEMAS.find(t => t[0] === p.tema) || ['', ''])[1];
+    const fecha = p.mio ? 'Hoy' : fCorta(sumar(HOY, p.h));
+    const reac = ['❤️', '🔥', '👏'].map(e => { const k = p.id + e, on = !!E.reac[k]; const c = ((p.r || {})[e] || 0) + (on ? 1 : 0); return '<button data-re="' + k + '" class="' + (on ? 'on' : '') + '">' + e + (c ? ' ' + c : '') + '</button>'; }).join('');
+    const coms = (p.c || []).concat((E.coms[p.id] || []).map(t => [YO.id, t]));
+    return '<div class="card post"><div class="pc">' + avatar(quien) + '<div><b>' + esc(quien.nombre) + '</b><span class="tiny muted">' + (p.tienda ? 'Steren ' + p.tienda + ' · ' : '') + fecha + (tema ? ' · ' + tema : '') + '</span></div></div>' +
+      '<div class="com-foto" style="' + (p.foto ? 'background-image:url(' + p.foto + ')' : 'background:' + p.bg) + '">' + (p.foto ? '' : p.ic) + (p.tema === 'reto' ? '<span class="tag">' + RETO.tag + '</span>' : '') + '</div>' +
+      '<p class="txt">' + esc(p.txt) + '</p><div class="reac">' + reac + '<button data-co="' + p.id + '">💬 Comentar</button></div>' +
+      (coms.length ? '<div class="coms">' + coms.map(([d, t]) => '<div><b>' + esc(nombreCorto(persona(d).nombre)) + '</b> ' + esc(t) + '</div>').join('') + '</div>' : '') + '</div>'; }).join('');
+  h += '<div class="tiny muted" style="text-align:center;margin:6px 0 4px">Solo el equipo TEFES ve estas fotos. Nada de precios de la competencia ni datos de clientes. Si algo no va, tócalo y repórtalo.</div>';
+  sec('com').innerHTML = h;
+  document.querySelectorAll('[data-pub]').forEach(b => b.onclick = () => publicar(b.dataset.pub));
+  document.querySelectorAll('[data-cf]').forEach(b => b.onclick = () => { E.comFiltro = b.dataset.cf; guardar(); renderCom(); });
+  document.querySelectorAll('[data-re]').forEach(b => b.onclick = () => { E.reac[b.dataset.re] = !E.reac[b.dataset.re]; guardar(); renderCom(); });
+  document.querySelectorAll('[data-co]').forEach(b => b.onclick = () => comentar(b.dataset.co));
+}
+function comentar(id){
+  abrir('<h3 style="margin:0 0 8px">💬 Comentar</h3><div class="reac" style="margin-bottom:8px">' + ['¡Quedó brutal! 🔥', '¡Así se hace! 👏', 'Me encanta ❤️', '¿Cómo lo armaste?'].map(t => '<button data-rq="' + esc(t) + '">' + esc(t) + '</button>').join('') + '</div>' +
+    '<input id="coTxt" maxlength="120" placeholder="Escribe algo bonito…" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit"><button class="btn pri block" id="coOk" style="margin-top:8px">Enviar</button>');
+  const ok = t => { t = (t || '').trim(); if (!t) return; (E.coms[id] = E.coms[id] || []).push(t); guardar(); cerrar(); renderCom(); };
+  document.querySelectorAll('[data-rq]').forEach(b => b.onclick = () => ok(b.dataset.rq));
+  $('#coOk').onclick = () => ok($('#coTxt').value);
+}
+function publicar(tema){
+  const D = {tema: tema || '', foto: '', txt: '', permiso: false};
+  const pinta = () => {
+    abrir('<h3 style="margin:0 0 8px">📸 Nueva publicación</h3>' +
+      '<label style="display:block;cursor:pointer"><input type="file" accept="image/*" id="pubFoto" hidden>' +
+      (D.foto ? '<div class="com-foto" style="background-image:url(' + D.foto + ')"></div>' : '<div class="com-foto" style="background:#f3f5f8;border:2px dashed var(--line);font-size:15px;color:var(--muted);flex-direction:column;gap:6px"><span style="font-size:44px">📷</span>Toca para tomar o elegir la foto</div>') + '</label>' +
+      '<div class="tiny muted" style="font-weight:700;margin:6px 0 4px">TEMA</div><div class="reac">' + TEMAS.map(([k, t]) => '<button data-tm="' + k + '" class="' + (D.tema === k ? 'on' : '') + '">' + t + '</button>').join('') + '</div>' +
+      (D.tema === 'cliente' ? '<label class="small" style="display:flex;gap:8px;margin-top:8px"><input type="checkbox" id="pubPer"' + (D.permiso ? ' checked' : '') + '> El cliente aceptó salir en la foto</label>' : '') +
+      '<textarea id="pubTxt" maxlength="200" rows="2" placeholder="Cuéntanos algo (opcional)" style="width:100%;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit">' + esc(D.txt) + '</textarea>' +
+      '<div class="tiny muted" style="margin:4px 0 8px">¿Sin ideas? ' + esc(IDEAS[HOY.getDate() % IDEAS.length]) + '.</div>' +
+      '<button class="btn pri block" id="pubOk"' + (D.foto && D.tema && (D.tema !== 'cliente' || D.permiso) ? '' : ' disabled style="opacity:.5"') + '>Publicar</button>');
+    $('#pubFoto').onchange = e => { const f = e.target.files[0]; if (!f) return; const u = URL.createObjectURL(f), img = new Image();
+      img.onload = () => { const c = document.createElement('canvas'), z = 720, m = Math.min(img.width, img.height); c.width = c.height = z;
+        c.getContext('2d').drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, z, z); D.foto = c.toDataURL('image/jpeg', 0.8); URL.revokeObjectURL(u); D.txt = $('#pubTxt').value; pinta(); }; img.src = u; };
+    document.querySelectorAll('[data-tm]').forEach(b => b.onclick = () => { D.tema = b.dataset.tm; D.txt = $('#pubTxt').value; pinta(); });
+    if ($('#pubPer')) $('#pubPer').onchange = e => { D.permiso = e.target.checked; D.txt = $('#pubTxt').value; pinta(); };
+    $('#pubOk').onclick = () => { if (!D.foto || !D.tema) return;
+      E.posts.unshift({id: 'M' + Date.now(), tema: D.tema, foto: D.foto, txt: $('#pubTxt').value.trim() + (D.tema === 'reto' ? ' ' + RETO.tag : ''), f: iso(HOY)});
+      try { guardar(); } catch (e) {}
+      cerrar(); toast(E.posts.length === 1 ? '📸 ¡Primera foto! Ganaste tu primera insignia.' : '¡Publicado! Tu equipo ya lo puede ver.'); render(); ir('com'); };
+  };
+  pinta();
+}
+
+/* ================= navegación: todo en un solo scroll, como Instagram ================= */
+const SECCIONES = [['muro', '🏠 Inicio', renderMuro], ['com', '📸 Comunidad', renderCom], ['meta', '🎯 Mi meta', renderMeta], ['cli', '👥 Mis clientes', renderCli], ['hor', '📅 Mi horario', renderHor], ['apr', '🎓 Aprender', renderApr]];
+const sec = id => document.getElementById('s-' + id);
+function render(){
+  $('#dMuro').hidden = !ANUNCIOS.some(a => !E.leidos[a.id]);
+  $('#dCli').hidden = !porContactar();
+  $('#dApr').hidden = !LECTURAS.some(l => !E.leidos[l.id]);
+  $('#dCom').hidden = publicaron().has(YO.id);
+  SECCIONES.forEach(([id, , fn]) => fn());
+}
+const marcar = v => document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x.dataset.v === v));
+const ir = v => { const el = document.getElementById('w-' + v); if (!el) return; const y = el.getBoundingClientRect().top + window.scrollY - document.querySelector('header').offsetHeight - 4; window.scrollTo({top: y, behavior: 'smooth'}); marcar(v); };
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => ir(b.dataset.v));
+// el menú de abajo sigue la sección que se está viendo
+window.addEventListener('scroll', () => { const top = window.innerHeight * 0.4; let act = 'muro';
+  SECCIONES.forEach(([id]) => { const el = document.getElementById('w-' + id); if (el && el.getBoundingClientRect().top <= top) act = id; });
+  if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 4) act = 'apr';
+  marcar(act); }, {passive: true});
+function aviso(t){ const a = $('#aviso'); a.hidden = !t; a.textContent = t || ''; }
+function quienSoy(equipo){
+  $('#main').innerHTML = '<section class="seccion"><div class="card"><h3>¿Quién eres?</h3><div class="small muted">Elige tu nombre. Lo recordamos en este teléfono.</div>' +
+    equipo.map(p => '<button class="btn block" style="margin-top:8px;text-align:left" data-yo="' + esc(p.nombre) + '">' + esc(p.nombre) + ' <span class="tiny muted">· ' + esc(p.cargo) + '</span></button>').join('') + '</div></section>';
+  document.querySelectorAll('[data-yo]').forEach(b => b.onclick = () => { guardarYo(b.dataset.yo); arrancar(); });
+}
+function cargando(t){ $('#main').innerHTML = '<div class="card vacio" style="margin:20px 12px">' + esc(t) + '</div>'; }
+function aplicar(d){
+  TIENDA = {nombre: d.tienda.nombre, presupuesto: d.tienda.presupuesto || 0, mes: d.tienda.mes || 0, ayer: d.tienda.ayer || 0};
+  CORTE = d.corte || '';
+  EQUIPO = d.equipo.map(p => ({id: slug(p.nombre), nombre: p.nombre, cargo: p.cargo ? p.cargo.charAt(0) + p.cargo.slice(1).toLowerCase() : '', mes: p.mes || 0, ayer: p.ayer || 0, meta: p.meta || 0, gar: p.gar || 0, garUsd: p.garUsd || 0}));
+  YO = EQUIPO.find(p => p.nombre === d.yo.nombre);
+  SUELDO = d.yo.esquema ? {fijo: d.yo.esquema.fijo, pct: d.yo.esquema.pct} : {fijo: 0, pct: 0};
+  DIARIO = d.yo.diario || [];
+  TURNOS = {}; ((d.horario && d.horario.turnos) || []).forEach(t => { TURNOS[slug(t.persona)] = t.dias; });
+  E.proformas = d.proformas || [];
+  UNI.d = d.uni || null;
+  CIERRE = d.cierre || null;
+  // sin meta repartida todavía: se usa la meta mínima del esquema (venta base) para que el anillo tenga referencia
+  EQUIPO.forEach(p => { if (!p.meta) p.meta = Math.max(p.mes, 1); });
+}
+function arrancar(){
+  if (!TOKEN) { cargando('Enlace no válido. Pide a tu gerente el enlace de tu tienda.'); return; }
+  const yo = leerYo(); cargando('Cargando tu panel…');
+  llamar('apiAsesor', TOKEN, yo).then(d => {
+    if (!yo || !d.yo) { guardarYo(''); document.querySelector('header').style.visibility = 'hidden'; return quienSoy(d.equipo || []); }
+    document.querySelector('header').style.visibility = '';
+    KEY = 'tefes_asesor_v1_' + slug(yo); cargarE(); aplicar(d);
+    if (!SUELDO.pct) aviso('Tu esquema de comisión aún no está cargado: pídele a tu gerente que lo revise.');
+    else if (!d.yo.diario || !d.yo.diario.length) aviso('Aún no hay ventas tuyas este mes en el sistema (se actualiza cada mañana).');
+    $('#main').innerHTML = SECCIONES.map(([id, t]) => '<section id="w-' + id + '" class="seccion"><div class="sec-cab">' + t + '</div><div id="s-' + id + '"></div></section>').join('');
+    pintarCab(); $('#miAv').style.cursor = 'pointer'; $('#miAv').onclick = () => bienvenida(true); $('#miSub').textContent = YO.cargo + ' · Steren ' + TIENDA.nombre;
+    render();
+    if (!E.perfil || !E.perfil.foto) bienvenida();
+    const v = Q.get('v'); if (v && SECCIONES.some(x => x[0] === v)) setTimeout(() => ir(v), 50);
+    llamar('apiVFLista', TOKEN).then(L => { E.futuras = (L || []).filter(x => x.asesor === YO.nombre).map(vfLocal); render(); }, () => {});
+  }, e => cargando(e.message));
+}
+arrancar();
+})();
+</script>
+</body>
+</html>
