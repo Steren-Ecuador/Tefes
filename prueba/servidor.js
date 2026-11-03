@@ -305,6 +305,8 @@
     panelOk(p); var pe = F('Personal'), lp = F('Lecturas de políticas');
     return {pe: [['Nombre completo', 'Tienda', 'Departamento', 'Ciudad', 'Cargo', 'Ingreso', 'Estado']].concat(pe), lp: [['Fecha', 'Hora', 'Política', 'Tienda', 'Persona', 'Cargo', 'Correctas', 'Resultado']].concat(lp)};
   };
+  API.apiUniPanel = function (p) { panelOk(p); return {fecha: '', total: 0, filas: []}; };   // Universidad Steren: en la prueba no hay lecturas de cursos
+  API.apiUniTienda = function (tok) { tiendaDe(tok); return {fecha: '', total: 0, filas: []}; };
   API.apiClientesPanel = function (p) {   // pestaña Clientes del panel: las dos hojas tal cual, con encabezado (en la foto real celular y correo van tapados)
     panelOk(p);
     return {vf: DB.hoja('Ventas futuras').slice(), rec: DB.hoja('Reclamos clientes').slice()};
