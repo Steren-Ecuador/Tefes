@@ -311,6 +311,7 @@
   API.apiFdClave = function (p) { panelOk(p); throw new Error('en el entorno de pruebas no hay detalle de ventas'); };
   API.apiFdClaveTienda = function (tok) { tiendaDe(tok); throw new Error('en el entorno de pruebas no hay detalle de ventas'); };
   API.apiPPPanel = function (p) { panelOk(p); return []; };
+  API.apiDatoPanel = function (p) { panelOk(p); return {fecha: new Date().toISOString().slice(0, 10), texto: '🏆 Dato de prueba: Portal tuvo su mejor lunes desde que abrió.', tienda: 'Todas'}; };   // dd1
   API.apiPPTienda = function (tok) { tiendaDe(tok); return []; };
   API.apiClientesPanel = function (p) {   // pestaña Clientes del panel: las dos hojas tal cual, con encabezado (en la foto real celular y correo van tapados)
     panelOk(p);

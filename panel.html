@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (dcfda1f1400f). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (7e362955a340). No editar a mano. -->
 <html lang="es" data-theme="light">
 <head>
 <base target="_top">
@@ -1123,6 +1123,8 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
 
   <div class="view" data-view="flash" hidden>
     <div id="flashBody"><div class="skeleton">Cargando Flash de Ventas…</div></div>
+    <div id="fdBody"></div>
+    <div id="ppBody"></div>
   </div>
 
   <div class="view" data-view="calendario" hidden>
@@ -2141,21 +2143,39 @@ function renderFlash(){
   const s = k => T.reduce((a, x) => a + (x[k] || 0), 0);
   const tot = {dia: s('dia'), mes: s('mes'), pres: s('pres')}; tot.c = tot.pres ? tot.mes / tot.pres : 0;
   const sobre = T.filter(x => x.pres && x.mes / x.pres >= ritmo).length;
+  /* fd2 (igual que el admin; en el panel la hoja Ventas llega por apiVentasPanel): artículos por factura del mes (POS, hoja Ventas), indicador que evalúa Steren */
+  const FLA = {'Mall del Sol': 'Mall Sol', 'Mall El Jardín': 'Mall Jardín', 'Megakywi-EloyAlfaro': 'Megakywi', 'Megamaxi 6 Dic': 'Megamaxi'};
+  const VT = st.ventas && st.ventas.mes === String(f).slice(0, 7) ? st.ventas.tiendas : {}, vt = x => VT[FLA[x.local] || x.local];
+  const apf = x => x == null ? '–' : x.toFixed(2).replace('.', ',');
+  const artT = (() => { let it = 0, fc = 0; T.forEach(x => { const v = vt(x); if (v && v.art != null && v.facturas) { it += v.items != null ? v.items : v.art * v.facturas; fc += v.facturas; } }); return fc ? it / fc : null; })();
   const barra = (cu) => `<div class="fl-bar"><div class="fl-track"><div class="fl-fill${cu < ritmo ? ' bajo' : ''}" style="width:${Math.min(cu, 1) * 100}%"></div><div class="fl-pace" style="left:${ritmo * 100}%"></div></div><span class="fl-pct ${cu < ritmo ? 'bajo' : 'ok'}">${p1(cu)}</span></div>`;
-  const fila = x => { const cu = x.pres ? x.mes / x.pres : 0; return `<tr><td class="store">${esc(x.local)}</td><td class="num">${usd.format(x.dia)}</td><td class="num">${usd.format(x.mes)}</td><td class="num hide-sm">${x.pres ? usd0.format(x.pres) : '–'}</td><td>${barra(cu)}</td></tr>`; };
+  const fila = x => { const cu = x.pres ? x.mes / x.pres : 0; return `<tr><td class="store">${esc(x.local)}</td><td class="num">${usd.format(x.dia)}</td><td class="num">${usd.format(x.mes)}</td><td class="num hide-sm">${x.pres ? usd0.format(x.pres) : '–'}</td><td class="num"><b>${apf(vt(x) && vt(x).art)}</b></td><td>${barra(cu)}</td></tr>`; };
   el.innerHTML = `<div class="fl-cab"><h2>Flash de Ventas · ${esc(fechaTxt)}</h2><span class="hint">Última actualización: ${esc(consTxt)} · ERP: ${esc(R[0].erp)}</span></div>
     <div class="kpis" style="margin-top:12px">
       <div class="kpi"><b>${usd.format(tot.dia)}</b><span>venta del día</span></div>
       <div class="kpi"><b>${usd.format(tot.mes)}</b><span>venta del mes</span></div>
       <div class="kpi acc"><b>${p1(tot.c)}</b><span>del presupuesto (${usd0.format(tot.pres)})</span></div>
       <div class="kpi"><b>${sobre} de ${T.length}</b><span>tiendas sobre el ritmo</span></div>
+      <div class="kpi acc"><b>${apf(artT)}</b><span>artículos por factura del mes</span></div>
     </div>
     <div style="margin-top:22px"><div class="sec-h"><h2>Tiendas</h2><span class="hint">En orden de apertura. La línea punteada es el ritmo esperado a la fecha (${p1(ritmo)} del mes).</span></div>
-    <div class="panel flush scroll"><table class="exec fl-t"><thead><tr><th>Tienda</th><th class="num">Venta día</th><th class="num">Venta mes</th><th class="num hide-sm">Presupuesto</th><th>Cumplimiento</th></tr></thead>
-      <tbody>${T.map(fila).join('')}<tr class="fl-tot"><td>Total tiendas</td><td class="num">${usd.format(tot.dia)}</td><td class="num">${usd.format(tot.mes)}</td><td class="num hide-sm">${usd0.format(tot.pres)}</td><td>${barra(tot.c)}</td></tr></tbody></table></div></div>
+    <div class="panel flush scroll"><table class="exec fl-t"><thead><tr><th>Tienda</th><th class="num">Venta día</th><th class="num">Venta mes</th><th class="num hide-sm">Presupuesto</th><th class="num" title="Artículos por factura del mes (POS, hasta ayer)">Art./fact.</th><th>Cumplimiento</th></tr></thead>
+      <tbody>${T.map(fila).join('')}<tr class="fl-tot"><td>Total tiendas</td><td class="num">${usd.format(tot.dia)}</td><td class="num">${usd.format(tot.mes)}</td><td class="num hide-sm">${usd0.format(tot.pres)}</td><td class="num">${apf(artT)}</td><td>${barra(tot.c)}</td></tr></tbody></table></div></div>
     ${C.length ? `<div style="margin-top:22px"><div class="sec-h"><h2>CEDIS B2B</h2><span class="hint">Sin presupuesto; no suman al total de tiendas.</span></div>
-    <div class="panel flush scroll"><table class="exec fl-t"><thead><tr><th>Local</th><th class="num">Venta día</th><th class="num">Venta mes</th></tr></thead><tbody>${C.map(x => `<tr><td class="store">${esc(x.local)}</td><td class="num">${usd.format(x.dia)}</td><td class="num">${usd.format(x.mes)}</td></tr>`).join('')}</tbody></table></div></div>` : ''}`;
+    <div class="panel flush scroll"><table class="exec fl-t"><thead><tr><th>Local</th><th class="num">Venta día</th><th class="num">Venta mes</th></tr></thead><tbody>${C.map(x => `<tr><td class="store">${esc(x.local)}</td><td class="num">${usd.format(x.dia)}</td><td class="num">${usd.format(x.mes)}</td></tr>`).join('')}<tr class="fl-tot"><td>Gran total (tiendas + CEDIS)</td><td class="num">${usd.format(tot.dia + C.reduce((a, x) => a + (x.dia || 0), 0))}</td><td class="num">${usd.format(tot.mes + C.reduce((a, x) => a + (x.mes || 0), 0))}</td></tr></tbody></table></div></div>` : ''}`;
 }
+
+/* fds1/pps1 en el panel de supervisores: Explorar ventas y presupuesto por persona (solo consulta), igual que el Flash del admin */
+window.FD_HOST = {base: 'https://steren-ecuador.github.io/Tefes/datos/fd/', clave: () => api('apiFdClave')};
+window.fdsAbrir = function(){
+  if (!window.fdAbrir || !window.ppLectura) return setTimeout(window.fdsAbrir, 300);   // el bloque fds1 va al final de la página
+  fdAbrir();
+  const el = document.getElementById('ppBody'); if (!el) return;
+  const pinta = () => ppLectura(el, st.ppF, {tiendas: ((st.d && st.d.tiendas) || []).filter(t => t.activa).map(t => t.nombre)});
+  if (st.ppF) return pinta();
+  el.innerHTML = '<div class="skeleton">Cargando presupuesto por persona…</div>';
+  api('apiPPPanel').then(f => { st.ppF = f; pinta(); }).catch(err => { el.innerHTML = '<div class="panel empty">No se pudo leer el presupuesto por persona (' + esc((err && err.message) || err) + ').</div>'; });
+};
 
 /* ---------- pestañas ---------- */
 const VISTAS = ['hoy','calendario','flash','pendientes','supervision','inventario','vivo','politicas','clientes','guias','contactos'];
@@ -2169,6 +2189,7 @@ function ir(v){
   if (window.REG) REG.vista(v === 'hoy' ? 'Inicio' : v === 'supervision' ? 'Supervisión' : v.charAt(0).toUpperCase() + v.slice(1));
   if (v === 'hoy') requestAnimationFrame(() => { if (M.ok) mDraw(); });
   if (v === 'inventario' && window.cvRender) { cvRender(); cvCargar(); }
+  if (v === 'flash' && window.fdsAbrir) fdsAbrir();   // fds1
   if (v === 'calendario' && window.calAbrir) calAbrir();   // cal1   // conteo en vivo
   window.scrollTo({top: 0});
 }
@@ -3839,5 +3860,269 @@ window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "af
   addEventListener('scroll', () => { const y = window.scrollY; if (Math.abs(y - y0) < 12) return; document.body.classList.toggle('pm-baja', y > y0 && y > 120); y0 = y; }, {passive: true});
 })();
 </script>
+<style>/* fd2 (igual que el admin): columna Art./fact. del Flash en el celular */
+@media(max-width:620px){.fl-t:has(.fl-bar) tr{grid-template-columns:minmax(0,1fr) auto auto auto}.fl-t:has(.fl-bar) td:nth-child(5)::before{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--fg-3);font-weight:600;content:"Art./f."}}</style>
+<style>
+/* fds1 (de fd1 del admin): Explorar ventas (dashboard del Flash, 2026-11-04) */
+#fdBody{margin-top:30px}
+.fd-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 10px}
+.fd-ctl select{font-size:14px;padding:6px 8px}
+.fd-crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:30px;margin-bottom:12px}
+.fd-crumbs .chip{display:inline-flex;gap:6px;align-items:center;font-weight:600;font-size:13.5px;background:var(--accent-soft);border-color:var(--accent-soft);color:var(--accent)}
+.fd-crumbs .chip b{font-weight:700;font-size:15px;line-height:1}
+.fd-crumbs .todo{font-size:13px;color:var(--fg-3)}
+.fd-kpis{display:flex;flex-wrap:wrap;gap:6px 30px;align-items:baseline;margin-bottom:14px}
+.fd-kpis .kpi b{font-size:26px}
+.fd-up{color:var(--good)} .fd-down{color:var(--bad)}
+.fd-chart{display:block;width:100%;height:150px}
+.fd-chart rect.b{fill:var(--accent);opacity:.8;cursor:pointer}
+.fd-chart rect.b:hover{opacity:1}
+.fd-chart rect.b.on{opacity:1;fill:var(--warn)}
+.fd-chart rect.b.dim{opacity:.3}
+.fd-chart text{font-size:10px;fill:var(--fg-3);font-family:var(--f-body)}
+.fd-t td{font-size:14px;padding:8px 10px}
+.fd-t tr.click td:first-child{font-weight:600}
+.fd-t .sub{display:block;font-weight:400;font-size:12px;color:var(--fg-3)}
+.fd-bar{height:8px;border-radius:0 4px 4px 0;background:var(--accent);min-width:2px}
+.fd-t td.bc{width:22%;min-width:70px}
+.fd-mas{margin-top:8px}
+@media(max-width:620px){.fd-t .hide-sm{display:none}.fd-t .bc{display:none}.fd-kpis .kpi b{font-size:22px}.fd-t thead{display:none}.fd-t tbody{display:block}.fd-t tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 10px;padding:10px 12px;border-bottom:1px solid var(--line)}.fd-t td{display:block;border:0;padding:0;text-align:left!important;min-width:0}.fd-t td:first-child{grid-column:1/-1;font-size:15px}.fd-t td[data-l]::before{content:attr(data-l);display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--fg-3);font-weight:600}.fd-t td.empty{grid-column:1/-1;text-align:center!important}}
+/* pps1: presupuesto por persona, solo consulta */
+#ppBody{margin-top:30px}
+@media(max-width:620px){.pps-t tr{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+/* fds1 en la página de la tienda: mismos nombres de clases que el panel, con los colores de la tienda */
+.fdw{--fg-3:var(--muted);--accent:var(--brand);--accent-soft:var(--brand-soft);--accent-ink:#fff;--good:var(--ok);--surface:var(--card);--surface-2:var(--na-soft);--f-body:inherit}
+.fdw .panel{background:none;box-shadow:none;padding:0;margin:0}
+.fdw .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.fdw table.exec{width:100%;border-collapse:collapse;font-size:13px}
+.fdw .exec th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;padding:6px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.fdw .exec td{padding:7px 6px;border-bottom:1px solid var(--line)}
+.fdw .num{text-align:right;white-space:nowrap}
+.fdw .faint{color:var(--muted)}
+.fdw .hint{font-size:12px;color:var(--muted)}
+.fdw .sec-h{padding:10px 0 6px;flex-wrap:wrap;gap:4px 10px}
+.fdw .seg{display:inline-flex}
+.fdw .seg button{flex:none;padding:7px 10px;font-size:13px}
+.fdw select{width:auto;min-height:38px;font-size:14px;padding:6px 8px}
+.fdw .fd-kpis .kpi{box-shadow:none;background:none;padding:0}
+.fdw .fd-kpis .kpi b{font-size:22px}
+.fdw .chip{padding:5px 10px}
+.fdw .skeleton{color:var(--muted);padding:16px 0}
+.fdw .fd-mas{width:100%}
+.fdw tr.fl-tot td{font-weight:700;background:var(--na-soft)}
+.fdw details>summary{cursor:pointer;color:var(--brand);font-weight:600;font-size:14px;padding:8px 0}
+@media(max-width:620px){.fdw .fd-t td{border:0;padding:0}.fdw .fd-t tr{padding:10px 0}}
+@media(max-width:620px){.fdw tr.fl-tot{background:var(--na-soft)}.fdw tr.fl-tot td{background:none}}
+</style>
+<script>
+/* fds1 (copia de fd1 del admin, armada con ux/flash-sup/armar_comun.py): Explorar ventas: de lo general (canal, tienda) al último detalle (día, asesor, familia, producto).
+   Datos: facturas del ERP sin IVA y SIN clientes, un archivo por mes en los assets del artefacto; índice en db flashdet/indice.
+   La tarea diaria de la nube actualiza el mes en curso y el índice. */
+(function(){
+const FD = window.FD = {f: {mes: '', dia: '', canal: 'T', loc: '', ven: '', fam: '', cod: ''}, ver: 'loc', datos: {}, todos: false};
+const LOCS = [['2TMSOL','Mall Sol'],['2TSAMB','Samborondón'],['2TURDE','Urdesa'],['2TCOND','Condado'],['2TJARD','Mall Jardín'],['2TSCAL','Scala'],['2TMKWY','Megakywi'],['2TPORT','Portal'],['2TMMXI','Megamaxi'],['2TUMBAC','Tumbaco'],['2TCUIO','CEDIS Quito'],['2TCGYQ','CEDIS Guayaquil']];
+const LOCN = Object.fromEntries(LOCS), LOCO = Object.fromEntries(LOCS.map((x, i) => [x[0], i]));
+const CEDIS = c => c === '2TCUIO' || c === '2TCGYQ';
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DIAS = ['dom','lun','mar','mié','jue','vie','sáb'];
+const e = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const usd = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD', maximumFractionDigits: 0});
+const usd2 = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2});
+const n0 = new Intl.NumberFormat('es-EC', {maximumFractionDigits: 0});
+const pct = x => (x * 100).toFixed(1).replace('.', ',') + '%';
+const apf = x => x.toFixed(2).replace('.', ',');
+const fam = c => c === 'EXTGAR' ? 'EXTGAR' : (String(c).split('-')[0] || c).replace(/\+$/, '');
+const famN = f => f === 'EXTGAR' ? 'Garantía extendida' : f;
+const tit = s => String(s).toLowerCase().replace(/(^|\s)\S/g, m => m.toUpperCase());
+function venN(l){
+  if (l === '-' || !l) return 'Sin vendedor';
+  const al = FD.alias && FD.alias[l]; if (al) return al;
+  const a = FD.meta && FD.meta.ase[l]; if (!a) return l;
+  const p = a[0].split(/\s+/); return tit((p[2] || p[0]) + ' ' + p[0]);
+}
+const DIM = {loc: 'Tienda', ven: 'Asesor', fam: 'Familia', cod: 'Producto', dia: 'Día'};
+const SIG = {loc: 'ven', ven: 'fam', fam: 'cod', cod: 'loc'};
+
+async function json(u){ const r = await fetch(u); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
+/* fds1: en supervisores y tiendas los datos son archivos cifrados (AES-GCM + gzip) en GitHub; la clave la da la app a quien entró */
+const H = () => window.FD_HOST || {};
+async function indice(){
+  const r = await fetch(H().base + 'indice.json?t=' + Math.floor(Date.now() / 6e5), {cache: 'no-cache'});
+  if (!r.ok) throw new Error('sin índice (HTTP ' + r.status + ')'); return r.json();
+}
+function llave(){
+  return FD.llave || (FD.llave = Promise.resolve(H().clave()).then(b64 => crypto.subtle.importKey('raw', Uint8Array.from(atob(b64), c => c.charCodeAt(0)), 'AES-GCM', false, ['decrypt'])).catch(err => { FD.llave = null; throw err; }));
+}
+async function bin(u){
+  const [k, r] = await Promise.all([llave(), fetch(H().base + u)]);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const b = new Uint8Array(await r.arrayBuffer());
+  const p = await crypto.subtle.decrypt({name: 'AES-GCM', iv: b.slice(0, 12)}, k, b.slice(12));
+  return JSON.parse(await new Response(new Blob([p]).stream().pipeThrough(new DecompressionStream('gzip'))).text());
+}
+async function mes(m){
+  if (!m || !FD.idx.meses[m]) return null;
+  if (FD.datos[m]) return FD.datos[m];
+  return FD.datos[m] = bin(FD.idx.meses[m]).then(j => {
+    const R = [], fac = {}, fav = {};
+    for (const r of j.filas) {
+      const [f, loc, nf, , , datos, fa] = r; fac[f + '|' + loc] = +nf || 0;
+      if (fa) for (const x of fa.split('~')) { const [v, n] = x.split('|'); fav[f + '|' + loc + '|' + v] = +n || 0; }
+      if (datos) for (const x of datos.split('~')) { const [v, c, u, s, l] = x.split('|'); R.push({f, d: +f.slice(8), loc, ven: v, cod: c, fam: fam(c), u: +u, s: +s, l: +l || 0}); }
+    }
+    return {R, fac, fav, dias: [...new Set(j.filas.map(r => r[0]))].sort()};
+  }).catch(err => { delete FD.datos[m]; throw err; });
+}
+const mesAnt = m => { let [y, mm] = m.split('-').map(Number); mm--; if (!mm) { mm = 12; y--; } return y + '-' + String(mm).padStart(2, '0'); };
+
+window.fdAbrir = async function(){
+  const el = document.getElementById('fdBody') || document.createElement('div');   // también carga sin pintar (lo usa el presupuesto)
+  if (FD.cargando) return FD.cargando;
+  if (!FD.idx) {
+    let fin; FD.cargando = new Promise(r => fin = r); el.innerHTML = '<div class="skeleton">Cargando el detalle de ventas…</div>';
+    try {
+      FD.idx = await indice();
+      FD.meta = await bin(FD.idx.meta); FD.alias = FD.meta.alias || {};
+      const ms = Object.keys(FD.idx.meses).sort(); FD.f.mes = FD.f.mes || ms[ms.length - 1];
+      if (H().fijo) Object.assign(FD.f, H().fijo);   // la tienda abre en su local (se puede quitar)
+    } catch (err) { FD.cargando = false; fin(); FD.idx = null; el.innerHTML = '<section class="panel"><h2>Explorar ventas</h2><div class="empty">No se pudo cargar el detalle (' + e(err.message) + '). Pulsa Actualizar en un momento.</div></section>'; return; }
+    FD.cargando = false; fin();
+  }
+  fdPintar();
+};
+
+function filtra(R, sin){
+  const f = FD.f, S = new Set([].concat(sin || []));
+  return R.filter(x => (f.canal === 'X' || (f.canal === 'B') === CEDIS(x.loc)) && (!f.dia || S.has('dia') || x.d === +f.dia)
+    && (!f.loc || S.has('loc') || x.loc === f.loc) && (!f.ven || S.has('ven') || x.ven === f.ven) && (!f.fam || S.has('fam') || x.fam === f.fam) && (!f.cod || S.has('cod') || x.cod === f.cod));
+}
+function facturas(D, R){   // facturas de lo filtrado; sin sentido si hay filtro de familia o producto
+  if (FD.f.fam || FD.f.cod) return null;
+  const k = new Set(R.map(x => x.f + '|' + x.loc + (FD.f.ven ? '|' + x.ven : '')));
+  let n = 0; k.forEach(c => n += (FD.f.ven ? D.fav[c] : D.fac[c]) || 0); return n;
+}
+function agrupa(R, dim){
+  const g = {};
+  for (const x of R) { const k = x[dim]; const a = g[k] || (g[k] = {k, s: 0, u: 0, l: 0, n: new Set()}); a.s += x.s; a.u += x.u; a.l += x.l; a.n.add(x.f + '|' + x.loc + (dim === 'ven' || FD.f.ven ? '|' + x.ven : '')); }
+  return Object.values(g);
+}
+async function fdPintar(){
+  const el = document.getElementById('fdBody'); if (!el || !FD.idx) return;
+  const f = FD.f, m = f.mes;
+  let D, A;
+  try { [D, A] = await Promise.all([mes(m), mes(mesAnt(m)).catch(() => null)]); } catch (err) { el.innerHTML = '<div class="panel empty">No se pudo leer ' + e(m) + ' (' + e(err.message) + ').</div>'; return; }
+  if (!D) { el.innerHTML = '<div class="panel empty">Sin datos de ' + e(m) + '.</div>'; return; }
+  const R = filtra(D.R), tot = R.reduce((a, x) => a + x.s, 0), uni = R.reduce((a, x) => a + x.u, 0), lin = R.reduce((a, x) => a + x.l, 0), nf = facturas(D, R);
+  const ultimo = D.dias.length ? +D.dias[D.dias.length - 1].slice(8) : 0;
+  // comparación (Diego 4-nov): mismo día de la semana 4 semanas antes (28 días): dom 1-nov vs dom 4-oct
+  const isoD = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const [y0, m0] = m.split('-').map(Number), hastaD = f.dia ? +f.dia : ultimo, desdeD = f.dia ? +f.dia : 1;
+  const cIni = isoD(new Date(y0, m0 - 1, desdeD - 28)), cFin = isoD(new Date(y0, m0 - 1, hastaD - 28));
+  const RC = dim => [...(A ? filtra(A.R, ['dia', dim]) : []), ...filtra(D.R, ['dia', dim])].filter(x => x.f >= cIni && x.f <= cFin);
+  const fc = s => { const d = new Date(s + 'T12:00:00'); return DIAS[d.getDay()] + ' ' + d.getDate() + ' ' + MESES[d.getMonth()].slice(0, 3); };
+  const cTxt = cIni === cFin ? fc(cIni) : fc(cIni) + ' – ' + fc(cFin);
+  let cmp = '';
+  { const ta = RC('dia').reduce((a, x) => a + x.s, 0);
+    if (ta > 0) { const v = tot / ta - 1; cmp = `<div class="kpi"><b class="${v >= 0 ? 'fd-up' : 'fd-down'}">${v >= 0 ? '+' : ''}${pct(v)}</b><span>vs ${cTxt}, mismos días de la semana (${usd.format(ta)})</span></div>`; } }
+  const ms = Object.keys(FD.idx.meses).sort().reverse();
+  const [yy, mm] = m.split('-').map(Number);
+  const opDia = D.dias.map(x => { const d = new Date(x + 'T12:00:00'); return `<option value="${+x.slice(8)}" ${+f.dia === +x.slice(8) ? 'selected' : ''}>${DIAS[d.getDay()]} ${+x.slice(8)}</option>`; }).join('');
+  const seg = (k, t) => `<button class="${f.canal === k ? 'on' : ''}" data-fdc="${k}">${t}</button>`;
+  const chips = ['dia', 'loc', 'ven', 'fam', 'cod'].filter(k => f[k]).map(k => {
+    const t = k === 'dia' ? DIAS[new Date(yy, mm - 1, +f.dia).getDay()] + ' ' + f.dia : k === 'loc' ? LOCN[f.loc] || f.loc : k === 'ven' ? venN(f.ven) : k === 'fam' ? famN(f.fam) : f.cod + ' ' + ((FD.meta.cat[f.cod] || '').slice(0, 28));
+    return `<button class="chip" data-fdx="${k}" title="Quitar">${e(DIM[k])}: ${e(t)} <b aria-hidden="true">×</b></button>`; }).join('');
+  // gráfico por día (sin el filtro de día, para poder elegir otro)
+  const RD = filtra(D.R, 'dia'), pd = {}; RD.forEach(x => pd[x.d] = (pd[x.d] || 0) + x.s);
+  const nd = new Date(yy, mm, 0).getDate(), mx = Math.max(1, ...Object.values(pd)), W = 760, H = 150, bw = W / nd;
+  const barras = Array.from({length: nd}, (_, i) => { const d = i + 1, v = pd[d] || 0, h = Math.max(v > 0 ? 2 : 0, (v / mx) * (H - 22)); const dw = new Date(yy, mm - 1, d).getDay();
+    return `<rect class="b${+f.dia === d ? ' on' : f.dia ? ' dim' : ''}" data-fdd="${d}" x="${(i * bw + 1.5).toFixed(1)}" y="${(H - 14 - h).toFixed(1)}" width="${(bw - 3).toFixed(1)}" height="${h.toFixed(1)}"><title>${DIAS[dw]} ${d}: ${usd2.format(v)}</title></rect>${d === 1 || d % 5 === 0 ? `<text x="${(i * bw + bw / 2).toFixed(1)}" y="${H - 2}" text-anchor="middle">${d}</text>` : ''}`; }).join('');
+  // ranking por la dimensión elegida
+  const ver = FD.ver, G = agrupa(filtra(D.R, ver), ver).sort((a, b) => b.s - a.s), gt = G.reduce((a, x) => a + x.s, 0) || 1, gmx = Math.max(1, ...G.map(x => x.s));
+  let ant = {};
+  agrupa(RC(ver), ver).forEach(x => ant[x.k] = x.s);
+  const nom = k => ver === 'loc' ? (LOCN[k] || k) : ver === 'ven' ? venN(k) : ver === 'fam' ? famN(k) : k;
+  const sub = k => ver === 'cod' ? (FD.meta.cat[k] || '') : ver === 'ven' && FD.meta.ase[k] ? FD.meta.ase[k][1] : ver === 'ven' && k !== '-' ? 'usuario ' + k : '';
+  const lista = ver === 'loc' ? G.sort((a, b) => (LOCO[a.k] ?? 99) - (LOCO[b.k] ?? 99)) : G;
+  const vis = FD.todos ? lista : lista.slice(0, 25);
+  const uCol = !(ver === 'loc' || ver === 'ven') || f.fam || f.cod;
+  const nFac = x => { let n = 0; x.n.forEach(c => n += ((c.split('|').length > 2 ? D.fav : D.fac)[c]) || 0); return n; };
+  const filas = vis.map((x, i) => { const a = ant[x.k], v = a > 0 ? x.s / a - 1 : null;
+    return `<tr class="click" data-fdk="${e(x.k)}"><td>${ver === 'loc' ? '' : (i + 1) + '. '}${e(nom(x.k))}${sub(x.k) ? `<span class="sub">${e(sub(x.k))}</span>` : ''}</td><td class="num" data-l="Venta">${usd2.format(x.s)}</td><td class="num hide-sm">${pct(x.s / gt)}</td><td class="bc"><div class="fd-bar" style="width:${Math.max(0, x.s / gmx * 100)}%"></div></td>${uCol ? `<td class="num" data-l="Unid.">${n0.format(x.u)}</td>` : (k => `<td class="num" data-l="Facturas">${n0.format(k)}</td><td class="num" data-l="Art./fact."><b>${k > 0 ? apf(x.l / k) : '–'}</b></td>`)(nFac(x))}<td class="num hide-sm ${v == null ? 'faint' : v >= 0 ? 'fd-up' : 'fd-down'}">${v == null ? '–' : (v >= 0 ? '+' : '') + pct(v)}</td></tr>`; }).join('');
+  const colN = uCol ? 'Unid.' : 'Facturas';
+  const vseg = ['loc', 'ven', 'fam', 'cod'].map(k => `<button class="${ver === k ? 'on' : ''}" data-fdv="${k}">${DIM[k]}</button>`).join('');
+  const hasta = new Date(FD.idx.hasta + 'T12:00:00');
+  el.innerHTML = `<section class="panel">
+    <div class="sec-h"><h2>Explorar ventas</h2><span class="hint">Facturas del ERP, sin IVA ni clientes; facturas y artículos netos de notas de crédito, como el POS · al ${hasta.getDate()} de ${MESES[hasta.getMonth()]}. Lo de hoy está arriba, en vivo.</span></div>
+    <div class="fd-ctl">
+      <select id="fdMes" aria-label="Mes">${ms.map(x => `<option value="${x}" ${x === m ? 'selected' : ''}>${tit(MESES[+x.slice(5) - 1])} ${x.slice(0, 4)}</option>`).join('')}</select>
+      <select id="fdDia" aria-label="Día"><option value="">Todo el mes</option>${opDia}</select>
+      <span class="seg">${seg('T', 'Tiendas')}${seg('B', 'CEDIS B2B')}${seg('X', 'Todo')}</span>
+    </div>
+    <div class="fd-crumbs">${chips || '<span class="todo">Toca una barra o una fila para bajar al detalle.</span>'}</div>
+    <div class="fd-kpis">
+      <div class="kpi acc"><b>${usd2.format(tot)}</b><span>venta</span></div>${cmp}
+      ${nf != null ? `<div class="kpi acc"><b>${nf ? apf(lin / nf) : '–'}</b><span>artículos por factura</span></div><div class="kpi"><b>${n0.format(nf)}</b><span>facturas</span></div><div class="kpi"><b>${nf ? usd2.format(tot / nf) : '–'}</b><span>ticket promedio</span></div>` : ''}
+      <div class="kpi"><b>${n0.format(uni)}</b><span>unidades</span></div>
+    </div>
+    <svg class="fd-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Venta por día">${barras}</svg>
+    <div class="sec-h" style="margin-top:16px"><span class="seg">${vseg}</span><span class="hint">${G.length} ${G.length === 1 ? 'fila' : 'filas'} · % sobre lo filtrado · variación contra los mismos días de la semana, 4 semanas antes</span></div>
+    <div class="panel flush scroll"><table class="exec fd-t"><thead><tr><th>${DIM[ver]}</th><th class="num">Venta</th><th class="num hide-sm">%</th><th class="bc"></th><th class="num">${colN}</th>${uCol ? '' : '<th class="num">Art./fact.</th>'}<th class="num hide-sm">vs ant.</th></tr></thead><tbody>${filas || '<tr><td colspan="7" class="empty">Sin ventas con estos filtros.</td></tr>'}</tbody></table></div>
+    ${lista.length > 25 ? `<button class="btn fd-mas" id="fdTodos">${FD.todos ? 'Ver solo los 25 primeros' : 'Ver las ' + lista.length}</button>` : ''}
+  </section>`;
+  el.querySelector('#fdMes').onchange = ev => { f.mes = ev.target.value; f.dia = ''; FD.todos = false; fdPintar(); };
+  el.querySelector('#fdDia').onchange = ev => { f.dia = ev.target.value; fdPintar(); };
+  el.querySelectorAll('[data-fdc]').forEach(b => b.onclick = () => { f.canal = b.dataset.fdc; if (f.loc && (f.canal === 'B') !== CEDIS(f.loc) && f.canal !== 'X') f.loc = ''; fdPintar(); });
+  el.querySelectorAll('[data-fdx]').forEach(b => b.onclick = () => { f[b.dataset.fdx] = ''; fdPintar(); });
+  el.querySelectorAll('[data-fdd]').forEach(b => b.onclick = () => { f.dia = +f.dia === +b.dataset.fdd ? '' : b.dataset.fdd; fdPintar(); });
+  el.querySelectorAll('[data-fdv]').forEach(b => b.onclick = () => { FD.ver = b.dataset.fdv; FD.todos = false; fdPintar(); });
+  el.querySelectorAll('[data-fdk]').forEach(r => r.onclick = () => { f[ver] = r.dataset.fdk; let s = SIG[ver]; for (let i = 0; i < 4 && f[s]; i++) s = SIG[s]; FD.ver = s; FD.todos = false; fdPintar(); });
+  const t = el.querySelector('#fdTodos'); if (t) t.onclick = () => { FD.todos = !FD.todos; fdPintar(); };
+}
+window.fdMes = mes; window.fdVenN = venN; window.fdListo = async () => { if (!FD.idx) await window.fdAbrir(); if (!FD.idx) throw new Error('no se pudo leer el detalle de ventas'); return FD; };
+
+/* pps1: Presupuesto por persona, SOLO CONSULTA (Diego 4-nov-2026: "para que solo consulten, no editen").
+   Lo reparte Diego en su panel (pestaña privada 'Presupuesto personas'); aquí se ve la meta de cada persona y cuánto lleva vendido
+   (facturas del ERP sin IVA, hasta ayer). window.ppLectura(el, filas, {tiendas: [...], fija: 'Tienda'|null}) */
+const PPS = {m: '', t: ''};
+const ppOrd = c => /^GERENTE/.test(c) ? 0 : /^SUB ?GERENTE/.test(c) ? 1 : 2;
+const ppCar = c => /^GERENTE DE TIENDA/.test(c) ? 'Gerente' : /^SUB ?GERENTE/.test(c) ? 'Subgerente' : c === 'ASESOR COMERCIAL' ? 'Asesor' : tit(c);
+const ppNum = v => { const n = Number(String(v == null ? '' : v).replace(/[$\s]/g, '').replace(',', '.')); return isNaN(n) ? 0 : n; };
+window.ppLectura = async function(el, filas, op){
+  if (!el) return; op = op || {};
+  const L = (filas || []).filter(r => /^\d{4}-\d{2}/.test(String(r[0] || '').replace(/^'/, ''))).map(r => ({m: String(r[0]).replace(/^'/, '').slice(0, 7), t: String(r[1] || '').trim(), p: String(r[2] || '').trim(),
+    c: String(r[3] || '').trim().toUpperCase(), pc: ppNum(r[4]), meta: ppNum(r[5])})).filter(x => !op.fija || x.t === op.fija);
+  const cab = '<div class="sec-h"><h2>Presupuesto por persona</h2><span class="hint">Solo consulta. Lo reparte la gerencia; la venta es de las facturas del ERP sin IVA, hasta ayer.</span></div>';
+  if (!L.length) { el.innerHTML = cab + '<div class="panel empty">Todavía no hay presupuesto por persona' + (op.fija ? ' para ' + e(op.fija) : '') + '.</div>'; return; }
+  const meses = [...new Set(L.map(x => x.m))].sort().reverse(), hoyM = new Date().toISOString().slice(0, 7);
+  if (!meses.includes(PPS.m)) PPS.m = meses.includes(hoyM) ? hoyM : meses[0];
+  const ord = (op.tiendas || []).concat([...new Set(L.map(x => x.t))].filter(t => !(op.tiendas || []).includes(t)));
+  const tiendas = ord.filter(t => L.some(x => x.t === t && x.m === PPS.m));
+  if (!tiendas.includes(PPS.t)) PPS.t = op.fija || tiendas[0];
+  const M = PPS.m, T = PPS.t, G = L.filter(x => x.m === M && x.t === T).sort((a, b) => ppOrd(a.c) - ppOrd(b.c) || b.pc - a.pc || a.p.localeCompare(b.p));
+  // venta del mes de cada persona (todas sus facturas del mes, en cualquier local)
+  let V = null, hasta = '';
+  try {
+    const F = await window.fdListo(), D = await window.fdMes(M);
+    if (D) { V = {}; const per = {}; Object.entries(F.meta.ase).forEach(([l, x]) => per[l] = x[0]);
+      D.R.forEach(x => { const p = per[x.ven]; if (p) V[p] = (V[p] || 0) + x.s; }); hasta = D.dias[D.dias.length - 1] || ''; }
+  } catch (err) { V = null; }
+  const nom = p => { const l = window.FD && FD.meta && Object.keys(FD.meta.ase).find(k => FD.meta.ase[k][0] === p); if (l) return venN(l); const s = p.split(/\s+/); return tit((s[2] || s[0]) + ' ' + s[0]); };
+  const mesTxt = m => tit(MESES[+m.slice(5) - 1]) + ' ' + m.slice(0, 4);
+  const tot = G.reduce((a, x) => a + x.meta, 0), totV = V ? G.reduce((a, x) => a + (V[x.p] || 0), 0) : 0;
+  const hd = hasta ? new Date(hasta + 'T12:00:00') : null, dm = new Date(+M.slice(0, 4), +M.slice(5), 0).getDate();
+  const ritmo = hd && hasta.slice(0, 7) === M ? hd.getDate() / dm : null;
+  const av = (v, m) => m ? `<span class="${ritmo != null && v / m < ritmo ? 'fd-down' : 'fd-up'}">${pct(v / m)}</span>` : '–';
+  el.innerHTML = cab + `<div class="fd-ctl"><select id="ppsMes" aria-label="Mes">${meses.map(m => `<option value="${m}"${m === M ? ' selected' : ''}>${mesTxt(m)}</option>`).join('')}</select>
+    ${op.fija ? '' : `<select id="ppsTi" aria-label="Tienda">${tiendas.map(t => `<option value="${e(t)}"${t === T ? ' selected' : ''}>${e(t)}</option>`).join('')}</select>`}</div>
+    <div class="panel flush scroll"><table class="exec fd-t pps-t"><thead><tr><th>Persona</th><th class="num">%</th><th class="num">Meta</th>${V ? '<th class="num">Venta</th><th class="num">Avance</th>' : ''}</tr></thead><tbody>
+    ${G.map(x => `<tr><td>${e(nom(x.p))}<span class="sub">${e(ppCar(x.c))}</span></td><td class="num" data-l="%">${String(x.pc).replace('.', ',')}%</td><td class="num" data-l="Meta">${usd.format(x.meta)}</td>${V ? `<td class="num" data-l="Venta">${usd.format(V[x.p] || 0)}</td><td class="num" data-l="Avance"><b>${av(V[x.p] || 0, x.meta)}</b></td>` : ''}</tr>`).join('')}
+    <tr class="fl-tot"><td>Total ${e(T)}</td><td class="num" data-l="%">${String(Math.round(G.reduce((a, x) => a + x.pc, 0) * 100) / 100).replace('.', ',')}%</td><td class="num" data-l="Meta">${usd.format(tot)}</td>${V ? `<td class="num" data-l="Venta">${usd.format(totV)}</td><td class="num" data-l="Avance"><b>${av(totV, tot)}</b></td>` : ''}</tr></tbody></table></div>
+    ${V && hd ? `<p class="hint" style="margin-top:6px">Venta al ${hd.getDate()} de ${MESES[hd.getMonth()]}${ritmo != null ? '; en verde quien va sobre el ritmo del mes (' + pct(ritmo) + ')' : ''}. La venta de cada persona es la que factura con su usuario del ERP; las ventas sin vendedor no se reparten.</p>` : ''}`;
+  el.querySelector('#ppsMes').onchange = ev => { PPS.m = ev.target.value; window.ppLectura(el, filas, op); };
+  const s = el.querySelector('#ppsTi'); if (s) s.onchange = ev => { PPS.t = ev.target.value; window.ppLectura(el, filas, op); };
+};
+})();
+</script>
+
 </body>
 </html>
