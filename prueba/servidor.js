@@ -307,6 +307,11 @@
   };
   API.apiUniPanel = function (p) { panelOk(p); return {fecha: '', total: 0, filas: []}; };   // Universidad Steren: en la prueba no hay lecturas de cursos
   API.apiUniTienda = function (tok) { tiendaDe(tok); return {fecha: '', total: 0, filas: []}; };
+  // fds1/pps1: Explorar ventas usa datos reales cifrados; en la prueba no se entrega la clave. Presupuesto por persona de ejemplo vacío.
+  API.apiFdClave = function (p) { panelOk(p); throw new Error('en el entorno de pruebas no hay detalle de ventas'); };
+  API.apiFdClaveTienda = function (tok) { tiendaDe(tok); throw new Error('en el entorno de pruebas no hay detalle de ventas'); };
+  API.apiPPPanel = function (p) { panelOk(p); return []; };
+  API.apiPPTienda = function (tok) { tiendaDe(tok); return []; };
   API.apiClientesPanel = function (p) {   // pestaña Clientes del panel: las dos hojas tal cual, con encabezado (en la foto real celular y correo van tapados)
     panelOk(p);
     return {vf: DB.hoja('Ventas futuras').slice(), rec: DB.hoja('Reclamos clientes').slice()};
