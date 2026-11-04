@@ -1385,9 +1385,14 @@ function modalActividad(a){
     '<div class="phead"><span class="small"><b>' + (cc ? 'Foto del sobre' : 'Foto') + '</b></span><span class="req opt">Opcional</span></div>' +
     '<div class="ph" id="acFotos"><label class="add cam"><span class="ic">📷</span>Cámara<input type="file" accept="image/*" capture="environment"></label></div>' +
     '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="acNo">Cancelar</button><button class="btn ok grow" id="acSi" disabled>Marcar entregado</button></div>');
-  const si = $('#acSi'), listo = () => si.disabled = !(quien && [...document.querySelectorAll('.acc')].every(c => c.checked));
+  const si = $('#acSi'), listo = () => {   // aq1: el botón dice qué falta
+    const f = [...document.querySelectorAll('.acc')].filter(c => !c.checked).length;
+    si.disabled = !quien || f > 0;
+    si.textContent = !quien ? 'Toca tu nombre arriba' : f ? (f === 1 ? 'Marca la casilla' : 'Marca las ' + f + ' casillas') : 'Marcar entregado';
+  };
   document.querySelectorAll('.quien [data-n]').forEach(b => b.onclick = () => { quien = b.dataset.n; document.querySelectorAll('.quien [data-n]').forEach(x => x.classList.toggle('on', x === b)); listo(); });
   document.querySelectorAll('.acc').forEach(c => c.onchange = listo);
+  const unico = document.querySelectorAll('.quien [data-n]'); if (unico.length === 1) unico[0].click(); else listo();   // aq1: un solo nombre ya elegido
   const fi = $('#acFotos input');
   fi.onchange = () => { const f = fi.files[0]; if (!f) return; foto = f; const d = $('#acFotos .t') || document.createElement('div'); d.className = 't'; d.innerHTML = '<img src="' + URL.createObjectURL(f) + '" alt="">'; $('#acFotos').prepend(d); };
   $('#acNo').onclick = closeModal;
