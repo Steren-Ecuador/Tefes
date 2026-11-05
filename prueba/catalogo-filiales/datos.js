@@ -143,7 +143,9 @@ window.CATALOGO=[
 "pvp": 24.99,
 "colab": 22.99,
 "feat": [],
-"imgs": [],
+"imgs": [
+"img/AUD-7840NE_0.jpg"
+],
 "img": null
 },
 {
@@ -182,7 +184,13 @@ window.CATALOGO=[
 "pvp": 15.98,
 "colab": 14.36,
 "feat": [],
-"imgs": [],
+"imgs": [
+"img/AUD-7420NE_0.jpg",
+"img/AUD-7420NE_1.jpg",
+"img/AUD-7420NE_2.jpg",
+"img/AUD-7420NE_3.jpg",
+"img/AUD-7420NE_4.jpg"
+],
 "img": null
 },
 {
@@ -759,7 +767,13 @@ window.CATALOGO=[
 "pvp": 27.99,
 "colab": 25.29,
 "feat": [],
-"imgs": [],
+"imgs": [
+"img/SMW-420PL_0.jpg",
+"img/SMW-420PL_1.jpg",
+"img/SMW-420PL_2.jpg",
+"img/SMW-420PL_3.jpg",
+"img/SMW-420PL_4.jpg"
+],
 "img": null
 },
 {
