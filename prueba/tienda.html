@@ -507,6 +507,12 @@ input[type=tel],input[type=email]{width:100%;border:1px solid var(--line);border
 @media(max-width:700px){.tem-nav,.tem-sub{display:none!important}.tem-buscar{flex-basis:100%;max-width:none;order:9;margin:4px 0 6px}}
 </style>
 <style>.dato-dia{display:flex;gap:10px;align-items:flex-start;background:linear-gradient(90deg,#fff7e0,#fffdf6);border:1px solid #f2d58a;border-radius:12px;padding:10px 14px;margin:0 0 12px;color:#5a4300}.dato-dia b{display:block;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#a07400;margin-bottom:2px}.dato-dia .dd-ico{font-size:22px;line-height:1}@media (prefers-color-scheme:dark){.dato-dia{background:#3a3010;border-color:#6b5520;color:#f5e6b8}.dato-dia b{color:#e8c25a}}</style>
+<style>/* gt1 garantías extendidas */
+.gt .fl-mia b small{font-size:13px;font-weight:600;margin-left:4px}
+.gt-up{color:var(--ok);font-weight:700}.gt-dn{color:var(--bad);font-weight:700}
+.gt .gt-ant{margin:8px 0 2px}
+.gt td.n small{display:block;font-size:11.5px;color:var(--muted);font-weight:400}
+</style>
 </head>
 <body>
 <script>
@@ -1375,6 +1381,38 @@ function uniAbrir(){
   uniTiendaCargar().then(U => { const b = $('#uniB'); if (b) { b.className = ''; b.innerHTML = uniInformeHtml(U, false); } }, e => { const b = $('#uniB'); if (b) b.textContent = e.message; });
 }
 function datoHtml(x){ /* dd1 */ if (!x || !x.texto) return ''; const t = String(x.texto); const m = t.match(/^\p{Extended_Pictographic}\uFE0F?\s*/u); return '<div class="dato-dia"><span class="dd-ico">' + (m ? m[0].trim() : '🌟') + '</span><div><b>Dato positivo del día</b>' + esc(m ? t.slice(m[0].length) : t) + '</div></div>'; }
+/* gt1: garantías extendidas de la tienda (solo la suya), del POS Steren (Diego 2026-11-05). Solo cantidades y dólares. */
+function garHtml(){
+  const G = S.data.garantias; if (!G || !G.filas || !G.mesA || !G.hasta) return '';
+  const usd = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const usd0 = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD', maximumFractionDigits: 0});
+  const nomMes = m => new Intl.DateTimeFormat('es-EC', {month: 'long', timeZone: 'UTC'}).format(new Date(m + '-15T12:00:00Z'));
+  const fd = f => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f || ''); return m ? (+m[3]) + '/' + (+m[2]) : ''; };
+  const a = {q: 0, usd: 0}, p = {q: 0, usd: 0}, AS = {};
+  G.filas.forEach(r => { const m = String(r[0]).slice(0, 7), k = m === G.mesA ? 'a' : (m === G.mesP ? 'p' : ''); if (!k) return;
+    const t = k === 'a' ? a : p; t.q += +r[4] || 0; t.usd += +r[5] || 0;
+    const x = AS[r[3]] = AS[r[3]] || {n: r[3], a: {q: 0, usd: 0}, p: {q: 0, usd: 0}}; x[k].q += +r[4] || 0; x[k].usd += +r[5] || 0; });
+  if (!a.q && !p.q) return '';
+  const dH = new Date(G.hasta + 'T12:00:00Z'), dias = new Date(Date.UTC(dH.getUTCFullYear(), dH.getUTCMonth() + 1, 0)).getUTCDate();
+  const completo = dH.getUTCDate() >= dias, proy = a.usd * (completo ? 1 : dias / dH.getUTCDate());
+  const tm = /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/.exec(G.tomado || '');
+  const tomTxt = tm ? new Intl.DateTimeFormat('es-EC', {weekday: 'short', day: 'numeric', month: 'numeric', timeZone: 'UTC'}).format(new Date(Date.UTC(+tm[1], tm[2] - 1, +tm[3], 12))).replace(',', '') + (tm[4] ? ' ' + tm[4] + ':' + tm[5] : '') : '';
+  const sube = G.mesP && p.usd ? proy >= p.usd : null;
+  const fl = sube === null ? '' : (sube ? ' <span class="gt-up" title="Va por encima de ' + esc(nomMes(G.mesP)) + '">▲</span>' : ' <span class="gt-dn" title="Va por debajo de ' + esc(nomMes(G.mesP)) + '">▼</span>');
+  const mA = nomMes(G.mesA), mP = G.mesP ? nomMes(G.mesP) : '';
+  const tiles = '<div class="fl-mia"><div><span class="tiny muted">Garantías ' + (completo ? 'en ' + esc(mA) : 'al ' + fd(G.hasta)) + '</span><b>' + a.q + '</b></div>' +
+    '<div><span class="tiny muted">Vendido</span><b>' + usd0.format(a.usd) + '</b></div>' +
+    (completo ? '' : '<div><span class="tiny muted">Proyección del mes</span><b>' + usd0.format(proy) + fl + '</b></div>') + '</div>';
+  const ant = G.mesP ? '<div class="small gt-ant">' + esc(mP.charAt(0).toUpperCase() + mP.slice(1)) + ' completo: <b>' + p.q + ' garantías · ' + usd.format(p.usd) + '</b>' +
+    (sube === null || completo ? '' : ' · <span class="' + (sube ? 'gt-up' : 'gt-dn') + '">' + (sube ? 'vas por encima' : 'vas por debajo') + '</span>') + '</div>' : '';
+  const cel = v => v.q || v.usd ? v.q + '<small>' + usd.format(v.usd) + '</small>' : '–';
+  const L = Object.values(AS).filter(x => x.a.q || x.p.q).sort((x, y) => y.a.usd - x.a.usd || y.p.usd - x.p.usd);
+  const tabla = '<table class="fl-t"><thead><tr><th>Asesor</th>' + (G.mesP ? '<th class="n">' + esc(mP) + '</th>' : '') + '<th class="n">' + esc(mA) + '</th></tr></thead><tbody>' +
+    L.map(x => '<tr><td>' + esc(x.n) + '</td>' + (G.mesP ? '<td class="n">' + cel(x.p) + '</td>' : '') + '<td class="n">' + cel(x.a) + '</td></tr>').join('') +
+    '<tr class="tot"><td>Total ' + esc(S.data.tienda) + '</td>' + (G.mesP ? '<td class="n">' + cel(p) + '</td>' : '') + '<td class="n">' + cel(a) + '</td></tr></tbody></table>';
+  return '<div class="card fl gt" id="garantias"><div class="fl-cab"><h3>Garantías extendidas</h3><span class="tiny muted">' + (tomTxt ? 'Datos del POS Steren del ' + esc(tomTxt) + ' · ventas hasta el ' + fd(G.hasta) : 'Del POS Steren, ventas hasta el ' + fd(G.hasta)) + '</span></div>' +
+    tiles + ant + '<details><summary>Por asesor</summary>' + tabla + '</details></div>';
+}
 function renderInicio(){
   const D = S.data, A = D.anuncios || [], hoy = D.hoy, sem = semanaDe(hoy);
   const act = A.filter(activo), ant = A.filter(a => !activo(a));
@@ -1403,7 +1441,7 @@ function renderInicio(){
       '<li>En <b>Pendientes</b>, corrige lo que encontró el supervisor y envíalo con foto.</li>' +
       '<li>En <b>Inventario</b>, haz el Muestreo Top 50 con el teléfono y registra las ventas futuras: lo que un cliente pide y no tenemos.</li>' +
       '<li>En <b>Supervisión</b>, haz la autosupervisión una vez por semana y ve cómo te fue en cada supervisión.</li></ol></details></div></div>';
-  $('#main').innerHTML = perfilHtml() + flashHtml() + h;
+  $('#main').innerHTML = perfilHtml() + flashHtml() + garHtml() + h;   // gt1
   fdsMontar();   // fds1
   document.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => { irA(b.dataset.ir); const an = b.dataset.ancla; if (an) setTimeout(() => { const x = document.getElementById(an); if (x) window.scrollTo(0, x.getBoundingClientRect().top + window.scrollY - (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hh')) || 0) - 8); }, 60); });
   document.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => modalConfirmar(A.find(x => x.id === b.closest('[data-an]').dataset.an)));
