@@ -312,6 +312,7 @@
   API.apiFdClaveTienda = function (tok) { tiendaDe(tok); throw new Error('en el entorno de pruebas no hay detalle de ventas'); };
   API.apiPPPanel = function (p) { panelOk(p); return []; };
   API.apiDatoPanel = function (p) { panelOk(p); return {fecha: new Date().toISOString().slice(0, 10), texto: '🏆 Dato de prueba: Portal tuvo su mejor lunes desde que abrió.', tienda: 'Todas'}; };   // dd1
+  API.apiGarantiasPanel = function (p) { panelOk(p); return {mesA: '2026-11', mesP: '2026-10', hasta: '2026-11-04', tomado: '2026-11-04 22:31', filas: [['2026-10-01','2026-10-31','Portal','ASESOR1',30,280.5,8],['2026-10-01','2026-10-31','Scala','ASESOR2',25,210,6],['2026-11-01','2026-11-04','Portal','ASESOR1',4,38.9,8],['2026-11-01','2026-11-04','Scala','ASESOR2',3,27,6]]}; };   // gt1
   API.apiPPTienda = function (tok) { tiendaDe(tok); return []; };
   API.apiClientesPanel = function (p) {   // pestaña Clientes del panel: las dos hojas tal cual, con encabezado (en la foto real celular y correo van tapados)
     panelOk(p);

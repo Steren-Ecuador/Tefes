@@ -649,6 +649,17 @@ tr.on td{background:var(--accent-soft)}
 @media(max-width:700px){.tem-nav,.tem-sub{display:none!important}.tem-buscar{flex-basis:100%;max-width:none;order:9;margin:4px 0 6px}}
 </style>
 <style>.dato-dia{display:flex;gap:10px;align-items:flex-start;background:linear-gradient(90deg,#fff7e0,#fffdf6);border:1px solid #f2d58a;border-radius:12px;padding:10px 14px;margin:0 0 12px;color:#5a4300}.dato-dia b{display:block;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#a07400;margin-bottom:2px}.dato-dia .dd-ico{font-size:22px;line-height:1}@media (prefers-color-scheme:dark){.dato-dia{background:#3a3010;border-color:#6b5520;color:#f5e6b8}.dato-dia b{color:#e8c25a}}</style>
+<style>/* gt1 garantías extendidas (igual que el admin) */
+#garBody{margin-top:30px}
+.gar-t td,.gar-t th{white-space:nowrap}
+.gar-t td.store{white-space:normal}
+.gar-t .q{font-weight:700}
+.gar-t .u{color:var(--fg-2);font-size:13px;margin-left:6px}
+.gar-t tr.as td{font-size:13.5px;background:var(--surface-2);padding-top:6px;padding-bottom:6px}
+.gar-t tr.as td:first-child{padding-left:26px}
+@media(max-width:620px){.gar-t .u{display:block;margin-left:0}.gar-t th,.gar-t td{padding-left:6px;padding-right:6px}.gar-t th{white-space:normal}}
+.gar-up{color:var(--good);font-weight:600} .gar-dn{color:var(--bad);font-weight:600}
+</style>
 </head>
 <body>
 <script>
@@ -1062,6 +1073,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
 
   <div class="view" data-view="flash" hidden>
     <div id="flashBody"><div class="skeleton">Cargando Flash de Ventas…</div></div>
+    <div id="garBody"></div>
     <div id="fdBody"></div>
     <div id="ppBody"></div>
   </div>
@@ -1251,6 +1263,7 @@ async function cargar(liviano){
     api('apiPoliticasPanel').then(x => { st.pol = x; renderPoliticas(); }).catch(() => { st.pol = null; renderPoliticas(); });
     api('apiGuiasPanel').then(x => { st.gui = x; renderGuias(); }).catch(() => { st.gui = null; renderGuias(); });
     api('apiFlashPanel').then(x => { st.flash = x; renderFlash(); }).catch(() => { st.flash = null; renderFlash(); });
+    api('apiGarantiasPanel').then(x => { st.gar = x; renderGar(); }).catch(() => { st.gar = null; renderGar(); });   // gt1
     api('apiClientesPanel').then(x => { st.vf = x.vf; st.rec = x.rec; renderVF(); renderReclamos(); }).catch(() => { st.vf = null; st.rec = null; renderVF(); renderReclamos(); });   // paneles-iguales-1
     api('apiPoliticasInformePanel').then(x => { st.polInfD = x; renderPoliticas(); }).catch(() => { st.polInfD = null; renderPoliticas(); });
     if (liviano && st.avisos !== undefined) return;
@@ -2064,6 +2077,48 @@ function pintarMapa(todas){
 
 
 /* ---------- Flash de Ventas: venta del día y del mes contra presupuesto, desde el ERP (igual que el panel admin, Diego 2026-10-25) ---------- */
+/* ---------- gt1: garantías extendidas (igual que el admin; aquí llegan por apiGarantiasPanel, GarantiasTienda.gs) ---------- */
+function renderGar(){
+  const el = $('#garBody'); if (!el) return;
+  if (st.gar === undefined) { el.innerHTML = '<div class="skeleton">Cargando garantías…</div>'; return; }
+  const G = st.gar; if (!G || !G.filas || !G.filas.length) { el.innerHTML = ''; return; }
+  const R = G.filas.map(r => ({desde: String(r[0]), hasta: String(r[1]), tienda: String(r[2]), asesor: String(r[3] || ''), q: +r[4] || 0, usd: +r[5] || 0, orden: +r[6] || 99}));
+  const usd = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const usd0 = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD', maximumFractionDigits: 0});
+  const mA = G.mesA, mP = G.mesP || null, hasta = G.hasta;
+  const tomado = G.tomado || '';
+  const tomTxt = (m => m ? new Intl.DateTimeFormat('es-EC', {weekday: 'short', day: 'numeric', month: 'numeric', timeZone: 'UTC'}).format(new Date(Date.UTC(+m[1], m[2] - 1, +m[3], 12))).replace(',', '') + (m[4] ? ' ' + m[4] + ':' + m[5] : '') : '')(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/.exec(tomado));
+  const dH = new Date(hasta + 'T12:00:00Z'), dias = new Date(Date.UTC(dH.getUTCFullYear(), dH.getUTCMonth() + 1, 0)).getUTCDate();
+  const completo = dH.getUTCDate() >= dias, fac = completo ? 1 : dias / dH.getUTCDate();
+  const nomMes = m => new Intl.DateTimeFormat('es-EC', {month: 'long', timeZone: 'UTC'}).format(new Date(m + '-15T12:00:00Z'));
+  const T = {};
+  R.forEach(x => { const m = x.desde.slice(0, 7); if (m !== mA && m !== mP) return;
+    const t = T[x.tienda] = T[x.tienda] || {tienda: x.tienda, orden: x.orden, a: {q: 0, usd: 0}, p: {q: 0, usd: 0}, as: {}};
+    const k = m === mA ? 'a' : 'p'; t[k].q += x.q; t[k].usd += x.usd;
+    const a = t.as[x.asesor] = t.as[x.asesor] || {asesor: x.asesor, a: {q: 0, usd: 0}, p: {q: 0, usd: 0}}; a[k].q += x.q; a[k].usd += x.usd; });
+  const L = Object.values(T).sort((a, b) => b.a.usd - a.a.usd);
+  const tot = L.reduce((s, t) => ({a: {q: s.a.q + t.a.q, usd: s.a.usd + t.a.usd}, p: {q: s.p.q + t.p.q, usd: s.p.usd + t.p.usd}}), {a: {q: 0, usd: 0}, p: {q: 0, usd: 0}});
+  const cel = v => v.q || v.usd ? `<span class="q">${v.q}</span><span class="u">${usd.format(v.usd)}</span>` : '<span class="zero">–</span>';
+  const proy = v => v.usd * fac;
+  const flecha = (v, ant) => { if (!mP || !ant.usd) return ''; return proy(v) >= ant.usd ? ` <span class="gar-up" title="Va por encima de ${esc(nomMes(mP))}">▲</span>` : ` <span class="gar-dn" title="Va por debajo de ${esc(nomMes(mP))}">▼</span>`; };
+  const fd = f => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f); return m ? (+m[3]) + '/' + (+m[2]) : f; };
+  const abierta = st.garT || '';
+  const filas = L.map(t => {
+    const as = Object.values(t.as).filter(a => a.a.q || a.p.q).sort((x, y) => y.a.usd - x.a.usd || y.p.usd - x.p.usd);
+    return `<tr class="click" data-gt="${esc(t.tienda)}"><td class="store">${esc(t.tienda)}</td>${mP ? `<td class="num">${cel(t.p)}</td>` : ''}<td class="num">${cel(t.a)}</td>${completo ? '' : `<td class="num hide-sm">${usd0.format(proy(t.a))}${flecha(t.a, t.p)}</td>`}</tr>` +
+      (abierta === t.tienda ? as.map(a => `<tr class="as"><td>${esc(a.asesor)}</td>${mP ? `<td class="num">${cel(a.p)}</td>` : ''}<td class="num">${cel(a.a)}</td>${completo ? '' : '<td class="hide-sm"></td>'}</tr>`).join('') : '');
+  }).join('');
+  el.innerHTML = `<div class="sec-h"><h2>Garantías extendidas</h2><span class="hint">${tomTxt ? `Datos tomados del POS Steren el ${esc(tomTxt)} · ventas hasta el ${fd(hasta)}` : 'Cantidad y dólares por tienda, del POS Steren'}. Toca una tienda para ver sus asesores.</span></div>
+    <div class="kpis">
+      <div class="kpi acc"><b>${tot.a.q}</b><span>garantías en ${esc(nomMes(mA))}${completo ? '' : ' (al ' + fd(hasta) + ')'}</span></div>
+      <div class="kpi"><b>${usd.format(tot.a.usd)}</b><span>vendidos</span></div>
+      ${completo ? '' : `<div class="kpi"><b>${usd0.format(proy(tot.a))}</b><span>proyección del mes</span></div>`}
+      ${mP ? `<div class="kpi"><b>${tot.p.q} · ${usd0.format(tot.p.usd)}</b><span>${esc(nomMes(mP))} completo</span></div>` : ''}
+    </div>
+    <div class="panel flush scroll" style="margin-top:12px"><table class="exec gar-t"><thead><tr><th>Tienda</th>${mP ? `<th class="num">${esc(nomMes(mP))}</th>` : ''}<th class="num">${esc(nomMes(mA))}${completo ? '' : ' al ' + fd(hasta)}</th>${completo ? '' : '<th class="num hide-sm">Proyección</th>'}</tr></thead>
+      <tbody>${filas}<tr class="fl-tot"><td>Total tiendas</td>${mP ? `<td class="num">${cel(tot.p)}</td>` : ''}<td class="num">${cel(tot.a)}</td>${completo ? '' : `<td class="num hide-sm">${usd0.format(proy(tot.a))}${flecha(tot.a, tot.p)}</td>`}</tr></tbody></table></div>`;
+  el.querySelectorAll('[data-gt]').forEach(r => r.onclick = () => { st.garT = st.garT === r.dataset.gt ? '' : r.dataset.gt; renderGar(); });
+}
 function renderFlash(){
   const el = $('#flashBody'); if (!el) return;
   if (st.flash === undefined) { el.innerHTML = '<div class="skeleton">Cargando Flash de Ventas…</div>'; return; }
