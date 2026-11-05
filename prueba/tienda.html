@@ -1960,7 +1960,7 @@ function uniC01Html(p){
   const nom = a => a.map(x => esc(x.n || x)).join(', ');
   return '<div class="vbox' + (d.c === '2' ? '' : ' mal') + '"><div class="ttl">Universidad Steren del equipo · al ' + esc(d.fd) + '</div>' +
     fila('En el grupo TEFES de la plataforma', (d.F.length) + ' de ' + (d.F.length + d.sin.length), d.sin.length) +
-    (d.sin.length ? '<div class="tiny" style="color:var(--bad)">Sin cuenta: ' + nom(d.sin) + '. Si alguien tiene menos de 15 días en la tienda, no cuenta.</div>' : '') +
+    (d.sin.length ? '<div class="tiny" style="color:var(--bad)">No aparecen: ' + nom(d.sin) + '. Si tienen cuenta, pide que los agreguen al grupo de TEFES en la Universidad; quien tiene menos de 15 días en la tienda no cuenta.</div>' : '') +
     fila('Carreras base al 100 %', (d.F.length - d.carF.length) + ' de ' + d.F.length, d.carF.length) +
     (d.carF.length ? '<div class="tiny muted">Falta: ' + nom(d.carF) + '</div>' : '') +
     fila('Avance del equipo (aprobados ÷ asignados)', d.av + ' %', d.av < 90) +
