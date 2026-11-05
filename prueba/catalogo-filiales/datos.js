@@ -17,7 +17,8 @@ window.CATALOGO=[
 "img/GMB-3000_2.jpg",
 "img/GMB-3000_3.jpg",
 "img/GMB-3000_4.jpg"
-]
+],
+"img": "img/GMB-3000.jpg"
 },
 {
 "codigo": "AUD-AE-700NE",
@@ -36,7 +37,8 @@ window.CATALOGO=[
 "img/AUD-AE-700NE_2.jpg",
 "img/AUD-AE-700NE_3.jpg",
 "img/AUD-AE-700NE_4.jpg"
-]
+],
+"img": "img/AUD-AE-700NE.jpg"
 },
 {
 "codigo": "MOV-123",
@@ -55,7 +57,8 @@ window.CATALOGO=[
 "img/MOV-123_1.jpg",
 "img/MOV-123_2.jpg",
 "img/MOV-123_3.jpg"
-]
+],
+"img": "img/MOV-123.jpg"
 },
 {
 "codigo": "MIC-9100",
@@ -73,7 +76,8 @@ window.CATALOGO=[
 "img/MIC-9100_0.jpg",
 "img/MIC-9100_1.jpg",
 "img/MIC-9100_2.jpg"
-]
+],
+"img": "img/MIC-9100.jpg"
 },
 {
 "codigo": "PB-2010AC",
@@ -93,7 +97,8 @@ window.CATALOGO=[
 "img/PB-2010AC_2.jpg",
 "img/PB-2010AC_3.jpg",
 "img/PB-2010AC_4.jpg"
-]
+],
+"img": "img/PB-2010AC.jpg"
 },
 {
 "codigo": "AUD-AE-200NE",
@@ -110,7 +115,8 @@ window.CATALOGO=[
 "img/AUD-AE-200NE_0.jpg",
 "img/AUD-AE-200NE_1.jpg",
 "img/AUD-AE-200NE_2.jpg"
-]
+],
+"img": "img/AUD-AE-200NE.jpg"
 },
 {
 "codigo": "PB-S020-NE",
@@ -127,7 +133,8 @@ window.CATALOGO=[
 "imgs": [
 "img/PB-S020-NE_0.jpg",
 "img/PB-S020-NE_1.jpg"
-]
+],
+"img": "img/PB-S020-NE.jpg"
 },
 {
 "codigo": "AUD-7840NE",
@@ -136,7 +143,8 @@ window.CATALOGO=[
 "pvp": 24.99,
 "colab": 22.99,
 "feat": [],
-"imgs": []
+"imgs": [],
+"img": null
 },
 {
 "codigo": "BTR-300",
@@ -152,7 +160,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/BTR-300_0.jpg"
-]
+],
+"img": "img/BTR-300.jpg"
 },
 {
 "codigo": "ELI-7046",
@@ -163,7 +172,8 @@ window.CATALOGO=[
 "feat": [],
 "imgs": [
 "img/ELI-7046_0.jpg"
-]
+],
+"img": "img/ELI-7046.jpg"
 },
 {
 "codigo": "AUD-7420NE",
@@ -172,7 +182,8 @@ window.CATALOGO=[
 "pvp": 15.98,
 "colab": 14.36,
 "feat": [],
-"imgs": []
+"imgs": [],
+"img": null
 },
 {
 "codigo": "POD-170",
@@ -192,7 +203,8 @@ window.CATALOGO=[
 "img/POD-170_2.jpg",
 "img/POD-170_3.jpg",
 "img/POD-170_4.jpg"
-]
+],
+"img": "img/POD-170.jpg"
 },
 {
 "codigo": "USB-MG11",
@@ -209,7 +221,8 @@ window.CATALOGO=[
 "imgs": [
 "img/USB-MG11_0.jpg",
 "img/USB-MG11_1.jpg"
-]
+],
+"img": "img/USB-MG11.jpg"
 },
 {
 "codigo": "USB-S13",
@@ -229,7 +242,8 @@ window.CATALOGO=[
 "img/USB-S13_2.jpg",
 "img/USB-S13_3.jpg",
 "img/USB-S13_4.jpg"
-]
+],
+"img": "img/USB-S13.jpg"
 },
 {
 "codigo": "USB-MG41",
@@ -246,7 +260,8 @@ window.CATALOGO=[
 "imgs": [
 "img/USB-MG41_0.jpg",
 "img/USB-MG41_1.jpg"
-]
+],
+"img": "img/USB-MG41.jpg"
 },
 {
 "codigo": "BAG-100",
@@ -264,7 +279,8 @@ window.CATALOGO=[
 "img/BAG-100_0.jpg",
 "img/BAG-100_1.jpg",
 "img/BAG-100_2.jpg"
-]
+],
+"img": "img/BAG-100.jpg"
 },
 {
 "codigo": "USB-MG21",
@@ -281,7 +297,8 @@ window.CATALOGO=[
 "imgs": [
 "img/USB-MG21_0.jpg",
 "img/USB-MG21_1.jpg"
-]
+],
+"img": "img/USB-MG21.jpg"
 },
 {
 "codigo": "ELI-762",
@@ -292,7 +309,8 @@ window.CATALOGO=[
 "feat": [],
 "imgs": [
 "img/ELI-762_0.jpg"
-]
+],
+"img": "img/ELI-762.jpg"
 },
 {
 "codigo": "ELI-875",
@@ -307,7 +325,8 @@ window.CATALOGO=[
 "img/ELI-875_0.jpg",
 "img/ELI-875_1.jpg",
 "img/ELI-875_2.jpg"
-]
+],
+"img": "img/ELI-875.jpg"
 },
 {
 "codigo": "MOV-048",
@@ -327,7 +346,8 @@ window.CATALOGO=[
 "img/MOV-048_2.jpg",
 "img/MOV-048_3.jpg",
 "img/MOV-048_4.jpg"
-]
+],
+"img": "img/MOV-048.jpg"
 },
 {
 "codigo": "USB-S11",
@@ -347,7 +367,8 @@ window.CATALOGO=[
 "img/USB-S11_2.jpg",
 "img/USB-S11_3.jpg",
 "img/USB-S11_4.jpg"
-]
+],
+"img": "img/USB-S11.jpg"
 },
 {
 "codigo": "USB-S31",
@@ -367,7 +388,8 @@ window.CATALOGO=[
 "img/USB-S31_2.jpg",
 "img/USB-S31_3.jpg",
 "img/USB-S31_4.jpg"
-]
+],
+"img": "img/USB-S31.jpg"
 },
 {
 "codigo": "USB-S21",
@@ -387,7 +409,8 @@ window.CATALOGO=[
 "img/USB-S21_2.jpg",
 "img/USB-S21_3.jpg",
 "img/USB-S21_4.jpg"
-]
+],
+"img": "img/USB-S21.jpg"
 },
 {
 "codigo": "USB-S41",
@@ -407,7 +430,8 @@ window.CATALOGO=[
 "img/USB-S41_2.jpg",
 "img/USB-S41_3.jpg",
 "img/USB-S41_4.jpg"
-]
+],
+"img": "img/USB-S41.jpg"
 },
 {
 "codigo": "ELI-712",
@@ -423,7 +447,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/ELI-712_0.jpg"
-]
+],
+"img": "img/ELI-712.jpg"
 },
 {
 "codigo": "RAD-630",
@@ -443,7 +468,8 @@ window.CATALOGO=[
 "img/RAD-630_2.jpg",
 "img/RAD-630_3.jpg",
 "img/RAD-630_4.jpg"
-]
+],
+"img": "img/RAD-630.jpg"
 },
 {
 "codigo": "CCTV-638",
@@ -463,7 +489,8 @@ window.CATALOGO=[
 "img/CCTV-638_2.jpg",
 "img/CCTV-638_3.jpg",
 "img/CCTV-638_4.jpg"
-]
+],
+"img": "img/CCTV-638.jpg"
 },
 {
 "codigo": "CCTV-645",
@@ -483,7 +510,8 @@ window.CATALOGO=[
 "img/CCTV-645_2.jpg",
 "img/CCTV-645_3.jpg",
 "img/CCTV-645_4.jpg"
-]
+],
+"img": "img/CCTV-645.jpg"
 },
 {
 "codigo": "CCTV-632",
@@ -503,7 +531,8 @@ window.CATALOGO=[
 "img/CCTV-632_2.jpg",
 "img/CCTV-632_3.jpg",
 "img/CCTV-632_4.jpg"
-]
+],
+"img": "img/CCTV-632.jpg"
 },
 {
 "codigo": "LOCK-150",
@@ -523,7 +552,8 @@ window.CATALOGO=[
 "img/LOCK-150_2.jpg",
 "img/LOCK-150_3.jpg",
 "img/LOCK-150_4.jpg"
-]
+],
+"img": "img/LOCK-150.jpg"
 },
 {
 "codigo": "CCTV-223",
@@ -543,7 +573,8 @@ window.CATALOGO=[
 "img/CCTV-223_2.jpg",
 "img/CCTV-223_3.jpg",
 "img/CCTV-223_4.jpg"
-]
+],
+"img": "img/CCTV-223.jpg"
 },
 {
 "codigo": "CCTV-231",
@@ -563,7 +594,8 @@ window.CATALOGO=[
 "img/CCTV-231_2.jpg",
 "img/CCTV-231_3.jpg",
 "img/CCTV-231_4.jpg"
-]
+],
+"img": "img/CCTV-231.jpg"
 },
 {
 "codigo": "CCTV-203",
@@ -583,7 +615,8 @@ window.CATALOGO=[
 "img/CCTV-203_2.jpg",
 "img/CCTV-203_3.jpg",
 "img/CCTV-203_4.jpg"
-]
+],
+"img": "img/CCTV-203.jpg"
 },
 {
 "codigo": "LOCK-010",
@@ -598,7 +631,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/LOCK-010_0.jpg"
-]
+],
+"img": "img/LOCK-010.jpg"
 },
 {
 "codigo": "AIR-2950",
@@ -618,7 +652,8 @@ window.CATALOGO=[
 "img/AIR-2950_2.jpg",
 "img/AIR-2950_3.jpg",
 "img/AIR-2950_4.jpg"
-]
+],
+"img": "img/AIR-2950.jpg"
 },
 {
 "codigo": "AIR-290",
@@ -636,7 +671,8 @@ window.CATALOGO=[
 "img/AIR-290_2.jpg",
 "img/AIR-290_3.jpg",
 "img/AIR-290_4.jpg"
-]
+],
+"img": "img/AIR-290.jpg"
 },
 {
 "codigo": "SHOME-PET",
@@ -656,7 +692,8 @@ window.CATALOGO=[
 "img/SHOME-PET_2.jpg",
 "img/SHOME-PET_3.jpg",
 "img/SHOME-PET_4.jpg"
-]
+],
+"img": "img/SHOME-PET.jpg"
 },
 {
 "codigo": "AIR-265",
@@ -676,7 +713,8 @@ window.CATALOGO=[
 "img/AIR-265_2.jpg",
 "img/AIR-265_3.jpg",
 "img/AIR-265_4.jpg"
-]
+],
+"img": "img/AIR-265.jpg"
 },
 {
 "codigo": "RAD-010",
@@ -692,7 +730,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/RAD-010_0.jpg"
-]
+],
+"img": "img/RAD-010.jpg"
 },
 {
 "codigo": "CLK-270",
@@ -710,7 +749,8 @@ window.CATALOGO=[
 "img/CLK-270_0.jpg",
 "img/CLK-270_1.jpg",
 "img/CLK-270_2.jpg"
-]
+],
+"img": "img/CLK-270.jpg"
 },
 {
 "codigo": "SMW-420PL",
@@ -719,7 +759,8 @@ window.CATALOGO=[
 "pvp": 27.99,
 "colab": 25.29,
 "feat": [],
-"imgs": []
+"imgs": [],
+"img": null
 },
 {
 "codigo": "SHOME-100/3",
@@ -735,7 +776,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/SHOME-100_3_0.jpg"
-]
+],
+"img": "img/SHOME-100_3.jpg"
 },
 {
 "codigo": "905-170",
@@ -753,7 +795,8 @@ window.CATALOGO=[
 "img/905-170_1.jpg",
 "img/905-170_2.jpg",
 "img/905-170_3.jpg"
-]
+],
+"img": "img/905-170.jpg"
 },
 {
 "codigo": "INSECTRONIC",
@@ -772,7 +815,8 @@ window.CATALOGO=[
 "img/INSECTRONIC_1.jpg",
 "img/INSECTRONIC_2.jpg",
 "img/INSECTRONIC_3.jpg"
-]
+],
+"img": "img/INSECTRONIC.jpg"
 },
 {
 "codigo": "SHOME-110",
@@ -792,7 +836,8 @@ window.CATALOGO=[
 "img/SHOME-110_2.jpg",
 "img/SHOME-110_3.jpg",
 "img/SHOME-110_4.jpg"
-]
+],
+"img": "img/SHOME-110.jpg"
 },
 {
 "codigo": "PCAJA-001",
@@ -809,7 +854,8 @@ window.CATALOGO=[
 "img/PCAJA-001_2.jpg",
 "img/PCAJA-001_3.jpg",
 "img/PCAJA-001_4.jpg"
-]
+],
+"img": "img/PCAJA-001.jpg"
 },
 {
 "codigo": "SHOME-111",
@@ -829,7 +875,8 @@ window.CATALOGO=[
 "img/SHOME-111_2.jpg",
 "img/SHOME-111_3.jpg",
 "img/SHOME-111_4.jpg"
-]
+],
+"img": "img/SHOME-111.jpg"
 },
 {
 "codigo": "CLK-150",
@@ -848,7 +895,8 @@ window.CATALOGO=[
 "img/CLK-150_1.jpg",
 "img/CLK-150_2.jpg",
 "img/CLK-150_3.jpg"
-]
+],
+"img": "img/CLK-150.jpg"
 },
 {
 "codigo": "SHOME-122",
@@ -868,7 +916,8 @@ window.CATALOGO=[
 "img/SHOME-122_2.jpg",
 "img/SHOME-122_3.jpg",
 "img/SHOME-122_4.jpg"
-]
+],
+"img": "img/SHOME-122.jpg"
 },
 {
 "codigo": "SHOME-125",
@@ -884,7 +933,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/SHOME-125_0.jpg"
-]
+],
+"img": "img/SHOME-125.jpg"
 },
 {
 "codigo": "REPELTRONIC",
@@ -899,7 +949,8 @@ window.CATALOGO=[
 "img/REPELTRONIC_0.jpg",
 "img/REPELTRONIC_1.jpg",
 "img/REPELTRONIC_2.jpg"
-]
+],
+"img": "img/REPELTRONIC.jpg"
 },
 {
 "codigo": "INSECTRONIC-060",
@@ -908,7 +959,8 @@ window.CATALOGO=[
 "pvp": 15.98,
 "colab": 12.64,
 "feat": [],
-"imgs": []
+"imgs": [],
+"img": null
 },
 {
 "codigo": "SHOME-160",
@@ -928,7 +980,8 @@ window.CATALOGO=[
 "img/SHOME-160_2.jpg",
 "img/SHOME-160_3.jpg",
 "img/SHOME-160_4.jpg"
-]
+],
+"img": "img/SHOME-160.jpg"
 },
 {
 "codigo": "SHOME-140",
@@ -948,7 +1001,8 @@ window.CATALOGO=[
 "img/SHOME-140_2.jpg",
 "img/SHOME-140_3.jpg",
 "img/SHOME-140_4.jpg"
-]
+],
+"img": "img/SHOME-140.jpg"
 },
 {
 "codigo": "SHOME-100",
@@ -968,7 +1022,8 @@ window.CATALOGO=[
 "img/SHOME-100_2.jpg",
 "img/SHOME-100_3.jpg",
 "img/SHOME-100_4.jpg"
-]
+],
+"img": "img/SHOME-100.jpg"
 },
 {
 "codigo": "PT-510",
@@ -986,7 +1041,8 @@ window.CATALOGO=[
 "img/PT-510_1.jpg",
 "img/PT-510_2.jpg",
 "img/PT-510_3.jpg"
-]
+],
+"img": "img/PT-510.jpg"
 },
 {
 "codigo": "BAF-0890R",
@@ -1006,7 +1062,8 @@ window.CATALOGO=[
 "img/BAF-0890R_2.jpg",
 "img/BAF-0890R_3.jpg",
 "img/BAF-0890R_4.jpg"
-]
+],
+"img": "img/BAF-0890R.jpg"
 },
 {
 "codigo": "MIC-8020",
@@ -1022,7 +1079,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/MIC-8020_0.jpg"
-]
+],
+"img": "img/MIC-8020.jpg"
 },
 {
 "codigo": "SPK-630",
@@ -1042,7 +1100,8 @@ window.CATALOGO=[
 "img/SPK-630_2.jpg",
 "img/SPK-630_3.jpg",
 "img/SPK-630_4.jpg"
-]
+],
+"img": "img/SPK-630.jpg"
 },
 {
 "codigo": "BSD-120",
@@ -1061,7 +1120,8 @@ window.CATALOGO=[
 "img/BSD-120_2.jpg",
 "img/BSD-120_3.jpg",
 "img/BSD-120_4.jpg"
-]
+],
+"img": "img/BSD-120.jpg"
 },
 {
 "codigo": "MIC-285R",
@@ -1075,7 +1135,8 @@ window.CATALOGO=[
 "img/MIC-285R_1.jpg",
 "img/MIC-285R_2.jpg",
 "img/MIC-285R_3.jpg"
-]
+],
+"img": "img/MIC-285R.jpg"
 },
 {
 "codigo": "MOV-033",
@@ -1091,7 +1152,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/MOV-033_0.jpg"
-]
+],
+"img": "img/MOV-033.jpg"
 },
 {
 "codigo": "255-258 E01",
@@ -1102,7 +1164,8 @@ window.CATALOGO=[
 "feat": [],
 "imgs": [
 "img/255-258_E01_0.jpg"
-]
+],
+"img": "img/255-258_E01.jpg"
 },
 {
 "codigo": "252-100",
@@ -1113,7 +1176,8 @@ window.CATALOGO=[
 "feat": [],
 "imgs": [
 "img/252-100_0.jpg"
-]
+],
+"img": "img/252-100.jpg"
 },
 {
 "codigo": "255-258",
@@ -1124,7 +1188,8 @@ window.CATALOGO=[
 "feat": [],
 "imgs": [
 "img/255-258_0.jpg"
-]
+],
+"img": "img/255-258.jpg"
 },
 {
 "codigo": "DIS-118",
@@ -1144,7 +1209,8 @@ window.CATALOGO=[
 "img/DIS-118_2.jpg",
 "img/DIS-118_3.jpg",
 "img/DIS-118_4.jpg"
-]
+],
+"img": "img/DIS-118.jpg"
 },
 {
 "codigo": "DIS-116",
@@ -1162,7 +1228,8 @@ window.CATALOGO=[
 "img/DIS-116_0.jpg",
 "img/DIS-116_1.jpg",
 "img/DIS-116_2.jpg"
-]
+],
+"img": "img/DIS-116.jpg"
 },
 {
 "codigo": "COM-4755",
@@ -1180,7 +1247,8 @@ window.CATALOGO=[
 "img/COM-4755_0.jpg",
 "img/COM-4755_1.jpg",
 "img/COM-4755_2.jpg"
-]
+],
+"img": "img/COM-4755.jpg"
 },
 {
 "codigo": "AUD-570",
@@ -1198,7 +1266,8 @@ window.CATALOGO=[
 "img/AUD-570_0.jpg",
 "img/AUD-570_1.jpg",
 "img/AUD-570_2.jpg"
-]
+],
+"img": "img/AUD-570.jpg"
 },
 {
 "codigo": "COM-852",
@@ -1218,7 +1287,8 @@ window.CATALOGO=[
 "img/COM-852_2.jpg",
 "img/COM-852_3.jpg",
 "img/COM-852_4.jpg"
-]
+],
+"img": "img/COM-852.jpg"
 },
 {
 "codigo": "COM-688NE",
@@ -1238,7 +1308,8 @@ window.CATALOGO=[
 "img/COM-688NE_2.jpg",
 "img/COM-688NE_3.jpg",
 "img/COM-688NE_4.jpg"
-]
+],
+"img": "img/COM-688NE.jpg"
 },
 {
 "codigo": "COM-088",
@@ -1256,7 +1327,8 @@ window.CATALOGO=[
 "img/COM-088_0.jpg",
 "img/COM-088_1.jpg",
 "img/COM-088_2.jpg"
-]
+],
+"img": "img/COM-088.jpg"
 },
 {
 "codigo": "COM-476",
@@ -1270,7 +1342,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/COM-476_0.jpg"
-]
+],
+"img": "img/COM-476.jpg"
 },
 {
 "codigo": "COM-031",
@@ -1287,7 +1360,8 @@ window.CATALOGO=[
 "imgs": [
 "img/COM-031_0.jpg",
 "img/COM-031_1.jpg"
-]
+],
+"img": "img/COM-031.jpg"
 },
 {
 "codigo": "COM-5780",
@@ -1307,7 +1381,8 @@ window.CATALOGO=[
 "img/COM-5780_2.jpg",
 "img/COM-5780_3.jpg",
 "img/COM-5780_4.jpg"
-]
+],
+"img": "img/COM-5780.jpg"
 },
 {
 "codigo": "AUD-558",
@@ -1323,7 +1398,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/AUD-558_0.jpg"
-]
+],
+"img": "img/AUD-558.jpg"
 },
 {
 "codigo": "COM-5800",
@@ -1343,7 +1419,8 @@ window.CATALOGO=[
 "img/COM-5800_2.jpg",
 "img/COM-5800_3.jpg",
 "img/COM-5800_4.jpg"
-]
+],
+"img": "img/COM-5800.jpg"
 },
 {
 "codigo": "COM-675",
@@ -1357,7 +1434,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/COM-675_0.jpg"
-]
+],
+"img": "img/COM-675.jpg"
 },
 {
 "codigo": "COM-8230+",
@@ -1373,7 +1451,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/COM-8230__0.jpg"
-]
+],
+"img": "img/COM-8230_.jpg"
 },
 {
 "codigo": "COM-8234+",
@@ -1390,7 +1469,8 @@ window.CATALOGO=[
 "imgs": [
 "img/COM-8234__0.jpg",
 "img/COM-8234__1.jpg"
-]
+],
+"img": "img/COM-8234_.jpg"
 },
 {
 "codigo": "USB-680",
@@ -1405,7 +1485,8 @@ window.CATALOGO=[
 "imgs": [
 "img/USB-680_0.jpg",
 "img/USB-680_1.jpg"
-]
+],
+"img": "img/USB-680.jpg"
 },
 {
 "codigo": "COM-040",
@@ -1422,7 +1503,8 @@ window.CATALOGO=[
 "img/COM-040_0.jpg",
 "img/COM-040_1.jpg",
 "img/COM-040_2.jpg"
-]
+],
+"img": "img/COM-040.jpg"
 },
 {
 "codigo": "506-450",
@@ -1436,7 +1518,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/506-450_0.jpg"
-]
+],
+"img": "img/506-450.jpg"
 },
 {
 "codigo": "COM-206",
@@ -1453,7 +1536,8 @@ window.CATALOGO=[
 "imgs": [
 "img/COM-206_0.jpg",
 "img/COM-206_1.jpg"
-]
+],
+"img": "img/COM-206.jpg"
 },
 {
 "codigo": "COM-5280",
@@ -1471,7 +1555,8 @@ window.CATALOGO=[
 "img/COM-5280_1.jpg",
 "img/COM-5280_2.jpg",
 "img/COM-5280_3.jpg"
-]
+],
+"img": "img/COM-5280.jpg"
 },
 {
 "codigo": "LIM-123",
@@ -1488,7 +1573,8 @@ window.CATALOGO=[
 "imgs": [
 "img/LIM-123_0.jpg",
 "img/LIM-123_1.jpg"
-]
+],
+"img": "img/LIM-123.jpg"
 },
 {
 "codigo": "PRO-020",
@@ -1507,7 +1593,8 @@ window.CATALOGO=[
 "img/PRO-020_2.jpg",
 "img/PRO-020_3.jpg",
 "img/PRO-020_4.jpg"
-]
+],
+"img": "img/PRO-020.jpg"
 },
 {
 "codigo": "PRO-260",
@@ -1526,7 +1613,8 @@ window.CATALOGO=[
 "img/PRO-260_2.jpg",
 "img/PRO-260_3.jpg",
 "img/PRO-260_4.jpg"
-]
+],
+"img": "img/PRO-260.jpg"
 },
 {
 "codigo": "CCTV-235",
@@ -1546,7 +1634,8 @@ window.CATALOGO=[
 "img/CCTV-235_2.jpg",
 "img/CCTV-235_3.jpg",
 "img/CCTV-235_4.jpg"
-]
+],
+"img": "img/CCTV-235.jpg"
 },
 {
 "codigo": "206-700",
@@ -1561,7 +1650,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/206-700_0.jpg"
-]
+],
+"img": "img/206-700.jpg"
 },
 {
 "codigo": "CAM-500",
@@ -1581,7 +1671,8 @@ window.CATALOGO=[
 "img/CAM-500_2.jpg",
 "img/CAM-500_3.jpg",
 "img/CAM-500_4.jpg"
-]
+],
+"img": "img/CAM-500.jpg"
 },
 {
 "codigo": "STV-116",
@@ -1601,7 +1692,8 @@ window.CATALOGO=[
 "img/STV-116_2.jpg",
 "img/STV-116_3.jpg",
 "img/STV-116_4.jpg"
-]
+],
+"img": "img/STV-116.jpg"
 },
 {
 "codigo": "CCTV-219",
@@ -1616,7 +1708,8 @@ window.CATALOGO=[
 "img/CCTV-219_2.jpg",
 "img/CCTV-219_3.jpg",
 "img/CCTV-219_4.jpg"
-]
+],
+"img": "img/CCTV-219.jpg"
 },
 {
 "codigo": "208-187",
@@ -1633,7 +1726,8 @@ window.CATALOGO=[
 "imgs": [
 "img/208-187_0.jpg",
 "img/208-187_1.jpg"
-]
+],
+"img": "img/208-187.jpg"
 },
 {
 "codigo": "299-835",
@@ -1650,7 +1744,8 @@ window.CATALOGO=[
 "imgs": [
 "img/299-835_0.jpg",
 "img/299-835_1.jpg"
-]
+],
+"img": "img/299-835.jpg"
 },
 {
 "codigo": "ANT-XTREME",
@@ -1666,7 +1761,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/ANT-XTREME_0.jpg"
-]
+],
+"img": "img/ANT-XTREME.jpg"
 },
 {
 "codigo": "ANT-9010",
@@ -1684,7 +1780,8 @@ window.CATALOGO=[
 "img/ANT-9010_0.jpg",
 "img/ANT-9010_1.jpg",
 "img/ANT-9010_2.jpg"
-]
+],
+"img": "img/ANT-9010.jpg"
 },
 {
 "codigo": "STV-026",
@@ -1704,7 +1801,8 @@ window.CATALOGO=[
 "img/STV-026_2.jpg",
 "img/STV-026_3.jpg",
 "img/STV-026_4.jpg"
-]
+],
+"img": "img/STV-026.jpg"
 },
 {
 "codigo": "STV-064",
@@ -1724,7 +1822,8 @@ window.CATALOGO=[
 "img/STV-064_2.jpg",
 "img/STV-064_3.jpg",
 "img/STV-064_4.jpg"
-]
+],
+"img": "img/STV-064.jpg"
 },
 {
 "codigo": "200-385",
@@ -1741,7 +1840,8 @@ window.CATALOGO=[
 "imgs": [
 "img/200-385_0.jpg",
 "img/200-385_1.jpg"
-]
+],
+"img": "img/200-385.jpg"
 },
 {
 "codigo": "295-505",
@@ -1759,7 +1859,8 @@ window.CATALOGO=[
 "img/295-505_0.jpg",
 "img/295-505_1.jpg",
 "img/295-505_2.jpg"
-]
+],
+"img": "img/295-505.jpg"
 },
 {
 "codigo": "208-140",
@@ -1775,7 +1876,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/208-140_0.jpg"
-]
+],
+"img": "img/208-140.jpg"
 },
 {
 "codigo": "BOS-402",
@@ -1792,7 +1894,8 @@ window.CATALOGO=[
 "imgs": [
 "img/BOS-402_0.jpg",
 "img/BOS-402_1.jpg"
-]
+],
+"img": "img/BOS-402.jpg"
 },
 {
 "codigo": "STV-041",
@@ -1811,7 +1914,8 @@ window.CATALOGO=[
 "img/STV-041_1.jpg",
 "img/STV-041_2.jpg",
 "img/STV-041_3.jpg"
-]
+],
+"img": "img/STV-041.jpg"
 },
 {
 "codigo": "200-383",
@@ -1830,7 +1934,8 @@ window.CATALOGO=[
 "img/200-383_2.jpg",
 "img/200-383_3.jpg",
 "img/200-383_4.jpg"
-]
+],
+"img": "img/200-383.jpg"
 },
 {
 "codigo": "208-161",
@@ -1846,7 +1951,8 @@ window.CATALOGO=[
 "imgs": [
 "img/208-161_0.jpg",
 "img/208-161_1.jpg"
-]
+],
+"img": "img/208-161.jpg"
 },
 {
 "codigo": "295-501",
@@ -1864,7 +1970,8 @@ window.CATALOGO=[
 "img/295-501_0.jpg",
 "img/295-501_1.jpg",
 "img/295-501_2.jpg"
-]
+],
+"img": "img/295-501.jpg"
 },
 {
 "codigo": "203-817",
@@ -1882,7 +1989,8 @@ window.CATALOGO=[
 "img/203-817_0.jpg",
 "img/203-817_1.jpg",
 "img/203-817_2.jpg"
-]
+],
+"img": "img/203-817.jpg"
 },
 {
 "codigo": "206-846",
@@ -1897,7 +2005,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/206-846_0.jpg"
-]
+],
+"img": "img/206-846.jpg"
 },
 {
 "codigo": "NB-900",
@@ -1914,7 +2023,8 @@ window.CATALOGO=[
 "imgs": [
 "img/NB-900_0.jpg",
 "img/NB-900_1.jpg"
-]
+],
+"img": "img/NB-900.jpg"
 },
 {
 "codigo": "920-200",
@@ -1931,7 +2041,8 @@ window.CATALOGO=[
 "imgs": [
 "img/920-200_0.jpg",
 "img/920-200_1.jpg"
-]
+],
+"img": "img/920-200.jpg"
 },
 {
 "codigo": "NB-605",
@@ -1948,7 +2059,8 @@ window.CATALOGO=[
 "imgs": [
 "img/NB-605_0.jpg",
 "img/NB-605_1.jpg"
-]
+],
+"img": "img/NB-605.jpg"
 },
 {
 "codigo": "905-127",
@@ -1965,7 +2077,8 @@ window.CATALOGO=[
 "imgs": [
 "img/905-127_0.jpg",
 "img/905-127_1.jpg"
-]
+],
+"img": "img/905-127.jpg"
 },
 {
 "codigo": "CRG-016",
@@ -1982,7 +2095,8 @@ window.CATALOGO=[
 "imgs": [
 "img/CRG-016_0.jpg",
 "img/CRG-016_1.jpg"
-]
+],
+"img": "img/CRG-016.jpg"
 },
 {
 "codigo": "BAT-NM-AAA/1100",
@@ -1996,7 +2110,8 @@ window.CATALOGO=[
 "img/BAT-NM-AAA_1100_1.jpg",
 "img/BAT-NM-AAA_1100_2.jpg",
 "img/BAT-NM-AAA_1100_3.jpg"
-]
+],
+"img": "img/BAT-NM-AAA_1100.jpg"
 },
 {
 "codigo": "BAT-AAA4",
@@ -2007,7 +2122,8 @@ window.CATALOGO=[
 "feat": [],
 "imgs": [
 "img/BAT-AAA4_0.jpg"
-]
+],
+"img": "img/BAT-AAA4.jpg"
 },
 {
 "codigo": "MODLED-KIT/10",
@@ -2023,7 +2139,8 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/MODLED-KIT_10_0.jpg"
-]
+],
+"img": "img/MODLED-KIT_10.jpg"
 },
 {
 "codigo": "SHOME-120/3",
@@ -2043,7 +2160,8 @@ window.CATALOGO=[
 "img/SHOME-120_3_2.jpg",
 "img/SHOME-120_3_3.jpg",
 "img/SHOME-120_3_4.jpg"
-]
+],
+"img": "img/SHOME-120_3.jpg"
 },
 {
 "codigo": "MODLED-080/BCO",
@@ -2059,7 +2177,8 @@ window.CATALOGO=[
 "img/MODLED-080_BCO_0.jpg",
 "img/MODLED-080_BCO_1.jpg",
 "img/MODLED-080_BCO_2.jpg"
-]
+],
+"img": "img/MODLED-080_BCO.jpg"
 },
 {
 "codigo": "K-720",
@@ -2078,7 +2197,8 @@ window.CATALOGO=[
 "img/K-720_2.jpg",
 "img/K-720_3.jpg",
 "img/K-720_4.jpg"
-]
+],
+"img": "img/K-720.jpg"
 },
 {
 "codigo": "K-555",
@@ -2093,6 +2213,7 @@ window.CATALOGO=[
 ],
 "imgs": [
 "img/K-555_0.jpg"
-]
+],
+"img": "img/K-555.jpg"
 }
 ];
