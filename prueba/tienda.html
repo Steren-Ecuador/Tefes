@@ -1933,6 +1933,54 @@ function ventasHtml(p){
     d.filas.map(f => '<div class="vrow"><span>' + esc(f[0]) + '</span><b>' + esc(f[1]) + '</b></div>').join('') +
     (d.dato ? '<button class="link" data-vdato>Usar como dato de apoyo</button>' : '') + '</div>';
 }
+/* ---------- c01u: punto C01 con los datos de Universidad Steren (lectura diaria de la plataforma) ---------- */
+const UC = {cargando: false, error: ''};
+function uniC01Calc(){
+  const U = UNI_T; if (!U || !U.fecha) return null;
+  const sa = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  const ult = s => sa(s).split(/\s+/).pop(), F = U.filas || [], hay = {}; F.forEach(x => hay[ult(x.n)] = 1);
+  const sin = (S.data.personal || []).map(p => p.nombre).filter(n => !sa(n).split(/\s+/).some(w => hay[w]));
+  const asig = F.reduce((m, x) => m + (+x.asig || 0), 0), ok = F.reduce((m, x) => m + (+x.ok || 0), 0), av = asig ? Math.round(ok / asig * 100) : 0;
+  const carF = F.filter(x => (x.car || []).some(c => +c < 100)), lej = F.filter(x => x.dias > 14);
+  const c = !F.length || sin.length || av < 75 ? '0' : !carF.length && av >= 90 && !lej.length ? '2' : '1';
+  const fd = new Date(U.fecha + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'short'});
+  const dato = 'Universidad al ' + fd + ': en el grupo ' + F.length + ' de ' + (F.length + sin.length) + ' · carreras base completas ' + (F.length - carF.length) + ' de ' + F.length +
+    ' · avance ' + av + ' % (' + ok + ' de ' + asig + ') · más de 14 días sin entrar: ' + lej.length;
+  return {F, sin, asig, ok, av, carF, lej, c, fd, dato};
+}
+function uniC01Html(p){
+  if (p.id !== 'C01') return '';
+  if (!UNI_T) {
+    if (!UC.cargando && !UC.error) { UC.cargando = true; uniTiendaCargar().catch(e => { UC.error = 'No se pudo leer la Universidad: ' + e.message; }).then(() => { UC.cargando = false; pintarPunto(p); }); }
+    return '<div class="vbox"><div class="ttl">Universidad Steren del equipo</div><div class="tiny muted">' + (UC.error ? esc(UC.error) : 'Cargando…') + '</div>' +
+      (UC.error ? '<button class="link" data-ucretry>Reintentar</button>' : '') + '</div>';
+  }
+  const d = uniC01Calc(); if (!d) return '<div class="vbox"><div class="ttl">Universidad Steren del equipo</div><div>Todavía no hay lecturas de la plataforma: califica con el reporte del equipo.</div></div>';
+  const fila = (t, v, mal) => '<div class="vrow"><span>' + t + '</span><b' + (mal ? ' style="color:var(--bad)"' : '') + '>' + v + '</b></div>';
+  const nom = a => a.map(x => esc(x.n || x)).join(', ');
+  return '<div class="vbox' + (d.c === '2' ? '' : ' mal') + '"><div class="ttl">Universidad Steren del equipo · al ' + esc(d.fd) + '</div>' +
+    fila('En el grupo TEFES de la plataforma', (d.F.length) + ' de ' + (d.F.length + d.sin.length), d.sin.length) +
+    (d.sin.length ? '<div class="tiny" style="color:var(--bad)">No aparecen: ' + nom(d.sin) + '. Si tienen cuenta, pide que los agreguen al grupo de TEFES en la Universidad; quien tiene menos de 15 días en la tienda no cuenta.</div>' : '') +
+    fila('Carreras base al 100 %', (d.F.length - d.carF.length) + ' de ' + d.F.length, d.carF.length) +
+    (d.carF.length ? '<div class="tiny muted">Falta: ' + nom(d.carF) + '</div>' : '') +
+    fila('Avance del equipo (aprobados ÷ asignados)', d.av + ' %', d.av < 90) +
+    fila('Más de 14 días sin entrar', d.lej.length ? nom(d.lej) : 'nadie', d.lej.length) +
+    '<div style="margin-top:6px">Corresponde <b>' + d.c + '</b>. <span class="tiny muted">2: todos en el grupo, carreras base al 100 %, avance 90 % o más y nadie con más de 14 días sin entrar. 1: todos en el grupo y avance 75 % o más, pero falla algo de lo anterior. 0: alguien que no aparece o avance bajo 75 %.</span></div>' +
+    '<button class="link" data-ucc="' + d.c + '">Calificar ' + d.c + ' con estos datos</button></div>';
+}
+function uniC01Wire(p, el){
+  if (p.id !== 'C01') return;
+  const r = el.querySelector('[data-ucretry]'); if (r) r.onclick = () => { UC.error = ''; pintarPunto(p); };
+  const b = el.querySelector('[data-ucc]'); if (!b) return;
+  b.onclick = () => {
+    const d = uniC01Calc(); if (!d) return;
+    const it = S.form.items[p.id] = S.form.items[p.id] || {};
+    it.dato = d.dato; it.verDato = true;
+    if (d.c !== '2') { it.verObs = true; it.obs = it.obs || [d.sin.length ? 'No aparecen en la Universidad: ' + d.sin.join(', ') + '.' : '', d.carF.length ? 'Carreras base sin terminar: ' + d.carF.map(x => x.n).join(', ') + '.' : '', d.lej.length ? 'Más de 14 días sin entrar: ' + d.lej.map(x => x.n).join(', ') + '.' : '', d.av < 90 ? 'Avance del equipo ' + d.av + ' %.' : ''].filter(Boolean).join(' '); }
+    pintarPunto(p);
+    const bt = $('#pt-' + p.id) && $('#pt-' + p.id).querySelector('[data-c="' + d.c + '"]'); if (bt) bt.click();
+  };
+}
 /* ---------- punto D06: pregunta de políticas en la visita (PoliticasControl.gs) ---------- */
 const PV = {q: null, cargando: false, persona: '', res: null};
 function polVisitaHtml(p){
@@ -2016,7 +2064,7 @@ function puntoHtml(p){
   return '<div class="card punto ' + g + '">' + '<div class="tk-sec">' + esc(p.sec + ') ' + sec6) + ' · ' + n6 + ' de ' + ptsF().length + '</div>' +
     '<div><span class="pid">' + esc(p.id) + '</span>' + esc(p.texto) + '</div>' +
     '<div class="tools"><button class="link" data-guia>Ver criterio</button>' + (!verObs ? '<button class="link" data-ver="verObs">+ Observación</button>' : '') + (!verDato ? '<button class="link" data-ver="verDato">+ Dato</button>' : '') + (it.calif === '2' || it.calif === 'N/A' ? '<button class="link" data-cerrar>Listo ▲</button>' : '') + '</div>' +
-    '<div class="guia">' + esc(p.criterio) + '</div>' + ventasHtml(p) + polVisitaHtml(p) + trfE04Html(p) +
+    '<div class="guia">' + esc(p.criterio) + '</div>' + ventasHtml(p) + polVisitaHtml(p) + trfE04Html(p) + uniC01Html(p) +
     '<div class="cal">' + [['2','c2','Cumple'],['1','c1','Parcial'],['0','c0','Incumple'],['N/A','cna','No aplica']].map(([v,c,l]) => '<button class="' + c + ' ' + (it.calif===v?'on':'') + '" data-c="' + v + '">' + v + '<small>' + l + '</small></button>').join('') + '</div>' +
     (verObs ? '<label class="f">Observación' + (pend ? ' (qué se encontró)' : '') + '</label><textarea data-i="obs" rows="2" placeholder="Qué se encontró">' + esc(it.obs||'') + '</textarea>' : '') +
     (verDato ? '<label class="f">Dato de apoyo' + (p.datoReq ? ' *' : '') + '</label><input type="text" data-i="dato" placeholder="' + (p.datoReq ? 'Obligatorio' : 'Opcional') + '" value="' + esc(it.dato||'') + '">' : '') +
@@ -2045,6 +2093,7 @@ function bindPunto(p, cont){
   if (el.hasAttribute('data-abrir')) { el.onclick = () => { it().abierto = true; pintarPunto(p); }; return; }
   el.querySelector('[data-guia]').onclick = () => el.classList.toggle('showg');
   polVisitaWire(p, el);
+  uniC01Wire(p, el);
   const td = el.querySelector('[data-tdato]'); if (td) td.onclick = () => { it().dato = trfE04Dato(); it().verDato = true; guardarBorrador(); pintarPunto(p); actualizarFooter(); };
   const tr = el.querySelector('[data-tretry]'); if (tr) tr.onclick = () => { TV.error = ''; pintarPunto(p); };
   const vd = el.querySelector('[data-vdato]'); if (vd) vd.onclick = () => { const d = ventasDato(p); it().dato = d.dato; it().verDato = true; guardarBorrador(); pintarPunto(p); actualizarFooter(); };

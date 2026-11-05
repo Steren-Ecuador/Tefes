@@ -306,7 +306,14 @@
     return {pe: [['Nombre completo', 'Tienda', 'Departamento', 'Ciudad', 'Cargo', 'Ingreso', 'Estado']].concat(pe), lp: [['Fecha', 'Hora', 'Política', 'Tienda', 'Persona', 'Cargo', 'Correctas', 'Resultado']].concat(lp)};
   };
   API.apiUniPanel = function (p) { panelOk(p); return {fecha: '', total: 0, filas: []}; };   // Universidad Steren: en la prueba no hay lecturas de cursos
-  API.apiUniTienda = function (tok) { tiendaDe(tok); return {fecha: '', total: 0, filas: []}; };
+  API.apiUniTienda = function (tok) {   // c01u: datos de ejemplo, uno sin cuenta, uno con carreras a medias y uno sin entrar hace 20 días
+    var t = tiendaDe(tok), g = gente(t), hoy = DB.isoDe(new Date());
+    var filas = g.slice(0, Math.max(g.length - 1, 1)).map(function (p, i) { var n = p.nombre.split(/\s+/), asig = 90 + i * 7, ok = asig - (i % 3 === 1 ? 14 : 2), dias = i === 2 ? 20 : i;
+      var v = new Date(); v.setDate(v.getDate() - dias);
+      return {n: n.length >= 3 ? n[2].charAt(0) + n[2].slice(1).toLowerCase() + ' ' + n[0].charAt(0) + n[0].slice(1).toLowerCase() : p.nombre, t: t, rol: p.cargo, pos: i + 1, asig: asig, ok: ok, faltan: asig - ok,
+        car: i % 3 === 1 ? [100, 100, 100, 66] : [100, 100, 100, 100], cert: 8, visita: DB.isoDe(v), dias: dias, semana: null, estado: dias > 14 ? 'rojo' : ok < asig - 10 ? 'naranja' : 'ok'}; });
+    return {fecha: hoy, total: filas.length, filas: filas};
+  };
   // fds1/pps1: Explorar ventas usa datos reales cifrados; en la prueba no se entrega la clave. Presupuesto por persona de ejemplo vacío.
   API.apiFdClave = function (p) { panelOk(p); throw new Error('en el entorno de pruebas no hay detalle de ventas'); };
   API.apiFdClaveTienda = function (tok) { tiendaDe(tok); throw new Error('en el entorno de pruebas no hay detalle de ventas'); };
