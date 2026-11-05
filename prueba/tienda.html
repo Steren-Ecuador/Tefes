@@ -1944,7 +1944,7 @@ function uniC01Calc(){
   const carF = F.filter(x => (x.car || []).some(c => +c < 100)), lej = F.filter(x => x.dias > 14);
   const c = !F.length || sin.length || av < 75 ? '0' : !carF.length && av >= 90 && !lej.length ? '2' : '1';
   const fd = new Date(U.fecha + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'short'});
-  const dato = 'Universidad al ' + fd + ': con cuenta ' + F.length + ' de ' + (F.length + sin.length) + ' · carreras base completas ' + (F.length - carF.length) + ' de ' + F.length +
+  const dato = 'Universidad al ' + fd + ': en el grupo ' + F.length + ' de ' + (F.length + sin.length) + ' · carreras base completas ' + (F.length - carF.length) + ' de ' + F.length +
     ' · avance ' + av + ' % (' + ok + ' de ' + asig + ') · más de 14 días sin entrar: ' + lej.length;
   return {F, sin, asig, ok, av, carF, lej, c, fd, dato};
 }
@@ -1959,13 +1959,13 @@ function uniC01Html(p){
   const fila = (t, v, mal) => '<div class="vrow"><span>' + t + '</span><b' + (mal ? ' style="color:var(--bad)"' : '') + '>' + v + '</b></div>';
   const nom = a => a.map(x => esc(x.n || x)).join(', ');
   return '<div class="vbox' + (d.c === '2' ? '' : ' mal') + '"><div class="ttl">Universidad Steren del equipo · al ' + esc(d.fd) + '</div>' +
-    fila('Con cuenta en la plataforma', (d.F.length) + ' de ' + (d.F.length + d.sin.length), d.sin.length) +
+    fila('En el grupo TEFES de la plataforma', (d.F.length) + ' de ' + (d.F.length + d.sin.length), d.sin.length) +
     (d.sin.length ? '<div class="tiny" style="color:var(--bad)">Sin cuenta: ' + nom(d.sin) + '. Si alguien tiene menos de 15 días en la tienda, no cuenta.</div>' : '') +
     fila('Carreras base al 100 %', (d.F.length - d.carF.length) + ' de ' + d.F.length, d.carF.length) +
     (d.carF.length ? '<div class="tiny muted">Falta: ' + nom(d.carF) + '</div>' : '') +
     fila('Avance del equipo (aprobados ÷ asignados)', d.av + ' %', d.av < 90) +
     fila('Más de 14 días sin entrar', d.lej.length ? nom(d.lej) : 'nadie', d.lej.length) +
-    '<div style="margin-top:6px">Corresponde <b>' + d.c + '</b>. <span class="tiny muted">2: todos con cuenta, carreras base al 100 %, avance 90 % o más y nadie con más de 14 días sin entrar. 1: todos con cuenta y avance 75 % o más, pero falla algo de lo anterior. 0: alguien sin cuenta o avance bajo 75 %.</span></div>' +
+    '<div style="margin-top:6px">Corresponde <b>' + d.c + '</b>. <span class="tiny muted">2: todos en el grupo, carreras base al 100 %, avance 90 % o más y nadie con más de 14 días sin entrar. 1: todos en el grupo y avance 75 % o más, pero falla algo de lo anterior. 0: alguien que no aparece o avance bajo 75 %.</span></div>' +
     '<button class="link" data-ucc="' + d.c + '">Calificar ' + d.c + ' con estos datos</button></div>';
 }
 function uniC01Wire(p, el){
@@ -1976,7 +1976,7 @@ function uniC01Wire(p, el){
     const d = uniC01Calc(); if (!d) return;
     const it = S.form.items[p.id] = S.form.items[p.id] || {};
     it.dato = d.dato; it.verDato = true;
-    if (d.c !== '2') { it.verObs = true; it.obs = it.obs || [d.sin.length ? 'Sin cuenta en Universidad: ' + d.sin.join(', ') + '.' : '', d.carF.length ? 'Carreras base sin terminar: ' + d.carF.map(x => x.n).join(', ') + '.' : '', d.lej.length ? 'Más de 14 días sin entrar: ' + d.lej.map(x => x.n).join(', ') + '.' : '', d.av < 90 ? 'Avance del equipo ' + d.av + ' %.' : ''].filter(Boolean).join(' '); }
+    if (d.c !== '2') { it.verObs = true; it.obs = it.obs || [d.sin.length ? 'No aparecen en la Universidad: ' + d.sin.join(', ') + '.' : '', d.carF.length ? 'Carreras base sin terminar: ' + d.carF.map(x => x.n).join(', ') + '.' : '', d.lej.length ? 'Más de 14 días sin entrar: ' + d.lej.map(x => x.n).join(', ') + '.' : '', d.av < 90 ? 'Avance del equipo ' + d.av + ' %.' : ''].filter(Boolean).join(' '); }
     pintarPunto(p);
     const bt = $('#pt-' + p.id) && $('#pt-' + p.id).querySelector('[data-c="' + d.c + '"]'); if (bt) bt.click();
   };
