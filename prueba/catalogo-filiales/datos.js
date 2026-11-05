@@ -605,7 +605,7 @@ window.CATALOGO=[
 "cat": "Casa y oficina",
 "nombre": "Deshumidificador electrónico Wi-Fi con compresor, 10 L/día",
 "pvp": 204.99,
-"colab": null,
+"colab": 189.74,
 "feat": [
 "Elimina el exceso de humedad ambiental y cuida la salud de tu familia",
 "Recolecta hasta 10 litros por día",
@@ -836,7 +836,7 @@ window.CATALOGO=[
 "cat": "Casa y oficina",
 "nombre": "Cronómetro deportivo resistente al agua",
 "pvp": 19.99,
-"colab": null,
+"colab": 16.66,
 "feat": [
 "¡Mide el tiempo en cualquier situación! 3 modos de uso: Cronómetro / alarma / reloj",
 "Alta precisión: Centésima de segundo (1/100 s)",
