@@ -93,7 +93,7 @@ body{overflow:hidden}
   <div class="hint" id="hint">Desliza hacia arriba ↑</div>
 </div>
 <div class="toast" id="toast"></div>
-<script src="datos.js"></script>
+<script src="datos.js?v=3"></script>
 <script>
 (function(){
 var P=window.CATALOGO||[], CATS=[], byCat={};
@@ -110,7 +110,7 @@ var html=['<section class="post cover" data-cat=""><div class="bgblur" style="ba
 var n=0;
 CATS.forEach(function(c){ byCat[c].forEach(function(p,i){ n++;
   var imgs=(p.imgs&&p.imgs.length)?p.imgs:(p.img?[p.img]:[]);
-  var slides=imgs.length?'<div class="slides">'+imgs.map(function(u,k){return '<img '+(k?'loading="lazy" ':'')+'src="'+esc(u)+'" alt="'+esc(p.nombre)+(k?' foto '+(k+1):'')+'">';}).join('')+'</div>':'<div class="noimg">'+esc(p.codigo)+'</div>';
+  var slides=imgs.length?'<div class="slides">'+imgs.map(function(u,k){return '<img '+(k?'loading="lazy" ':'')+(k===0&&p.img&&p.img!==u?'data-alt="'+esc(p.img)+'" ':'')+'src="'+esc(u)+'" alt="'+esc(p.nombre)+(k?' foto '+(k+1):'')+'">';}).join('')+'</div>':'<div class="noimg">'+esc(p.codigo)+'</div>';
   var dots=imgs.length>1?imgs.map(function(u,k){return '<i'+(k?'':' class="on"')+' data-k="'+k+'"></i>';}).join(''):'';
   var bg=imgs.length?'background-image:url(\''+esc(imgs[0])+'\')':'background:#222';
   var precio=p.colab?'<div class="pcol"><small>Precio colaborador</small><strong>'+money(p.colab)+'</strong></div><div class="pnorm">Precio normal<s>'+money(p.pvp)+'</s></div>':'<div class="pnorm">Precio<span class="pvp">'+money(p.pvp)+'</span></div>';
@@ -130,6 +130,13 @@ CATS.forEach(function(c){ byCat[c].forEach(function(p,i){ n++;
 feed.innerHTML=html.join('');
 chips.innerHTML=CATS.map(function(c){return '<button class="chip" data-go="'+esc(c)+'">'+esc(c)+'</button>';}).join('');
 function go(c){var el=feed.querySelector('.post[data-cat="'+c.replace(/"/g,'\\"')+'"]'); if(el) el.scrollIntoView({behavior:'smooth'});}
+// si una foto no carga: probar la foto principal y si no, quitarla
+document.addEventListener('error',function(e){var im=e.target; if(!im||im.tagName!=='IMG'||!im.closest('.slides')) return;
+  var alt=im.getAttribute('data-alt'); if(alt){im.removeAttribute('data-alt'); im.src=alt; return;}
+  var s=im.parentNode, card=s.parentNode, d=card.parentNode.querySelector('.dots'), idx=[].indexOf.call(s.children,im);
+  im.remove(); if(d&&d.children[idx]) d.children[idx].remove(); if(d&&d.children.length<2) d.innerHTML='';
+  if(!s.children.length) card.innerHTML='<div class="noimg">'+esc(card.closest('.post').getAttribute('data-code'))+'</div>';
+},true);
 // puntitos del carrusel
 [].forEach.call(feed.querySelectorAll('.slides'),function(s){
   var d=s.parentNode.parentNode.querySelector('.dots'); if(!d||!d.children.length) return;
