@@ -11,7 +11,9 @@ window.CATALOGO=[
 "Iluminación LED El mango se convierte fácilmente en tripié",
 "Batería recargable"
 ],
-"img": "img/GMB-3000.jpg"
+"imgs": [
+"img/GMB-3000.jpg"
+]
 },
 {
 "codigo": "AUD-AE-700NE",
@@ -24,7 +26,9 @@ window.CATALOGO=[
 "Cancelling por inteligencia artificial",
 "Cancelling por inteligencia artificial Hi-Res alámbrico e inalámbrico"
 ],
-"img": "img/AUD-AE-700NE.jpg"
+"imgs": [
+"img/AUD-AE-700NE.jpg"
+]
 },
 {
 "codigo": "MOV-123",
@@ -38,7 +42,9 @@ window.CATALOGO=[
 "Incorpora linterna LED ultrabrillante",
 "Capacidad de 7,200 mA Tamaño compacto"
 ],
-"img": "img/MOV-123.jpg"
+"imgs": [
+"img/MOV-123.jpg"
+]
 },
 {
 "codigo": "MIC-9100",
@@ -52,7 +58,9 @@ window.CATALOGO=[
 "Estuche con batería para 2 cargas completas",
 "Micrófonos con clip para uso en solapa"
 ],
-"img": "img/MIC-9100.jpg"
+"imgs": [
+"img/MIC-9100.jpg"
+]
 },
 {
 "codigo": "PB-2010AC",
@@ -66,7 +74,9 @@ window.CATALOGO=[
 "Incorpora cables flexibles USB C y Lightning* Incluye cable para USB a USB C de 45 cm",
 "Dimensiones: 11,5 cm de alto x 6,3 cm de ancho x 2,5 cm de grosor"
 ],
-"img": "img/PB-2010AC.jpg"
+"imgs": [
+"img/PB-2010AC.jpg"
+]
 },
 {
 "codigo": "AUD-AE-200NE",
@@ -79,7 +89,9 @@ window.CATALOGO=[
 "Cancelling por inteligencia artificial",
 "Encuéntralos. Hazlos sonar para ubicarlos rápidamente"
 ],
-"img": "img/AUD-AE-200NE.jpg"
+"imgs": [
+"img/AUD-AE-200NE.jpg"
+]
 },
 {
 "codigo": "PB-S020-NE",
@@ -93,7 +105,9 @@ window.CATALOGO=[
 "Alta capacidad: 20,000 mAh",
 "Incluye cable para USB a USB C de 25 cm"
 ],
-"img": "img/PB-S020-NE.jpg"
+"imgs": [
+"img/PB-S020-NE.jpg"
+]
 },
 {
 "codigo": "AUD-7840NE",
@@ -102,7 +116,7 @@ window.CATALOGO=[
 "pvp": 24.99,
 "colab": 22.99,
 "feat": [],
-"img": null
+"imgs": []
 },
 {
 "codigo": "BTR-300",
@@ -116,7 +130,9 @@ window.CATALOGO=[
 "Batería recargable hasta 12 h Recepción de hasta 10 m Incluye cople y cable AUX 3,5 mm",
 "PC, celulares, tablets y cualquier equipo que transmita audio vía"
 ],
-"img": "img/BTR-300.jpg"
+"imgs": [
+"img/BTR-300.jpg"
+]
 },
 {
 "codigo": "ELI-7046",
@@ -125,7 +141,9 @@ window.CATALOGO=[
 "pvp": 21.99,
 "colab": 18.96,
 "feat": [],
-"img": "img/ELI-7046.jpg"
+"imgs": [
+"img/ELI-7046.jpg"
+]
 },
 {
 "codigo": "AUD-7420NE",
@@ -134,7 +152,7 @@ window.CATALOGO=[
 "pvp": 15.98,
 "colab": 14.36,
 "feat": [],
-"img": null
+"imgs": []
 },
 {
 "codigo": "POD-170",
@@ -148,7 +166,9 @@ window.CATALOGO=[
 "Batería recargable para hasta 2,5 h de uso",
 "Rango de operación hasta 10 m Incluye cople AUX 3,5 mm"
 ],
-"img": "img/POD-170.jpg"
+"imgs": [
+"img/POD-170.jpg"
+]
 },
 {
 "codigo": "USB-MG11",
@@ -162,7 +182,9 @@ window.CATALOGO=[
 "Transfiere datos y recarga batería 1 metro de longitud",
 "Windows* o Mac*"
 ],
-"img": "img/USB-MG11.jpg"
+"imgs": [
+"img/USB-MG11.jpg"
+]
 },
 {
 "codigo": "USB-S13",
@@ -176,7 +198,9 @@ window.CATALOGO=[
 "Cable recubierto de PVC de gran flexibilidad",
 "Conectores con forro de PVC resistente"
 ],
-"img": "img/USB-S13.jpg"
+"imgs": [
+"img/USB-S13.jpg"
+]
 },
 {
 "codigo": "USB-MG41",
@@ -190,7 +214,9 @@ window.CATALOGO=[
 "Transfiere datos y recarga batería 1 metro de longitud",
 "USB. Es compatible con cargadores Quick Charge* de"
 ],
-"img": "img/USB-MG41.jpg"
+"imgs": [
+"img/USB-MG41.jpg"
+]
 },
 {
 "codigo": "BAG-100",
@@ -204,7 +230,9 @@ window.CATALOGO=[
 "Fabricación es de tela impermeable 100% de poliéster",
 "Incorpora una correa para colocarlo en tu muñeca"
 ],
-"img": "img/BAG-100.jpg"
+"imgs": [
+"img/BAG-100.jpg"
+]
 },
 {
 "codigo": "USB-MG21",
@@ -218,7 +246,9 @@ window.CATALOGO=[
 "Transfiere datos y recarga batería 1 metro de longitud",
 "Windows* o Mac*"
 ],
-"img": "img/USB-MG21.jpg"
+"imgs": [
+"img/USB-MG21.jpg"
+]
 },
 {
 "codigo": "ELI-762",
@@ -227,7 +257,9 @@ window.CATALOGO=[
 "pvp": 8.99,
 "colab": 7.46,
 "feat": [],
-"img": "img/ELI-762.jpg"
+"imgs": [
+"img/ELI-762.jpg"
+]
 },
 {
 "codigo": "ELI-875",
@@ -238,7 +270,9 @@ window.CATALOGO=[
 "feat": [
 "Switch * de forma rápida y segura. USB Quick Charge (QC): Carga a turbo velocidad (3"
 ],
-"img": "img/ELI-875.jpg"
+"imgs": [
+"img/ELI-875.jpg"
+]
 },
 {
 "codigo": "MOV-048",
@@ -252,7 +286,9 @@ window.CATALOGO=[
 "Compatible con smartphones de hasta 6”",
 "Tornillo universal compatible con cámaras digitales"
 ],
-"img": "img/MOV-048.jpg"
+"imgs": [
+"img/MOV-048.jpg"
+]
 },
 {
 "codigo": "USB-S11",
@@ -266,7 +302,9 @@ window.CATALOGO=[
 "Cable recubierto de PVC de gran flexibilidad",
 "Conectores con forro de PVC resistente"
 ],
-"img": "img/USB-S11.jpg"
+"imgs": [
+"img/USB-S11.jpg"
+]
 },
 {
 "codigo": "USB-S31",
@@ -280,7 +318,9 @@ window.CATALOGO=[
 "Conectores con forro de PVC resistente",
 "Recubierto de material suave al tacto"
 ],
-"img": "img/USB-S31.jpg"
+"imgs": [
+"img/USB-S31.jpg"
+]
 },
 {
 "codigo": "USB-S21",
@@ -294,7 +334,9 @@ window.CATALOGO=[
 "Cable recubierto de PVC de gran flexibilidad",
 "Conectores con forro de PVC resistente"
 ],
-"img": "img/USB-S21.jpg"
+"imgs": [
+"img/USB-S21.jpg"
+]
 },
 {
 "codigo": "USB-S41",
@@ -308,7 +350,9 @@ window.CATALOGO=[
 "Conectores con forro de PVC resistente",
 "Recubierto de material suave al tacto"
 ],
-"img": "img/USB-S41.jpg"
+"imgs": [
+"img/USB-S41.jpg"
+]
 },
 {
 "codigo": "ELI-712",
@@ -322,7 +366,9 @@ window.CATALOGO=[
 "Ver especificaciones → $69.00 $69 00",
 "Paga menos llevando 10"
 ],
-"img": "img/ELI-712.jpg"
+"imgs": [
+"img/ELI-712.jpg"
+]
 },
 {
 "codigo": "RAD-630",
@@ -336,7 +382,9 @@ window.CATALOGO=[
 "Alcance de hasta 7 Km en áreas libres de obstáculos",
 "CTCSS/DCS y STE para encriptación y seguridad de comunicación"
 ],
-"img": "img/RAD-630.jpg"
+"imgs": [
+"img/RAD-630.jpg"
+]
 },
 {
 "codigo": "CCTV-638",
@@ -350,7 +398,9 @@ window.CATALOGO=[
 "Controla y visualiza la grabación desde tu celular",
 "Controla con más de 1 celular"
 ],
-"img": "img/CCTV-638.jpg"
+"imgs": [
+"img/CCTV-638.jpg"
+]
 },
 {
 "codigo": "CCTV-645",
@@ -364,7 +414,9 @@ window.CATALOGO=[
 "Resolución 4 Mpx (2.5K)",
 "Controla su movimiento con tu celular"
 ],
-"img": "img/CCTV-645.jpg"
+"imgs": [
+"img/CCTV-645.jpg"
+]
 },
 {
 "codigo": "CCTV-632",
@@ -378,7 +430,9 @@ window.CATALOGO=[
 "Lente robotizado: Gira para un mayor rango de visión",
 "Posiciones programables de lente robotizado"
 ],
-"img": "img/CCTV-632.jpg"
+"imgs": [
+"img/CCTV-632.jpg"
+]
 },
 {
 "codigo": "LOCK-150",
@@ -392,7 +446,9 @@ window.CATALOGO=[
 "Incorpora un botón para activar el seguro en la cerradura",
 "Para puertas de 30 a 55 mm de espesor"
 ],
-"img": "img/LOCK-150.jpg"
+"imgs": [
+"img/LOCK-150.jpg"
+]
 },
 {
 "codigo": "CCTV-223",
@@ -406,7 +462,9 @@ window.CATALOGO=[
 "Controla con más de 1 celular",
 "También visualiza la cámara desde un navegador web"
 ],
-"img": "img/CCTV-223.jpg"
+"imgs": [
+"img/CCTV-223.jpg"
+]
 },
 {
 "codigo": "CCTV-231",
@@ -420,7 +478,9 @@ window.CATALOGO=[
 "Descarga nuestra app Steren Home para controlarla App disponible en App Store* y Google play*",
 "Controla y visualiza la grabación desde tu celular"
 ],
-"img": "img/CCTV-231.jpg"
+"imgs": [
+"img/CCTV-231.jpg"
+]
 },
 {
 "codigo": "CCTV-203",
@@ -434,7 +494,9 @@ window.CATALOGO=[
 "Controla con más de 1 celular",
 "También visualiza la cámara desde un navegador web"
 ],
-"img": "img/CCTV-203.jpg"
+"imgs": [
+"img/CCTV-203.jpg"
+]
 },
 {
 "codigo": "LOCK-010",
@@ -447,7 +509,9 @@ window.CATALOGO=[
 "Batería recargable de larga duración LED indicador de batería y configuraciones",
 "Wi-Fi* con nuestro"
 ],
-"img": "img/LOCK-010.jpg"
+"imgs": [
+"img/LOCK-010.jpg"
+]
 },
 {
 "codigo": "AIR-2950",
@@ -461,7 +525,9 @@ window.CATALOGO=[
 "Orificio para desagüe (incluye manguera de 31 cm)",
 "Incorpora tanque de 2 litros antiderrames"
 ],
-"img": "img/AIR-2950.jpg"
+"imgs": [
+"img/AIR-2950.jpg"
+]
 },
 {
 "codigo": "AIR-290",
@@ -473,7 +539,9 @@ window.CATALOGO=[
 "Elimina el exceso de humedad ambiental y cuida la salud de tu familia",
 "Desagüe opcional por medio de una manguera de 1,6 m Capacidad de 3 Litros"
 ],
-"img": "img/AIR-290.jpg"
+"imgs": [
+"img/AIR-290.jpg"
+]
 },
 {
 "codigo": "SHOME-PET",
@@ -487,7 +555,9 @@ window.CATALOGO=[
 "Para alimento seco",
 "Dosifica de 1 hasta 10 porciones"
 ],
-"img": "img/SHOME-PET.jpg"
+"imgs": [
+"img/SHOME-PET.jpg"
+]
 },
 {
 "codigo": "AIR-265",
@@ -501,7 +571,9 @@ window.CATALOGO=[
 "Auto apagado de seguridad que evita derrames",
 "Incorpora display que muestra % de humedad y modo"
 ],
-"img": "img/AIR-265.jpg"
+"imgs": [
+"img/AIR-265.jpg"
+]
 },
 {
 "codigo": "RAD-010",
@@ -515,7 +587,9 @@ window.CATALOGO=[
 "UHF. 16 canales de comunicación",
 "Motorola*, Kenwood*, Midland* y más. Baterías de larga duración"
 ],
-"img": "img/RAD-010.jpg"
+"imgs": [
+"img/RAD-010.jpg"
+]
 },
 {
 "codigo": "CLK-270",
@@ -529,7 +603,9 @@ window.CATALOGO=[
 "Snooze: Pospón la alarma",
 "Luz LED cálida de noche"
 ],
-"img": "img/CLK-270.jpg"
+"imgs": [
+"img/CLK-270.jpg"
+]
 },
 {
 "codigo": "SMW-420PL",
@@ -538,7 +614,7 @@ window.CATALOGO=[
 "pvp": 27.99,
 "colab": 25.29,
 "feat": [],
-"img": null
+"imgs": []
 },
 {
 "codigo": "SHOME-100/3",
@@ -552,7 +628,9 @@ window.CATALOGO=[
 "Compatibles con asistentes de voz como Alexa* y Google Assistant*",
 "Función temporizador (timer)"
 ],
-"img": "img/SHOME-100_3.jpg"
+"imgs": [
+"img/SHOME-100_3.jpg"
+]
 },
 {
 "codigo": "905-170",
@@ -565,7 +643,9 @@ window.CATALOGO=[
 "Incorpora tornillo para sujeción de seguridad",
 "Plástico retardante al fuego"
 ],
-"img": "img/905-170.jpg"
+"imgs": [
+"img/905-170.jpg"
+]
 },
 {
 "codigo": "INSECTRONIC",
@@ -579,7 +659,9 @@ window.CATALOGO=[
 "Tiene una lámpara UV que emite luz especial de alta intensidad que atrae a los insectos",
 "Ver especificaciones → $399.00 $399 00"
 ],
-"img": "img/INSECTRONIC.jpg"
+"imgs": [
+"img/INSECTRONIC.jpg"
+]
 },
 {
 "codigo": "SHOME-110",
@@ -593,7 +675,9 @@ window.CATALOGO=[
 "Compatible con Google Assistant",
 "Función temporizador (timer)"
 ],
-"img": "img/SHOME-110.jpg"
+"imgs": [
+"img/SHOME-110.jpg"
+]
 },
 {
 "codigo": "PCAJA-001",
@@ -604,7 +688,9 @@ window.CATALOGO=[
 "feat": [
 "Tiene 10 niveles de intensidad"
 ],
-"img": "img/PCAJA-001.jpg"
+"imgs": [
+"img/PCAJA-001.jpg"
+]
 },
 {
 "codigo": "SHOME-111",
@@ -618,7 +704,9 @@ window.CATALOGO=[
 "Compatible con Google Assistant y Alexa Función temporizador (timer)",
 "Touch para usarlo manualmente"
 ],
-"img": "img/SHOME-111.jpg"
+"imgs": [
+"img/SHOME-111.jpg"
+]
 },
 {
 "codigo": "CLK-150",
@@ -632,7 +720,9 @@ window.CATALOGO=[
 "Split para medir tiempos intermedios",
 "Funciones de alarma, reloj, fecha. Es resistente al agua (no sumergible)"
 ],
-"img": "img/CLK-150.jpg"
+"imgs": [
+"img/CLK-150.jpg"
+]
 },
 {
 "codigo": "SHOME-122",
@@ -646,7 +736,9 @@ window.CATALOGO=[
 "Bajo consumo: 15 watts",
 "Compatible con Android y iPhone"
 ],
-"img": "img/SHOME-122.jpg"
+"imgs": [
+"img/SHOME-122.jpg"
+]
 },
 {
 "codigo": "SHOME-125",
@@ -660,7 +752,9 @@ window.CATALOGO=[
 "LED, Incandescentes o ahorradores",
 "El socket se vincula por Wi-Fi a tu módem"
 ],
-"img": "img/SHOME-125.jpg"
+"imgs": [
+"img/SHOME-125.jpg"
+]
 },
 {
 "codigo": "REPELTRONIC",
@@ -671,7 +765,9 @@ window.CATALOGO=[
 "feat": [
 "No es dañino para las personas ni para la mayoría de las mascotas"
 ],
-"img": "img/REPELTRONIC.jpg"
+"imgs": [
+"img/REPELTRONIC.jpg"
+]
 },
 {
 "codigo": "INSECTRONIC-060",
@@ -680,7 +776,7 @@ window.CATALOGO=[
 "pvp": 15.98,
 "colab": 12.64,
 "feat": [],
-"img": null
+"imgs": []
 },
 {
 "codigo": "SHOME-160",
@@ -694,7 +790,9 @@ window.CATALOGO=[
 "Compatible con Google Assistant y Alexa Alcance de señal",
 "Wi-Fi: El control se vincula por Wi-Fi en redes de 2,4"
 ],
-"img": "img/SHOME-160.jpg"
+"imgs": [
+"img/SHOME-160.jpg"
+]
 },
 {
 "codigo": "SHOME-140",
@@ -708,7 +806,9 @@ window.CATALOGO=[
 "Puedes sincronizarla a más de un celular",
 "Compatible con Android y iPhone"
 ],
-"img": "img/SHOME-140.jpg"
+"imgs": [
+"img/SHOME-140.jpg"
+]
 },
 {
 "codigo": "SHOME-100",
@@ -722,7 +822,9 @@ window.CATALOGO=[
 "Compatible con Google Assistant",
 "Función temporizador (timer)"
 ],
-"img": "img/SHOME-100.jpg"
+"imgs": [
+"img/SHOME-100.jpg"
+]
 },
 {
 "codigo": "PT-510",
@@ -735,7 +837,9 @@ window.CATALOGO=[
 "Es fácil de cortar",
 "Ideal para materiales lisos y no porosos"
 ],
-"img": "img/PT-510.jpg"
+"imgs": [
+"img/PT-510.jpg"
+]
 },
 {
 "codigo": "BAF-0890R",
@@ -749,7 +853,9 @@ window.CATALOGO=[
 "Entrada AUX RCA Entrada 6.3 mm para micrófono o instrumento musical",
 "Reproduce USB y microSD Controles independientes para el volumen general y micrófono"
 ],
-"img": "img/BAF-0890R.jpg"
+"imgs": [
+"img/BAF-0890R.jpg"
+]
 },
 {
 "codigo": "MIC-8020",
@@ -763,7 +869,9 @@ window.CATALOGO=[
 "Batería recargable (incluye baterías recargables por",
 "Hasta 110 m de alcance"
 ],
-"img": "img/MIC-8020.jpg"
+"imgs": [
+"img/MIC-8020.jpg"
+]
 },
 {
 "codigo": "SPK-630",
@@ -777,7 +885,9 @@ window.CATALOGO=[
 "Sistema de medio giro para sujeción",
 "Terminales enroscables"
 ],
-"img": "img/SPK-630.jpg"
+"imgs": [
+"img/SPK-630.jpg"
+]
 },
 {
 "codigo": "BSD-120",
@@ -790,7 +900,9 @@ window.CATALOGO=[
 "Conexión óptica (Toslink) o 3.5 mm para la pantalla",
 "Conexión HDMI ARC (Canal de"
 ],
-"img": "img/BSD-120.jpg"
+"imgs": [
+"img/BSD-120.jpg"
+]
 },
 {
 "codigo": "MIC-285R",
@@ -799,7 +911,9 @@ window.CATALOGO=[
 "pvp": 29.99,
 "colab": 24.71,
 "feat": [],
-"img": "img/MIC-285R.jpg"
+"imgs": [
+"img/MIC-285R.jpg"
+]
 },
 {
 "codigo": "MOV-033",
@@ -813,7 +927,9 @@ window.CATALOGO=[
 "Cable de 2 metros",
 "Filtro que reduce los ruidos por el viento o la respiración"
 ],
-"img": "img/MOV-033.jpg"
+"imgs": [
+"img/MOV-033.jpg"
+]
 },
 {
 "codigo": "255-258 E01",
@@ -822,7 +938,9 @@ window.CATALOGO=[
 "pvp": 2.99,
 "colab": 2.29,
 "feat": [],
-"img": "img/255-258_E01.jpg"
+"imgs": [
+"img/255-258_E01.jpg"
+]
 },
 {
 "codigo": "252-100",
@@ -831,7 +949,9 @@ window.CATALOGO=[
 "pvp": 2.5,
 "colab": 2.29,
 "feat": [],
-"img": "img/252-100.jpg"
+"imgs": [
+"img/252-100.jpg"
+]
 },
 {
 "codigo": "255-258",
@@ -840,7 +960,9 @@ window.CATALOGO=[
 "pvp": 1.5,
 "colab": 1.09,
 "feat": [],
-"img": "img/255-258.jpg"
+"imgs": [
+"img/255-258.jpg"
+]
 },
 {
 "codigo": "DIS-118",
@@ -854,7 +976,9 @@ window.CATALOGO=[
 "Opciones para HDR y DCR Úsalo con su soporte tipo folder",
 "Compatible con estándar"
 ],
-"img": "img/DIS-118.jpg"
+"imgs": [
+"img/DIS-118.jpg"
+]
 },
 {
 "codigo": "DIS-116",
@@ -868,7 +992,9 @@ window.CATALOGO=[
 "Opciones para HDR y DCR Ãšsalo con su soporte tipo folder",
 "Bocinas incorporadas"
 ],
-"img": "img/DIS-116.jpg"
+"imgs": [
+"img/DIS-116.jpg"
+]
 },
 {
 "codigo": "COM-4755",
@@ -882,7 +1008,9 @@ window.CATALOGO=[
 "Ranuras SD y microSD Puerto HDMI 4K 30 Hz Puerto",
 "Puerto USB C para periféricos"
 ],
-"img": "img/COM-4755.jpg"
+"imgs": [
+"img/COM-4755.jpg"
+]
 },
 {
 "codigo": "AUD-570",
@@ -896,7 +1024,9 @@ window.CATALOGO=[
 "Batería recargable: Hasta 12 horas de uso continuo",
 "Over ear con diseño ergonómico"
 ],
-"img": "img/AUD-570.jpg"
+"imgs": [
+"img/AUD-570.jpg"
+]
 },
 {
 "codigo": "COM-852",
@@ -910,7 +1040,9 @@ window.CATALOGO=[
 "Administración desde tu celular con la app Steren Wi-Fi Banda dual",
 "AC1200: 5 GHz (867"
 ],
-"img": "img/COM-852.jpg"
+"imgs": [
+"img/COM-852.jpg"
+]
 },
 {
 "codigo": "COM-688NE",
@@ -924,7 +1056,9 @@ window.CATALOGO=[
 "Pad: Navega deslizando los dedos sobre él",
 "Batería recargable que te brinda muchas horas de uso"
 ],
-"img": "img/COM-688NE.jpg"
+"imgs": [
+"img/COM-688NE.jpg"
+]
 },
 {
 "codigo": "COM-088",
@@ -938,7 +1072,9 @@ window.CATALOGO=[
 "Úsalo con laptops de hasta 17”",
 "Soporta hasta 3 kg"
 ],
-"img": "img/COM-088.jpg"
+"imgs": [
+"img/COM-088.jpg"
+]
 },
 {
 "codigo": "COM-476",
@@ -950,7 +1086,9 @@ window.CATALOGO=[
 "Utiliza una pantalla adicional para trabajar Plug USB 3.0",
 "Saida HDMI Salida VGA Utiliza solo una salida a la vez"
 ],
-"img": "img/COM-476.jpg"
+"imgs": [
+"img/COM-476.jpg"
+]
 },
 {
 "codigo": "COM-031",
@@ -964,7 +1102,9 @@ window.CATALOGO=[
 "Capacidad e hasta 45 watts",
 "Tiene protección contra picos de voltaje y corto circuito"
 ],
-"img": "img/COM-031.jpg"
+"imgs": [
+"img/COM-031.jpg"
+]
 },
 {
 "codigo": "COM-5780",
@@ -978,7 +1118,9 @@ window.CATALOGO=[
 "Controla 2 equipos por Bluetooth* (celular, tablet o Smart TV)",
 "Diseño ergonómico avanzado"
 ],
-"img": "img/COM-5780.jpg"
+"imgs": [
+"img/COM-5780.jpg"
+]
 },
 {
 "codigo": "AUD-558",
@@ -992,7 +1134,9 @@ window.CATALOGO=[
 "Conector 3,5 mm TRRS Auriculares y diadema ultraconfort",
 "Ajuste perfecto que aísla el ruido exterior"
 ],
-"img": "img/AUD-558.jpg"
+"imgs": [
+"img/AUD-558.jpg"
+]
 },
 {
 "codigo": "COM-5800",
@@ -1006,7 +1150,9 @@ window.CATALOGO=[
 "Controla 2 equipos por Bluetooth (celular, tablet o Smart TV)",
 "Resoluciones: 800 / 1200 / 1600 DPI Incorpora batería recargable"
 ],
-"img": "img/COM-5800.jpg"
+"imgs": [
+"img/COM-5800.jpg"
+]
 },
 {
 "codigo": "COM-675",
@@ -1018,7 +1164,9 @@ window.CATALOGO=[
 "Trabaja cómodamente y libre de cables en tu escritorio",
 "Sistema de ahorro de energía"
 ],
-"img": "img/COM-675.jpg"
+"imgs": [
+"img/COM-675.jpg"
+]
 },
 {
 "codigo": "COM-8230+",
@@ -1032,7 +1180,9 @@ window.CATALOGO=[
 "Elevado nivel de captación por medio de antena de recepción",
 "Wi-Fi* Compatible con sistemas operativos"
 ],
-"img": "img/COM-8230_.jpg"
+"imgs": [
+"img/COM-8230_.jpg"
+]
 },
 {
 "codigo": "COM-8234+",
@@ -1046,7 +1196,9 @@ window.CATALOGO=[
 "Wi-Fi* USB (antena",
 "Internet de forma común, hacer consultas, revisar tu correo o redes sociales"
 ],
-"img": "img/COM-8234_.jpg"
+"imgs": [
+"img/COM-8234_.jpg"
+]
 },
 {
 "codigo": "USB-680",
@@ -1058,7 +1210,9 @@ window.CATALOGO=[
 "Flash - M2: Memory stick micro - MS: Memory",
 "Duo - xD: picture card (cámaras fotográficas)"
 ],
-"img": "img/USB-680.jpg"
+"imgs": [
+"img/USB-680.jpg"
+]
 },
 {
 "codigo": "COM-040",
@@ -1071,7 +1225,9 @@ window.CATALOGO=[
 "Dimensiones: 23 cm de largo x 20 cm de alto (forma ovalada)",
 "Hacer una pregunta"
 ],
-"img": "img/COM-040.jpg"
+"imgs": [
+"img/COM-040.jpg"
+]
 },
 {
 "codigo": "506-450",
@@ -1083,7 +1239,9 @@ window.CATALOGO=[
 "Trabaja con un proyector o monitor extra en tu computadora",
 "Puedes configurar tu pantalla como escritorio extendido o modo espejo"
 ],
-"img": "img/506-450.jpg"
+"imgs": [
+"img/506-450.jpg"
+]
 },
 {
 "codigo": "COM-206",
@@ -1097,7 +1255,9 @@ window.CATALOGO=[
 "Bluetooth*. Alcance",
 "Su rango de comunicación es de hasta 10 metros. Compatibilidad"
 ],
-"img": "img/COM-206.jpg"
+"imgs": [
+"img/COM-206.jpg"
+]
 },
 {
 "codigo": "COM-5280",
@@ -1110,7 +1270,9 @@ window.CATALOGO=[
 "Longitud de cable: 1,1 m Resolución: 1000 DPI Diseño simétrico y ergonómico",
 "Windows* y Mac*"
 ],
-"img": "img/COM-5280.jpg"
+"imgs": [
+"img/COM-5280.jpg"
+]
 },
 {
 "codigo": "LIM-123",
@@ -1124,7 +1286,9 @@ window.CATALOGO=[
 "Para pantallas de",
 "TV, celular, tablet o laptop"
 ],
-"img": "img/LIM-123.jpg"
+"imgs": [
+"img/LIM-123.jpg"
+]
 },
 {
 "codigo": "PRO-020",
@@ -1137,7 +1301,9 @@ window.CATALOGO=[
 "Sistema motorizado para desplegarla",
 "Incorpora control alámbrico e incluye control remoto"
 ],
-"img": "img/PRO-020.jpg"
+"imgs": [
+"img/PRO-020.jpg"
+]
 },
 {
 "codigo": "PRO-260",
@@ -1150,7 +1316,9 @@ window.CATALOGO=[
 "Incluye control remoto",
 "Tiene una fuente de 110"
 ],
-"img": "img/PRO-260.jpg"
+"imgs": [
+"img/PRO-260.jpg"
+]
 },
 {
 "codigo": "CCTV-235",
@@ -1164,7 +1332,9 @@ window.CATALOGO=[
 "Descarga nuestra app Steren Home para controlarla App disponible en App Store y Google play",
 "Compatible con protocolo ONVIF WDR: Mayor claridad y detalle de imagen"
 ],
-"img": "img/CCTV-235.jpg"
+"imgs": [
+"img/CCTV-235.jpg"
+]
 },
 {
 "codigo": "206-700",
@@ -1177,7 +1347,9 @@ window.CATALOGO=[
 "Gbps. Soporta resolución 4K de",
 "UHD y transmite contenido en 3D, además, envía información de"
 ],
-"img": "img/206-700.jpg"
+"imgs": [
+"img/206-700_0.jpg"
+]
 },
 {
 "codigo": "CAM-500",
@@ -1191,7 +1363,9 @@ window.CATALOGO=[
 "Incluye accesorios para montaje en casco, selfie stick y más",
 "Case para selfie stick 2 Pad adhesivos"
 ],
-"img": "img/CAM-500.jpg"
+"imgs": [
+"img/CAM-500.jpg"
+]
 },
 {
 "codigo": "STV-116",
@@ -1205,7 +1379,9 @@ window.CATALOGO=[
 "Inclina la pantalla 10° hacia arriba o 20° hacia abajo",
 "Gira la pantalla 30° hacia la derecha o izquierda"
 ],
-"img": "img/STV-116.jpg"
+"imgs": [
+"img/STV-116.jpg"
+]
 },
 {
 "codigo": "CCTV-219",
@@ -1214,7 +1390,9 @@ window.CATALOGO=[
 "pvp": 54.99,
 "colab": 49.44,
 "feat": [],
-"img": "img/CCTV-219.jpg"
+"imgs": [
+"img/CCTV-219.jpg"
+]
 },
 {
 "codigo": "208-187",
@@ -1228,7 +1406,10 @@ window.CATALOGO=[
 "También envía la señal IR del control remoto",
 "Fabricado con aluminio que disipa mejor el calor"
 ],
-"img": "img/208-187.jpg"
+"imgs": [
+"img/208-187_0.jpg",
+"img/208-187_1.jpg"
+]
 },
 {
 "codigo": "299-835",
@@ -1242,7 +1423,9 @@ window.CATALOGO=[
 "Conectores recubiertos en oro",
 "Premium para que la transmisión de audio y video sea siempre con la máxima velocidad"
 ],
-"img": "img/299-835.jpg"
+"imgs": [
+"img/299-835.jpg"
+]
 },
 {
 "codigo": "ANT-XTREME",
@@ -1256,7 +1439,9 @@ window.CATALOGO=[
 "HD, con esta antena ve tu programación abierta en alta definición",
 "Es muy ligera para una fácil instalación"
 ],
-"img": "img/ANT-XTREME.jpg"
+"imgs": [
+"img/ANT-XTREME.jpg"
+]
 },
 {
 "codigo": "ANT-9010",
@@ -1270,7 +1455,9 @@ window.CATALOGO=[
 "Con perilla de ganancia ajustable para mejorar el alcance de recepción",
 "Gracias a sus acabados y diseño se adapta perfectamente a cualquier decoración"
 ],
-"img": "img/ANT-9010.jpg"
+"imgs": [
+"img/ANT-9010.jpg"
+]
 },
 {
 "codigo": "STV-026",
@@ -1284,7 +1471,9 @@ window.CATALOGO=[
 "Compatible con la mayoría de los proyectores en el mercado",
 "Soporta hasta 12 kg"
 ],
-"img": "img/STV-026.jpg"
+"imgs": [
+"img/STV-026.jpg"
+]
 },
 {
 "codigo": "STV-064",
@@ -1298,7 +1487,9 @@ window.CATALOGO=[
 "Inclina la pantalla 8° hacia arriba ó 8° hacia abajo",
 "Gira la pantalla 35° hacia la derecha o izquierda"
 ],
-"img": "img/STV-064.jpg"
+"imgs": [
+"img/STV-064.jpg"
+]
 },
 {
 "codigo": "200-385",
@@ -1312,7 +1503,10 @@ window.CATALOGO=[
 "Soporta protocolo",
 "HDCP: Compatible con cualquier"
 ],
-"img": "img/200-385.jpg"
+"imgs": [
+"img/200-385_0.jpg",
+"img/200-385_1.jpg"
+]
 },
 {
 "codigo": "295-505",
@@ -1326,7 +1520,9 @@ window.CATALOGO=[
 "Cable HDMI certificado",
 "Recubrimiento de PVC para gran resistencia"
 ],
-"img": "img/295-505.jpg"
+"imgs": [
+"img/295-505.jpg"
+]
 },
 {
 "codigo": "208-140",
@@ -1340,7 +1536,9 @@ window.CATALOGO=[
 "Soporta protocolo",
 "HDCP: Compatible con cualquier"
 ],
-"img": "img/208-140.jpg"
+"imgs": [
+"img/208-140_0.jpg"
+]
 },
 {
 "codigo": "BOS-402",
@@ -1354,7 +1552,9 @@ window.CATALOGO=[
 "UHD 4K Soportan contenido 3D Soporta protocolo",
 "HDCP: Compatible con cualquier"
 ],
-"img": "img/BOS-402.jpg"
+"imgs": [
+"img/BOS-402.jpg"
+]
 },
 {
 "codigo": "STV-041",
@@ -1368,7 +1568,9 @@ window.CATALOGO=[
 "Distancia entre pared y TV: 2,4 cm",
 "Incluye nivel de gota para una fácil instalación"
 ],
-"img": "img/STV-041.jpg"
+"imgs": [
+"img/STV-041.jpg"
+]
 },
 {
 "codigo": "200-383",
@@ -1381,7 +1583,13 @@ window.CATALOGO=[
 "Cuando solo una de las 3 entradas emite video, se selecciona automáticamente",
 "Soporta ultra alta definición"
 ],
-"img": "img/200-383.jpg"
+"imgs": [
+"img/200-383_0.jpg",
+"img/200-383_1.jpg",
+"img/200-383_2.jpg",
+"img/200-383_3.jpg",
+"img/200-383_4.jpg"
+]
 },
 {
 "codigo": "208-161",
@@ -1394,7 +1602,10 @@ window.CATALOGO=[
 "HDMI® a pantallas o monitores que tengan entrada VGA Soporta alta definición HD 1080p",
 "Cable de 1,8 m Con este convertidor, conecta tus dispositivos digitales con salida HDMI* como"
 ],
-"img": "img/208-161.jpg"
+"imgs": [
+"img/208-161_0.jpg",
+"img/208-161_1.jpg"
+]
 },
 {
 "codigo": "295-501",
@@ -1408,7 +1619,9 @@ window.CATALOGO=[
 "Cable HDMI certificado",
 "Recubrimiento de PVC para gran resistencia"
 ],
-"img": "img/295-501.jpg"
+"imgs": [
+"img/295-501.jpg"
+]
 },
 {
 "codigo": "203-817",
@@ -1422,7 +1635,11 @@ window.CATALOGO=[
 "Conectores con oro",
 "Premium PVC de alta resistencia"
 ],
-"img": "img/203-817.jpg"
+"imgs": [
+"img/203-817_0.jpg",
+"img/203-817_1.jpg",
+"img/203-817_2.jpg"
+]
 },
 {
 "codigo": "206-846",
@@ -1435,7 +1652,9 @@ window.CATALOGO=[
 "Recubierto en PVC de alta resistencia",
 "Conectores niquelados"
 ],
-"img": "img/206-846.jpg"
+"imgs": [
+"img/206-846_0.jpg"
+]
 },
 {
 "codigo": "NB-900",
@@ -1449,7 +1668,9 @@ window.CATALOGO=[
 "Regulación automática de voltaje",
 "Incorpora LED que muestran el funcionamiento y estado del"
 ],
-"img": "img/NB-900.jpg"
+"imgs": [
+"img/NB-900.jpg"
+]
 },
 {
 "codigo": "920-200",
@@ -1463,7 +1684,9 @@ window.CATALOGO=[
 "Protege contra: Picos y variaciones de voltaje",
 "Acciones de protección: Corte de voltaje y tiempo de reconexión"
 ],
-"img": "img/920-200.jpg"
+"imgs": [
+"img/920-200.jpg"
+]
 },
 {
 "codigo": "NB-605",
@@ -1477,7 +1700,9 @@ window.CATALOGO=[
 "Regulación automática de voltaje",
 "Incorpora LED que muestran el funcionamiento y estado del"
 ],
-"img": "img/NB-605.jpg"
+"imgs": [
+"img/NB-605.jpg"
+]
 },
 {
 "codigo": "905-127",
@@ -1491,7 +1716,9 @@ window.CATALOGO=[
 "Clavija de 2 espigas redondas para",
 "Clavija de 2 espigas redondas y una central rectangular para el"
 ],
-"img": "img/905-127.jpg"
+"imgs": [
+"img/905-127.jpg"
+]
 },
 {
 "codigo": "CRG-016",
@@ -1505,7 +1732,9 @@ window.CATALOGO=[
 "Puedes recargar de 1 hasta 4 baterías",
 "Para baterías de"
 ],
-"img": "img/CRG-016.jpg"
+"imgs": [
+"img/CRG-016.jpg"
+]
 },
 {
 "codigo": "BAT-NM-AAA/1100",
@@ -1514,7 +1743,9 @@ window.CATALOGO=[
 "pvp": 14.0,
 "colab": 10.91,
 "feat": [],
-"img": "img/BAT-NM-AAA_1100.jpg"
+"imgs": [
+"img/BAT-NM-AAA_1100.jpg"
+]
 },
 {
 "codigo": "BAT-AAA4",
@@ -1523,7 +1754,9 @@ window.CATALOGO=[
 "pvp": 3.99,
 "colab": 3.44,
 "feat": [],
-"img": "img/BAT-AAA4.jpg"
+"imgs": [
+"img/BAT-AAA4.jpg"
+]
 },
 {
 "codigo": "MODLED-KIT/10",
@@ -1537,7 +1770,9 @@ window.CATALOGO=[
 "Haz la tira Wi-Fi con el controlador",
 "SHOME-128 (de venta por separado)"
 ],
-"img": "img/MODLED-KIT_10.jpg"
+"imgs": [
+"img/MODLED-KIT_10.jpg"
+]
 },
 {
 "codigo": "SHOME-120/3",
@@ -1551,7 +1786,9 @@ window.CATALOGO=[
 "Luz LED cálida independiente",
 "Puedes sincronizarlos a más de un celular"
 ],
-"img": "img/SHOME-120_3.jpg"
+"imgs": [
+"img/SHOME-120_3.jpg"
+]
 },
 {
 "codigo": "MODLED-080/BCO",
@@ -1563,7 +1800,9 @@ window.CATALOGO=[
 "Incorpora 200 LED de luz cálida 8 diferentes modos de iluminación",
 "Para uso exterior"
 ],
-"img": "img/MODLED-080_BCO.jpg"
+"imgs": [
+"img/MODLED-080_BCO.jpg"
+]
 },
 {
 "codigo": "K-720",
@@ -1576,7 +1815,9 @@ window.CATALOGO=[
 "Dimensión: 16 cm de alto x 17 cm de ancho x 12 cm de profundidad",
 "Cintura y patas articuladas"
 ],
-"img": "img/K-720.jpg"
+"imgs": [
+"img/K-720.jpg"
+]
 },
 {
 "codigo": "K-555",
@@ -1589,6 +1830,8 @@ window.CATALOGO=[
 "No requiere herramientas especiales o soldadura",
 "Construye: Avión/Cachorro/Auto/Bote/Avión giratorio/Molino"
 ],
-"img": "img/K-555.jpg"
+"imgs": [
+"img/K-555.jpg"
+]
 }
 ];
