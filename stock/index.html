@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#000000">
+<title>Stock por tienda</title>
+<style>
+:root{--bg:#000;--fg:#fff;--mut:rgba(255,255,255,.66);--line:rgba(255,255,255,.12);--box:rgba(255,255,255,.08);--acc:#ffd400;--accfg:#111;--ok:#34d399;--warn:#fbbf24;--bad:#f87171}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--fg);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.app{max-width:480px;margin:0 auto;min-height:100vh;position:relative;padding-bottom:calc(env(safe-area-inset-bottom) + 96px)}
+.bgblur{position:fixed;inset:-60px;background-size:cover;background-position:center;filter:blur(44px) brightness(.35) saturate(1.3);transform:scale(1.1);z-index:0;transition:background-image .3s}
+.top{position:sticky;top:0;z-index:20;background:#000d;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:calc(env(safe-area-inset-top) + 8px) 14px 10px}
+.brand{display:flex;align-items:center;gap:8px;height:30px}
+.brand img{height:22px}
+.brand b{font-size:19px;font-weight:800}
+.brand span{font-size:11.5px;color:var(--mut);font-weight:600;border-left:1px solid #fff4;padding-left:8px;line-height:1.15}
+.brand select{margin-left:auto;background:var(--box);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font:600 12.5px inherit;font-family:inherit;max-width:44%}
+.brand select option{color:#000}
+.sbar{display:flex;gap:8px;margin-top:8px}
+#q{flex:1;min-width:0;background:var(--box);border:1px solid var(--line);color:var(--fg);border-radius:14px;padding:11px 14px;font-size:17px;outline:none;font-family:inherit}
+#q::placeholder{color:var(--mut)}
+#q:focus{border-color:var(--acc)}
+.scanb{border:0;background:var(--acc);color:var(--accfg);border-radius:14px;padding:0 14px;font-weight:800;font-size:15px;display:flex;align-items:center;gap:6px;cursor:pointer}
+.scanb svg{width:22px;height:22px}
+main{position:relative;z-index:1;padding:0 14px}
+/* Portada */
+.cover{text-align:center;padding:40px 10px 10px}
+.cover img.big{width:72px}
+.cover h1{font-size:28px;font-weight:900;line-height:1.1;margin:14px 0 8px}
+.cover p{color:var(--mut)}
+.cover .bigscan{margin:22px auto 0;width:100%;max-width:320px;height:64px;border-radius:18px;font-size:19px;justify-content:center}
+.meta{color:var(--mut);font-size:12px;text-align:center;margin-top:14px}
+.sec{font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--mut);margin:22px 2px 8px}
+/* Ficha */
+.stage{display:flex;flex-direction:column;align-items:center;gap:10px;padding-top:12px}
+.card{position:relative;width:100%;max-width:360px;aspect-ratio:1;background:#fff;border-radius:22px;box-shadow:0 16px 40px #0009;overflow:hidden}
+.slides{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.slides::-webkit-scrollbar{display:none}
+.slides img{flex:0 0 100%;width:100%;height:100%;object-fit:contain;scroll-snap-align:center;padding:5%}
+.card.np{aspect-ratio:2/1}
+.noimg{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#666;font-weight:800;font-size:22px;text-align:center;padding:20px}
+.noimg small{font-size:13px;font-weight:600;color:#999}
+.dots{display:flex;gap:7px;height:8px;justify-content:center}
+.dots i{width:7px;height:7px;border-radius:50%;background:#fff5;cursor:pointer;transition:all .2s}
+.dots i.on{background:#fff;width:18px;border-radius:4px}
+.info{margin-top:8px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.tag{font-size:11.5px;font-weight:800;border-radius:999px;padding:3px 10px;background:var(--box)}
+.tag.ok{color:var(--ok)}.tag.warn{color:var(--warn)}.tag.bad{color:var(--bad)}.tag.top{background:var(--acc);color:var(--accfg)}
+.name{font-size:20px;font-weight:800;line-height:1.2}
+.code{font-size:12.5px;color:var(--mut);font-weight:600;margin:3px 0 8px}
+.feat{list-style:none;color:#fffd;font-size:14.5px;line-height:1.4}
+.feat li{margin-bottom:3px}
+.feat li::before{content:"• ";color:var(--acc)}
+.more{background:none;border:0;color:var(--fg);font-weight:700;font-size:13.5px;padding:4px 0;cursor:pointer;text-decoration:underline;text-underline-offset:2px;font-family:inherit}
+.price{display:flex;align-items:center;gap:10px;margin-top:10px}
+.pcol{background:var(--acc);color:var(--accfg);border-radius:12px;padding:6px 14px 7px;line-height:1}
+.pcol small{display:block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.pcol strong{font-size:32px;font-weight:900;letter-spacing:-.5px}
+.iva{font-size:12px;color:var(--mut)}
+.aviso{margin-top:10px;font-size:13px;color:var(--warn);background:#fbbf2418;border-radius:10px;padding:8px 12px}
+/* Dónde hay */
+.donde{background:#111c;border:1px solid var(--line);border-radius:18px;padding:6px 14px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.tot{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0 8px;border-bottom:1px solid var(--line)}
+.tot b{font-size:30px;font-weight:900}
+.row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);font-size:16.5px}
+.row:last-of-type{border-bottom:0}
+.row .n{font-weight:900;font-size:19px;font-variant-numeric:tabular-nums}
+.row small{color:var(--mut);font-size:12px;margin-left:6px;font-weight:500}
+.row.me{margin:6px -8px;padding:11px 10px;border-radius:12px;background:var(--acc);color:var(--accfg);border:0}
+.row.me small{color:#111a}
+.row.bod .lb{font-weight:700}
+.row.bod .lb::before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--acc);margin-right:8px;vertical-align:middle}
+.row.z .n{color:var(--mut)}
+.sin{font-size:13px;color:var(--mut);padding:8px 0 10px;border-top:1px solid var(--line)}
+.lleg{margin-top:10px;display:inline-block;background:#34d39922;color:var(--ok);font-weight:700;font-size:13.5px;border-radius:999px;padding:6px 12px}
+/* Reemplazos y resultados */
+.hs{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+.hs::-webkit-scrollbar{display:none}
+.rc{flex:0 0 150px;background:#111c;border:1px solid var(--line);border-radius:16px;padding:8px;color:var(--fg);text-align:left;cursor:pointer;font-family:inherit}
+.rc .ph{aspect-ratio:1;background:#fff;border-radius:12px;overflow:hidden;margin-bottom:6px}
+.rc .ph img{width:100%;height:100%;object-fit:contain;padding:6%}
+.rc b{font-size:13px;display:block}
+.rc span{font-size:12px;color:var(--mut);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rc em{font-style:normal;font-weight:800;color:var(--acc);font-size:14px}
+.li{display:flex;gap:10px;align-items:center;width:100%;background:#111c;border:1px solid var(--line);border-radius:14px;padding:8px;margin-bottom:8px;color:var(--fg);text-align:left;cursor:pointer;font-family:inherit}
+.li .ph{flex:0 0 56px;height:56px;background:#fff;border-radius:10px;overflow:hidden}
+.li .ph img{width:100%;height:100%;object-fit:contain;padding:6%}
+.li div{min-width:0}
+.li b{font-size:14px}
+.li span{display:block;font-size:12.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg{text-align:center;color:var(--mut);padding:30px 10px}
+/* Botón flotante */
+.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 18px);z-index:30;border:0;background:var(--acc);color:var(--accfg);border-radius:999px;height:58px;padding:0 26px;font-weight:900;font-size:17px;display:none;align-items:center;gap:8px;box-shadow:0 10px 30px #000b;cursor:pointer}
+.fab svg{width:24px;height:24px}
+.fab.on{display:flex}
+/* Hoja "Ver más" */
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:40;max-width:480px;margin:0 auto;max-height:80vh;overflow-y:auto;background:#151515f2;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:20px 20px 0 0;padding:18px 18px calc(env(safe-area-inset-bottom) + 20px);transform:translateY(105%);transition:transform .28s ease}
+.sheet.on{transform:none;visibility:visible}
+.sheet{visibility:hidden}
+.row.sep{border-top:1px dashed var(--line)}
+.sheet h3{font-size:18px;font-weight:800;margin-right:36px}
+.sheet p{font-size:15px;line-height:1.5;color:#fffd;margin-top:10px}
+.sheet a{display:inline-block;margin-top:14px;color:var(--acc);font-weight:700}
+.close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:0;background:#fff2;color:#fff;font-size:18px;cursor:pointer}
+/* Cámara */
+.cam{position:fixed;inset:0;background:#000;z-index:60;display:none;flex-direction:column}
+.cam.on{display:flex}
+.cam video{flex:1;width:100%;object-fit:cover;min-height:0}
+.cam .guide{position:absolute;left:8%;right:8%;top:38%;height:22%;border:3px solid var(--acc);border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.4)}
+.cam .st{position:absolute;top:calc(env(safe-area-inset-top) + 18px);left:0;right:0;text-align:center;color:#fff;font-weight:700;text-shadow:0 1px 3px #000}
+.cam .ctl{position:absolute;left:0;right:0;bottom:0;padding:16px 16px calc(env(safe-area-inset-bottom) + 20px);display:flex;gap:10px;justify-content:center}
+.cam .ctl button,.cam .ctl label{font:700 16px inherit;font-family:inherit;border:0;border-radius:14px;padding:13px 20px;background:#fff;color:#111;cursor:pointer}
+</style></head><body>
+<div class="bgblur" id="bg" style="background:radial-gradient(circle at 30% 20%,#ffd40044,#000 60%)"></div>
+<div class="app">
+ <div class="top">
+  <div class="brand"><img src="logo.png" alt=""><b>Steren</b><span>Stock en<br>tiendas</span><select id="mi" aria-label="Mi tienda"></select></div>
+  <div class="sbar"><input id="q" inputmode="search" autocomplete="off" autocapitalize="characters" placeholder="Código, barras o nombre">
+  <button class="scanb" id="camb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>Escanear</button></div>
+ </div>
+ <main id="out"></main>
+</div>
+<button class="fab" id="fab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>Escanear otro</button>
+<div class="sheet" id="sheet"><button class="close" id="shx" aria-label="Cerrar">×</button><div id="shc"></div></div>
+<div class="cam" id="cam"><video id="vid" playsinline muted autoplay></video><div class="guide"></div><div class="st" id="camst">Apunta al código de barras</div>
+ <div class="ctl"><label>Foto<input id="foto" type="file" accept="image/*" capture="environment" hidden></label><button id="camx">Cerrar</button></div></div>
+<script src="data.enc.js?v=3"></script>
+<script>
+const T=["Mall del Sol","Urdesa","Samborondón","Condado","El Jardín","Portal","Scala","Megakywi","Megamaxi","Tumbaco","CEDIS Quito","CEDIS Guayaquil"];
+const GYE=[0,1,2],UIO=[3,4,5,6,7,8,9],ALL=[0,1,2,3,4,5,6,7,8,9,10,11],O=12;
+const GEO=[[-2.1545,-79.8919],[-2.1689,-79.9056],[-2.1405,-79.8667],[-0.1023,-78.4898],[-0.1797,-78.4846],[-0.1153,-78.4705],[-0.2003,-78.4327],[-0.1718,-78.4757],[-0.1755,-78.4794],[-0.2108,-78.4048],[-0.1650,-78.4700],[-2.1600,-79.9000]];
+const dist=(a,b)=>Math.hypot(GEO[a][0]-GEO[b][0],(GEO[a][1]-GEO[b][1])*Math.cos(GEO[a][0]*Math.PI/180));
+const ESTC={"Línea":"ok","Nuevo":"ok","Por Rematar":"warn","Por Devolver":"warn","Descontinuado":"bad"};
+let D=[],F="";const byCode=new Map(),byBar=new Map();
+const $=s=>document.querySelector(s),q=$("#q"),out=$("#out"),fab=$("#fab");
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm=s=>s.normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase();
+const money=n=>"$"+Number(n).toFixed(2);
+let mi=-1,rec=[],cur=null;
+try{mi=+(localStorage.getItem("st.tienda")??-1);rec=JSON.parse(localStorage.getItem("st.rec")||"[]")}catch(e){}
+{const ht=new URLSearchParams(location.hash.slice(1)).get("tienda");if(ht!==null&&+ht>=0&&+ht<10){mi=+ht;try{localStorage.setItem("st.tienda",mi)}catch(e){}}}
+async function cargar(){
+ let k=new URLSearchParams(location.hash.slice(1)).get("k");
+ try{if(k)localStorage.setItem("st.k",k);else k=localStorage.getItem("st.k")}catch(e){}
+ if(!k)throw new Error("sin clave");
+ const b64=s=>Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")+"==".slice(0,(4-s.length%4)%4)),c=>c.charCodeAt(0));
+ const key=await crypto.subtle.importKey("raw",b64(k),"AES-GCM",false,["decrypt"]);
+ const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64(ENC.iv)},key,b64(ENC.ct));
+ const w={};new Function("window",new TextDecoder().decode(pt))(w);
+ D=w.STOCK_DATA;F=w.STOCK_FECHA;
+ for(const p of D){byCode.set(p[0].toUpperCase(),p);for(const b of p[2].split(" "))if(b)byBar.set(b,p)}}
+const sum=(ix,p)=>ix.reduce((a,i)=>a+Math.max(0,p[O+i]),0);
+const foto=(p,k=0)=>p[8]&&p[8][k]?"img/"+encodeURIComponent(p[8][k]):"";
+const thumb=p=>foto(p)?`<img src="${foto(p)}" alt="" loading="lazy" onerror="this.style.display='none'">`:"";
+function selMi(){const s=$("#mi");s.innerHTML=`<option value="-1">Mi tienda…</option>`+T.slice(0,10).map((t,i)=>`<option value="${i}"${i==mi?" selected":""}>${t}</option>`).join("");
+ s.onchange=()=>{mi=+s.value;try{localStorage.setItem("st.tienda",mi)}catch(_){}if(cur)show(cur,true)}}
+function orden(){
+ if(mi<0)return [10,...UIO,11,...GYE];
+ const uio=UIO.includes(mi),bod=uio?10:11,otraB=uio?11:10;
+ const misC=(uio?UIO:GYE).filter(i=>i!=mi).sort((x,y)=>dist(mi,x)-dist(mi,y));
+ const otras=(uio?GYE:UIO).slice().sort((x,y)=>dist(mi,x)-dist(mi,y));
+ return [mi,bod,...misC,otraB,...otras]}
+const nom=i=>i==10?"Bodega Quito":i==11?"Bodega Guayaquil":T[i];
+function donde(p){
+ const o=orden(),con=o.filter(i=>p[O+i]>0||i==mi),sin=o.filter(i=>p[O+i]<=0&&i!=mi);
+ const km=i=>mi>=0&&i!=mi?`<small>${Math.max(1,Math.round(dist(mi,i)*111))} km</small>`:"";
+ return `<div class="donde"><div class="tot"><span>Disponible en total</span><b>${sum(ALL,p)}</b></div>`+
+  con.map(i=>{const n=p[O+i];return `<div class="row${n<=0?" z":""}${i==mi?" me":""}${i>=10?" bod":""}"><span class="lb">${i==mi?"Aquí · ":""}${nom(i)}${km(i)}</span><span class="n">${n}</span></div>`}).join("")+
+  (sin.length?`<div class="sin">Sin stock: ${sin.map(nom).join(", ")}</div>`:"")+`</div>`}
+function show(p,keep){cur=p;
+ if(!keep){rec=[p[0],...rec.filter(c=>c!==p[0])].slice(0,10);try{localStorage.setItem("st.rec",JSON.stringify(rec))}catch(e){}}
+ const [cod,nm,bar,pre,est,lleg,top,rem,fotos,url,bul,noerp]=p,txt=p[O+12]||"";
+ const fs=(fotos||[]).map((f,k)=>`<img ${k?'loading="lazy" ':''}src="img/${encodeURIComponent(f)}" alt="${esc(nm)}">`).join("");
+ $("#bg").style.background=fotos&&fotos.length?`center/cover url('${foto(p)}')`:"radial-gradient(circle at 30% 20%,#ffd40044,#000 60%)";
+ const rems=(rem||[]).map(c=>byCode.get(c)).filter(Boolean);
+ out.innerHTML=`<div class="stage"><div class="card${fs?"":" np"}">${fs?`<div class="slides">${fs}</div>`:`<div class="noimg">${esc(cod)}<small>Sin foto</small></div>`}</div>
+  <div class="dots">${fotos&&fotos.length>1?fotos.map((f,k)=>`<i${k?"":' class="on"'} data-k="${k}"></i>`).join(""):""}</div></div>
+ <div class="info"><div class="tags"><span class="tag ${ESTC[est]||"bad"}">${esc(est)}</span>${top?'<span class="tag top">Top ventas</span>':""}</div>
+  <div class="name">${esc(nm)}</div><div class="code">Código ${esc(cod)}</div>
+  ${bul&&bul.length?`<ul class="feat">${bul.map(b=>`<li>${esc(b)}</li>`).join("")}</ul>`:""}
+  ${txt||url?`<button class="more" id="more">Ver más</button>`:""}
+  <div class="price">${pre?`<div class="pcol"><small>Precio</small><strong>${money(pre)}</strong></div><div class="iva">Incluye IVA</div>`:`<div class="iva">Precio por confirmar</div>`}</div>
+  ${noerp?'<div class="aviso">Este código todavía no está creado en el ERP.</div>':""}
+ </div>
+ <div class="sec">¿Dónde hay?</div>${donde(p)}
+ ${lleg?`<div class="lleg">${esc(lleg)}</div>`:""}
+ ${rems.length?`<div class="sec">Ofrécele este reemplazo</div><div class="hs">${rems.map(x=>`<button class="rc" data-c="${esc(x[0])}"><div class="ph">${thumb(x)}</div><b>${esc(x[0])}</b><span>${esc(x[1])}</span><em>${money(x[3])}</em> · ${sum(ALL,x)} disp.</button>`).join("")}</div>`:""}
+ ${recent()}
+ <div class="meta">Stock del ERP · ${esc(F)}</div>`;
+ const s=out.querySelector(".slides"),d=out.querySelector(".dots");
+ if(s&&d.children.length){s.addEventListener("scroll",()=>{const k=Math.round(s.scrollLeft/s.clientWidth);[...d.children].forEach((x,j)=>x.classList.toggle("on",j===k))},{passive:true});
+  d.onclick=e=>{const i=e.target.closest("i");if(i)s.scrollTo({left:s.clientWidth*+i.dataset.k,behavior:"smooth"})}}
+ out.querySelectorAll(".slides img").forEach(im=>im.onerror=()=>{im.remove();if(s&&!s.children.length)s.parentNode.innerHTML=`<div class="noimg">${esc(cod)}<small>Sin foto</small></div>`});
+ const m=$("#more");if(m)m.onclick=()=>{$("#shc").innerHTML=`<h3>${esc(nm)}</h3><div class="code">Código ${esc(cod)}</div>${txt?`<p>${esc(txt)}</p>`:""}${url?`<a href="${esc(url)}" target="_blank" rel="noopener">Ver ficha completa en steren.com.mx</a>`:""}`;$("#sheet").classList.add("on")};
+ bind();fab.classList.add("on");window.scrollTo(0,0)}
+function recent(){const r=rec.map(c=>byCode.get(c)).filter(x=>x&&(!cur||x[0]!==cur[0]));
+ return r.length?`<div class="sec">Recientes</div><div class="hs">${r.map(x=>`<button class="rc" data-c="${esc(x[0])}"><div class="ph">${thumb(x)}</div><b>${esc(x[0])}</b><span>${esc(x[1])}</span><em>${x[3]?money(x[3]):""}</em></button>`).join("")}</div>`:""}
+function bind(){out.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{const p=byCode.get(b.dataset.c);q.value=p[0];show(p)})}
+function home(){cur=null;fab.classList.remove("on");$("#bg").style.background="radial-gradient(circle at 30% 20%,#ffd40044,#000 60%)";
+ out.innerHTML=`<div class="cover"><img class="big" src="logo.png" alt=""><h1>¿Qué busca<br>tu cliente?</h1><p>Escanea el código de barras o escribe el código para ver precio, fotos y en qué tienda hay.</p>
+ <button class="scanb bigscan" id="bigscan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>Escanear producto</button></div>${recent()}<div class="meta">Stock del ERP · ${esc(F)}</div>`;
+ $("#bigscan").onclick=abrirCam;bind()}
+function find(raw,enter){
+ const s=raw.trim();if(!s){home();return}
+ const u=s.toUpperCase(),d=s.replace(/\D/g,"");
+ const p=byCode.get(u)||(d.length>=6&&d===s?(byBar.get(d)||byBar.get(d.replace(/^0+/,""))||byBar.get("0"+d)):null);
+ if(p){show(p);if(enter)q.blur();return}
+ const k=norm(s).split(/\s+/),hits=[];
+ for(const x of D){const h=norm(x[0]+" "+x[1]+" "+x[2]);if(k.every(w=>h.includes(w))){hits.push(x);if(hits.length>=40)break}}
+ if(hits.length===1&&enter){show(hits[0]);q.blur();return}
+ cur=null;fab.classList.remove("on");
+ out.innerHTML=hits.length?`<div class="sec">${hits.length>=40?"Primeros 40 resultados":hits.length+" resultados"}</div>`+hits.map(x=>`<button class="li" data-c="${esc(x[0])}"><div class="ph">${thumb(x)}</div><div><b>${esc(x[0])}</b> · ${x[3]?money(x[3]):""}<span>${esc(x[1])}</span><span>${sum(ALL,x)} disponibles</span></div></button>`).join(""):`<div class="msg">No encontré “${esc(s)}”.</div>`;
+ bind()}
+let tm;
+q.addEventListener("input",()=>{clearTimeout(tm);tm=setTimeout(()=>find(q.value,false),150)});
+q.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();clearTimeout(tm);find(q.value,true)}});
+q.addEventListener("focus",()=>q.select());
+$("#shx").onclick=()=>$("#sheet").classList.remove("on");
+// Lector de barras
+let zx=null;
+const loadScript=src=>new Promise((ok,ko)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=ko;document.head.appendChild(s)});
+async function zxing(){if(zx)return zx;await loadScript("zxwasm.js");await loadScript("zx.js");
+ const b=Uint8Array.from(atob(window.ZX_WASM),c=>c.charCodeAt(0));
+ await ZXingWASM.prepareZXingModule({overrides:{wasmBinary:b.buffer},fireImmediately:true});zx=ZXingWASM;return zx}
+async function leer(file){
+ if("BarcodeDetector" in window){try{const r=await new BarcodeDetector().detect(await createImageBitmap(file));if(r.length)return r[0].rawValue}catch(e){}}
+ const z=await zxing();const r=await z.readBarcodes(file,{tryHarder:true,formats:["Linear-Codes","QRCode"],maxNumberOfSymbols:1});return r.length?r[0].text:null}
+$("#foto").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;cerrarCam();
+ out.innerHTML=`<div class="msg">Leyendo el código…</div>`;
+ try{const c=await leer(f);if(c){q.value=c;find(c,true)}else out.innerHTML=`<div class="msg">No se leyó el código. Acércate más o escríbelo.</div>`}
+ catch(err){out.innerHTML=`<div class="msg">No se pudo leer la foto. Escribe el código.</div>`}};
+const cam=$("#cam"),vid=$("#vid"),cst=$("#camst");let stream=null,scanOn=false,nd=null;
+const FMT=["EAN-13","EAN-8","UPC-A","UPC-E","Code128","Code39","ITF"];
+async function abrirCam(){cam.classList.add("on");cst.textContent="Abriendo la cámara…";
+ try{if(!stream)stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}},audio:false});vid.srcObject=stream;await vid.play()}
+ catch(e){cst.textContent="No se pudo abrir la cámara. Usa Foto o escribe el código.";return}
+ if(!nd&&"BarcodeDetector" in window){try{const f=await BarcodeDetector.getSupportedFormats();nd=new BarcodeDetector({formats:f.filter(x=>/ean|upc|code_128|code_39|itf/.test(x))})}catch(e){nd=null}}
+ if(!nd){cst.textContent="Preparando el lector…";try{await zxing()}catch(e){cst.textContent="No cargó el lector. Usa Foto.";return}}
+ cst.textContent="Apunta al código de barras";scanOn=true;loop()}
+const cv=document.createElement("canvas"),cx=cv.getContext("2d",{willReadFrequently:true});
+async function loop(){if(!scanOn)return;
+ try{const w=vid.videoWidth,h=vid.videoHeight;
+  if(w){let c=null;
+   if(nd){const r=await nd.detect(vid);if(r.length)c=r[0].rawValue}
+   else{const sh=Math.round(h*0.5);cv.width=w;cv.height=sh;cx.drawImage(vid,0,(h-sh)/2,w,sh,0,0,w,sh);
+    const r=await zx.readBarcodes(cx.getImageData(0,0,w,sh),{formats:FMT,tryHarder:true,maxNumberOfSymbols:1});if(r.length)c=r[0].text}
+   if(c){try{navigator.vibrate&&navigator.vibrate(80)}catch(e){}cerrarCam();q.value=c;find(c,true);return}}
+ }catch(e){}
+ setTimeout(loop,nd?120:60)}
+function cerrarCam(){scanOn=false;cam.classList.remove("on");if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}}
+$("#camb").onclick=abrirCam;fab.onclick=abrirCam;$("#camx").onclick=cerrarCam;
+addEventListener("pagehide",cerrarCam);
+selMi();
+cargar().then(home).catch(()=>{out.innerHTML=`<div class="msg">Abre la app con el enlace completo que te mandaron.</div>`});
+</script>
+</body></html>
