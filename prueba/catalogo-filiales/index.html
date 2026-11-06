@@ -114,6 +114,15 @@ body{overflow:hidden}
 .cover p{color:var(--muted);font-size:15px}
 .cover .ivabox{display:inline-block;background:var(--accent);color:var(--accent-fg);font-weight:800;font-size:13px;padding:5px 12px;border-radius:999px}
 .cover .cats{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:4px}
+.dbtns svg{width:18px;height:18px;vertical-align:-4px;margin-right:6px}
+.dimg{width:100%;max-height:40vh;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:14px;margin:6px 0 12px}
+.dname{font-size:18px;font-weight:700;margin:0 0 4px}.dcode{opacity:.7;font-size:13px;margin-bottom:10px}
+.dprice{font-size:28px;font-weight:800;color:#ffd84d}.dpvp{opacity:.75;font-size:14px;margin:2px 0 12px}
+.dfeat{font-size:14px;opacity:.9;padding-left:18px;margin:0 0 14px}.dbtns{display:flex;gap:8px;flex-wrap:wrap}
+.dbtns button{flex:1 1 30%;min-width:96px;padding:12px 8px;border-radius:12px;border:0;font-weight:700;font-size:14px;background:#2a2f3a;color:#fff}
+.dbtns .dwant{background:#25d366;color:#06301a;flex-basis:100%}.dbtns .dadd.on{background:#ffd84d;color:#222}
+#ptiendas{z-index:42}#pdet{z-index:41}#dbody{overflow-y:auto;flex:1;margin-top:40px}
+.sh{font-size:13px;font-weight:700;opacity:.75;margin:14px 2px 6px;text-transform:uppercase;letter-spacing:.04em}
 </style>
 </head>
 <body>
@@ -125,11 +134,12 @@ body{overflow:hidden}
   <main class="feed" id="feed"></main>
   <div class="panel" id="psearch"><button class="x" data-close>×</button><h2>Buscar producto</h2><input id="q" type="search" placeholder="Nombre o código, ej. parlante, PB-2010AC" autocomplete="off"><div class="plist" id="sres"></div></div>
   <div class="panel" id="ptiendas"><button class="x" data-close>×</button><h2 id="tt">¿En qué tienda está?</h2><div class="city" id="tcity"></div><div class="plist" id="tlist"></div><div class="pnote" id="tnote"></div></div>
+  <div class="panel" id="pdet"><button class="x" data-close>×</button><div id="dbody"></div></div>
   <div class="panel" id="pcart"><button class="x" data-close>×</button><h2>Mi pedido</h2><div class="plist" id="clist"></div><div class="tot" id="ctot"></div><button class="wa" id="csend"></button></div>
   <div class="hint" id="hint">Desliza hacia arriba ↑</div>
 </div>
 <div class="toast" id="toast"></div>
-<script src="datos.js?v=8"></script>
+<script src="datos.js?v=9"></script>
 <script>
 (function(){
 var WA='593990115028'; // WhatsApp de la web Steren Ecuador (consultas generales)
@@ -214,12 +224,30 @@ function openCart(){var ks=Object.keys(cart).filter(function(c){return BY[c];}),
   document.getElementById('pcart').classList.add('on');}
 function norm(s){return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
 var SYN={parlante:['bocina','bafle','parlante'],parlantes:['bocina','bafle','parlante'],audifono:['audifono','auricular'],audifonos:['audifono','auricular'],powerbank:['power bank','powerbank','bateria'],reloj:['reloj','smartwatch'],foco:['foco','lampara','bombilla'],camara:['camara','webcam'],microfono:['microfono'],microfonos:['microfono'],teclado:['teclado'],mouse:['mouse','raton'],cable:['cable']};
+var TODO=null, TLOAD=false, IMGX='/Tefes/stock/img/';
+function loadTodo(){if(TODO||TLOAD) return; TLOAD=true; var sc=document.createElement('script'); sc.src='todo.js?v='+(window.STOCK_FECHA||'1');
+  sc.onload=function(){TODO=(window.TODO||[]).filter(function(r){return !BY[r[0]];}).map(function(r){return {codigo:r[0],nombre:r[1],pvp:r[2],colab:r[3],imgs:r[4]?[IMGX+r[4]]:[],st:r[5].split('').map(Number),feat:r[6]||[],cat:'',extra:true};});
+    TODO.forEach(function(p){BY[p.codigo]=p;}); if(document.getElementById('psearch').classList.contains('on')) doSearch(); upd(); if(document.getElementById('pcart').classList.contains('on')) openCart();};
+  sc.onerror=function(){TLOAD=false;}; document.head.appendChild(sc);}
+function match(p,w){var h=norm(p.nombre+' '+p.codigo+' '+(p.cat||'')+' '+(p.feat||[]).join(' ')); return w.every(function(x){return (SYN[x]||[x]).some(function(y){return h.indexOf(y)>=0;});});}
+function openDet(code){var p=BY[code]; if(!p) return; CUR=code;
+  var sv=p.pvp>pr(p)?'<div class="dpvp">Precio normal <s>'+money(p.pvp)+'</s> · Ahorras '+money(p.pvp-pr(p))+'</div>':'<div class="dpvp">Precio con IVA</div>';
+  document.getElementById('dbody').innerHTML=(p.imgs[0]?'<img class="dimg" src="'+esc(p.imgs[0])+'" alt="" onerror="this.remove()">':'')+'<div class="dname">'+esc(p.nombre)+'</div><div class="dcode">'+esc(p.codigo)+'</div><div class="dprice">'+money(pr(p))+'</div>'+sv+
+   ((p.feat&&p.feat.length)?'<ul class="dfeat">'+p.feat.slice(0,4).map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>':'')+
+   '<div class="dbtns"><button class="dwant">'+waico+'Lo quiero</button><button class="dadd'+(cart[code]?' on':'')+'">'+(cart[code]?'En pedido':'Agregar')+'</button><button class="dwhere">Tiendas</button></div>';
+  document.getElementById('pdet').classList.add('on');}
 function doSearch(){var q=norm(document.getElementById('q').value.trim()), w=q.split(/\s+/).filter(Boolean);
-  var r=w.length?P.filter(function(p){var h=norm(p.nombre+' '+p.codigo+' '+p.cat+' '+(p.feat||[]).join(' ')); return w.every(function(x){return (SYN[x]||[x]).some(function(y){return h.indexOf(y)>=0;});});}):P;
-  document.getElementById('sres').innerHTML=r.length?r.slice(0,60).map(function(p){return '<button class="pi" data-to="'+esc(p.codigo)+'">'+thumb(p)+'<div class="t">'+esc(p.nombre)+'<small>'+esc(p.codigo)+' · '+esc(p.cat)+'</small></div><span class="p">'+money(pr(p))+'</span></button>';}).join(''):'<div class="empty">No encontramos productos con «'+esc(q)+'».</div>';}
-function openSearch(){document.getElementById('psearch').classList.add('on'); doSearch(); setTimeout(function(){document.getElementById('q').focus();},50);}
+  var r=w.length?P.filter(function(p){return match(p,w);}):P;
+  var x=(w.length&&TODO)?TODO.filter(function(p){return match(p,w);}):[];
+  var row=function(p,a){return '<button class="pi" '+a+'="'+esc(p.codigo)+'">'+thumb(p)+'<div class="t">'+esc(p.nombre)+'<small>'+esc(p.codigo)+(p.cat?' · '+esc(p.cat):'')+'</small></div><span class="p">'+money(pr(p))+'</span></button>';};
+  var h=r.slice(0,60).map(function(p){return row(p,'data-to');}).join('');
+  if(x.length) h+='<div class="sh">También disponible en tiendas</div>'+x.slice(0,40).map(function(p){return row(p,'data-x');}).join('');
+  else if(w.length&&!TODO&&TLOAD) h+='<div class="empty">Buscando en todo el catálogo…</div>';
+  document.getElementById('sres').innerHTML=h||'<div class="empty">No encontramos productos con «'+esc(q)+'».<br>Escríbenos y te ayudamos: <a href="https://wa.me/'+WA+'" target="_blank" style="color:#25d366">WhatsApp Steren</a></div>';}
+function openSearch(){loadTodo(); document.getElementById('psearch').classList.add('on'); doSearch(); setTimeout(function(){document.getElementById('q').focus();},50);}
 document.getElementById('q').addEventListener('input',doSearch);
 upd();
+if(Object.keys(cart).some(function(c){return !BY[c];})) loadTodo();
 function toast(m){var t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); setTimeout(function(){t.classList.remove('on');},1600);}
 document.addEventListener('click',function(e){
   if(e.target.closest('[data-close]')){e.target.closest('.panel').classList.remove('on');return;}
@@ -229,7 +257,11 @@ document.addEventListener('click',function(e){
   var cb=e.target.closest('[data-city]'); if(cb){CITY=cb.getAttribute('data-city'); try{localStorage.setItem('cat_city',CITY);}catch(x){} openTiendas(CUR); return;}
   var ws=e.target.closest('.waS[data-t]'); if(ws){waTienda(+ws.getAttribute('data-t'),CUR); return;}
   var qb=e.target.closest('.qty button'); if(qb){var cd=qb.parentNode.getAttribute('data-c'); cart[cd]=(cart[cd]||0)+(+qb.getAttribute('data-d')); if(cart[cd]<=0) delete cart[cd]; saveCart(); openCart(); return;}
-  var pi=e.target.closest('.pi[data-to]'); if(pi){document.getElementById('psearch').classList.remove('on');document.getElementById('pcart').classList.remove('on');var el=feed.querySelector('.post[data-code="'+pi.getAttribute('data-to').replace(/"/g,'\\"')+'"]'); if(el) el.scrollIntoView(); return;}
+  var px=e.target.closest('.pi[data-x]'); if(px){openDet(px.getAttribute('data-x')); return;}
+  if(e.target.closest('#pdet .dwant')){sendWA([CUR]); return;}
+  if(e.target.closest('#pdet .dadd')){if(cart[CUR]) delete cart[CUR]; else cart[CUR]=1; saveCart(); toast(cart[CUR]?'Agregado a tu pedido':'Quitado de tu pedido'); openDet(CUR); return;}
+  if(e.target.closest('#pdet .dwhere')){openTiendas(CUR); return;}
+  var pi=e.target.closest('.pi[data-to]'); if(pi&&BY[pi.getAttribute('data-to')]&&BY[pi.getAttribute('data-to')].extra){document.getElementById('pcart').classList.remove('on'); openDet(pi.getAttribute('data-to')); return;} if(pi){document.getElementById('psearch').classList.remove('on');document.getElementById('pcart').classList.remove('on');var el=feed.querySelector('.post[data-code="'+pi.getAttribute('data-to').replace(/"/g,'\\"')+'"]'); if(el) el.scrollIntoView(); return;}
   var t=e.target.closest('[data-go]'); if(t){go(t.getAttribute('data-go'));return;}
   var post=e.target.closest('.post'); if(!post) return;
   var dot=e.target.closest('.dots i'); if(dot){var s=post.querySelector('.slides'); s.scrollTo({left:s.clientWidth*(+dot.getAttribute('data-k')),behavior:'smooth'}); return;}
