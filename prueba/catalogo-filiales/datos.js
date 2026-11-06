@@ -973,7 +973,11 @@ window.CATALOGO=[
 "pvp": 15.98,
 "colab": 12.64,
 "feat": [],
-"imgs": [],
+"imgs": [
+"img/INSECTRONIC-060_0.jpg",
+"img/INSECTRONIC-060_1.jpg",
+"img/INSECTRONIC-060_2.jpg"
+],
 "img": null
 },
 {
