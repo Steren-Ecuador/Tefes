@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (21eed75909ec). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (58e89684545f). No editar a mano. -->
 <html lang="es" data-theme="light">
 <head>
 <base target="_top">
@@ -722,6 +722,14 @@ tr.on td{background:var(--accent-soft)}
 @media(max-width:620px){.gar-t .u{display:block;margin-left:0}.gar-t th,.gar-t td{padding-left:6px;padding-right:6px}.gar-t th{white-space:normal}}
 .gar-up{color:var(--good);font-weight:600} .gar-dn{color:var(--bad);font-weight:600}
 </style>
+<style>/* stk1 botón Consultar stock */
+.stock-btn{display:flex;align-items:center;gap:14px;background:#0078be;color:#fff!important;text-decoration:none!important;border-radius:14px;padding:16px 18px;margin:0 0 14px;box-shadow:0 4px 14px rgba(0,120,190,.28);-webkit-tap-highlight-color:transparent}
+.stock-btn:hover{background:#006aa8}.stock-btn:active{transform:scale(.99)}
+.stock-btn .sb-ico{font-size:28px;line-height:1}
+.stock-btn b{display:block;font-size:19px;line-height:1.2;color:#fff}
+.stock-btn small{display:block;font-size:13px;opacity:.92;margin-top:2px;color:#fff}
+.stock-btn .sb-fl{margin-left:auto;font-size:22px;opacity:.85}
+</style>
 </head>
 <body>
 <script>
@@ -1145,7 +1153,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   </div>
 
   <div class="view" data-view="hoy">
-    <div id="datoDia"></div>
+    <div id="stockBtn"></div><div id="datoDia"></div>
     <div class="kpis" id="kpis"></div>
     <div class="hoy-top">
       <section class="panel mapa" id="mapa" aria-label="Mapa de tiendas">
@@ -1326,6 +1334,7 @@ async function cargar(liviano){
     api('apiGuiasPanel').then(x => { st.gui = x; renderGuias(); }).catch(() => { st.gui = null; renderGuias(); });
     api('apiFlashPanel').then(x => { st.flash = x; renderFlash(); }).catch(() => { st.flash = null; renderFlash(); });
     api('apiGarantiasPanel').then(x => { st.gar = x; renderGar(); }).catch(() => { st.gar = null; renderGar(); });   // gt1
+    api('apiStockPanel').then(u => { const el = $('#stockBtn'); if (el) el.innerHTML = stockBtn(u); }).catch(() => {});   // stk1
     api('apiClientesPanel').then(x => { st.vf = x.vf; st.rec = x.rec; renderVF(); renderReclamos(); }).catch(() => { st.vf = null; st.rec = null; renderVF(); renderReclamos(); });   // paneles-iguales-1
     api('apiPoliticasInformePanel').then(x => { st.polInfD = x; renderPoliticas(); }).catch(() => { st.polInfD = null; renderPoliticas(); });
     if (liviano && st.avisos !== undefined) return;
@@ -2140,6 +2149,7 @@ function pintarMapa(todas){
 
 /* ---------- Flash de Ventas: venta del día y del mes contra presupuesto, desde el ERP (igual que el panel admin, Diego 2026-10-25) ---------- */
 /* ---------- gt1: garantías extendidas (igual que el admin; aquí llegan por apiGarantiasPanel, GarantiasTienda.gs) ---------- */
+function stockBtn(u){ /* stk1 */ return u ? '<a class="stock-btn" href="' + esc(u) + '" target="_blank" rel="noopener"><span class="sb-ico">🔍</span><span><b>Consultar stock</b><small>Escanea o escribe un código y mira cuánto hay en cada tienda</small></span><span class="sb-fl">›</span></a>' : ''; }
 function renderGar(){
   const el = $('#garBody'); if (!el) return;
   if (st.gar === undefined) { el.innerHTML = '<div class="skeleton">Cargando garantías…</div>'; return; }
