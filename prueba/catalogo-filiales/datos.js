@@ -1270,35 +1270,6 @@ window.CATALOGO=[
 ]
 },
 {
-"codigo": "SHOME-100/3",
-"cat": "Casa y oficina",
-"nombre": "3 contactos Wi-Fi",
-"pvp": 26.0,
-"colab": 25.29,
-"feat": [
-"Puedes sincronizarlos a más de un celular",
-"Compatibles con Android y iPhone",
-"Compatibles con asistentes de voz como Alexa* y Google Assistant*",
-"Función temporizador (timer)"
-],
-"imgs": [
-"img/SHOME-100_3_0.webp"
-],
-"img": "img/SHOME-100_3.webp",
-"st": [
-2,
-2,
-0,
-2,
-1,
-1,
-2,
-2,
-2,
-0
-]
-},
-{
 "codigo": "905-170",
 "cat": "Casa y oficina",
 "nombre": "Multicontacto de pared con supresor de picos (230 J), 6 salidas polarizadas y centro de carga doble USB / un USB C",
@@ -1395,36 +1366,6 @@ window.CATALOGO=[
 ]
 },
 {
-"codigo": "PCAJA-001",
-"cat": "Casa y oficina",
-"nombre": "Caja de toques armada",
-"pvp": 21.99,
-"colab": 18.96,
-"feat": [
-"Tiene 10 niveles de intensidad"
-],
-"imgs": [
-"img/PCAJA-001_0.webp",
-"img/PCAJA-001_1.webp",
-"img/PCAJA-001_2.webp",
-"img/PCAJA-001_3.webp",
-"img/PCAJA-001_4.webp"
-],
-"img": "img/PCAJA-001.webp",
-"st": [
-1,
-2,
-1,
-2,
-1,
-0,
-1,
-1,
-1,
-2
-]
-},
-{
 "codigo": "SHOME-111",
 "cat": "Casa y oficina",
 "nombre": "Apagador Wi-Fi* touch",
@@ -1458,6 +1399,35 @@ window.CATALOGO=[
 ]
 },
 {
+"codigo": "SHOME-100/3",
+"cat": "Casa y oficina",
+"nombre": "3 contactos Wi-Fi",
+"pvp": 19.99,
+"colab": null,
+"feat": [
+"Puedes sincronizarlos a más de un celular",
+"Compatibles con Android y iPhone",
+"Compatibles con asistentes de voz como Alexa* y Google Assistant*",
+"Función temporizador (timer)"
+],
+"imgs": [
+"img/SHOME-100_3_0.webp"
+],
+"img": "img/SHOME-100_3.webp",
+"st": [
+2,
+2,
+0,
+2,
+1,
+1,
+2,
+2,
+2,
+0
+]
+},
+{
 "codigo": "CLK-150",
 "cat": "Casa y oficina",
 "nombre": "Cronómetro deportivo resistente al agua",
@@ -1484,39 +1454,6 @@ window.CATALOGO=[
 2,
 2,
 2,
-2,
-2,
-2
-]
-},
-{
-"codigo": "SHOME-122",
-"cat": "Casa y oficina",
-"nombre": "Foco LED Wi-Fi RGB+W multicolor de 15 W",
-"pvp": 17.99,
-"colab": 15.51,
-"feat": [
-"Puedes sincronizarlo a más de un celular",
-"Incorpora iluminación fría independiente",
-"Bajo consumo: 15 watts",
-"Compatible con Android y iPhone"
-],
-"imgs": [
-"img/SHOME-122_0.webp",
-"img/SHOME-122_1.webp",
-"img/SHOME-122_2.webp",
-"img/SHOME-122_3.webp",
-"img/SHOME-122_4.webp"
-],
-"img": "img/SHOME-122.webp",
-"st": [
-2,
-2,
-2,
-2,
-2,
-2,
-1,
 2,
 2,
 2
@@ -1580,6 +1517,36 @@ window.CATALOGO=[
 ]
 },
 {
+"codigo": "PCAJA-001",
+"cat": "Casa y oficina",
+"nombre": "Caja de toques armada",
+"pvp": 16.99,
+"colab": null,
+"feat": [
+"Tiene 10 niveles de intensidad"
+],
+"imgs": [
+"img/PCAJA-001_0.webp",
+"img/PCAJA-001_1.webp",
+"img/PCAJA-001_2.webp",
+"img/PCAJA-001_3.webp",
+"img/PCAJA-001_4.webp"
+],
+"img": "img/PCAJA-001.webp",
+"st": [
+1,
+2,
+1,
+2,
+1,
+0,
+1,
+1,
+1,
+2
+]
+},
+{
 "codigo": "INSECTRONIC-060",
 "cat": "Casa y oficina",
 "nombre": "Lampara exterminadora de insectos",
@@ -1639,6 +1606,39 @@ window.CATALOGO=[
 ]
 },
 {
+"codigo": "SHOME-122",
+"cat": "Casa y oficina",
+"nombre": "Foco LED Wi-Fi RGB+W multicolor de 15 W",
+"pvp": 13.98,
+"colab": null,
+"feat": [
+"Puedes sincronizarlo a más de un celular",
+"Incorpora iluminación fría independiente",
+"Bajo consumo: 15 watts",
+"Compatible con Android y iPhone"
+],
+"imgs": [
+"img/SHOME-122_0.webp",
+"img/SHOME-122_1.webp",
+"img/SHOME-122_2.webp",
+"img/SHOME-122_3.webp",
+"img/SHOME-122_4.webp"
+],
+"img": "img/SHOME-122.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+1,
+2,
+2,
+2
+]
+},
+{
 "codigo": "SHOME-140",
 "cat": "Casa y oficina",
 "nombre": "Interruptor Wi-Fi*",
@@ -1675,8 +1675,8 @@ window.CATALOGO=[
 "codigo": "SHOME-100",
 "cat": "Casa y oficina",
 "nombre": "Contacto Wi-Fi*",
-"pvp": 9.99,
-"colab": 9.19,
+"pvp": 7.99,
+"colab": null,
 "feat": [
 "Puedes sincronizarlo a más de un celular",
 "Compatible con Android y iPhone",
@@ -1708,8 +1708,8 @@ window.CATALOGO=[
 "codigo": "PT-510",
 "cat": "Casa y oficina",
 "nombre": "2 cintas mágicas nano stick de gel doble cara, de 3 m",
-"pvp": 4.99,
-"colab": 4.59,
+"pvp": 3.99,
+"colab": null,
 "feat": [
 "Soporta 0,5 kg por cada 10 cm",
 "Es fácil de cortar",
@@ -3456,22 +3456,19 @@ window.CATALOGO=[
 ]
 },
 {
-"codigo": "CRG-016",
+"codigo": "BAT-NM-AAA/1100",
 "cat": "Energía",
-"nombre": "Cargador inteligente de pilas “AA” y “AAA”. Incluye 4 pilas AA",
-"pvp": 14.98,
-"colab": 12.64,
-"feat": [
-"¡Tus baterías siempre listas! Inteligente: Cuando termina el proceso de carga, corta la energía",
-"Sus LED te indican cuando termina la carga",
-"Puedes recargar de 1 hasta 4 baterías",
-"Para baterías de"
-],
+"nombre": "Paquete de 4 pilas recargables \"AAA\" NiMH",
+"pvp": 14.0,
+"colab": 10.91,
+"feat": [],
 "imgs": [
-"img/CRG-016_0.webp",
-"img/CRG-016_1.webp"
+"img/BAT-NM-AAA_1100_0.webp",
+"img/BAT-NM-AAA_1100_1.webp",
+"img/BAT-NM-AAA_1100_2.webp",
+"img/BAT-NM-AAA_1100_3.webp"
 ],
-"img": "img/CRG-016.webp",
+"img": "img/BAT-NM-AAA_1100.webp",
 "st": [
 2,
 2,
@@ -3486,19 +3483,22 @@ window.CATALOGO=[
 ]
 },
 {
-"codigo": "BAT-NM-AAA/1100",
+"codigo": "CRG-016",
 "cat": "Energía",
-"nombre": "Paquete de 4 pilas recargables \"AAA\" NiMH",
-"pvp": 14.0,
-"colab": 10.91,
-"feat": [],
-"imgs": [
-"img/BAT-NM-AAA_1100_0.webp",
-"img/BAT-NM-AAA_1100_1.webp",
-"img/BAT-NM-AAA_1100_2.webp",
-"img/BAT-NM-AAA_1100_3.webp"
+"nombre": "Cargador inteligente de pilas “AA” y “AAA”. Incluye 4 pilas AA",
+"pvp": 11.99,
+"colab": null,
+"feat": [
+"¡Tus baterías siempre listas! Inteligente: Cuando termina el proceso de carga, corta la energía",
+"Sus LED te indican cuando termina la carga",
+"Puedes recargar de 1 hasta 4 baterías",
+"Para baterías de"
 ],
-"img": "img/BAT-NM-AAA_1100.webp",
+"imgs": [
+"img/CRG-016_0.webp",
+"img/CRG-016_1.webp"
+],
+"img": "img/CRG-016.webp",
 "st": [
 2,
 2,
@@ -3540,8 +3540,8 @@ window.CATALOGO=[
 "codigo": "MODLED-KIT/10",
 "cat": "Iluminación",
 "nombre": "Tira LED multicolor RGB de 10 m con control remoto, controlador y eliminador",
-"pvp": 36.0,
-"colab": 31.04,
+"pvp": 27.99,
+"colab": null,
 "feat": [
 "Decora y dale ambiente al espacio que tú quieras",
 "Incorpora pegamento en la base para una fácil instalación",
@@ -3569,8 +3569,8 @@ window.CATALOGO=[
 "codigo": "SHOME-120/3",
 "cat": "Iluminación",
 "nombre": "Foco inteligente Steren 3 piezas",
-"pvp": 25.99,
-"colab": 25.29,
+"pvp": 19.99,
+"colab": null,
 "feat": [
 "Compatibles con redes de 2,4 GHz Luz LED RGB multicolor",
 "Luz LED fría independiente",
@@ -3602,8 +3602,8 @@ window.CATALOGO=[
 "codigo": "MODLED-080/BCO",
 "cat": "Iluminación",
 "nombre": "Serie LED decorativa de 22 m con panel solar y batería recargable, para exterior",
-"pvp": 11.99,
-"colab": 11.21,
+"pvp": 9.49,
+"colab": null,
 "feat": [
 "Incorpora 200 LED de luz cálida 8 diferentes modos de iluminación",
 "Para uso exterior"
