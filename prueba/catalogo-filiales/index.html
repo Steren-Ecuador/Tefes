@@ -84,6 +84,12 @@ body{overflow:hidden}
 .tot{display:flex;justify-content:space-between;font-size:16px;font-weight:800;padding:12px 2px 0;border-top:1px solid #fff3;margin-top:8px}
 .tot:empty{display:none}
 .empty{color:var(--muted);text-align:center;padding:30px 10px}
+.city{display:flex;gap:6px;margin-bottom:10px}
+.lv{font-size:12px;font-weight:800;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.lv2{background:#25d36633;color:#4ee38a}.lv1{background:#ffd40033;color:var(--accent)}.lv0{background:#ffffff1a;color:#fff8}
+.waS{border:0;border-radius:10px;background:#25d366;color:#05210f;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto}
+.waS svg{width:22px;height:22px}.waS[disabled]{background:#ffffff1a;color:#fff6}
+.pnote{color:var(--muted);font-size:12px;margin-top:8px}
 .rail{flex:0 0 auto;display:flex;flex-direction:column;justify-content:flex-end;gap:14px;padding-bottom:6px}
 .act{background:none;border:0;color:var(--fg);display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10.5px;font-weight:600;cursor:pointer}
 .act svg{width:30px;height:30px}
@@ -118,14 +124,17 @@ body{overflow:hidden}
   </div>
   <main class="feed" id="feed"></main>
   <div class="panel" id="psearch"><button class="x" data-close>×</button><h2>Buscar producto</h2><input id="q" type="search" placeholder="Nombre o código, ej. parlante, PB-2010AC" autocomplete="off"><div class="plist" id="sres"></div></div>
+  <div class="panel" id="ptiendas"><button class="x" data-close>×</button><h2 id="tt">¿En qué tienda está?</h2><div class="city" id="tcity"></div><div class="plist" id="tlist"></div><div class="pnote" id="tnote"></div></div>
   <div class="panel" id="pcart"><button class="x" data-close>×</button><h2>Mi pedido</h2><div class="plist" id="clist"></div><div class="tot" id="ctot"></div><button class="wa" id="csend"></button></div>
   <div class="hint" id="hint">Desliza hacia arriba ↑</div>
 </div>
 <div class="toast" id="toast"></div>
-<script src="datos.js?v=6"></script>
+<script src="datos.js?v=8"></script>
 <script>
 (function(){
 var WA='593990115028'; // WhatsApp de la web Steren Ecuador (consultas generales)
+var TI=[['Mall Sol','Guayaquil','593985948355'],['Samborondón','Guayaquil','593968279893'],['Urdesa','Guayaquil','593969253386'],['Condado','Quito','593985948330'],['Mall Jardín','Quito','593992384742'],['Scala','Quito','593994149615'],['Megakywi','Quito','593985601998'],['Portal','Quito','593988218914'],['Megamaxi','Quito','593986254590'],['Tumbaco','Quito','593994045023']];
+var CITY='Quito'; try{CITY=localStorage.getItem('cat_city')||'Quito';}catch(e){}
 var P=window.CATALOGO||[], CATS=[], byCat={}, BY={};
 P.forEach(function(p){BY[p.codigo]=p;});
 P.forEach(function(p){ if(!byCat[p.cat]){byCat[p.cat]=[];CATS.push(p.cat);} byCat[p.cat].push(p); });
@@ -139,6 +148,7 @@ var cartico='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
 var search='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>';
 var cart={}; try{cart=JSON.parse(localStorage.getItem('cat_cart')||'{}');}catch(e){}
 function saveCart(){try{localStorage.setItem('cat_cart',JSON.stringify(cart));}catch(e){} upd();}
+var pin='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
 var heart='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.3 5 6.6 5c2 0 3.4 1.1 4.4 2.5C12 6.1 13.4 5 15.4 5 18.7 5 21 8.2 19.5 11.8 17.5 16.4 12 21 12 21z"/></svg>';
 var share='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 5l7 7-7 7M21 12H9c-3.3 0-6 2.7-6 6v1"/></svg>';
 var grid='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>';
@@ -146,9 +156,9 @@ var html=['<section class="post cover" data-cat=""><div class="bgblur" style="ba
 var n=0;
 CATS.forEach(function(c){ byCat[c].forEach(function(p,i){ n++;
   var imgs=(p.imgs&&p.imgs.length)?p.imgs:(p.img?[p.img]:[]);
-  var slides=imgs.length?'<div class="slides">'+imgs.map(function(u,k){return '<img '+(k?'loading="lazy" ':'')+(k===0&&p.img&&p.img!==u?'data-alt="'+esc(p.img)+'" ':'')+'src="'+esc(u)+'" alt="'+esc(p.nombre)+(k?' foto '+(k+1):'')+'">';}).join('')+'</div>':'<div class="noimg">'+esc(p.codigo)+'</div>';
+  var slides=imgs.length?'<div class="slides">'+imgs.map(function(u,k){return '<img '+((k||n>2)?'loading="lazy" ':'')+(k===0&&p.img&&p.img!==u?'data-alt="'+esc(p.img)+'" ':'')+'src="'+esc(u)+'" alt="'+esc(p.nombre)+(k?' foto '+(k+1):'')+'">';}).join('')+'</div>':'<div class="noimg">'+esc(p.codigo)+'</div>';
   var dots=imgs.length>1?imgs.map(function(u,k){return '<i'+(k?'':' class="on"')+' data-k="'+k+'"></i>';}).join(''):'';
-  var bg=imgs.length?'background-image:url(\''+esc(imgs[0])+'\')':'background:#222';
+  var bg=imgs.length?(n<=2?'background-image:url(\''+esc(imgs[0])+'\')':'background:#111" data-bg="'+esc(imgs[0])):'background:#222';
   var precio=p.colab?'<div class="pcol"><small>Precio colaborador</small><strong>'+money(p.colab)+'</strong></div><div class="pnorm">Precio normal<s>'+money(p.pvp)+'</s><span class="save">Ahorras '+money(p.pvp-p.colab)+'</span></div>':'<div class="pnorm">Precio<span class="pvp">'+money(p.pvp)+'</span></div>';
   var f=p.feat||[], feats=f.map(function(x){return '<li>'+esc(x)+'</li>';}).join('');
   html.push('<section class="post" id="p'+n+'" data-cat="'+esc(c)+'" data-i="'+(i+1)+'" data-code="'+esc(p.codigo)+'">'+
@@ -158,8 +168,8 @@ CATS.forEach(function(c){ byCat[c].forEach(function(p,i){ n++;
    (feats?'<ul class="feat">'+feats+'</ul><button class="more">Ver más</button>':'')+
    '<div class="price">'+precio+'</div><div class="iva">Precios <b>incluyen IVA</b></div><button class="wa want">'+waico+'Lo quiero</button></div>'+
    '<div class="rail"><button class="act add'+(cart[p.codigo]?' on':'')+'" aria-label="Agregar al pedido">'+cartico+'<span>'+(cart[p.codigo]?'En pedido':'Agregar')+'</span></button>'+
-   '<button class="act share" aria-label="Compartir">'+share+'<span>Compartir</span></button>'+
-   '<button class="act find" aria-label="Buscar">'+search+'<span>Buscar</span></button></div></div>'+
+   '<button class="act where" aria-label="Ver en tiendas">'+pin+'<span>Tiendas</span></button>'+
+   '<button class="act share" aria-label="Compartir">'+share+'<span>Compartir</span></button></div></div>'+
    (feats?'<div class="sheet"><button class="close" aria-label="Cerrar">×</button><h3>'+esc(p.nombre)+'</h3><div class="code">Código '+esc(p.codigo)+'</div><ul>'+feats+'</ul><div class="price">'+precio+'</div><div class="iva">Precios <b>incluyen IVA</b></div></div>':'')+
    '</section>');
  }); });
@@ -186,6 +196,17 @@ function sendWA(codes){codes=codes.filter(function(c){return BY[c];}); if(!codes
   var tot=0, L=codes.map(function(c){var p=BY[c], q=cart[c]||1; tot+=pr(p)*q; return '• '+q+' x '+p.nombre+' ('+c+') — '+money(pr(p))+' c/u';});
   var msg='Hola Steren, soy colaborador(a) y quiero pedir del catálogo para colaboradores:\n'+L.join('\n')+'\nTotal: '+money(tot)+' (precio colaborador, incluye IVA)\nMi nombre: \nMi tienda o ciudad: ';
   window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(msg),'_blank');}
+var CUR=null, LV=['Agotado','Pocas unidades','Disponible'];
+function openTiendas(code){CUR=code; var p=BY[code]; if(!p) return; var st=p.st||[];
+  document.getElementById('tt').textContent='¿En qué tienda está?';
+  document.getElementById('tcity').innerHTML=['Quito','Guayaquil'].map(function(c){return '<button class="chip'+(c===CITY?' on':'')+'" data-city="'+c+'">'+c+'</button>';}).join('');
+  var idx=TI.map(function(t,i){return i;}).filter(function(i){return TI[i][1]===CITY;}).sort(function(a,b){return (st[b]||0)-(st[a]||0);});
+  document.getElementById('tlist').innerHTML='<div class="pi" style="cursor:default">'+thumb(p)+'<div class="t">'+esc(p.nombre)+'<small>'+esc(code)+' · '+money(pr(p))+'</small></div></div>'+idx.map(function(i){var l=st[i]||0; return '<div class="pi" style="cursor:default"><div class="t">Steren '+esc(TI[i][0])+'<small><span class="lv lv'+l+'">'+LV[l]+'</span></small></div><button class="waS" data-t="'+i+'"'+(l?'':' disabled')+' aria-label="WhatsApp '+esc(TI[i][0])+'">'+waico+'</button></div>';}).join('');
+  var f=window.STOCK_FECHA||''; document.getElementById('tnote').textContent='Disponibilidad al '+(f?f.split('-').reverse().join('/'):'día')+'. Escribe a la tienda para que te lo separen.';
+  document.getElementById('ptiendas').classList.add('on');}
+function waTienda(i,code){var p=BY[code]; if(!p) return;
+  var msg='Hola Steren '+TI[i][0]+', soy colaborador(a) y vi en el catálogo para colaboradores:\n• '+p.nombre+' ('+code+') — '+money(pr(p))+' (precio colaborador, incluye IVA)\n¿Me lo pueden separar?\nMi nombre: ';
+  window.open('https://wa.me/'+TI[i][2]+'?text='+encodeURIComponent(msg),'_blank');}
 function openCart(){var ks=Object.keys(cart).filter(function(c){return BY[c];}), tot=0;
   document.getElementById('clist').innerHTML=ks.length?ks.map(function(c){var p=BY[c]; tot+=pr(p)*cart[c]; return '<div class="pi" data-to="'+esc(c)+'">'+thumb(p)+'<div class="t">'+esc(p.nombre)+'<small>'+esc(c)+' · '+money(pr(p))+' c/u</small></div><div class="qty" data-c="'+esc(c)+'"><button data-d="-1">−</button><b>'+cart[c]+'</b><button data-d="1">+</button></div></div>';}).join(''):'<div class="empty">Aún no agregas productos.<br>Toca «Agregar» en los que te gusten.</div>';
   document.getElementById('ctot').innerHTML=ks.length?'<span>Total con IVA</span><span>'+money(tot)+'</span>':'';
@@ -205,6 +226,8 @@ document.addEventListener('click',function(e){
   if(e.target.closest('#bsearch')||e.target.closest('.find')){openSearch();return;}
   if(e.target.closest('#bcart')){openCart();return;}
   if(e.target.closest('#csend')){sendWA(Object.keys(cart));return;}
+  var cb=e.target.closest('[data-city]'); if(cb){CITY=cb.getAttribute('data-city'); try{localStorage.setItem('cat_city',CITY);}catch(x){} openTiendas(CUR); return;}
+  var ws=e.target.closest('.waS[data-t]'); if(ws){waTienda(+ws.getAttribute('data-t'),CUR); return;}
   var qb=e.target.closest('.qty button'); if(qb){var cd=qb.parentNode.getAttribute('data-c'); cart[cd]=(cart[cd]||0)+(+qb.getAttribute('data-d')); if(cart[cd]<=0) delete cart[cd]; saveCart(); openCart(); return;}
   var pi=e.target.closest('.pi[data-to]'); if(pi){document.getElementById('psearch').classList.remove('on');document.getElementById('pcart').classList.remove('on');var el=feed.querySelector('.post[data-code="'+pi.getAttribute('data-to').replace(/"/g,'\\"')+'"]'); if(el) el.scrollIntoView(); return;}
   var t=e.target.closest('[data-go]'); if(t){go(t.getAttribute('data-go'));return;}
@@ -215,6 +238,7 @@ document.addEventListener('click',function(e){
   var code=post.getAttribute('data-code');
   if(e.target.closest('.add')){if(cart[code]) delete cart[code]; else cart[code]=1; saveCart(); toast(cart[code]?'Agregado a tu pedido':'Quitado de tu pedido'); return;}
   if(e.target.closest('.want')){sendWA([code]); return;}
+  if(e.target.closest('.where')){openTiendas(code); return;}
   if(e.target.closest('.share')){var name=post.querySelector('.name').textContent; var url=location.href.split('#')[0]+'#'+post.id; var txt=name+' ('+code+') en el catálogo Steren para colaboradores';
     if(navigator.share){navigator.share({title:name,text:txt,url:url}).catch(function(){});} else {window.open('https://wa.me/?text='+encodeURIComponent(txt+' '+url),'_blank');} return;}
   if(e.target.closest('.cats')){feed.scrollTo({top:0,behavior:'smooth'}); return;}
@@ -227,6 +251,8 @@ var io=new IntersectionObserver(function(es){es.forEach(function(en){
   if(en.target.id) hint.style.display='none';
 }});},{root:feed,threshold:[0,.6]});
 [].forEach.call(feed.children,function(s){io.observe(s);});
+var ioBg=new IntersectionObserver(function(es){es.forEach(function(en){if(!en.isIntersecting) return; var b=en.target.querySelector('.bgblur[data-bg]'); if(b){b.style.backgroundImage="url('"+b.getAttribute('data-bg')+"')"; b.removeAttribute('data-bg');} ioBg.unobserve(en.target);});},{root:feed,rootMargin:'100% 0px'});
+[].forEach.call(feed.querySelectorAll('.post'),function(s){ioBg.observe(s);});
 if(location.hash){var t=document.getElementById(location.hash.slice(1)); if(t) setTimeout(function(){t.scrollIntoView();},50);}
 })();
 </script>

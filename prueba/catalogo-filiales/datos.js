@@ -1,3 +1,4 @@
+window.STOCK_FECHA="2026-11-05";
 window.CATALOGO=[
 {
 "codigo": "GMB-3000",
@@ -12,13 +13,25 @@ window.CATALOGO=[
 "Batería recargable"
 ],
 "imgs": [
-"img/GMB-3000_0.jpg",
-"img/GMB-3000_1.jpg",
-"img/GMB-3000_2.jpg",
-"img/GMB-3000_3.jpg",
-"img/GMB-3000_4.jpg"
+"img/GMB-3000_0.webp",
+"img/GMB-3000_1.webp",
+"img/GMB-3000_2.webp",
+"img/GMB-3000_3.webp",
+"img/GMB-3000_4.webp"
 ],
-"img": "img/GMB-3000.jpg"
+"img": "img/GMB-3000.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+1,
+2,
+1,
+2,
+2
+]
 },
 {
 "codigo": "AUD-AE-700NE",
@@ -32,13 +45,25 @@ window.CATALOGO=[
 "Cancelling por inteligencia artificial Hi-Res alámbrico e inalámbrico"
 ],
 "imgs": [
-"img/AUD-AE-700NE_0.jpg",
-"img/AUD-AE-700NE_1.jpg",
-"img/AUD-AE-700NE_2.jpg",
-"img/AUD-AE-700NE_3.jpg",
-"img/AUD-AE-700NE_4.jpg"
+"img/AUD-AE-700NE_0.webp",
+"img/AUD-AE-700NE_1.webp",
+"img/AUD-AE-700NE_2.webp",
+"img/AUD-AE-700NE_3.webp",
+"img/AUD-AE-700NE_4.webp"
 ],
-"img": "img/AUD-AE-700NE.jpg"
+"img": "img/AUD-AE-700NE.webp",
+"st": [
+1,
+1,
+2,
+0,
+1,
+1,
+0,
+0,
+1,
+1
+]
 },
 {
 "codigo": "MOV-123",
@@ -53,12 +78,24 @@ window.CATALOGO=[
 "Capacidad de 7,200 mA Tamaño compacto"
 ],
 "imgs": [
-"img/MOV-123_0.jpg",
-"img/MOV-123_1.jpg",
-"img/MOV-123_2.jpg",
-"img/MOV-123_3.jpg"
+"img/MOV-123_0.webp",
+"img/MOV-123_1.webp",
+"img/MOV-123_2.webp",
+"img/MOV-123_3.webp"
 ],
-"img": "img/MOV-123.jpg"
+"img": "img/MOV-123.webp",
+"st": [
+2,
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "MIC-9100",
@@ -73,11 +110,23 @@ window.CATALOGO=[
 "Micrófonos con clip para uso en solapa"
 ],
 "imgs": [
-"img/MIC-9100_0.jpg",
-"img/MIC-9100_1.jpg",
-"img/MIC-9100_2.jpg"
+"img/MIC-9100_0.webp",
+"img/MIC-9100_1.webp",
+"img/MIC-9100_2.webp"
 ],
-"img": "img/MIC-9100.jpg"
+"img": "img/MIC-9100.webp",
+"st": [
+2,
+2,
+0,
+2,
+2,
+2,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "PB-2010AC",
@@ -92,13 +141,25 @@ window.CATALOGO=[
 "Dimensiones: 11,5 cm de alto x 6,3 cm de ancho x 2,5 cm de grosor"
 ],
 "imgs": [
-"img/PB-2010AC_0.jpg",
-"img/PB-2010AC_1.jpg",
-"img/PB-2010AC_2.jpg",
-"img/PB-2010AC_3.jpg",
-"img/PB-2010AC_4.jpg"
+"img/PB-2010AC_0.webp",
+"img/PB-2010AC_1.webp",
+"img/PB-2010AC_2.webp",
+"img/PB-2010AC_3.webp",
+"img/PB-2010AC_4.webp"
 ],
-"img": "img/PB-2010AC.jpg"
+"img": "img/PB-2010AC.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "AUD-AE-200NE",
@@ -112,11 +173,23 @@ window.CATALOGO=[
 "Encuéntralos. Hazlos sonar para ubicarlos rápidamente"
 ],
 "imgs": [
-"img/AUD-AE-200NE_0.jpg",
-"img/AUD-AE-200NE_1.jpg",
-"img/AUD-AE-200NE_2.jpg"
+"img/AUD-AE-200NE_0.webp",
+"img/AUD-AE-200NE_1.webp",
+"img/AUD-AE-200NE_2.webp"
 ],
-"img": "img/AUD-AE-200NE.jpg"
+"img": "img/AUD-AE-200NE.webp",
+"st": [
+2,
+2,
+0,
+2,
+2,
+2,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "PB-S020-NE",
@@ -131,10 +204,22 @@ window.CATALOGO=[
 "Incluye cable para USB a USB C de 25 cm"
 ],
 "imgs": [
-"img/PB-S020-NE_0.jpg",
-"img/PB-S020-NE_1.jpg"
+"img/PB-S020-NE_0.webp",
+"img/PB-S020-NE_1.webp"
 ],
-"img": "img/PB-S020-NE.jpg"
+"img": "img/PB-S020-NE.webp",
+"st": [
+1,
+2,
+1,
+1,
+2,
+1,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "AUD-7840NE",
@@ -144,9 +229,21 @@ window.CATALOGO=[
 "colab": 22.99,
 "feat": [],
 "imgs": [
-"img/AUD-7840NE_0.jpg"
+"img/AUD-7840NE_0.webp"
 ],
-"img": null
+"img": null,
+"st": [
+2,
+2,
+2,
+2,
+2,
+1,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "BTR-300",
@@ -161,9 +258,21 @@ window.CATALOGO=[
 "PC, celulares, tablets y cualquier equipo que transmita audio vía"
 ],
 "imgs": [
-"img/BTR-300_0.jpg"
+"img/BTR-300_0.webp"
 ],
-"img": "img/BTR-300.jpg"
+"img": "img/BTR-300.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "ELI-7046",
@@ -173,9 +282,21 @@ window.CATALOGO=[
 "colab": 18.96,
 "feat": [],
 "imgs": [
-"img/ELI-7046_0.jpg"
+"img/ELI-7046_0.webp"
 ],
-"img": "img/ELI-7046.jpg"
+"img": "img/ELI-7046.webp",
+"st": [
+2,
+2,
+0,
+2,
+2,
+1,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "AUD-7420NE",
@@ -185,13 +306,25 @@ window.CATALOGO=[
 "colab": 14.36,
 "feat": [],
 "imgs": [
-"img/AUD-7420NE_0.jpg",
-"img/AUD-7420NE_1.jpg",
-"img/AUD-7420NE_2.jpg",
-"img/AUD-7420NE_3.jpg",
-"img/AUD-7420NE_4.jpg"
+"img/AUD-7420NE_0.webp",
+"img/AUD-7420NE_1.webp",
+"img/AUD-7420NE_2.webp",
+"img/AUD-7420NE_3.webp",
+"img/AUD-7420NE_4.webp"
 ],
-"img": null
+"img": null,
+"st": [
+2,
+2,
+2,
+2,
+2,
+0,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "POD-170",
@@ -206,13 +339,25 @@ window.CATALOGO=[
 "Rango de operación hasta 10 m Incluye cople AUX 3,5 mm"
 ],
 "imgs": [
-"img/POD-170_0.jpg",
-"img/POD-170_1.jpg",
-"img/POD-170_2.jpg",
-"img/POD-170_3.jpg",
-"img/POD-170_4.jpg"
+"img/POD-170_0.webp",
+"img/POD-170_1.webp",
+"img/POD-170_2.webp",
+"img/POD-170_3.webp",
+"img/POD-170_4.webp"
 ],
-"img": "img/POD-170.jpg"
+"img": "img/POD-170.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "USB-MG11",
@@ -227,10 +372,22 @@ window.CATALOGO=[
 "Windows* o Mac*"
 ],
 "imgs": [
-"img/USB-MG11_0.jpg",
-"img/USB-MG11_1.jpg"
+"img/USB-MG11_0.webp",
+"img/USB-MG11_1.webp"
 ],
-"img": "img/USB-MG11.jpg"
+"img": "img/USB-MG11.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+0,
+2,
+2,
+2,
+0
+]
 },
 {
 "codigo": "USB-S13",
@@ -245,13 +402,25 @@ window.CATALOGO=[
 "Conectores con forro de PVC resistente"
 ],
 "imgs": [
-"img/USB-S13_0.jpg",
-"img/USB-S13_1.jpg",
-"img/USB-S13_2.jpg",
-"img/USB-S13_3.jpg",
-"img/USB-S13_4.jpg"
+"img/USB-S13_0.webp",
+"img/USB-S13_1.webp",
+"img/USB-S13_2.webp",
+"img/USB-S13_3.webp",
+"img/USB-S13_4.webp"
 ],
-"img": "img/USB-S13.jpg"
+"img": "img/USB-S13.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+1,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "USB-MG41",
@@ -266,10 +435,22 @@ window.CATALOGO=[
 "USB. Es compatible con cargadores Quick Charge* de"
 ],
 "imgs": [
-"img/USB-MG41_0.jpg",
-"img/USB-MG41_1.jpg"
+"img/USB-MG41_0.webp",
+"img/USB-MG41_1.webp"
 ],
-"img": "img/USB-MG41.jpg"
+"img": "img/USB-MG41.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "BAG-100",
@@ -284,11 +465,23 @@ window.CATALOGO=[
 "Incorpora una correa para colocarlo en tu muñeca"
 ],
 "imgs": [
-"img/BAG-100_0.jpg",
-"img/BAG-100_1.jpg",
-"img/BAG-100_2.jpg"
+"img/BAG-100_0.webp",
+"img/BAG-100_1.webp",
+"img/BAG-100_2.webp"
 ],
-"img": "img/BAG-100.jpg"
+"img": "img/BAG-100.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "USB-MG21",
@@ -303,10 +496,22 @@ window.CATALOGO=[
 "Windows* o Mac*"
 ],
 "imgs": [
-"img/USB-MG21_0.jpg",
-"img/USB-MG21_1.jpg"
+"img/USB-MG21_0.webp",
+"img/USB-MG21_1.webp"
 ],
-"img": "img/USB-MG21.jpg"
+"img": "img/USB-MG21.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "ELI-762",
@@ -316,9 +521,21 @@ window.CATALOGO=[
 "colab": 7.46,
 "feat": [],
 "imgs": [
-"img/ELI-762_0.jpg"
+"img/ELI-762_0.webp"
 ],
-"img": "img/ELI-762.jpg"
+"img": "img/ELI-762.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "ELI-875",
@@ -330,11 +547,23 @@ window.CATALOGO=[
 "Switch * de forma rápida y segura. USB Quick Charge (QC): Carga a turbo velocidad (3"
 ],
 "imgs": [
-"img/ELI-875_0.jpg",
-"img/ELI-875_1.jpg",
-"img/ELI-875_2.jpg"
+"img/ELI-875_0.webp",
+"img/ELI-875_1.webp",
+"img/ELI-875_2.webp"
 ],
-"img": "img/ELI-875.jpg"
+"img": "img/ELI-875.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "MOV-048",
@@ -349,13 +578,25 @@ window.CATALOGO=[
 "Tornillo universal compatible con cámaras digitales"
 ],
 "imgs": [
-"img/MOV-048_0.jpg",
-"img/MOV-048_1.jpg",
-"img/MOV-048_2.jpg",
-"img/MOV-048_3.jpg",
-"img/MOV-048_4.jpg"
+"img/MOV-048_0.webp",
+"img/MOV-048_1.webp",
+"img/MOV-048_2.webp",
+"img/MOV-048_3.webp",
+"img/MOV-048_4.webp"
 ],
-"img": "img/MOV-048.jpg"
+"img": "img/MOV-048.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "USB-S11",
@@ -370,13 +611,25 @@ window.CATALOGO=[
 "Conectores con forro de PVC resistente"
 ],
 "imgs": [
-"img/USB-S11_0.jpg",
-"img/USB-S11_1.jpg",
-"img/USB-S11_2.jpg",
-"img/USB-S11_3.jpg",
-"img/USB-S11_4.jpg"
+"img/USB-S11_0.webp",
+"img/USB-S11_1.webp",
+"img/USB-S11_2.webp",
+"img/USB-S11_3.webp",
+"img/USB-S11_4.webp"
 ],
-"img": "img/USB-S11.jpg"
+"img": "img/USB-S11.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "USB-S31",
@@ -391,13 +644,25 @@ window.CATALOGO=[
 "Recubierto de material suave al tacto"
 ],
 "imgs": [
-"img/USB-S31_0.jpg",
-"img/USB-S31_1.jpg",
-"img/USB-S31_2.jpg",
-"img/USB-S31_3.jpg",
-"img/USB-S31_4.jpg"
+"img/USB-S31_0.webp",
+"img/USB-S31_1.webp",
+"img/USB-S31_2.webp",
+"img/USB-S31_3.webp",
+"img/USB-S31_4.webp"
 ],
-"img": "img/USB-S31.jpg"
+"img": "img/USB-S31.webp",
+"st": [
+2,
+2,
+0,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "USB-S21",
@@ -412,13 +677,25 @@ window.CATALOGO=[
 "Conectores con forro de PVC resistente"
 ],
 "imgs": [
-"img/USB-S21_0.jpg",
-"img/USB-S21_1.jpg",
-"img/USB-S21_2.jpg",
-"img/USB-S21_3.jpg",
-"img/USB-S21_4.jpg"
+"img/USB-S21_0.webp",
+"img/USB-S21_1.webp",
+"img/USB-S21_2.webp",
+"img/USB-S21_3.webp",
+"img/USB-S21_4.webp"
 ],
-"img": "img/USB-S21.jpg"
+"img": "img/USB-S21.webp",
+"st": [
+2,
+2,
+0,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "USB-S41",
@@ -433,13 +710,25 @@ window.CATALOGO=[
 "Recubierto de material suave al tacto"
 ],
 "imgs": [
-"img/USB-S41_0.jpg",
-"img/USB-S41_1.jpg",
-"img/USB-S41_2.jpg",
-"img/USB-S41_3.jpg",
-"img/USB-S41_4.jpg"
+"img/USB-S41_0.webp",
+"img/USB-S41_1.webp",
+"img/USB-S41_2.webp",
+"img/USB-S41_3.webp",
+"img/USB-S41_4.webp"
 ],
-"img": "img/USB-S41.jpg"
+"img": "img/USB-S41.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "ELI-712",
@@ -454,9 +743,21 @@ window.CATALOGO=[
 "Paga menos llevando 10"
 ],
 "imgs": [
-"img/ELI-712_0.jpg"
+"img/ELI-712_0.webp"
 ],
-"img": "img/ELI-712.jpg"
+"img": "img/ELI-712.webp",
+"st": [
+2,
+2,
+2,
+2,
+0,
+0,
+0,
+0,
+2,
+1
+]
 },
 {
 "codigo": "RAD-630",
@@ -471,13 +772,25 @@ window.CATALOGO=[
 "CTCSS/DCS y STE para encriptación y seguridad de comunicación"
 ],
 "imgs": [
-"img/RAD-630_0.jpg",
-"img/RAD-630_1.jpg",
-"img/RAD-630_2.jpg",
-"img/RAD-630_3.jpg",
-"img/RAD-630_4.jpg"
+"img/RAD-630_0.webp",
+"img/RAD-630_1.webp",
+"img/RAD-630_2.webp",
+"img/RAD-630_3.webp",
+"img/RAD-630_4.webp"
 ],
-"img": "img/RAD-630.jpg"
+"img": "img/RAD-630.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+1,
+1
+]
 },
 {
 "codigo": "CCTV-638",
@@ -492,13 +805,25 @@ window.CATALOGO=[
 "Controla con más de 1 celular"
 ],
 "imgs": [
-"img/CCTV-638_0.jpg",
-"img/CCTV-638_1.jpg",
-"img/CCTV-638_2.jpg",
-"img/CCTV-638_3.jpg",
-"img/CCTV-638_4.jpg"
+"img/CCTV-638_0.webp",
+"img/CCTV-638_1.webp",
+"img/CCTV-638_2.webp",
+"img/CCTV-638_3.webp",
+"img/CCTV-638_4.webp"
 ],
-"img": "img/CCTV-638.jpg"
+"img": "img/CCTV-638.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+0
+]
 },
 {
 "codigo": "CCTV-645",
@@ -513,13 +838,25 @@ window.CATALOGO=[
 "Controla su movimiento con tu celular"
 ],
 "imgs": [
-"img/CCTV-645_0.jpg",
-"img/CCTV-645_1.jpg",
-"img/CCTV-645_2.jpg",
-"img/CCTV-645_3.jpg",
-"img/CCTV-645_4.jpg"
+"img/CCTV-645_0.webp",
+"img/CCTV-645_1.webp",
+"img/CCTV-645_2.webp",
+"img/CCTV-645_3.webp",
+"img/CCTV-645_4.webp"
 ],
-"img": "img/CCTV-645.jpg"
+"img": "img/CCTV-645.webp",
+"st": [
+2,
+2,
+1,
+1,
+2,
+1,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "CCTV-632",
@@ -534,13 +871,25 @@ window.CATALOGO=[
 "Posiciones programables de lente robotizado"
 ],
 "imgs": [
-"img/CCTV-632_0.jpg",
-"img/CCTV-632_1.jpg",
-"img/CCTV-632_2.jpg",
-"img/CCTV-632_3.jpg",
-"img/CCTV-632_4.jpg"
+"img/CCTV-632_0.webp",
+"img/CCTV-632_1.webp",
+"img/CCTV-632_2.webp",
+"img/CCTV-632_3.webp",
+"img/CCTV-632_4.webp"
 ],
-"img": "img/CCTV-632.jpg"
+"img": "img/CCTV-632.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "LOCK-150",
@@ -555,13 +904,25 @@ window.CATALOGO=[
 "Para puertas de 30 a 55 mm de espesor"
 ],
 "imgs": [
-"img/LOCK-150_0.jpg",
-"img/LOCK-150_1.jpg",
-"img/LOCK-150_2.jpg",
-"img/LOCK-150_3.jpg",
-"img/LOCK-150_4.jpg"
+"img/LOCK-150_0.webp",
+"img/LOCK-150_1.webp",
+"img/LOCK-150_2.webp",
+"img/LOCK-150_3.webp",
+"img/LOCK-150_4.webp"
 ],
-"img": "img/LOCK-150.jpg"
+"img": "img/LOCK-150.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+1,
+2,
+1
+]
 },
 {
 "codigo": "CCTV-223",
@@ -576,13 +937,25 @@ window.CATALOGO=[
 "También visualiza la cámara desde un navegador web"
 ],
 "imgs": [
-"img/CCTV-223_0.jpg",
-"img/CCTV-223_1.jpg",
-"img/CCTV-223_2.jpg",
-"img/CCTV-223_3.jpg",
-"img/CCTV-223_4.jpg"
+"img/CCTV-223_0.webp",
+"img/CCTV-223_1.webp",
+"img/CCTV-223_2.webp",
+"img/CCTV-223_3.webp",
+"img/CCTV-223_4.webp"
 ],
-"img": "img/CCTV-223.jpg"
+"img": "img/CCTV-223.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "CCTV-231",
@@ -597,13 +970,25 @@ window.CATALOGO=[
 "Controla y visualiza la grabación desde tu celular"
 ],
 "imgs": [
-"img/CCTV-231_0.jpg",
-"img/CCTV-231_1.jpg",
-"img/CCTV-231_2.jpg",
-"img/CCTV-231_3.jpg",
-"img/CCTV-231_4.jpg"
+"img/CCTV-231_0.webp",
+"img/CCTV-231_1.webp",
+"img/CCTV-231_2.webp",
+"img/CCTV-231_3.webp",
+"img/CCTV-231_4.webp"
 ],
-"img": "img/CCTV-231.jpg"
+"img": "img/CCTV-231.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "CCTV-203",
@@ -618,13 +1003,25 @@ window.CATALOGO=[
 "También visualiza la cámara desde un navegador web"
 ],
 "imgs": [
-"img/CCTV-203_0.jpg",
-"img/CCTV-203_1.jpg",
-"img/CCTV-203_2.jpg",
-"img/CCTV-203_3.jpg",
-"img/CCTV-203_4.jpg"
+"img/CCTV-203_0.webp",
+"img/CCTV-203_1.webp",
+"img/CCTV-203_2.webp",
+"img/CCTV-203_3.webp",
+"img/CCTV-203_4.webp"
 ],
-"img": "img/CCTV-203.jpg"
+"img": "img/CCTV-203.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "LOCK-010",
@@ -638,9 +1035,21 @@ window.CATALOGO=[
 "Wi-Fi* con nuestro"
 ],
 "imgs": [
-"img/LOCK-010_0.jpg"
+"img/LOCK-010_0.webp"
 ],
-"img": "img/LOCK-010.jpg"
+"img": "img/LOCK-010.webp",
+"st": [
+2,
+2,
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "AIR-2950",
@@ -655,13 +1064,25 @@ window.CATALOGO=[
 "Incorpora tanque de 2 litros antiderrames"
 ],
 "imgs": [
-"img/AIR-2950_0.jpg",
-"img/AIR-2950_1.jpg",
-"img/AIR-2950_2.jpg",
-"img/AIR-2950_3.jpg",
-"img/AIR-2950_4.jpg"
+"img/AIR-2950_0.webp",
+"img/AIR-2950_1.webp",
+"img/AIR-2950_2.webp",
+"img/AIR-2950_3.webp",
+"img/AIR-2950_4.webp"
 ],
-"img": "img/AIR-2950.jpg"
+"img": "img/AIR-2950.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+1,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "AIR-290",
@@ -674,13 +1095,25 @@ window.CATALOGO=[
 "Desagüe opcional por medio de una manguera de 1,6 m Capacidad de 3 Litros"
 ],
 "imgs": [
-"img/AIR-290_0.jpg",
-"img/AIR-290_1.jpg",
-"img/AIR-290_2.jpg",
-"img/AIR-290_3.jpg",
-"img/AIR-290_4.jpg"
+"img/AIR-290_0.webp",
+"img/AIR-290_1.webp",
+"img/AIR-290_2.webp",
+"img/AIR-290_3.webp",
+"img/AIR-290_4.webp"
 ],
-"img": "img/AIR-290.jpg"
+"img": "img/AIR-290.webp",
+"st": [
+2,
+2,
+0,
+1,
+2,
+2,
+2,
+2,
+1,
+1
+]
 },
 {
 "codigo": "SHOME-PET",
@@ -695,13 +1128,25 @@ window.CATALOGO=[
 "Dosifica de 1 hasta 10 porciones"
 ],
 "imgs": [
-"img/SHOME-PET_0.jpg",
-"img/SHOME-PET_1.jpg",
-"img/SHOME-PET_2.jpg",
-"img/SHOME-PET_3.jpg",
-"img/SHOME-PET_4.jpg"
+"img/SHOME-PET_0.webp",
+"img/SHOME-PET_1.webp",
+"img/SHOME-PET_2.webp",
+"img/SHOME-PET_3.webp",
+"img/SHOME-PET_4.webp"
 ],
-"img": "img/SHOME-PET.jpg"
+"img": "img/SHOME-PET.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "AIR-265",
@@ -716,13 +1161,25 @@ window.CATALOGO=[
 "Incorpora display que muestra % de humedad y modo"
 ],
 "imgs": [
-"img/AIR-265_0.jpg",
-"img/AIR-265_1.jpg",
-"img/AIR-265_2.jpg",
-"img/AIR-265_3.jpg",
-"img/AIR-265_4.jpg"
+"img/AIR-265_0.webp",
+"img/AIR-265_1.webp",
+"img/AIR-265_2.webp",
+"img/AIR-265_3.webp",
+"img/AIR-265_4.webp"
 ],
-"img": "img/AIR-265.jpg"
+"img": "img/AIR-265.webp",
+"st": [
+2,
+1,
+1,
+2,
+2,
+1,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "RAD-010",
@@ -737,9 +1194,21 @@ window.CATALOGO=[
 "Motorola*, Kenwood*, Midland* y más. Baterías de larga duración"
 ],
 "imgs": [
-"img/RAD-010_0.jpg"
+"img/RAD-010_0.webp"
 ],
-"img": "img/RAD-010.jpg"
+"img": "img/RAD-010.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "CLK-270",
@@ -754,11 +1223,23 @@ window.CATALOGO=[
 "Luz LED cálida de noche"
 ],
 "imgs": [
-"img/CLK-270_0.jpg",
-"img/CLK-270_1.jpg",
-"img/CLK-270_2.jpg"
+"img/CLK-270_0.webp",
+"img/CLK-270_1.webp",
+"img/CLK-270_2.webp"
 ],
-"img": "img/CLK-270.jpg"
+"img": "img/CLK-270.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+1,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "SMW-420PL",
@@ -768,13 +1249,25 @@ window.CATALOGO=[
 "colab": 25.29,
 "feat": [],
 "imgs": [
-"img/SMW-420PL_0.jpg",
-"img/SMW-420PL_1.jpg",
-"img/SMW-420PL_2.jpg",
-"img/SMW-420PL_3.jpg",
-"img/SMW-420PL_4.jpg"
+"img/SMW-420PL_0.webp",
+"img/SMW-420PL_1.webp",
+"img/SMW-420PL_2.webp",
+"img/SMW-420PL_3.webp",
+"img/SMW-420PL_4.webp"
 ],
-"img": null
+"img": null,
+"st": [
+2,
+2,
+2,
+2,
+1,
+2,
+2,
+1,
+2,
+2
+]
 },
 {
 "codigo": "SHOME-100/3",
@@ -789,9 +1282,21 @@ window.CATALOGO=[
 "Función temporizador (timer)"
 ],
 "imgs": [
-"img/SHOME-100_3_0.jpg"
+"img/SHOME-100_3_0.webp"
 ],
-"img": "img/SHOME-100_3.jpg"
+"img": "img/SHOME-100_3.webp",
+"st": [
+2,
+2,
+0,
+1,
+1,
+1,
+1,
+2,
+2,
+0
+]
 },
 {
 "codigo": "905-170",
@@ -805,12 +1310,24 @@ window.CATALOGO=[
 "Plástico retardante al fuego"
 ],
 "imgs": [
-"img/905-170_0.jpg",
-"img/905-170_1.jpg",
-"img/905-170_2.jpg",
-"img/905-170_3.jpg"
+"img/905-170_0.webp",
+"img/905-170_1.webp",
+"img/905-170_2.webp",
+"img/905-170_3.webp"
 ],
-"img": "img/905-170.jpg"
+"img": "img/905-170.webp",
+"st": [
+2,
+1,
+1,
+2,
+2,
+1,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "INSECTRONIC",
@@ -825,12 +1342,24 @@ window.CATALOGO=[
 "Ver especificaciones → $399.00 $399 00"
 ],
 "imgs": [
-"img/INSECTRONIC_0.jpg",
-"img/INSECTRONIC_1.jpg",
-"img/INSECTRONIC_2.jpg",
-"img/INSECTRONIC_3.jpg"
+"img/INSECTRONIC_0.webp",
+"img/INSECTRONIC_1.webp",
+"img/INSECTRONIC_2.webp",
+"img/INSECTRONIC_3.webp"
 ],
-"img": "img/INSECTRONIC.jpg"
+"img": "img/INSECTRONIC.webp",
+"st": [
+2,
+0,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "SHOME-110",
@@ -845,13 +1374,25 @@ window.CATALOGO=[
 "Función temporizador (timer)"
 ],
 "imgs": [
-"img/SHOME-110_0.jpg",
-"img/SHOME-110_1.jpg",
-"img/SHOME-110_2.jpg",
-"img/SHOME-110_3.jpg",
-"img/SHOME-110_4.jpg"
+"img/SHOME-110_0.webp",
+"img/SHOME-110_1.webp",
+"img/SHOME-110_2.webp",
+"img/SHOME-110_3.webp",
+"img/SHOME-110_4.webp"
 ],
-"img": "img/SHOME-110.jpg"
+"img": "img/SHOME-110.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+0
+]
 },
 {
 "codigo": "PCAJA-001",
@@ -863,13 +1404,25 @@ window.CATALOGO=[
 "Tiene 10 niveles de intensidad"
 ],
 "imgs": [
-"img/PCAJA-001_0.jpg",
-"img/PCAJA-001_1.jpg",
-"img/PCAJA-001_2.jpg",
-"img/PCAJA-001_3.jpg",
-"img/PCAJA-001_4.jpg"
+"img/PCAJA-001_0.webp",
+"img/PCAJA-001_1.webp",
+"img/PCAJA-001_2.webp",
+"img/PCAJA-001_3.webp",
+"img/PCAJA-001_4.webp"
 ],
-"img": "img/PCAJA-001.jpg"
+"img": "img/PCAJA-001.webp",
+"st": [
+1,
+2,
+1,
+2,
+1,
+0,
+1,
+1,
+1,
+2
+]
 },
 {
 "codigo": "SHOME-111",
@@ -884,13 +1437,25 @@ window.CATALOGO=[
 "Touch para usarlo manualmente"
 ],
 "imgs": [
-"img/SHOME-111_0.jpg",
-"img/SHOME-111_1.jpg",
-"img/SHOME-111_2.jpg",
-"img/SHOME-111_3.jpg",
-"img/SHOME-111_4.jpg"
+"img/SHOME-111_0.webp",
+"img/SHOME-111_1.webp",
+"img/SHOME-111_2.webp",
+"img/SHOME-111_3.webp",
+"img/SHOME-111_4.webp"
 ],
-"img": "img/SHOME-111.jpg"
+"img": "img/SHOME-111.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "CLK-150",
@@ -905,12 +1470,24 @@ window.CATALOGO=[
 "Funciones de alarma, reloj, fecha. Es resistente al agua (no sumergible)"
 ],
 "imgs": [
-"img/CLK-150_0.jpg",
-"img/CLK-150_1.jpg",
-"img/CLK-150_2.jpg",
-"img/CLK-150_3.jpg"
+"img/CLK-150_0.webp",
+"img/CLK-150_1.webp",
+"img/CLK-150_2.webp",
+"img/CLK-150_3.webp"
 ],
-"img": "img/CLK-150.jpg"
+"img": "img/CLK-150.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "SHOME-122",
@@ -925,13 +1502,25 @@ window.CATALOGO=[
 "Compatible con Android y iPhone"
 ],
 "imgs": [
-"img/SHOME-122_0.jpg",
-"img/SHOME-122_1.jpg",
-"img/SHOME-122_2.jpg",
-"img/SHOME-122_3.jpg",
-"img/SHOME-122_4.jpg"
+"img/SHOME-122_0.webp",
+"img/SHOME-122_1.webp",
+"img/SHOME-122_2.webp",
+"img/SHOME-122_3.webp",
+"img/SHOME-122_4.webp"
 ],
-"img": "img/SHOME-122.jpg"
+"img": "img/SHOME-122.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+1,
+2,
+2,
+2
+]
 },
 {
 "codigo": "SHOME-125",
@@ -946,9 +1535,21 @@ window.CATALOGO=[
 "El socket se vincula por Wi-Fi a tu módem"
 ],
 "imgs": [
-"img/SHOME-125_0.jpg"
+"img/SHOME-125_0.webp"
 ],
-"img": "img/SHOME-125.jpg"
+"img": "img/SHOME-125.webp",
+"st": [
+2,
+2,
+2,
+2,
+0,
+2,
+1,
+2,
+2,
+2
+]
 },
 {
 "codigo": "REPELTRONIC",
@@ -960,11 +1561,23 @@ window.CATALOGO=[
 "No es dañino para las personas ni para la mayoría de las mascotas"
 ],
 "imgs": [
-"img/REPELTRONIC_0.jpg",
-"img/REPELTRONIC_1.jpg",
-"img/REPELTRONIC_2.jpg"
+"img/REPELTRONIC_0.webp",
+"img/REPELTRONIC_1.webp",
+"img/REPELTRONIC_2.webp"
 ],
-"img": "img/REPELTRONIC.jpg"
+"img": "img/REPELTRONIC.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "INSECTRONIC-060",
@@ -974,11 +1587,23 @@ window.CATALOGO=[
 "colab": 12.64,
 "feat": [],
 "imgs": [
-"img/INSECTRONIC-060_0.jpg",
-"img/INSECTRONIC-060_1.jpg",
-"img/INSECTRONIC-060_2.jpg"
+"img/INSECTRONIC-060_0.webp",
+"img/INSECTRONIC-060_1.webp",
+"img/INSECTRONIC-060_2.webp"
 ],
-"img": null
+"img": null,
+"st": [
+2,
+1,
+2,
+1,
+2,
+1,
+0,
+2,
+0,
+0
+]
 },
 {
 "codigo": "SHOME-160",
@@ -993,13 +1618,25 @@ window.CATALOGO=[
 "Wi-Fi: El control se vincula por Wi-Fi en redes de 2,4"
 ],
 "imgs": [
-"img/SHOME-160_0.jpg",
-"img/SHOME-160_1.jpg",
-"img/SHOME-160_2.jpg",
-"img/SHOME-160_3.jpg",
-"img/SHOME-160_4.jpg"
+"img/SHOME-160_0.webp",
+"img/SHOME-160_1.webp",
+"img/SHOME-160_2.webp",
+"img/SHOME-160_3.webp",
+"img/SHOME-160_4.webp"
 ],
-"img": "img/SHOME-160.jpg"
+"img": "img/SHOME-160.webp",
+"st": [
+2,
+2,
+0,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "SHOME-140",
@@ -1014,13 +1651,25 @@ window.CATALOGO=[
 "Compatible con Android y iPhone"
 ],
 "imgs": [
-"img/SHOME-140_0.jpg",
-"img/SHOME-140_1.jpg",
-"img/SHOME-140_2.jpg",
-"img/SHOME-140_3.jpg",
-"img/SHOME-140_4.jpg"
+"img/SHOME-140_0.webp",
+"img/SHOME-140_1.webp",
+"img/SHOME-140_2.webp",
+"img/SHOME-140_3.webp",
+"img/SHOME-140_4.webp"
 ],
-"img": "img/SHOME-140.jpg"
+"img": "img/SHOME-140.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "SHOME-100",
@@ -1035,13 +1684,25 @@ window.CATALOGO=[
 "Función temporizador (timer)"
 ],
 "imgs": [
-"img/SHOME-100_0.jpg",
-"img/SHOME-100_1.jpg",
-"img/SHOME-100_2.jpg",
-"img/SHOME-100_3.jpg",
-"img/SHOME-100_4.jpg"
+"img/SHOME-100_0.webp",
+"img/SHOME-100_1.webp",
+"img/SHOME-100_2.webp",
+"img/SHOME-100_3.webp",
+"img/SHOME-100_4.webp"
 ],
-"img": "img/SHOME-100.jpg"
+"img": "img/SHOME-100.webp",
+"st": [
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+0
+]
 },
 {
 "codigo": "PT-510",
@@ -1055,12 +1716,24 @@ window.CATALOGO=[
 "Ideal para materiales lisos y no porosos"
 ],
 "imgs": [
-"img/PT-510_0.jpg",
-"img/PT-510_1.jpg",
-"img/PT-510_2.jpg",
-"img/PT-510_3.jpg"
+"img/PT-510_0.webp",
+"img/PT-510_1.webp",
+"img/PT-510_2.webp",
+"img/PT-510_3.webp"
 ],
-"img": "img/PT-510.jpg"
+"img": "img/PT-510.webp",
+"st": [
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "BAF-0890R",
@@ -1075,13 +1748,25 @@ window.CATALOGO=[
 "Reproduce USB y microSD Controles independientes para el volumen general y micrófono"
 ],
 "imgs": [
-"img/BAF-0890R_0.jpg",
-"img/BAF-0890R_1.jpg",
-"img/BAF-0890R_2.jpg",
-"img/BAF-0890R_3.jpg",
-"img/BAF-0890R_4.jpg"
+"img/BAF-0890R_0.webp",
+"img/BAF-0890R_1.webp",
+"img/BAF-0890R_2.webp",
+"img/BAF-0890R_3.webp",
+"img/BAF-0890R_4.webp"
 ],
-"img": "img/BAF-0890R.jpg"
+"img": "img/BAF-0890R.webp",
+"st": [
+1,
+2,
+2,
+0,
+1,
+1,
+1,
+1,
+1,
+1
+]
 },
 {
 "codigo": "MIC-8020",
@@ -1096,9 +1781,21 @@ window.CATALOGO=[
 "Hasta 110 m de alcance"
 ],
 "imgs": [
-"img/MIC-8020_0.jpg"
+"img/MIC-8020_0.webp"
 ],
-"img": "img/MIC-8020.jpg"
+"img": "img/MIC-8020.webp",
+"st": [
+2,
+2,
+1,
+2,
+1,
+1,
+1,
+2,
+2,
+2
+]
 },
 {
 "codigo": "SPK-630",
@@ -1113,13 +1810,25 @@ window.CATALOGO=[
 "Terminales enroscables"
 ],
 "imgs": [
-"img/SPK-630_0.jpg",
-"img/SPK-630_1.jpg",
-"img/SPK-630_2.jpg",
-"img/SPK-630_3.jpg",
-"img/SPK-630_4.jpg"
+"img/SPK-630_0.webp",
+"img/SPK-630_1.webp",
+"img/SPK-630_2.webp",
+"img/SPK-630_3.webp",
+"img/SPK-630_4.webp"
 ],
-"img": "img/SPK-630.jpg"
+"img": "img/SPK-630.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "BSD-120",
@@ -1133,13 +1842,25 @@ window.CATALOGO=[
 "Conexión HDMI ARC (Canal de"
 ],
 "imgs": [
-"img/BSD-120_0.jpg",
-"img/BSD-120_1.jpg",
-"img/BSD-120_2.jpg",
-"img/BSD-120_3.jpg",
-"img/BSD-120_4.jpg"
+"img/BSD-120_0.webp",
+"img/BSD-120_1.webp",
+"img/BSD-120_2.webp",
+"img/BSD-120_3.webp",
+"img/BSD-120_4.webp"
 ],
-"img": "img/BSD-120.jpg"
+"img": "img/BSD-120.webp",
+"st": [
+2,
+2,
+2,
+1,
+0,
+0,
+0,
+0,
+0,
+0
+]
 },
 {
 "codigo": "MIC-285R",
@@ -1149,12 +1870,24 @@ window.CATALOGO=[
 "colab": 24.71,
 "feat": [],
 "imgs": [
-"img/MIC-285R_0.jpg",
-"img/MIC-285R_1.jpg",
-"img/MIC-285R_2.jpg",
-"img/MIC-285R_3.jpg"
+"img/MIC-285R_0.webp",
+"img/MIC-285R_1.webp",
+"img/MIC-285R_2.webp",
+"img/MIC-285R_3.webp"
 ],
-"img": "img/MIC-285R.jpg"
+"img": "img/MIC-285R.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "MOV-033",
@@ -1169,9 +1902,21 @@ window.CATALOGO=[
 "Filtro que reduce los ruidos por el viento o la respiración"
 ],
 "imgs": [
-"img/MOV-033_0.jpg"
+"img/MOV-033_0.webp"
 ],
-"img": "img/MOV-033.jpg"
+"img": "img/MOV-033.webp",
+"st": [
+0,
+0,
+0,
+0,
+2,
+2,
+2,
+2,
+1,
+1
+]
 },
 {
 "codigo": "255-258 E01",
@@ -1181,9 +1926,21 @@ window.CATALOGO=[
 "colab": 2.29,
 "feat": [],
 "imgs": [
-"img/255-258_E01_0.jpg"
+"img/255-258_E01_0.webp"
 ],
-"img": "img/255-258_E01.jpg"
+"img": "img/255-258_E01.webp",
+"st": [
+2,
+2,
+2,
+2,
+1,
+1,
+2,
+2,
+1,
+1
+]
 },
 {
 "codigo": "252-100",
@@ -1193,9 +1950,21 @@ window.CATALOGO=[
 "colab": 2.29,
 "feat": [],
 "imgs": [
-"img/252-100_0.jpg"
+"img/252-100_0.webp"
 ],
-"img": "img/252-100.jpg"
+"img": "img/252-100.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "255-258",
@@ -1205,9 +1974,21 @@ window.CATALOGO=[
 "colab": 1.09,
 "feat": [],
 "imgs": [
-"img/255-258_0.jpg"
+"img/255-258_0.webp"
 ],
-"img": "img/255-258.jpg"
+"img": "img/255-258.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+1,
+2,
+1,
+1,
+1
+]
 },
 {
 "codigo": "DIS-118",
@@ -1222,13 +2003,25 @@ window.CATALOGO=[
 "Compatible con estándar"
 ],
 "imgs": [
-"img/DIS-118_0.jpg",
-"img/DIS-118_1.jpg",
-"img/DIS-118_2.jpg",
-"img/DIS-118_3.jpg",
-"img/DIS-118_4.jpg"
+"img/DIS-118_0.webp",
+"img/DIS-118_1.webp",
+"img/DIS-118_2.webp",
+"img/DIS-118_3.webp",
+"img/DIS-118_4.webp"
 ],
-"img": "img/DIS-118.jpg"
+"img": "img/DIS-118.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+1,
+2,
+2
+]
 },
 {
 "codigo": "DIS-116",
@@ -1243,11 +2036,23 @@ window.CATALOGO=[
 "Bocinas incorporadas"
 ],
 "imgs": [
-"img/DIS-116_0.jpg",
-"img/DIS-116_1.jpg",
-"img/DIS-116_2.jpg"
+"img/DIS-116_0.webp",
+"img/DIS-116_1.webp",
+"img/DIS-116_2.webp"
 ],
-"img": "img/DIS-116.jpg"
+"img": "img/DIS-116.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+1,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "COM-4755",
@@ -1262,11 +2067,23 @@ window.CATALOGO=[
 "Puerto USB C para periféricos"
 ],
 "imgs": [
-"img/COM-4755_0.jpg",
-"img/COM-4755_1.jpg",
-"img/COM-4755_2.jpg"
+"img/COM-4755_0.webp",
+"img/COM-4755_1.webp",
+"img/COM-4755_2.webp"
 ],
-"img": "img/COM-4755.jpg"
+"img": "img/COM-4755.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+1,
+2,
+1,
+1
+]
 },
 {
 "codigo": "AUD-570",
@@ -1281,11 +2098,23 @@ window.CATALOGO=[
 "Over ear con diseño ergonómico"
 ],
 "imgs": [
-"img/AUD-570_0.jpg",
-"img/AUD-570_1.jpg",
-"img/AUD-570_2.jpg"
+"img/AUD-570_0.webp",
+"img/AUD-570_1.webp",
+"img/AUD-570_2.webp"
 ],
-"img": "img/AUD-570.jpg"
+"img": "img/AUD-570.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+1,
+2,
+1,
+1,
+1
+]
 },
 {
 "codigo": "COM-852",
@@ -1300,13 +2129,25 @@ window.CATALOGO=[
 "AC1200: 5 GHz (867"
 ],
 "imgs": [
-"img/COM-852_0.jpg",
-"img/COM-852_1.jpg",
-"img/COM-852_2.jpg",
-"img/COM-852_3.jpg",
-"img/COM-852_4.jpg"
+"img/COM-852_0.webp",
+"img/COM-852_1.webp",
+"img/COM-852_2.webp",
+"img/COM-852_3.webp",
+"img/COM-852_4.webp"
 ],
-"img": "img/COM-852.jpg"
+"img": "img/COM-852.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+1,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "COM-688NE",
@@ -1321,13 +2162,25 @@ window.CATALOGO=[
 "Batería recargable que te brinda muchas horas de uso"
 ],
 "imgs": [
-"img/COM-688NE_0.jpg",
-"img/COM-688NE_1.jpg",
-"img/COM-688NE_2.jpg",
-"img/COM-688NE_3.jpg",
-"img/COM-688NE_4.jpg"
+"img/COM-688NE_0.webp",
+"img/COM-688NE_1.webp",
+"img/COM-688NE_2.webp",
+"img/COM-688NE_3.webp",
+"img/COM-688NE_4.webp"
 ],
-"img": "img/COM-688NE.jpg"
+"img": "img/COM-688NE.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "COM-088",
@@ -1342,11 +2195,23 @@ window.CATALOGO=[
 "Soporta hasta 3 kg"
 ],
 "imgs": [
-"img/COM-088_0.jpg",
-"img/COM-088_1.jpg",
-"img/COM-088_2.jpg"
+"img/COM-088_0.webp",
+"img/COM-088_1.webp",
+"img/COM-088_2.webp"
 ],
-"img": "img/COM-088.jpg"
+"img": "img/COM-088.webp",
+"st": [
+0,
+0,
+1,
+1,
+0,
+2,
+0,
+0,
+1,
+0
+]
 },
 {
 "codigo": "COM-476",
@@ -1359,9 +2224,21 @@ window.CATALOGO=[
 "Saida HDMI Salida VGA Utiliza solo una salida a la vez"
 ],
 "imgs": [
-"img/COM-476_0.jpg"
+"img/COM-476_0.webp"
 ],
-"img": "img/COM-476.jpg"
+"img": "img/COM-476.webp",
+"st": [
+2,
+2,
+1,
+0,
+2,
+0,
+1,
+2,
+0,
+0
+]
 },
 {
 "codigo": "COM-031",
@@ -1376,10 +2253,22 @@ window.CATALOGO=[
 "Tiene protección contra picos de voltaje y corto circuito"
 ],
 "imgs": [
-"img/COM-031_0.jpg",
-"img/COM-031_1.jpg"
+"img/COM-031_0.webp",
+"img/COM-031_1.webp"
 ],
-"img": "img/COM-031.jpg"
+"img": "img/COM-031.webp",
+"st": [
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "COM-5780",
@@ -1394,13 +2283,25 @@ window.CATALOGO=[
 "Diseño ergonómico avanzado"
 ],
 "imgs": [
-"img/COM-5780_0.jpg",
-"img/COM-5780_1.jpg",
-"img/COM-5780_2.jpg",
-"img/COM-5780_3.jpg",
-"img/COM-5780_4.jpg"
+"img/COM-5780_0.webp",
+"img/COM-5780_1.webp",
+"img/COM-5780_2.webp",
+"img/COM-5780_3.webp",
+"img/COM-5780_4.webp"
 ],
-"img": "img/COM-5780.jpg"
+"img": "img/COM-5780.webp",
+"st": [
+0,
+0,
+0,
+0,
+0,
+0,
+2,
+1,
+0,
+0
+]
 },
 {
 "codigo": "AUD-558",
@@ -1415,9 +2316,21 @@ window.CATALOGO=[
 "Ajuste perfecto que aísla el ruido exterior"
 ],
 "imgs": [
-"img/AUD-558_0.jpg"
+"img/AUD-558_0.webp"
 ],
-"img": "img/AUD-558.jpg"
+"img": "img/AUD-558.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "COM-5800",
@@ -1432,13 +2345,25 @@ window.CATALOGO=[
 "Resoluciones: 800 / 1200 / 1600 DPI Incorpora batería recargable"
 ],
 "imgs": [
-"img/COM-5800_0.jpg",
-"img/COM-5800_1.jpg",
-"img/COM-5800_2.jpg",
-"img/COM-5800_3.jpg",
-"img/COM-5800_4.jpg"
+"img/COM-5800_0.webp",
+"img/COM-5800_1.webp",
+"img/COM-5800_2.webp",
+"img/COM-5800_3.webp",
+"img/COM-5800_4.webp"
 ],
-"img": "img/COM-5800.jpg"
+"img": "img/COM-5800.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+1,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "COM-675",
@@ -1451,9 +2376,21 @@ window.CATALOGO=[
 "Sistema de ahorro de energía"
 ],
 "imgs": [
-"img/COM-675_0.jpg"
+"img/COM-675_0.webp"
 ],
-"img": "img/COM-675.jpg"
+"img": "img/COM-675.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "COM-8230+",
@@ -1468,9 +2405,21 @@ window.CATALOGO=[
 "Wi-Fi* Compatible con sistemas operativos"
 ],
 "imgs": [
-"img/COM-8230__0.jpg"
+"img/COM-8230__0.webp"
 ],
-"img": "img/COM-8230_.jpg"
+"img": "img/COM-8230_.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+1,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "COM-8234+",
@@ -1485,10 +2434,22 @@ window.CATALOGO=[
 "Internet de forma común, hacer consultas, revisar tu correo o redes sociales"
 ],
 "imgs": [
-"img/COM-8234__0.jpg",
-"img/COM-8234__1.jpg"
+"img/COM-8234__0.webp",
+"img/COM-8234__1.webp"
 ],
-"img": "img/COM-8234_.jpg"
+"img": "img/COM-8234_.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "USB-680",
@@ -1501,10 +2462,22 @@ window.CATALOGO=[
 "Duo - xD: picture card (cámaras fotográficas)"
 ],
 "imgs": [
-"img/USB-680_0.jpg",
-"img/USB-680_1.jpg"
+"img/USB-680_0.webp",
+"img/USB-680_1.webp"
 ],
-"img": "img/USB-680.jpg"
+"img": "img/USB-680.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "COM-040",
@@ -1518,11 +2491,23 @@ window.CATALOGO=[
 "Hacer una pregunta"
 ],
 "imgs": [
-"img/COM-040_0.jpg",
-"img/COM-040_1.jpg",
-"img/COM-040_2.jpg"
+"img/COM-040_0.webp",
+"img/COM-040_1.webp",
+"img/COM-040_2.webp"
 ],
-"img": "img/COM-040.jpg"
+"img": "img/COM-040.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "506-450",
@@ -1535,9 +2520,21 @@ window.CATALOGO=[
 "Puedes configurar tu pantalla como escritorio extendido o modo espejo"
 ],
 "imgs": [
-"img/506-450_0.jpg"
+"img/506-450_0.webp"
 ],
-"img": "img/506-450.jpg"
+"img": "img/506-450.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "COM-206",
@@ -1552,10 +2549,22 @@ window.CATALOGO=[
 "Su rango de comunicación es de hasta 10 metros. Compatibilidad"
 ],
 "imgs": [
-"img/COM-206_0.jpg",
-"img/COM-206_1.jpg"
+"img/COM-206_0.webp",
+"img/COM-206_1.webp"
 ],
-"img": "img/COM-206.jpg"
+"img": "img/COM-206.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "COM-5280",
@@ -1569,12 +2578,24 @@ window.CATALOGO=[
 "Windows* y Mac*"
 ],
 "imgs": [
-"img/COM-5280_0.jpg",
-"img/COM-5280_1.jpg",
-"img/COM-5280_2.jpg",
-"img/COM-5280_3.jpg"
+"img/COM-5280_0.webp",
+"img/COM-5280_1.webp",
+"img/COM-5280_2.webp",
+"img/COM-5280_3.webp"
 ],
-"img": "img/COM-5280.jpg"
+"img": "img/COM-5280.webp",
+"st": [
+2,
+2,
+1,
+2,
+1,
+2,
+1,
+2,
+2,
+1
+]
 },
 {
 "codigo": "LIM-123",
@@ -1589,10 +2610,22 @@ window.CATALOGO=[
 "TV, celular, tablet o laptop"
 ],
 "imgs": [
-"img/LIM-123_0.jpg",
-"img/LIM-123_1.jpg"
+"img/LIM-123_0.webp",
+"img/LIM-123_1.webp"
 ],
-"img": "img/LIM-123.jpg"
+"img": "img/LIM-123.webp",
+"st": [
+2,
+2,
+0,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "PRO-020",
@@ -1606,13 +2639,25 @@ window.CATALOGO=[
 "Incorpora control alámbrico e incluye control remoto"
 ],
 "imgs": [
-"img/PRO-020_0.jpg",
-"img/PRO-020_1.jpg",
-"img/PRO-020_2.jpg",
-"img/PRO-020_3.jpg",
-"img/PRO-020_4.jpg"
+"img/PRO-020_0.webp",
+"img/PRO-020_1.webp",
+"img/PRO-020_2.webp",
+"img/PRO-020_3.webp",
+"img/PRO-020_4.webp"
 ],
-"img": "img/PRO-020.jpg"
+"img": "img/PRO-020.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+1,
+1,
+2,
+1,
+2
+]
 },
 {
 "codigo": "PRO-260",
@@ -1626,13 +2671,25 @@ window.CATALOGO=[
 "Tiene una fuente de 110"
 ],
 "imgs": [
-"img/PRO-260_0.jpg",
-"img/PRO-260_1.jpg",
-"img/PRO-260_2.jpg",
-"img/PRO-260_3.jpg",
-"img/PRO-260_4.jpg"
+"img/PRO-260_0.webp",
+"img/PRO-260_1.webp",
+"img/PRO-260_2.webp",
+"img/PRO-260_3.webp",
+"img/PRO-260_4.webp"
 ],
-"img": "img/PRO-260.jpg"
+"img": "img/PRO-260.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "CCTV-235",
@@ -1647,13 +2704,25 @@ window.CATALOGO=[
 "Compatible con protocolo ONVIF WDR: Mayor claridad y detalle de imagen"
 ],
 "imgs": [
-"img/CCTV-235_0.jpg",
-"img/CCTV-235_1.jpg",
-"img/CCTV-235_2.jpg",
-"img/CCTV-235_3.jpg",
-"img/CCTV-235_4.jpg"
+"img/CCTV-235_0.webp",
+"img/CCTV-235_1.webp",
+"img/CCTV-235_2.webp",
+"img/CCTV-235_3.webp",
+"img/CCTV-235_4.webp"
 ],
-"img": "img/CCTV-235.jpg"
+"img": "img/CCTV-235.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "206-700",
@@ -1667,9 +2736,21 @@ window.CATALOGO=[
 "UHD y transmite contenido en 3D, además, envía información de"
 ],
 "imgs": [
-"img/206-700_0.jpg"
+"img/206-700_0.webp"
 ],
-"img": "img/206-700.jpg"
+"img": "img/206-700.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "CAM-500",
@@ -1684,13 +2765,25 @@ window.CATALOGO=[
 "Case para selfie stick 2 Pad adhesivos"
 ],
 "imgs": [
-"img/CAM-500_0.jpg",
-"img/CAM-500_1.jpg",
-"img/CAM-500_2.jpg",
-"img/CAM-500_3.jpg",
-"img/CAM-500_4.jpg"
+"img/CAM-500_0.webp",
+"img/CAM-500_1.webp",
+"img/CAM-500_2.webp",
+"img/CAM-500_3.webp",
+"img/CAM-500_4.webp"
 ],
-"img": "img/CAM-500.jpg"
+"img": "img/CAM-500.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+1,
+2,
+2
+]
 },
 {
 "codigo": "STV-116",
@@ -1705,13 +2798,25 @@ window.CATALOGO=[
 "Gira la pantalla 30° hacia la derecha o izquierda"
 ],
 "imgs": [
-"img/STV-116_0.jpg",
-"img/STV-116_1.jpg",
-"img/STV-116_2.jpg",
-"img/STV-116_3.jpg",
-"img/STV-116_4.jpg"
+"img/STV-116_0.webp",
+"img/STV-116_1.webp",
+"img/STV-116_2.webp",
+"img/STV-116_3.webp",
+"img/STV-116_4.webp"
 ],
-"img": "img/STV-116.jpg"
+"img": "img/STV-116.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "CCTV-219",
@@ -1721,13 +2826,25 @@ window.CATALOGO=[
 "colab": 49.44,
 "feat": [],
 "imgs": [
-"img/CCTV-219_0.jpg",
-"img/CCTV-219_1.jpg",
-"img/CCTV-219_2.jpg",
-"img/CCTV-219_3.jpg",
-"img/CCTV-219_4.jpg"
+"img/CCTV-219_0.webp",
+"img/CCTV-219_1.webp",
+"img/CCTV-219_2.webp",
+"img/CCTV-219_3.webp",
+"img/CCTV-219_4.webp"
 ],
-"img": "img/CCTV-219.jpg"
+"img": "img/CCTV-219.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "208-187",
@@ -1742,10 +2859,22 @@ window.CATALOGO=[
 "Fabricado con aluminio que disipa mejor el calor"
 ],
 "imgs": [
-"img/208-187_0.jpg",
-"img/208-187_1.jpg"
+"img/208-187_0.webp",
+"img/208-187_1.webp"
 ],
-"img": "img/208-187.jpg"
+"img": "img/208-187.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "299-835",
@@ -1760,10 +2889,22 @@ window.CATALOGO=[
 "Premium para que la transmisión de audio y video sea siempre con la máxima velocidad"
 ],
 "imgs": [
-"img/299-835_0.jpg",
-"img/299-835_1.jpg"
+"img/299-835_0.webp",
+"img/299-835_1.webp"
 ],
-"img": "img/299-835.jpg"
+"img": "img/299-835.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "ANT-XTREME",
@@ -1778,9 +2919,21 @@ window.CATALOGO=[
 "Es muy ligera para una fácil instalación"
 ],
 "imgs": [
-"img/ANT-XTREME_0.jpg"
+"img/ANT-XTREME_0.webp"
 ],
-"img": "img/ANT-XTREME.jpg"
+"img": "img/ANT-XTREME.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+1,
+1
+]
 },
 {
 "codigo": "ANT-9010",
@@ -1795,11 +2948,23 @@ window.CATALOGO=[
 "Gracias a sus acabados y diseño se adapta perfectamente a cualquier decoración"
 ],
 "imgs": [
-"img/ANT-9010_0.jpg",
-"img/ANT-9010_1.jpg",
-"img/ANT-9010_2.jpg"
+"img/ANT-9010_0.webp",
+"img/ANT-9010_1.webp",
+"img/ANT-9010_2.webp"
 ],
-"img": "img/ANT-9010.jpg"
+"img": "img/ANT-9010.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+1,
+2,
+2,
+1,
+2
+]
 },
 {
 "codigo": "STV-026",
@@ -1814,13 +2979,25 @@ window.CATALOGO=[
 "Soporta hasta 12 kg"
 ],
 "imgs": [
-"img/STV-026_0.jpg",
-"img/STV-026_1.jpg",
-"img/STV-026_2.jpg",
-"img/STV-026_3.jpg",
-"img/STV-026_4.jpg"
+"img/STV-026_0.webp",
+"img/STV-026_1.webp",
+"img/STV-026_2.webp",
+"img/STV-026_3.webp",
+"img/STV-026_4.webp"
 ],
-"img": "img/STV-026.jpg"
+"img": "img/STV-026.webp",
+"st": [
+2,
+2,
+0,
+2,
+2,
+2,
+2,
+2,
+1,
+2
+]
 },
 {
 "codigo": "STV-064",
@@ -1835,13 +3012,25 @@ window.CATALOGO=[
 "Gira la pantalla 35° hacia la derecha o izquierda"
 ],
 "imgs": [
-"img/STV-064_0.jpg",
-"img/STV-064_1.jpg",
-"img/STV-064_2.jpg",
-"img/STV-064_3.jpg",
-"img/STV-064_4.jpg"
+"img/STV-064_0.webp",
+"img/STV-064_1.webp",
+"img/STV-064_2.webp",
+"img/STV-064_3.webp",
+"img/STV-064_4.webp"
 ],
-"img": "img/STV-064.jpg"
+"img": "img/STV-064.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "200-385",
@@ -1856,10 +3045,22 @@ window.CATALOGO=[
 "HDCP: Compatible con cualquier"
 ],
 "imgs": [
-"img/200-385_0.jpg",
-"img/200-385_1.jpg"
+"img/200-385_0.webp",
+"img/200-385_1.webp"
 ],
-"img": "img/200-385.jpg"
+"img": "img/200-385.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+1,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "295-505",
@@ -1874,11 +3075,23 @@ window.CATALOGO=[
 "Recubrimiento de PVC para gran resistencia"
 ],
 "imgs": [
-"img/295-505_0.jpg",
-"img/295-505_1.jpg",
-"img/295-505_2.jpg"
+"img/295-505_0.webp",
+"img/295-505_1.webp",
+"img/295-505_2.webp"
 ],
-"img": "img/295-505.jpg"
+"img": "img/295-505.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+1,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "208-140",
@@ -1893,9 +3106,21 @@ window.CATALOGO=[
 "HDCP: Compatible con cualquier"
 ],
 "imgs": [
-"img/208-140_0.jpg"
+"img/208-140_0.webp"
 ],
-"img": "img/208-140.jpg"
+"img": "img/208-140.webp",
+"st": [
+2,
+2,
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "BOS-402",
@@ -1910,10 +3135,22 @@ window.CATALOGO=[
 "HDCP: Compatible con cualquier"
 ],
 "imgs": [
-"img/BOS-402_0.jpg",
-"img/BOS-402_1.jpg"
+"img/BOS-402_0.webp",
+"img/BOS-402_1.webp"
 ],
-"img": "img/BOS-402.jpg"
+"img": "img/BOS-402.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+1,
+2,
+2,
+2,
+1
+]
 },
 {
 "codigo": "STV-041",
@@ -1928,12 +3165,24 @@ window.CATALOGO=[
 "Incluye nivel de gota para una fácil instalación"
 ],
 "imgs": [
-"img/STV-041_0.jpg",
-"img/STV-041_1.jpg",
-"img/STV-041_2.jpg",
-"img/STV-041_3.jpg"
+"img/STV-041_0.webp",
+"img/STV-041_1.webp",
+"img/STV-041_2.webp",
+"img/STV-041_3.webp"
 ],
-"img": "img/STV-041.jpg"
+"img": "img/STV-041.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "200-383",
@@ -1947,13 +3196,25 @@ window.CATALOGO=[
 "Soporta ultra alta definición"
 ],
 "imgs": [
-"img/200-383_0.jpg",
-"img/200-383_1.jpg",
-"img/200-383_2.jpg",
-"img/200-383_3.jpg",
-"img/200-383_4.jpg"
+"img/200-383_0.webp",
+"img/200-383_1.webp",
+"img/200-383_2.webp",
+"img/200-383_3.webp",
+"img/200-383_4.webp"
 ],
-"img": "img/200-383.jpg"
+"img": "img/200-383.webp",
+"st": [
+2,
+2,
+2,
+1,
+2,
+1,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "208-161",
@@ -1967,10 +3228,22 @@ window.CATALOGO=[
 "Cable de 1,8 m Con este convertidor, conecta tus dispositivos digitales con salida HDMI* como"
 ],
 "imgs": [
-"img/208-161_0.jpg",
-"img/208-161_1.jpg"
+"img/208-161_0.webp",
+"img/208-161_1.webp"
 ],
-"img": "img/208-161.jpg"
+"img": "img/208-161.webp",
+"st": [
+2,
+2,
+0,
+2,
+2,
+2,
+2,
+1,
+2,
+2
+]
 },
 {
 "codigo": "295-501",
@@ -1985,11 +3258,23 @@ window.CATALOGO=[
 "Recubrimiento de PVC para gran resistencia"
 ],
 "imgs": [
-"img/295-501_0.jpg",
-"img/295-501_1.jpg",
-"img/295-501_2.jpg"
+"img/295-501_0.webp",
+"img/295-501_1.webp",
+"img/295-501_2.webp"
 ],
-"img": "img/295-501.jpg"
+"img": "img/295-501.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "203-817",
@@ -2004,11 +3289,23 @@ window.CATALOGO=[
 "Premium PVC de alta resistencia"
 ],
 "imgs": [
-"img/203-817_0.jpg",
-"img/203-817_1.jpg",
-"img/203-817_2.jpg"
+"img/203-817_0.webp",
+"img/203-817_1.webp",
+"img/203-817_2.webp"
 ],
-"img": "img/203-817.jpg"
+"img": "img/203-817.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+1,
+2
+]
 },
 {
 "codigo": "206-846",
@@ -2022,9 +3319,21 @@ window.CATALOGO=[
 "Conectores niquelados"
 ],
 "imgs": [
-"img/206-846_0.jpg"
+"img/206-846_0.webp"
 ],
-"img": "img/206-846.jpg"
+"img": "img/206-846.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "NB-900",
@@ -2039,10 +3348,22 @@ window.CATALOGO=[
 "Incorpora LED que muestran el funcionamiento y estado del"
 ],
 "imgs": [
-"img/NB-900_0.jpg",
-"img/NB-900_1.jpg"
+"img/NB-900_0.webp",
+"img/NB-900_1.webp"
 ],
-"img": "img/NB-900.jpg"
+"img": "img/NB-900.webp",
+"st": [
+2,
+2,
+1,
+1,
+1,
+2,
+1,
+1,
+1,
+1
+]
 },
 {
 "codigo": "920-200",
@@ -2057,10 +3378,22 @@ window.CATALOGO=[
 "Acciones de protección: Corte de voltaje y tiempo de reconexión"
 ],
 "imgs": [
-"img/920-200_0.jpg",
-"img/920-200_1.jpg"
+"img/920-200_0.webp",
+"img/920-200_1.webp"
 ],
-"img": "img/920-200.jpg"
+"img": "img/920-200.webp",
+"st": [
+2,
+1,
+1,
+2,
+2,
+2,
+2,
+1,
+1,
+1
+]
 },
 {
 "codigo": "NB-605",
@@ -2075,10 +3408,22 @@ window.CATALOGO=[
 "Incorpora LED que muestran el funcionamiento y estado del"
 ],
 "imgs": [
-"img/NB-605_0.jpg",
-"img/NB-605_1.jpg"
+"img/NB-605_0.webp",
+"img/NB-605_1.webp"
 ],
-"img": "img/NB-605.jpg"
+"img": "img/NB-605.webp",
+"st": [
+0,
+2,
+1,
+2,
+2,
+1,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "905-127",
@@ -2093,10 +3438,22 @@ window.CATALOGO=[
 "Clavija de 2 espigas redondas y una central rectangular para el"
 ],
 "imgs": [
-"img/905-127_0.jpg",
-"img/905-127_1.jpg"
+"img/905-127_0.webp",
+"img/905-127_1.webp"
 ],
-"img": "img/905-127.jpg"
+"img": "img/905-127.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+0,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "CRG-016",
@@ -2111,10 +3468,22 @@ window.CATALOGO=[
 "Para baterías de"
 ],
 "imgs": [
-"img/CRG-016_0.jpg",
-"img/CRG-016_1.jpg"
+"img/CRG-016_0.webp",
+"img/CRG-016_1.webp"
 ],
-"img": "img/CRG-016.jpg"
+"img": "img/CRG-016.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "BAT-NM-AAA/1100",
@@ -2124,12 +3493,24 @@ window.CATALOGO=[
 "colab": 10.91,
 "feat": [],
 "imgs": [
-"img/BAT-NM-AAA_1100_0.jpg",
-"img/BAT-NM-AAA_1100_1.jpg",
-"img/BAT-NM-AAA_1100_2.jpg",
-"img/BAT-NM-AAA_1100_3.jpg"
+"img/BAT-NM-AAA_1100_0.webp",
+"img/BAT-NM-AAA_1100_1.webp",
+"img/BAT-NM-AAA_1100_2.webp",
+"img/BAT-NM-AAA_1100_3.webp"
 ],
-"img": "img/BAT-NM-AAA_1100.jpg"
+"img": "img/BAT-NM-AAA_1100.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "BAT-AAA4",
@@ -2139,9 +3520,21 @@ window.CATALOGO=[
 "colab": 3.44,
 "feat": [],
 "imgs": [
-"img/BAT-AAA4_0.jpg"
+"img/BAT-AAA4_0.webp"
 ],
-"img": "img/BAT-AAA4.jpg"
+"img": "img/BAT-AAA4.webp",
+"st": [
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "MODLED-KIT/10",
@@ -2156,9 +3549,21 @@ window.CATALOGO=[
 "SHOME-128 (de venta por separado)"
 ],
 "imgs": [
-"img/MODLED-KIT_10_0.jpg"
+"img/MODLED-KIT_10_0.webp"
 ],
-"img": "img/MODLED-KIT_10.jpg"
+"img": "img/MODLED-KIT_10.webp",
+"st": [
+2,
+2,
+2,
+1,
+1,
+1,
+1,
+1,
+1,
+1
+]
 },
 {
 "codigo": "SHOME-120/3",
@@ -2173,13 +3578,25 @@ window.CATALOGO=[
 "Puedes sincronizarlos a más de un celular"
 ],
 "imgs": [
-"img/SHOME-120_3_0.jpg",
-"img/SHOME-120_3_1.jpg",
-"img/SHOME-120_3_2.jpg",
-"img/SHOME-120_3_3.jpg",
-"img/SHOME-120_3_4.jpg"
+"img/SHOME-120_3_0.webp",
+"img/SHOME-120_3_1.webp",
+"img/SHOME-120_3_2.webp",
+"img/SHOME-120_3_3.webp",
+"img/SHOME-120_3_4.webp"
 ],
-"img": "img/SHOME-120_3.jpg"
+"img": "img/SHOME-120_3.webp",
+"st": [
+2,
+2,
+2,
+2,
+1,
+2,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "MODLED-080/BCO",
@@ -2192,11 +3609,23 @@ window.CATALOGO=[
 "Para uso exterior"
 ],
 "imgs": [
-"img/MODLED-080_BCO_0.jpg",
-"img/MODLED-080_BCO_1.jpg",
-"img/MODLED-080_BCO_2.jpg"
+"img/MODLED-080_BCO_0.webp",
+"img/MODLED-080_BCO_1.webp",
+"img/MODLED-080_BCO_2.webp"
 ],
-"img": "img/MODLED-080_BCO.jpg"
+"img": "img/MODLED-080_BCO.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+1,
+1,
+1,
+2,
+1
+]
 },
 {
 "codigo": "K-720",
@@ -2210,13 +3639,25 @@ window.CATALOGO=[
 "Cintura y patas articuladas"
 ],
 "imgs": [
-"img/K-720_0.jpg",
-"img/K-720_1.jpg",
-"img/K-720_2.jpg",
-"img/K-720_3.jpg",
-"img/K-720_4.jpg"
+"img/K-720_0.webp",
+"img/K-720_1.webp",
+"img/K-720_2.webp",
+"img/K-720_3.webp",
+"img/K-720_4.webp"
 ],
-"img": "img/K-720.jpg"
+"img": "img/K-720.webp",
+"st": [
+2,
+2,
+2,
+2,
+2,
+1,
+2,
+2,
+2,
+2
+]
 },
 {
 "codigo": "K-555",
@@ -2230,8 +3671,20 @@ window.CATALOGO=[
 "Construye: Avión/Cachorro/Auto/Bote/Avión giratorio/Molino"
 ],
 "imgs": [
-"img/K-555_0.jpg"
+"img/K-555_0.webp"
 ],
-"img": "img/K-555.jpg"
+"img": "img/K-555.webp",
+"st": [
+2,
+2,
+1,
+1,
+2,
+2,
+2,
+2,
+2,
+1
+]
 }
 ];
