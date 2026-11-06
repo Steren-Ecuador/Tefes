@@ -152,6 +152,15 @@ function miArea(M){let card,info,h='';
  document.getElementById('mi').innerHTML=h;
  P.unshift({k:'mi',c:'g',card:card,tag:info[0],n:info[1],w:info[2],t:info[3],x:'<button class="btn ye" onclick="ver(\'mi\')">Ver detalle</button>'});
  const ch=document.querySelector('.chip[data-f=mi]');ch.style.display='';ch.textContent=info[0];pinta('todo')}
+const APP='https://script.google.com/macros/s/AKfycbxvxIW9iw7D6IyKTMx5Xyj9BW4d_u7G4BMVwRzaI9ug1MIB1tdfVCAWhu2iIWjbz0lgMA/exec';
+const AREA={'bod-uio':'Daniel Chalán','bod-gye':'Jakson Urina','cc':'Christian Ruiz','th':'Dylan Parra'};
+const GENTE=['Juan Carlos Estrella','Daniela López','Jerry Villacrés','Walter Zumba'];
+function avisa(k,yo){const ses=Math.random().toString(36).slice(2,10),disp=/iPhone|iPad/.test(navigator.userAgent)?'iPhone':/Android/.test(navigator.userAgent)?'Android':'Computadora';
+ fetch(APP,{method:'POST',body:JSON.stringify({fn:'apiRegistroAvisos',args:[k,yo,ses,disp]}),headers:{'Content-Type':'text/plain;charset=utf-8'}}).catch(()=>{})}
+function registra(k,m){let yo=AREA[m]||'';try{if(!yo)yo=localStorage.getItem('av.yo')||''}catch(e){}
+ if(yo){avisa(k,yo);return}
+ abrir('<h2>¿Quién eres?</h2><p style="color:var(--muted)">Tócalo una sola vez y la app te recordará.</p>'+GENTE.concat(['Otra persona']).map(n=>'<button class="btn ye yo" style="display:block;width:100%;margin:8px 0" data-n="'+esc(n)+'">'+esc(n)+'</button>').join(''));
+ document.querySelectorAll('.yo').forEach(b=>b.onclick=()=>{const n=b.dataset.n;try{localStorage.setItem('av.yo',n)}catch(e){}avisa(k,n);cerrar()})}
 async function dec(k,E){const b64=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')+'=='.slice(0,(4-s.length%4)%4)),c=>c.charCodeAt(0));
  const key=await crypto.subtle.importKey('raw',b64(k),'AES-GCM',false,['decrypt']);
  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(E.iv)},key,b64(E.ct));const w={};new Function('window',new TextDecoder().decode(pt))(w);return w}
@@ -170,5 +179,6 @@ document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>ver(b.dataset.f));
  if(location.hash)history.replaceState(null,'',location.pathname);
  try{if(!k)throw 0;A=(await dec(k,ENC)).AV;armar()}catch(e){document.getElementById('feed').innerHTML='<div class="msg">Abre esta página con el enlace que te enviaron por WhatsApp.</div>';return}
  if(a&&m&&/^[a-z0-9-]+$/.test(m)){try{await carga('mi-'+m+'.enc.js');miArea((await dec(a,window.ENC)).MI)}catch(e){}}
+ registra(k,m);
 })();
 </script></body></html>
