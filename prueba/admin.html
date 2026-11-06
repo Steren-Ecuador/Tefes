@@ -799,6 +799,7 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
   <div class="view" data-view="inventario" hidden>
     <details hidden class="panel cv-box" id="cvBox" ontoggle="if(this.open&&window.cvRender){cvRender();cvCargar();}"><summary><span class="cv-dot" id="cvLuz"></span><b>En vivo</b><span class="hint" id="cvLuzTxt">Revisando…</span></summary><div id="vivoBody" style="margin-top:12px"><div class="skeleton">Cargando conteos…</div></div></details>
     <div id="invBody"><div class="skeleton">Cargando inventario…</div></div>
+    <div id="aucBody"></div>
   </div>
 
 
@@ -1223,6 +1224,7 @@ async function cargar(fresh){
     rec: g("'Reclamos clientes'!A1:K", CLAVES).catch(() => [[]]),
     gui: Promise.all([g('Guías!A1:I'), g("'Lecturas de guías'!A1:F").catch(() => [[]])]).then(([gg, ll]) => ({g: gg, l: ll})),
     vf: g("'Ventas futuras'!A1:V", CLAVES).catch(() => [[]]),
+    auc: g('Autoconsumo!A1:Q').catch(() => [[]]),   // aco1
     flash: g('Flash!A1:I', CLAVES).catch(() => [[]]),
     fue: g("'Estado fuentes'!A1:H", CLAVES).catch(() => [[]]),   // ef1
     pp: g("'Presupuesto personas'!A1:G", CLAVES).catch(() => [[]]),   // pp1
@@ -1443,6 +1445,7 @@ function render(){
   renderInventario();
   renderPoliticas();
   renderVF();
+  try { renderAuc(); } catch (e) { console.error(e); }   // aco1
   try { renderFlash(); } catch (e) { console.error(e); }
   try { renderFuentes(); } catch (e) { console.error(e); }
   try { renderGar(); } catch (e) { console.error(e); }
@@ -2679,6 +2682,78 @@ function renderFlash(){
     <div class="panel flush scroll"><table class="exec fl-t"><thead><tr><th>Local</th><th class="num">Venta día</th><th class="num">Venta mes</th></tr></thead><tbody>${C.map(x => `<tr><td class="store">${esc(x.local)}</td><td class="num">${usd.format(x.dia)}</td><td class="num">${usd.format(x.mes)}</td></tr>`).join('')}<tr class="fl-tot"><td>Gran total (tiendas + CEDIS)</td><td class="num">${usd.format(tot.dia + C.reduce((a, x) => a + (x.dia || 0), 0))}</td><td class="num">${usd.format(tot.mes + C.reduce((a, x) => a + (x.mes || 0), 0))}</td></tr></tbody></table></div></div>` : ''}`;
 }
 
+const AUC_EDITA = true;
+/* ---------- aco1: facturas de autoconsumo de las tiendas (Diego 2026-11-06). Pestaña 'Autoconsumo' de la Base.
+   Diego autoriza o rechaza en su admin (AUC_EDITA); los supervisores ven lo mismo, solo consulta. ---------- */
+const AUC_PILL = {'Por autorizar': 'p-warn', 'Autorizada': 'p-good', 'Rechazada': 'p-bad'};
+function renderAuc(){
+  const el = $('#aucBody'); if (!el) return;
+  if (st.auc === undefined) { el.innerHTML = '<div class="skeleton">Cargando facturas de autoconsumo…</div>'; return; }
+  const n = x => { let s = String(x == null ? '' : x).replace(/[$\s]/g, ''); if (s.indexOf(',') >= 0) s = s.replace(/\./g, '').replace(',', '.'); const k = Number(s); return isNaN(k) ? 0 : k; };
+  const L = (st.auc || [[]]).slice(1).map((r, i) => ({fila: i + 2, id: String(r[0] || '').trim(), fecha: iso(r[1]), tienda: String(r[3] || ''), registro: String(r[4] || ''),
+    factura: String(r[5] || '').replace(/^'/, ''), fechaFac: iso(r[6]), valor: n(r[7]), productos: String(r[8] || ''), motivo: String(r[9] || ''), detalle: String(r[10] || ''),
+    pidio: String(r[11] || ''), foto: String(r[12] || ''), estado: String(r[13] || '').trim() || 'Por autorizar', reviso: String(r[14] || ''), fechaRev: iso(r[15]), comentario: String(r[16] || '')}))
+    .filter(x => x.id);
+  if (!L.length) { el.innerHTML = '<div class="sec-h" style="margin-top:22px"><h2>Facturas de autoconsumo</h2></div><div class="panel"><div class="empty">' +
+    (st.auc === null ? 'No se pudieron cargar.' : 'Todavía no hay registros. Las tiendas los hacen en Inventario → Registrar factura de autoconsumo.') + '</div></div>'; return; }
+  const usd = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const fd = f => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f); return m ? (+m[3]) + '/' + (+m[2]) : f; };
+  const mes = hoyISO().slice(0, 7), delMes = L.filter(x => (x.fechaFac || x.fecha).slice(0, 7) === mes);
+  const pend = L.filter(x => x.estado === 'Por autorizar'), suma = A => A.reduce((s, x) => s + x.valor, 0);
+  const fE = st.aucE || (pend.length ? 'pend' : 'todas'), fT = st.aucT || '';
+  const ok = {pend: x => x.estado === 'Por autorizar', aut: x => x.estado === 'Autorizada', rech: x => x.estado === 'Rechazada', todas: () => true}[fE] || (() => true);
+  const V = L.filter(x => ok(x) && (!fT || x.tienda === fT)).sort((a, b) => (b.fechaFac || b.fecha).localeCompare(a.fechaFac || a.fecha) || b.fila - a.fila);
+  const tiendas = [...new Set(L.map(x => x.tienda))].sort();
+  const chip = (k, t) => `<button class="chip${fE === k ? ' on' : ''}" data-auce="${k}">${t}</button>`;
+  const porT = {}; delMes.forEach(x => { porT[x.tienda] = (porT[x.tienda] || 0) + x.valor; });
+  el.innerHTML = `<div class="sec-h" style="margin-top:22px"><h2>Facturas de autoconsumo</h2><span class="hint">Las registra cada tienda con su motivo.${AUC_EDITA ? ' Revisa cada una y autorízala o recházala.' : ' Diego las autoriza o rechaza.'}</span></div>
+    <div class="kpis">
+      <div class="kpi ${pend.length ? 'warn' : ''}"><b>${pend.length}</b><span>por autorizar (${usd.format(suma(pend))})</span></div>
+      <div class="kpi"><b>${usd.format(suma(delMes))}</b><span>facturado este mes (${delMes.length})</span></div>
+      <div class="kpi good"><b>${usd.format(suma(delMes.filter(x => x.estado === 'Autorizada')))}</b><span>autorizado este mes</span></div>
+      <div class="kpi ${delMes.some(x => x.estado === 'Rechazada') ? 'bad' : ''}"><b>${delMes.filter(x => x.estado === 'Rechazada').length}</b><span>rechazadas este mes</span></div>
+    </div>
+    ${Object.keys(porT).length ? `<p class="small faint" style="margin:8px 0 0">Este mes por tienda: ${Object.entries(porT).sort((a, b) => b[1] - a[1]).map(([t, v]) => esc(t) + ' ' + usd.format(v)).join(' · ')}</p>` : ''}
+    <div class="cl-col">
+      <div class="rec-st">${chip('pend', 'Por autorizar')}${chip('aut', 'Autorizadas')}${chip('rech', 'Rechazadas')}${chip('todas', 'Todas')}
+        <select id="aucT" aria-label="Tienda" class="cl-sel"><option value="">Todas las tiendas</option>${tiendas.map(t => `<option value="${esc(t)}" ${t === fT ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
+      <div class="panel flush scroll"><table class="exec vf-t"><thead><tr><th>Factura</th><th>Tienda</th><th class="num">Valor</th><th>Motivo y productos</th><th>Estado</th></tr></thead><tbody>
+      ${V.map(x => `<tr><td><b>${esc(x.factura)}</b><div class="small faint">${fd(x.fechaFac)}${x.foto ? ` · <a href="${esc(x.foto)}" target="_blank" rel="noopener">foto</a>` : ''}</div></td>
+        <td>${esc(x.tienda)}<div class="small faint">registró ${esc(x.registro)} el ${fd(x.fecha)}</div></td>
+        <td class="num">${usd.format(x.valor)}</td>
+        <td><b>${esc(x.motivo)}</b><div class="obs">${esc(x.detalle)}</div><div class="obs">Productos: ${esc(x.productos)}</div><div class="small faint">Pidió: ${esc(x.pidio)}</div></td>
+        <td><span class="pill ${AUC_PILL[x.estado] || 'p-na'}">${esc(x.estado)}</span>${x.fechaRev ? `<div class="small faint">${esc(x.reviso)} ${fd(x.fechaRev)}</div>` : ''}${x.comentario ? `<div class="obs">${esc(x.comentario)}</div>` : ''}
+          ${AUC_EDITA ? `<div><button class="kmas" data-aucr="${x.fila}">${x.estado === 'Por autorizar' ? 'Revisar' : 'Cambiar'}</button></div>` : ''}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">Sin facturas con este filtro.</td></tr>'}
+      </tbody></table></div>
+    </div>`;
+  el.querySelectorAll('[data-auce]').forEach(b => b.onclick = () => { st.aucE = b.dataset.auce; renderAuc(); });
+  if ($('#aucT')) $('#aucT').onchange = e => { st.aucT = e.target.value; renderAuc(); };
+  if (!AUC_EDITA) return;
+  el.querySelectorAll('[data-aucr]').forEach(b => b.onclick = () => {
+    const fila = +b.dataset.aucr, x = L.find(y => y.fila === fila), r = st.auc[fila - 1];
+    $('#drawer').innerHTML = `<div class="drawer-bg"><div class="drawer" role="dialog" aria-label="Revisar autoconsumo">
+      <div class="d-top"><div class="d-top-t"><b>Factura ${esc(x.factura)} · ${usd.format(x.valor)}</b><span>${esc(x.tienda)} · ${fd(x.fechaFac)}</span></div><button class="d-x" id="dClose">Cerrar</button></div>
+      <p><b>${esc(x.motivo)}</b>: ${esc(x.detalle)}</p><p class="small">Productos: ${esc(x.productos)}<br>Pidió: ${esc(x.pidio)} · registró ${esc(x.registro)}${x.foto ? ` · <a href="${esc(x.foto)}" target="_blank" rel="noopener">ver foto</a>` : ''}</p>
+      <div class="lbl">Comentario para la tienda${x.estado === 'Por autorizar' ? ' (obligatorio si la rechazas)' : ''}</div><input type="text" id="aucCom" maxlength="300" value="${esc(x.comentario)}">
+      <div class="actions"><button class="btn good" id="aucAut">Autorizar</button><button class="btn bad" id="aucRech">Rechazar</button>${x.estado !== 'Por autorizar' ? '<button class="btn" id="aucPend">Volver a por autorizar</button>' : ''}</div></div></div>`;
+    $('#dClose').onclick = () => $('#drawer').innerHTML = '';
+    $('.drawer-bg').onclick = e => { if (e.target.classList.contains('drawer-bg')) $('#drawer').innerHTML = ''; };
+    const guardar = async (estado, k) => {
+      const com = $('#aucCom').value.trim();
+      if (estado === 'Rechazada' && com.length < 3) { toast('Escribe por qué la rechazas.'); return; }
+      k.disabled = true; k.textContent = 'Guardando…';
+      const v = estado === 'Por autorizar' ? ['Por autorizar', '', '', com] : [estado, 'Administrador', hoyISO(), com];
+      try {
+        await setRange('Autoconsumo!N' + fila + ':Q' + fila, [v.map(safe)]);
+        while (r.length < 17) r.push(''); r[13] = v[0]; r[14] = v[1]; r[15] = v[2]; r[16] = v[3];
+        $('#drawer').innerHTML = ''; toast(estado === 'Por autorizar' ? 'Queda por autorizar.' : 'Factura ' + estado.toLowerCase() + '.'); renderAuc();
+      } catch (e) { k.disabled = false; k.textContent = estado === 'Autorizada' ? 'Autorizar' : estado === 'Rechazada' ? 'Rechazar' : 'Volver a por autorizar'; toast('No se pudo guardar: ' + e.message); }
+    };
+    $('#aucAut').onclick = e => guardar('Autorizada', e.target);
+    $('#aucRech').onclick = e => guardar('Rechazada', e.target);
+    if ($('#aucPend')) $('#aucPend').onclick = e => guardar('Por autorizar', e.target);
+  });
+}
 function renderVF(){
   const el = $('#vfBody'); if (!el || !st.d) return;
   if (st.vf === undefined) { el.innerHTML = '<div class="skeleton">Cargando ventas futuras…</div>'; return; }
