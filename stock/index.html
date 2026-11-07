@@ -10,6 +10,7 @@
 html,body{background:var(--bg);color:var(--fg);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 .app{max-width:480px;margin:0 auto;min-height:100vh;position:relative;padding-bottom:calc(env(safe-area-inset-bottom) + 96px)}
 .bgblur{display:none}
+.upd{font-size:12.5px;font-weight:600;margin-top:8px;opacity:.95;display:flex;align-items:center;gap:6px}.upd:before{content:"";width:8px;height:8px;border-radius:50%;background:#7CFC9A;box-shadow:0 0 0 3px rgba(124,252,154,.25)}.upd:empty{display:none}
 .top{position:sticky;top:0;z-index:20;background:var(--acc);color:#fff;padding:calc(env(safe-area-inset-top) + 8px) 14px 12px;box-shadow:0 2px 8px rgba(0,60,100,.18)}
 .brand{display:flex;align-items:center;gap:8px;height:30px}
 .brand img{height:22px}
@@ -119,6 +120,7 @@ main{position:relative;z-index:1;padding:0 14px}
   <div class="brand"><img src="logo.png" alt=""><b>Steren</b><span>Stock en<br>tiendas</span><select id="mi" aria-label="Mi tienda"></select></div>
   <div class="sbar"><input id="q" inputmode="search" autocomplete="off" autocapitalize="characters" placeholder="Código, barras o nombre">
   <button class="scanb" id="camb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>Escanear</button></div>
+  <div class="upd" id="upd"></div>
  </div>
  <main id="out"></main>
 </div>
@@ -126,7 +128,7 @@ main{position:relative;z-index:1;padding:0 14px}
 <div class="sheet" id="sheet"><button class="close" id="shx" aria-label="Cerrar">×</button><div id="shc"></div></div>
 <div class="cam" id="cam"><video id="vid" playsinline muted autoplay></video><div class="guide"></div><div class="st" id="camst">Apunta al código de barras</div>
  <div class="ctl"><label>Foto<input id="foto" type="file" accept="image/*" capture="environment" hidden></label><button id="camx">Cerrar</button></div></div>
-<script src="data.enc.js?v=3"></script>
+<script>document.write('<script src="data.enc.js?t='+Date.now()+'"><\/script>')</script>
 <script>
 const T=["Mall del Sol","Urdesa","Samborondón","Condado","El Jardín","Portal","Scala","Megakywi","Megamaxi","Tumbaco","CEDIS Quito","CEDIS Guayaquil"];
 const GYE=[0,1,2],UIO=[3,4,5,6,7,8,9],ALL=[0,1,2,3,4,5,6,7,8,9,10,11],O=12;
@@ -149,7 +151,8 @@ async function cargar(){
  const key=await crypto.subtle.importKey("raw",b64(k),"AES-GCM",false,["decrypt"]);
  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64(ENC.iv)},key,b64(ENC.ct));
  const w={};new Function("window",new TextDecoder().decode(pt))(w);
- D=w.STOCK_DATA;F=w.STOCK_FECHA;
+ D=w.STOCK_DATA;F=w.STOCK_FECHA;{const m=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"],h=new Date(),hoy=h.getDate()+" "+m[h.getMonth()]+" "+h.getFullYear();
+ const [fd,hr]=String(F).split(", ");$("#upd").textContent="Stock actualizado: "+(fd===hoy?"hoy":fd)+(hr?" a las "+hr:"");}
  for(const p of D){byCode.set(p[0].toUpperCase(),p);for(const b of p[2].split(" "))if(b)byBar.set(b,p)}}
 const sum=(ix,p)=>ix.reduce((a,i)=>a+Math.max(0,p[O+i]),0);
 const foto=(p,k=0)=>p[8]&&p[8][k]?"img/"+encodeURIComponent(p[8][k]):"";

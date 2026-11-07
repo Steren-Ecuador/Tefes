@@ -637,9 +637,9 @@ function infHTML(f){
   </div>
   ${f.obs ? `<p style="margin:10px 0 0"><b>Observaciones:</b> ${e(f.obs)}</p>` : ''}
   <div style="page-break-inside:avoid">
-  <h3 style="font:700 14px Arial;margin:16px 0 4px">Aceptación del personal</h3>
+  ${!(Number(f.desc) > 0) ? '<p style="margin:16px 0 0;font-size:11px"><b>Sin valores a descontar:</b> este informe es informativo para el equipo de la tienda y no requiere la firma del personal.</p>' : `<h3 style="font:700 14px Arial;margin:16px 0 4px">Aceptación del personal</h3>
   <p style="margin:0 0 8px;font-size:11px">Las personas que firmamos este informe declaramos que conocemos el resultado del inventario de ${e(f.tienda)} detallado arriba, que tuvimos la oportunidad de recontar y justificar las diferencias, y que aceptamos y autorizamos a TEFES a descontar de nuestra remuneración el valor indicado junto a nuestro nombre.</p>
-  ${firmas}
+  ${firmas}`}
   <table style="margin-top:34px;font-size:11px;border-collapse:collapse"><tr><td style="border-top:1px solid #333;padding-top:4px;width:240px">${e(f.elaboro)}<br>Elaboró</td><td style="width:40px"></td>
     <td style="border-top:1px solid #333;padding-top:4px;width:240px">Gerencia del Proyecto<br>Aprobó</td></tr></table></div>
   ${anexo}
