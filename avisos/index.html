@@ -103,6 +103,8 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 let A,P=[];
 function hoy(){const d=new Date(Date.now()-5*3600e3);return d.toISOString().slice(0,10)}
 function armar(){const h=hoy();P=[];
+ /* dd-av */ if(A.dato&&A.dato.t){const d0=new Date(Date.now()-5*3600e3-2*864e5).toISOString().slice(0,10);if(A.dato.f<=h&&A.dato.f>=d0){const m=A.dato.t.match(/^\p{Extended_Pictographic}️?\s*/u);const tx=m?A.dato.t.slice(m[0].length):A.dato.t;
+  P.push({k:'dato',c:'y',card:'<div class="em">'+(m?m[0].trim():'🌟')+'</div><div class="sub" style="font-size:26px">Dato positivo<br>del día</div>',tag:'Buenas noticias',n:'Dato positivo del día',w:A.dato.f===h?'Hoy':'Del '+fd(A.dato.f),t:esc(tx)})}}
  A.an.filter(a=>a.desde<=h&&h<=a.hasta).forEach((a,i)=>{const em=(a.ef.match(/^\S+/)||['📣'])[0];
   P.push({k:'aviso',c:'y',card:'<div class="em">'+em+'</div><div class="sub">'+esc(a.t.length>70?a.t.slice(0,68)+'…':a.t)+'</div>',tag:'Aviso',n:esc(a.t),w:'Hasta el '+fd(a.hasta),t:esc(a.x.replace(/\n+/g,' ').slice(0,170))+'…',x:'<button class="more" onclick="verAviso('+A.an.indexOf(a)+')">Ver más</button>'})});
  A.pr.filter(p=>h<=p.hasta).forEach(p=>{const v=p.desde<=h;
