@@ -3803,9 +3803,9 @@ function infHTML(f){
   </div>
   ${f.obs ? `<p style="margin:10px 0 0"><b>Observaciones:</b> ${e(f.obs)}</p>` : ''}
   <div style="page-break-inside:avoid">
-  <h3 style="font:700 14px Arial;margin:16px 0 4px">Aceptación del personal</h3>
+  ${!(Number(f.desc) > 0) ? '<p style="margin:16px 0 0;font-size:11px"><b>Sin valores a descontar:</b> este informe es informativo para el equipo de la tienda y no requiere la firma del personal.</p>' : `<h3 style="font:700 14px Arial;margin:16px 0 4px">Aceptación del personal</h3>
   <p style="margin:0 0 8px;font-size:11px">Las personas que firmamos este informe declaramos que conocemos el resultado del inventario de ${e(f.tienda)} detallado arriba, que tuvimos la oportunidad de recontar y justificar las diferencias, y que aceptamos y autorizamos a TEFES a descontar de nuestra remuneración el valor indicado junto a nuestro nombre.</p>
-  ${firmas}
+  ${firmas}`}
   <table style="margin-top:34px;font-size:11px;border-collapse:collapse"><tr><td style="border-top:1px solid #333;padding-top:4px;width:240px">${e(f.elaboro)}<br>Elaboró</td><td style="width:40px"></td>
     <td style="border-top:1px solid #333;padding-top:4px;width:240px">Gerencia del Proyecto<br>Aprobó</td></tr></table></div>
   ${anexo}
@@ -3832,7 +3832,7 @@ function infLista(){
   const L = infFilas().filter(r => r[4] === ui.tienda && (ui.tipo === 'cic') === /c[ií]clico/i.test(r[5] || '')).reverse();   // solo los informes de la pestaña abierta (Top 50 o Cíclico)
   el.innerHTML = `<div class="actions" style="margin:0"><button class="btn primary" id="infNuevo">Informe de inventario</button></div>` +
     (L.length ? `<div class="lbl">Informes guardados</div>` + L.map(r => `<div class="sv-it"><div><b>${esc(r[0])}</b> · ${esc(fmtF(r[1], r[2]))}<div class="small faint">${esc(r[5])} ${esc(r[3])} · a descontar ${esc(ivMon(num(r[11]) || 0))}</div></div>
-      <span class="pol-acc"><span class="pill ${r[13] === 'Firmado' ? 'p-good' : 'p-warn'}">${esc(r[13] || 'Por firmar')}</span>${icEstado(r[0])}<button class="btn" data-infpdf="${esc(r[0])}">PDF</button><button class="btn" data-infmail="${esc(r[0])}">Correo</button><button class="btn" data-infarc="${esc(r[0])}" title="Lo quita de la lista; queda guardado en la hoja">Archivar</button>${r[13] === 'Firmado' ? '' : `<button class="btn" data-inffir="${esc(r[0])}">Firmado</button>`}</span></div>`).join('') : '');
+      <span class="pol-acc">${(e0 => `<span class="pill ${e0 === 'Por firmar' ? 'p-warn' : 'p-good'}">${esc(e0)}</span>`)(!(num(r[11]) > 0) && (!r[13] || r[13] === 'Por firmar') ? 'Sin descuento' : r[13] || 'Por firmar')}${icEstado(r[0])}<button class="btn" data-infpdf="${esc(r[0])}">PDF</button><button class="btn" data-infmail="${esc(r[0])}">Correo</button><button class="btn" data-infarc="${esc(r[0])}" title="Lo quita de la lista; queda guardado en la hoja">Archivar</button>${r[13] === 'Firmado' || !(num(r[11]) > 0) ? '' : `<button class="btn" data-inffir="${esc(r[0])}">Firmado</button>`}</span></div>`).join('') : '');
   $('#infNuevo').onclick = () => infNuevo();
   el.querySelectorAll('[data-infmail]').forEach(b => b.onclick = () => { const r = infFilas().find(x => x[0] === b.dataset.infmail), f = r && infDatos(r); if (f) icAbrir(Object.assign(f, {id: r[0]}), b.closest('.sv-it')); else toast('Este informe no tiene datos para el correo.'); });
   icLeer();
@@ -3891,9 +3891,11 @@ function icPlantilla(f){
       `Resultado:\n• Faltante al PVP: ${ivMon(f.falt)} (${nf} producto${nf === 1 ? '' : 's'})\n• Sobrante al PVP: ${ivMon(f.sobr)} (${ns} producto${ns === 1 ? '' : 's'}; se carga a la tienda)\n` +
       `• Valor a descontar al personal: ${ivMon(f.desc)}${f.tol ? ' (dentro de la tolerancia de $10, no se descuenta)' : ''}\n` +
       (rep ? `\nReparto:\n${rep}\n` : '') +
-      `\nPor favor:\n1. Revisen el informe con todo el equipo.\n2. Imprímanlo y que cada persona firme en su recuadro.\n` +
+      (Number(f.desc) > 0 ? `\nPor favor:\n1. Revisen el informe con todo el equipo.\n2. Imprímanlo y que cada persona firme en su recuadro.\n` +
       `3. Devuélvanlo firmado (escaneado o foto clara, respondiendo a este correo) hasta el ${IC_DIA[lim.getDay()]} ${lim.getDate()} de ${IC_MES[lim.getMonth()]}.\n\n` +
-      `Si alguien tiene una observación sobre algún producto, respondan a este correo antes de firmar.\n\nSaludos,\n${f.elaboro || 'Administrador'}\n${f.cargoElab ? f.cargoElab + ' · ' : ''}TEFES`};
+      `Si alguien tiene una observación sobre algún producto, respondan a este correo antes de firmar.\n\n` :
+      `\nPor favor revisen el informe con todo el equipo. Como no hay valores a descontar, no hace falta imprimirlo, firmarlo ni devolverlo.\n\n` +
+      `Si alguien tiene una observación sobre algún producto, respondan a este correo.\n\n`) + `Saludos,\n${f.elaboro || 'Administrador'}\n${f.cargoElab ? f.cargoElab + ' · ' : ''}TEFES`};
 }
 async function icAbrir(f, ancla){
   document.querySelectorAll('.ic-form').forEach(x => x.remove());
@@ -4016,10 +4018,10 @@ async function infGuardar(){
     S.guardado = id;
     const f = infArmar();
     const fila = [id, f.fecha, f.hora, f.semana, f.tienda, f.tipo, f.elaboro, f.lider, S.rep.map(r => r.n).join(' | '), f.falt, f.sobr, f.desc,
-      S.rep.map(r => r.n + ': ' + ivDin(r.v)).join(' | '), 'Por firmar', safe(f.obs), JSON.stringify(f)];
+      S.rep.map(r => r.n + ': ' + ivDin(r.v)).join(' | '), Number(f.desc) > 0 ? 'Por firmar' : 'Sin descuento' /* sf1 */, safe(f.obs), JSON.stringify(f)];
     await setRange(INF_TAB + '!A' + n + ':P' + n, [fila], CLAVES);
     st.mue.inf = (st.mue.inf && st.mue.inf.length ? st.mue.inf : [INF_ENC]).concat([fila]);
-    $('#infAcc').innerHTML = `<span class="pill p-good">Guardado como ${esc(id)}</span><button class="btn primary" id="infPdfG">Descargar PDF para firmar</button><button class="btn" id="infMailG">Enviar a la tienda</button>`;
+    $('#infAcc').innerHTML = `<span class="pill p-good">Guardado como ${esc(id)}</span><button class="btn primary" id="infPdfG">${Number(f.desc) > 0 ? 'Descargar PDF para firmar' : 'Descargar PDF'}</button><button class="btn" id="infMailG">Enviar a la tienda</button>`;
     $('#infMailG').onclick = () => icAbrir(f, $('#infAcc'));
     $('#infPdfG').onclick = e => infPdf(f, e.target);
     toast('Informe ' + id + ' guardado');
