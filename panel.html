@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (58e89684545f). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (0aa768ed89dd). No editar a mano. -->
 <html lang="es" data-theme="light">
 <head>
 <base target="_top">
@@ -452,6 +452,8 @@ table.exec td{padding:10px 8px}
 .kpi{background:none;border:0;padding:0;flex-direction:row;align-items:baseline;gap:8px}
 .kpi b{font-size:30px;line-height:1}
 .kpi span{font-size:13.5px;text-transform:lowercase}
+.kpi .kpi-q{font-style:normal;text-transform:none;font-weight:600;color:var(--fg-1,inherit)}/* mp1 */
+
 .kpi.acc b{color:var(--accent)}
 .panel{border-radius:12px}
 .sec-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
@@ -1553,7 +1555,7 @@ function render(){
     [ab.length, 'Pendientes abiertos', ab.length ? 'warn' : ''],
     [venc, 'Vencidos', venc ? 'bad' : ''],
     [val, 'Esperan validación', 'acc'],
-    [filas.filter(f => m6Atras(f.m6)).length, 'Tiendas atrasadas en la meta de 6 al mes', filas.some(f => m6Atras(f.m6)) ? 'warn' : '']
+    [filas.filter(f => m6Atras(f.m6)).length, 'Tiendas atrasadas en la meta de 6 al mes' + m6Cuales(filas.filter(f => m6Atras(f.m6))), filas.some(f => m6Atras(f.m6)) ? 'warn' : '']   // mp1
   ].map(([v, l, c]) => `<div class="kpi ${c}"><b>${v}</b><span>${l}</span></div>`).join('');
 
   const orden = filas;
@@ -2075,15 +2077,29 @@ function mDatos(todas){
     M.pins[s.n] = g; mAdd(M.datos, g, x, y, () => st.ciudad === s.c);
   }
 }
+function mDespeja(items, esDato){ /* mp1: si los nombres del mapa se enciman (celular), oculta los de menor prioridad; tiendas y ciudades nunca */
+  const PRI = ['COLOMBIA','PERÚ','Cuenca','Manta','Esmeraldas','Ambato','Santo Domingo','Machala','Loja','Ibarra','Riobamba','Lago Agrio','Tena','Portoviejo','Quevedo','Puyo','Galápagos','Océano Pacífico'];
+  const pri = it => esDato(it) ? -1 : (i => i < 0 ? 30 : i)(PRI.indexOf(String(it.g.textContent || '').trim()));
+  const ok = [];
+  items.filter(it => it.g.parentNode && it.show()).sort((a, b) => pri(a) - pri(b)).forEach(it => {
+    it.g.style.visibility = '';
+    const r = it.g.getBoundingClientRect(); if (!r.width) return;
+    if (pri(it) >= 0 && ok.some(q => r.left < q.right + 3 && r.right > q.left - 3 && r.top < q.bottom && r.bottom > q.top)) { it.g.style.visibility = 'hidden'; return; }
+    ok.push(r);
+  });
+}
+const m6Cuales = L => { /* mp1: qué tiendas van atrasadas en la meta de 6 */ const n = L.map(f => f.t.nombre); return n.length ? '<i class="kpi-q">: ' + esc(n.length > 1 ? n.slice(0, -1).join(', ') + ' y ' + n[n.length - 1] : n[0]) + '</i>' : ''; };
 function mItems(){ return M.fijos.concat(M.datos); }
 function mDraw(){
   const svg = $('#mMap'), vb = M.vb;
   svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.w * 620 / 600}`);
   const k = vb.w / (svg.clientWidth || 600);
   for (const it of mItems()) it.g.setAttribute('transform', `translate(${it.x} ${it.y}) scale(${k})`);
+  mDespeja(mItems(), it => M.datos.indexOf(it) >= 0);   // mp1
 }
 function mVis(){
   for (const it of mItems()) { const on = it.show(); it.g.style.opacity = on ? 1 : 0; it.g.style.pointerEvents = on ? '' : 'none'; it.g.style.transition = 'opacity .35s'; }
+  mDespeja(mItems(), it => M.datos.indexOf(it) >= 0);   // mp1
   M.gal.style.opacity = st.ciudad ? 0 : 1;
   M.land.classList.toggle('click', !st.ciudad);
 }
