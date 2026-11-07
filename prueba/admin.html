@@ -849,7 +849,7 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
 
   <div class="view" data-view="equipo" hidden>
     <div>
-      <div class="sec-h"><h2>Supervisores</h2><span class="hint">Visitas, puntajes y validaciones de cada supervisor.</span></div>
+      <div class="sec-h"><h2>Supervisores del equipo de ventas</h2><span class="hint">Entran a la app, supervisan y leen las políticas</span></div>
       <div id="supBody"><div class="skeleton">Cargando supervisores…</div></div>
     </div>
     <section class="panel" id="uso">
@@ -1219,7 +1219,7 @@ async function cargar(fresh){
   g("'Dato del día'!A1:D", CLAVES).then(v => { const el = $('#datoDia'); if (el) el.innerHTML = datoHtml(datoDeFilas(v)); }).catch(() => {});   // dd1c
   const extras = {
     ventas: Promise.all([g('Ventas!A1:G', CLAVES), g('Presupuesto!A1:F', CLAVES), g('Curva!A1:AF', CLAVES), g('Flash!A1:I', CLAVES).catch(() => [])]).then(([vv, pp, cc, ff]) => modeloVentas(vv, pp, cc, ff)),
-    sv: g('Supervisores!A1:E', CLAVES),
+    sv: g('Supervisores!A1:I', CLAVES),
     correos: g('Correos!A1:F', CLAVES),
     contactos: g('Contactos!A1:I', CLAVES),
     wa: g("'WhatsApp gerentes'!A1:D", CLAVES).catch(() => null),
@@ -2407,7 +2407,7 @@ function svPeriodo(){
 function svDatos(){
   const P = svPeriodo(), D = st.d, en = f => f && f >= P.desde && f <= P.hasta;
   const lista = st.uso && st.uso.sv ? st.uso.sv.slice(1).filter(r => r[0]).map(r => ({nombre: String(r[0]).trim(), tiendas: String(r[2] || 'Todas').trim(),
-    permiso: /^(seg|adm)/i.test(String(r[3] || '')) ? 'Seguimiento' : 'Solo lectura', admin: /^adm/i.test(String(r[3] || '')), activo: /^s/i.test(String(r[4] || '').trim())})) : [];
+    permiso: /^(seg|adm)/i.test(String(r[3] || '')) ? 'Seguimiento' : 'Solo lectura', admin: /^adm/i.test(String(r[3] || '')), activo: /^s/i.test(String(r[4] || '').trim()), cargo: String(r[8] || '').trim()})) : [];
   const quien = por => { const w = svNorm(por); if (!w.length) return null;
     const s = lista.find(x => { const n = svNorm(x.nombre); return w.every(t => n.indexOf(t) >= 0) || n.every(t => w.indexOf(t) >= 0); });
     return s ? s.nombre : String(por).trim(); };
@@ -2435,39 +2435,69 @@ function svDatos(){
     u.pend = D.pend.filter(p => ids.has(p.sup));
     u.ult = u.todas.map(x => x.fecha).sort().pop() || '';
   });
-  return {P, filas: Object.values(M).sort((a, b) => b.sups.length - a.sups.length || b.seg - a.seg || a.nombre.localeCompare(b.nombre))};
+  /* sj1 */ const PA = st.pol && st.pol.po ? st.pol.po.slice(1).filter(r => r[0] && r[2] && !/^no$/i.test(String(r[4] || '').trim())).map(r => String(r[0]).trim()) : null;
+  const igual = (a, b) => { const x = svNorm(a), y = svNorm(b); if (!x.length || !y.length) return false; const [c, l] = x.length <= y.length ? [x, y] : [y, x]; return c.every(t => l.indexOf(t) >= 0); };
+  Object.values(M).forEach(u => { u.polOk = PA ? PA.filter(id => (st.pol.lp || []).some(r => String(r[2]).trim() === id && r[7] === 'Aprobó' && igual(r[4], u.nombre))) : null; });
+  const esSup = u => { const s = lista.find(x => x.nombre === u.nombre); return s && s.activo && !s.admin && (!s.cargo || /^supervisor/i.test(s.cargo)); };
+  return {P, PA, filas: Object.values(M).filter(esSup).sort((a, b) => a.nombre.localeCompare(b.nombre))};
 }
 function renderSupervisores(){
   const box = $('#supBody'); if (!box || !st.d) return;
   if (st.sv === undefined || st.rg === undefined) { box.innerHTML = '<div class="skeleton">Cargando supervisores…</div>'; if (st.rg === undefined && TABS_REGISTRO.indexOf(st.tab) >= 0) cargarRegistro(false); return; }
-  const {P, filas} = svDatos(), hoy = hoyISO();
-  const tot = filas.reduce((a, u) => a + u.sups.length, 0), vis = new Set([].concat(...filas.map(u => u.visitadas))).size, act = st.d.tiendas.filter(t => t.activa).length;
-  const sin = st.d.tiendas.filter(t => t.activa && !filas.some(u => u.visitadas.indexOf(t.nombre) >= 0)).map(t => t.nombre);
+  const {P, PA, filas} = svDatos(), hoy = hoyISO(), R = svResumen(P, PA, filas);
   const per = [['mes', 'Este mes'], ['ant', 'Mes pasado'], ['90', '90 días']].map(([k, t]) => `<button class="chip${st.svPer === k ? ' on' : ''}" data-per="${k}">${t}</button>`).join('');
+  const cero = '<span class="cnt-bad"><b>0</b></span>';
   box.innerHTML = `<div class="kpis">
-      <div class="kpi acc"><b>${tot}</b><span>supervisiones en ${esc(P.txt)}</span></div>
-      <div class="kpi ${vis < act ? 'warn' : 'good'}"><b>${vis} de ${act}</b><span>tiendas visitadas</span></div>
-      <div class="kpi"><b>${filas.reduce((a, u) => a + u.val, 0)}</b><span>pendientes validados</span></div>
+      <div class="kpi ${R.entraron < filas.length ? 'bad' : 'good'}"><b>${R.entraron} de ${filas.length}</b><span>entraron a la app en ${esc(P.txt)}</span></div>
+      <div class="kpi ${R.vis < R.act ? 'bad' : 'good'}"><b>${R.vis} de ${R.act}</b><span>tiendas supervisadas por el equipo</span></div>
+      <div class="kpi ${PA && R.alDia < filas.length ? 'bad' : 'good'}"><b>${PA ? R.alDia + ' de ' + filas.length : '…'}</b><span>leyeron todas las políticas</span></div>
     </div>
     <div>
-      <div class="sec-h"><h2>Por supervisor</h2><div class="sv-per">${per}</div></div>
-      <div class="panel flush scroll"><table class="exec sv-t"><thead><tr><th>Supervisor</th><th class="num">Supervisiones</th><th>Tiendas visitadas</th><th class="num">Puntaje prom.</th>
-        <th class="num">Pendientes que levantó</th><th class="num">Validó · reabrió</th><th class="num">Tiempo en panel</th><th>Última supervisión</th></tr></thead><tbody>
-      ${filas.map(u => { const dd = u.ult ? dias(u.ult, hoy) : null;
-        return `<tr class="click" data-sv="${esc(u.nombre)}"><td class="store">${esc(u.nombre)}${u.permiso === 'Solo lectura' ? '<div class="small faint">solo lectura</div>' : ''}</td>
-        <td class="num">${u.sups.length || '<span class="zero">0</span>'}</td>
-        <td>${u.visitadas.length} de ${u.asig.length}</td>
-        <td class="num">${u.prom == null ? '<span class="zero">–</span>' : `<span class="score ${band(u.prom)}">${pct(u.prom)}</span>`}</td>
-        <td class="num">${u.pend.length || '<span class="zero">0</span>'}</td>
-        <td class="num">${u.val || u.reab ? u.val + ' · ' + u.reab : '<span class="zero">0</span>'}</td>
-        <td class="num">${durTxt(u.seg)}</td>
-        <td>${u.ult ? `<span class="${dd > 30 ? 'cnt-bad' : dd > 14 ? 'cnt-warn' : ''}">${fmtF(u.ult)}</span><div class="small faint">hace ${dd} días</div>` : '<span class="pill p-bad">Nunca</span>'}</td></tr>`; }).join('') ||
-        '<tr><td colspan="8" class="empty">No hay supervisores en la pestaña Supervisores de la hoja privada.</td></tr>'}
+      <div class="sec-h"><h2>Por supervisor</h2><div class="sv-per">${per}<button class="btn primary" id="svPdf">Descargar PDF</button></div></div>
+      <div class="panel flush scroll"><table class="exec sv-t"><thead><tr><th>Supervisor</th><th class="num">Ingresos a la app</th><th>Último ingreso</th><th class="num">Supervisiones</th><th>Última supervisión</th><th class="num">Políticas leídas</th></tr></thead><tbody>
+      ${filas.map(u => { const dd = u.ult ? dias(u.ult, hoy) : null, di = u.ultIng ? dias(u.ultIng.slice(0, 10), hoy) : null, np = u.polOk ? u.polOk.length : null;
+        return `<tr class="click" data-sv="${esc(u.nombre)}"><td class="store">${esc(u.nombre)}</td>
+        <td class="num">${u.ing || cero}</td>
+        <td>${u.ultIng ? `<span class="${di > 14 ? 'cnt-bad' : di > 7 ? 'cnt-warn' : ''}">${fmtF(u.ultIng.slice(0, 10))}</span><div class="small faint">hace ${di} días</div>` : '<span class="pill p-bad">Nunca</span>'}</td>
+        <td class="num">${u.sups.length ? u.sups.length + `<div class="small faint">${esc(u.visitadas.join(', '))}</div>` : cero}</td>
+        <td>${u.ult ? `<span class="${dd > 30 ? 'cnt-bad' : dd > 14 ? 'cnt-warn' : ''}">${fmtF(u.ult)}</span><div class="small faint">hace ${dd} días</div>` : '<span class="pill p-bad">Nunca</span>'}</td>
+        <td class="num">${np == null ? '…' : `<span class="${np < PA.length ? 'cnt-bad' : 'good-t'}"><b>${np} de ${PA.length}</b></span>`}</td></tr>`; }).join('') ||
+        '<tr><td colspan="6" class="empty">No hay supervisores con cargo Supervisor en la pestaña Supervisores de la hoja privada.</td></tr>'}
       </tbody></table></div>
-      <p class="small faint" style="margin:8px 0 0">${sin.length ? 'Sin supervisión en ' + esc(P.txt) + ': ' + esc(sin.join(', ')) + '. ' : ''}Supervisiones: solo las de tipo Supervisión (no autosupervisiones), por el nombre que puso quien la hizo. Validó, reabrió y tiempo: lo que hizo en el panel de supervisores. Toca un supervisor para ver su detalle.</p>
+      <p class="small faint" style="margin:8px 0 0">${R.sin.length ? 'Sin supervisión del equipo en ' + esc(P.txt) + ': ' + esc(R.sin.join(', ')) + '. ' : ''}Ingresos: veces que abrió el panel de supervisores. Supervisiones: las de tipo Supervisión que registró en la app. Políticas: aprobó las preguntas de cada política activa.</p>
     </div>`;
+  $('#svPdf').onclick = e => svPdf(e.target);
   box.querySelectorAll('[data-per]').forEach(b => b.onclick = () => { st.svPer = b.dataset.per; renderSupervisores(); });
   box.querySelectorAll('tr[data-sv]').forEach(tr => tr.onclick = () => detalleSupervisor(tr.dataset.sv));
+}
+function svResumen(P, PA, filas){
+  const act = st.d.tiendas.filter(t => t.activa).length, vis = new Set([].concat(...filas.map(u => u.visitadas))).size;
+  return {act, vis, entraron: filas.filter(u => u.ing > 0).length, alDia: PA ? filas.filter(u => u.polOk && u.polOk.length === PA.length).length : 0,
+    sin: st.d.tiendas.filter(t => t.activa && !filas.some(u => u.visitadas.indexOf(t.nombre) >= 0)).map(t => t.nombre)};
+}
+async function svPdf(btn){
+  const {P, PA, filas} = svDatos(), R = svResumen(P, PA, filas), hoy = hoyISO(), txt = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Preparando…';
+  const td = 'style="padding:6px 8px;border-bottom:1px solid #ddd"', tn = 'style="padding:6px 8px;border-bottom:1px solid #ddd;text-align:right"', mal = s => `<b style="color:#c8102e">${s}</b>`;
+  const box = document.createElement('div'); box.id = 'polPdf';
+  box.innerHTML = `<div class="hoja"><div class="cab">TEFES · Steren Ecuador · Supervisión de tiendas · ${fmtF(hoy, new Date().toTimeString().slice(0, 5))}</div>
+    <h1>Supervisores del equipo de ventas · ${esc(P.txt)}</h1>
+    <p style="margin:0 0 12px">${R.entraron} de ${filas.length} supervisores entraron a la app, el equipo supervisó ${R.vis} de ${R.act} tiendas y ${PA ? R.alDia : 0} de ${filas.length} leyeron todas las políticas.</p>
+    <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f1f3f5;text-align:left"><th ${td}>Supervisor</th><th ${tn}>Ingresos a la app</th><th ${td}>Último ingreso</th><th ${tn}>Supervisiones</th><th ${td}>Última supervisión</th><th ${tn}>Políticas leídas</th></tr></thead><tbody>
+    ${filas.map(u => `<tr><td ${td}><b>${esc(u.nombre)}</b></td><td ${tn}>${u.ing || mal(0)}</td><td ${td}>${u.ultIng ? fmtF(u.ultIng.slice(0, 10)) : mal('Nunca')}</td>
+      <td ${tn}>${u.sups.length ? u.sups.length + ' <span style="color:#666">(' + esc(u.visitadas.join(', ')) + ')</span>' : mal(0)}</td><td ${td}>${u.ult ? fmtF(u.ult) : mal('Nunca')}</td>
+      <td ${tn}>${PA ? (u.polOk.length < PA.length ? mal(u.polOk.length + ' de ' + PA.length) : u.polOk.length + ' de ' + PA.length) : '–'}</td></tr>`).join('')}</tbody></table>
+    ${R.sin.length ? `<p style="margin:12px 0 0"><b>Tiendas sin supervisión del equipo en ${esc(P.txt)}:</b> ${esc(R.sin.join(', '))}.</p>` : ''}
+    <p style="margin:12px 0 0;font-size:10.5px;color:#666">Fuente: app de supervisión TEFES. Ingresos = veces que abrió el panel de supervisores en el período. Supervisiones = visitas registradas en la app. Políticas = aprobó las preguntas de cada una de las ${PA ? PA.length : ''} políticas vigentes.</p></div>`;
+  document.body.appendChild(box);
+  try {
+    const h2p = await cargarH2p();
+    const blob = await h2p().set({margin: [10, 10, 12, 10], image: {type: 'jpeg', quality: 0.95}, html2canvas: {scale: 2, backgroundColor: '#ffffff'}, jsPDF: {unit: 'mm', format: 'a4'}}).from(box.firstChild).outputPdf('blob');
+    const dl = await window.claude?.use?.('downloads');
+    if (!dl) throw {message: 'esta vista no permite descargar archivos'};
+    await dl.save({filename: 'Supervisores equipo de ventas ' + P.txt + ' ' + hoy + '.pdf', data: blob});
+  } catch (e) { if (!e || e.code !== 'declined') toast('No se pudo descargar: ' + (e && e.message || e), 5000); }
+  finally { box.remove(); btn.disabled = false; btn.textContent = txt; }
 }
 function detalleSupervisor(nombre){
   const {P, filas} = svDatos(), u = filas.find(x => x.nombre === nombre); if (!u) return;
