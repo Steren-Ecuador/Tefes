@@ -5,7 +5,7 @@
    La base imita las pestañas de las hojas de Google de la app; las pantallas la leen por rangos (A1). */
 (function () {
   var KEY = 'tefesPrueba.v1';
-  var VERSION = 5;
+  var VERSION = 6;
 
   /* ---------- utilidades ---------- */
   function pad(n) { return String(n).padStart(2, '0'); }
@@ -292,6 +292,11 @@
       ['R001', sumar(hoy, -6), 'Urdesa', 'Garantía', 'Tienda', 'Bocina Bluetooth portátil 10 W', 'Cliente de ejemplo A', 'La bocina no carga después de 2 semanas.', 'Se recibió para garantía con el proveedor.', 'Abierto', ''],
       ['R002', sumar(hoy, -12), 'Scala', 'Servicio', 'Redes sociales', 'Cámara de seguridad Wi-Fi 2 MP', 'Cliente de ejemplo B', 'Demora en la atención un sábado.', 'Se habló con el equipo y se ajustó el horario.', 'Cerrado', sumar(hoy, -9)],
       ['R003', sumar(hoy, -2), 'Condado', 'Cambio', 'Tienda', 'Audífonos TWS con estuche de carga', 'Cliente de ejemplo C', 'Pide cambio por otro color.', '', 'Abierto', '']];
+
+    /* aco1: facturas de autoconsumo (todo inventado) */
+    T['Autoconsumo'] = [['ID', 'Fecha registro', 'Hora', 'Tienda', 'Registró', 'N° factura', 'Fecha factura', 'Valor', 'Productos', 'Motivo', 'Detalle del motivo', 'Pidió', 'Foto', 'Estado', 'Revisó', 'Fecha revisión', 'Comentario revisión'],
+      ['AC0001', sumar(hoy, -9), '11:20', 'Urdesa', equipo['Urdesa'][0][0], '005-001-000004800', sumar(hoy, -9), '270.10', 'Producto de ejemplo x2', 'Marketing, canje o influencer', 'Canje de ejemplo para la demostración.', 'Administrador', '', 'Autorizada', 'Administrador', sumar(hoy, -8), ''],
+      ['AC0002', sumar(hoy, -3), '16:05', 'Scala', equipo['Scala'][0][0], '007-001-000001234', sumar(hoy, -3), '18.50', 'Cable de ejemplo x1', 'Uso interno de la tienda', 'Cable para la caja de la tienda (ejemplo).', 'Supervisor de ejemplo', '', 'Por autorizar', '', '', '']];
 
     /* registro de uso y correos */
     T['Registro'] = [['Fecha', 'Hora', 'Panel', 'Quién', 'Evento', 'Detalle', 'Segundos', 'Sesión', 'Dispositivo']];

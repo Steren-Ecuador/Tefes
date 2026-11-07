@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (17d645906dfe). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Index.html de Apps Script (3b278515a37d). No editar a mano. -->
 <html lang="es">
 <head>
 <base target="_top">
@@ -1129,9 +1129,77 @@ function informesInvHtml(){
     '<span class="tiny muted">' + (x.fecha ? fechaCorta(x.fecha) : '') + (x.hora ? ' · ' + esc(fmtH(x.hora)) : '') + ' · a descontar ' + din(x.desc) + ' · ' + esc(x.estado) + '</span></div>' +
     '<button class="btn" data-infinv="' + esc(x.id) + '">PDF</button></div>').join('') + '</div>';
 }
+/* ---------- aco1: FACTURAS DE AUTOCONSUMO (Diego 2026-11-06). La tienda registra cada una con su motivo; Diego la autoriza o la rechaza. ---------- */
+const AUCS = {lista: null, cargando: false, error: ''};
+const AUC_MOTIVOS = ['Uso interno de la tienda', 'Exhibición o demostración', 'Cambio o reposición a cliente', 'Marketing, canje o influencer', 'Premio o regalo', 'Otro'];
+const AUC_TAG = {'Por autorizar': 'vf-bod', 'Autorizada': 'vf-ven', 'Rechazada': 'vf-no'};
+const aucUsd = n => '$' + Number(n || 0).toFixed(2).replace('.', ',');
+function aucCargar(){
+  if (AUCS.cargando) return; AUCS.cargando = true; AUCS.error = '';
+  api('apiAutoconsumoLista').then(L => { AUCS.lista = L || []; }).catch(e => { AUCS.error = e.message || 'No se pudo cargar.'; })
+    .finally(() => { AUCS.cargando = false; if (S.vista === 'inv') renderInv(); });
+}
+function aucItemHtml(x){
+  return '<div class="vf-it"><div class="vf-h"><b>Fact. ' + esc(x.factura) + ' · ' + aucUsd(x.valor) + '</b><span class="tag ' + (AUC_TAG[x.estado] || 'vf-esp') + '">' + esc(x.estado) + '</span></div>' +
+    '<div class="small"><b>' + esc(x.motivo) + '</b>: ' + esc(x.detalle) + '</div>' +
+    '<div class="vf-obs">' + esc(x.productos) + '</div>' +
+    (x.estado !== 'Por autorizar' && x.comentario ? '<div class="small" style="color:' + (x.estado === 'Rechazada' ? 'var(--bad)' : 'var(--ok)') + '">' + esc(x.reviso || 'Revisión') + ': ' + esc(x.comentario) + '</div>' : '') +
+    '<div class="tiny muted">Factura del ' + fechaCorta(x.fechaFac) + ' · pidió ' + esc(x.pidio) + ' · registró ' + esc(x.registro) + ' el ' + fechaCorta(x.fecha) +
+      (x.fechaRev ? ' · revisada el ' + fechaCorta(x.fechaRev) : '') + (x.foto ? ' · <a href="' + esc(x.foto) + '" target="_blank" rel="noopener">ver foto</a>' : '') + '</div></div>';
+}
+function aucHtml(){
+  if (AUCS.lista === null && !AUCS.error) aucCargar();
+  const L = AUCS.lista || [], pend = L.filter(x => x.estado === 'Por autorizar'), rech = L.filter(x => x.estado === 'Rechazada' && x.fechaRev >= sumarDias(S.data.hoy || iso(new Date().toISOString()), -15));
+  let h = '<div class="sec-t" style="margin-top:16px"><h3>Facturas de autoconsumo</h3><span class="tiny muted">' + (AUCS.lista ? (pend.length ? pend.length + ' por autorizar' : '') : '') + '</span></div>';
+  if (rech.length) h += '<div class="aviso warn"><div><b>' + (rech.length === 1 ? 'Una factura de autoconsumo fue rechazada' : rech.length + ' facturas de autoconsumo fueron rechazadas') + '</b>Revisa el comentario y habla con tu supervisor.</div></div>';
+  h += '<button class="btn block" id="aucNuevo">+ Registrar factura de autoconsumo</button>';
+  if (AUCS.error) h += '<div class="card small" style="margin-top:10px">' + esc(AUCS.error) + ' <button class="link" id="aucRe">Reintentar</button></div>';
+  else if (AUCS.lista === null) h += '<div class="card muted small" style="margin-top:10px"><span class="spin"></span> Cargando…</div>';
+  else if (!L.length) h += '<p class="tiny muted" style="margin:8px 2px 0">Cada vez que la tienda haga una factura de autoconsumo, regístrala aquí con su motivo. Diego la revisa y la autoriza.</p>';
+  else h += '<div class="card" style="margin-top:10px">' + L.map(aucItemHtml).join('') + '</div>';
+  return h;
+}
+function aucEnlazar(){
+  const n = $('#aucNuevo'); if (n) n.onclick = aucFormulario;
+  const re = $('#aucRe'); if (re) re.onclick = () => { AUCS.error = ''; AUCS.lista = null; renderInv(); };
+}
+function aucFormulario(){
+  const hoy = S.data.hoy || new Date().toISOString().slice(0, 10);
+  openModal('<h3>Registrar factura de autoconsumo</h3>' +
+    '<p class="small muted" style="margin:0">Una por factura. Diego la revisa y la autoriza o la rechaza.</p>' +
+    '<div class="grid2"><div><label class="f">N° de factura</label><input type="text" id="aucFac" inputmode="numeric" autocomplete="off" placeholder="005-001-000004800"></div>' +
+    '<div><label class="f">Fecha de la factura</label><input type="date" id="aucFecha" value="' + esc(hoy) + '" max="' + esc(hoy) + '"></div></div>' +
+    '<label class="f">Valor total de la factura (con IVA)</label><input type="number" id="aucValor" min="0" step="0.01" inputmode="decimal" placeholder="0,00">' +
+    '<label class="f">Productos (código y cantidad)</label><textarea id="aucProd" maxlength="500" placeholder="Ej.: COM-13100 x1, CAB-010 x2"></textarea>' +
+    '<label class="f">Motivo</label><select id="aucMot"><option value="">Elige el motivo</option>' + AUC_MOTIVOS.map(m => '<option>' + esc(m) + '</option>').join('') + '</select>' +
+    '<label class="f">Explica el motivo</label><textarea id="aucDet" maxlength="500" placeholder="Para qué se usó, a quién se entregó, por qué no se vendió…"></textarea>' +
+    '<label class="f">¿Quién lo pidió o autorizó?</label><input type="text" id="aucPidio" maxlength="80" autocomplete="off" placeholder="Ej.: Diego Revelo por WhatsApp">' +
+    '<label class="f">¿Quién registra?</label>' + vfQuien('aucQuien') +
+    '<label class="f">Foto de la factura (opcional)</label><input type="file" id="aucFoto" accept="image/*">' +
+    '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="aucNo">Cancelar</button><button class="btn primary grow" id="aucSi">Guardar</button></div>');
+  $('#aucNo').onclick = closeModal;
+  $('#aucSi').onclick = async () => {
+    const d = {factura: $('#aucFac').value.trim(), fechaFac: $('#aucFecha').value, valor: $('#aucValor').value, productos: $('#aucProd').value.trim(),
+      motivo: $('#aucMot').value, detalle: $('#aucDet').value.trim(), pidio: $('#aucPidio').value.trim(), registro: $('#aucQuien').value.trim()};
+    const falta = (d.factura.match(/\d/g) || []).length < 3 ? 'Escribe el número de factura.' : !d.fechaFac ? 'Pon la fecha de la factura.' : !(Number(d.valor) > 0) ? 'Pon el valor total de la factura.' :
+      d.productos.length < 3 ? 'Escribe qué productos salieron.' : !d.motivo ? 'Elige el motivo.' : d.detalle.length < 10 ? 'Explica el motivo con un poco más de detalle.' :
+      d.pidio.length < 3 ? 'Escribe quién lo pidió o autorizó.' : !d.registro ? 'Elige tu nombre.' : '';
+    if (falta) { toast(falta, 3500); return; }
+    const b = $('#aucSi'); b.disabled = true;
+    try {
+      const f = $('#aucFoto').files && $('#aucFoto').files[0];
+      if (f) { b.textContent = 'Subiendo foto…'; const r = await api('apiSubirFoto', await reducirFoto(f, 'Autoconsumo ' + d.factura), 'autoconsumo_' + d.factura.replace(/\D/g, '')); d.foto = r.url; }
+      b.textContent = 'Guardando…';
+      const r = await api('apiAutoconsumoRegistrar', d);
+      (AUCS.lista = AUCS.lista || []).unshift(r);
+      if (window.REG) REG.ev('Autoconsumo', r.id + ' · ' + r.factura);
+      closeModal(); toast('Registrada. Queda por autorizar.', 3500); renderInv();
+    } catch (e) { b.disabled = false; b.textContent = 'Guardar'; toast(e.message || 'No se pudo guardar. Revisa tu internet.', 4000); }
+  };
+}
 function renderInv(){
-  $('#main').innerHTML = vfHtml() + inventarioHtml() + informesInvHtml();
-  vfEnlazar();
+  $('#main').innerHTML = vfHtml() + aucHtml() + inventarioHtml() + informesInvHtml();   // aco1
+  vfEnlazar(); aucEnlazar();
 }
 document.addEventListener('click', async e => {
   const b = e.target.closest && e.target.closest('[data-infinv]'); if (!b) return;

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (58e89684545f). No editar a mano. -->
+<!-- Portal Steren: generado por generar_sitio.py desde Panel.html de Apps Script (0aa768ed89dd). No editar a mano. -->
 <html lang="es" data-theme="light">
 <head>
 <base target="_top">
@@ -452,6 +452,8 @@ table.exec td{padding:10px 8px}
 .kpi{background:none;border:0;padding:0;flex-direction:row;align-items:baseline;gap:8px}
 .kpi b{font-size:30px;line-height:1}
 .kpi span{font-size:13.5px;text-transform:lowercase}
+.kpi .kpi-q{font-style:normal;text-transform:none;font-weight:600;color:var(--fg-1,inherit)}/* mp1 */
+
 .kpi.acc b{color:var(--accent)}
 .panel{border-radius:12px}
 .sec-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
@@ -1227,6 +1229,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   <div class="view" data-view="inventario" hidden>
     <details hidden class="panel cv-box" id="cvBox" ontoggle="if(this.open&&window.cvRender){cvRender();cvCargar();}"><summary><span class="cv-dot" id="cvLuz"></span><b>En vivo</b><span class="hint" id="cvLuzTxt">Revisando…</span></summary><div id="vivoBody" style="margin-top:12px"><div class="skeleton">Cargando conteos…</div></div></details>
     <div id="invBody"><div class="skeleton">Cargando inventario…</div></div>
+    <div id="aucBody"></div>
   </div>
 
   <div class="view" data-view="politicas" hidden>
@@ -1334,6 +1337,7 @@ async function cargar(liviano){
     api('apiGuiasPanel').then(x => { st.gui = x; renderGuias(); }).catch(() => { st.gui = null; renderGuias(); });
     api('apiFlashPanel').then(x => { st.flash = x; renderFlash(); }).catch(() => { st.flash = null; renderFlash(); });
     api('apiGarantiasPanel').then(x => { st.gar = x; renderGar(); }).catch(() => { st.gar = null; renderGar(); });   // gt1
+    api('apiAutoconsumoPanel').then(x => { st.auc = [[]].concat(x || []); renderAuc(); }).catch(() => { st.auc = null; renderAuc(); });   // aco1
     api('apiStockPanel').then(u => { const el = $('#stockBtn'); if (el) el.innerHTML = stockBtn(u); }).catch(() => {});   // stk1
     api('apiClientesPanel').then(x => { st.vf = x.vf; st.rec = x.rec; renderVF(); renderReclamos(); }).catch(() => { st.vf = null; st.rec = null; renderVF(); renderReclamos(); });   // paneles-iguales-1
     api('apiPoliticasInformePanel').then(x => { st.polInfD = x; renderPoliticas(); }).catch(() => { st.polInfD = null; renderPoliticas(); });
@@ -1551,7 +1555,7 @@ function render(){
     [ab.length, 'Pendientes abiertos', ab.length ? 'warn' : ''],
     [venc, 'Vencidos', venc ? 'bad' : ''],
     [val, 'Esperan validación', 'acc'],
-    [filas.filter(f => m6Atras(f.m6)).length, 'Tiendas atrasadas en la meta de 6 al mes', filas.some(f => m6Atras(f.m6)) ? 'warn' : '']
+    [filas.filter(f => m6Atras(f.m6)).length, 'Tiendas atrasadas en la meta de 6 al mes' + m6Cuales(filas.filter(f => m6Atras(f.m6))), filas.some(f => m6Atras(f.m6)) ? 'warn' : '']   // mp1
   ].map(([v, l, c]) => `<div class="kpi ${c}"><b>${v}</b><span>${l}</span></div>`).join('');
 
   const orden = filas;
@@ -2073,15 +2077,29 @@ function mDatos(todas){
     M.pins[s.n] = g; mAdd(M.datos, g, x, y, () => st.ciudad === s.c);
   }
 }
+function mDespeja(items, esDato){ /* mp1: si los nombres del mapa se enciman (celular), oculta los de menor prioridad; tiendas y ciudades nunca */
+  const PRI = ['COLOMBIA','PERÚ','Cuenca','Manta','Esmeraldas','Ambato','Santo Domingo','Machala','Loja','Ibarra','Riobamba','Lago Agrio','Tena','Portoviejo','Quevedo','Puyo','Galápagos','Océano Pacífico'];
+  const pri = it => esDato(it) ? -1 : (i => i < 0 ? 30 : i)(PRI.indexOf(String(it.g.textContent || '').trim()));
+  const ok = [];
+  items.filter(it => it.g.parentNode && it.show()).sort((a, b) => pri(a) - pri(b)).forEach(it => {
+    it.g.style.visibility = '';
+    const r = it.g.getBoundingClientRect(); if (!r.width) return;
+    if (pri(it) >= 0 && ok.some(q => r.left < q.right + 3 && r.right > q.left - 3 && r.top < q.bottom && r.bottom > q.top)) { it.g.style.visibility = 'hidden'; return; }
+    ok.push(r);
+  });
+}
+const m6Cuales = L => { /* mp1: qué tiendas van atrasadas en la meta de 6 */ const n = L.map(f => f.t.nombre); return n.length ? '<i class="kpi-q">: ' + esc(n.length > 1 ? n.slice(0, -1).join(', ') + ' y ' + n[n.length - 1] : n[0]) + '</i>' : ''; };
 function mItems(){ return M.fijos.concat(M.datos); }
 function mDraw(){
   const svg = $('#mMap'), vb = M.vb;
   svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.w * 620 / 600}`);
   const k = vb.w / (svg.clientWidth || 600);
   for (const it of mItems()) it.g.setAttribute('transform', `translate(${it.x} ${it.y}) scale(${k})`);
+  mDespeja(mItems(), it => M.datos.indexOf(it) >= 0);   // mp1
 }
 function mVis(){
   for (const it of mItems()) { const on = it.show(); it.g.style.opacity = on ? 1 : 0; it.g.style.pointerEvents = on ? '' : 'none'; it.g.style.transition = 'opacity .35s'; }
+  mDespeja(mItems(), it => M.datos.indexOf(it) >= 0);   // mp1
   M.gal.style.opacity = st.ciudad ? 0 : 1;
   M.land.classList.toggle('click', !st.ciudad);
 }
@@ -2190,6 +2208,78 @@ function renderGar(){
     <div class="panel flush scroll" style="margin-top:12px"><table class="exec gar-t"><thead><tr><th>Tienda</th>${mP ? `<th class="num">${esc(nomMes(mP))}</th>` : ''}<th class="num">${esc(nomMes(mA))}${completo ? '' : ' al ' + fd(hasta)}</th>${completo ? '' : '<th class="num hide-sm">Proyección</th>'}</tr></thead>
       <tbody>${filas}<tr class="fl-tot"><td>Total tiendas</td>${mP ? `<td class="num">${cel(tot.p)}</td>` : ''}<td class="num">${cel(tot.a)}</td>${completo ? '' : `<td class="num hide-sm">${usd0.format(proy(tot.a))}${flecha(tot.a, tot.p)}</td>`}</tr></tbody></table></div>`;
   el.querySelectorAll('[data-gt]').forEach(r => r.onclick = () => { st.garT = st.garT === r.dataset.gt ? '' : r.dataset.gt; renderGar(); });
+}
+const AUC_EDITA = false;
+/* ---------- aco1: facturas de autoconsumo de las tiendas (Diego 2026-11-06). Pestaña 'Autoconsumo' de la Base.
+   Diego autoriza o rechaza en su admin (AUC_EDITA); los supervisores ven lo mismo, solo consulta. ---------- */
+const AUC_PILL = {'Por autorizar': 'p-warn', 'Autorizada': 'p-good', 'Rechazada': 'p-bad'};
+function renderAuc(){
+  const el = $('#aucBody'); if (!el) return;
+  if (st.auc === undefined) { el.innerHTML = '<div class="skeleton">Cargando facturas de autoconsumo…</div>'; return; }
+  const n = x => { let s = String(x == null ? '' : x).replace(/[$\s]/g, ''); if (s.indexOf(',') >= 0) s = s.replace(/\./g, '').replace(',', '.'); const k = Number(s); return isNaN(k) ? 0 : k; };
+  const L = (st.auc || [[]]).slice(1).map((r, i) => ({fila: i + 2, id: String(r[0] || '').trim(), fecha: iso(r[1]), tienda: String(r[3] || ''), registro: String(r[4] || ''),
+    factura: String(r[5] || '').replace(/^'/, ''), fechaFac: iso(r[6]), valor: n(r[7]), productos: String(r[8] || ''), motivo: String(r[9] || ''), detalle: String(r[10] || ''),
+    pidio: String(r[11] || ''), foto: String(r[12] || ''), estado: String(r[13] || '').trim() || 'Por autorizar', reviso: String(r[14] || ''), fechaRev: iso(r[15]), comentario: String(r[16] || '')}))
+    .filter(x => x.id);
+  if (!L.length) { el.innerHTML = '<div class="sec-h" style="margin-top:22px"><h2>Facturas de autoconsumo</h2></div><div class="panel"><div class="empty">' +
+    (st.auc === null ? 'No se pudieron cargar.' : 'Todavía no hay registros. Las tiendas los hacen en Inventario → Registrar factura de autoconsumo.') + '</div></div>'; return; }
+  const usd = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const fd = f => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f); return m ? (+m[3]) + '/' + (+m[2]) : f; };
+  const mes = hoyISO().slice(0, 7), delMes = L.filter(x => (x.fechaFac || x.fecha).slice(0, 7) === mes);
+  const pend = L.filter(x => x.estado === 'Por autorizar'), suma = A => A.reduce((s, x) => s + x.valor, 0);
+  const fE = st.aucE || (pend.length ? 'pend' : 'todas'), fT = st.aucT || '';
+  const ok = {pend: x => x.estado === 'Por autorizar', aut: x => x.estado === 'Autorizada', rech: x => x.estado === 'Rechazada', todas: () => true}[fE] || (() => true);
+  const V = L.filter(x => ok(x) && (!fT || x.tienda === fT)).sort((a, b) => (b.fechaFac || b.fecha).localeCompare(a.fechaFac || a.fecha) || b.fila - a.fila);
+  const tiendas = [...new Set(L.map(x => x.tienda))].sort();
+  const chip = (k, t) => `<button class="chip${fE === k ? ' on' : ''}" data-auce="${k}">${t}</button>`;
+  const porT = {}; delMes.forEach(x => { porT[x.tienda] = (porT[x.tienda] || 0) + x.valor; });
+  el.innerHTML = `<div class="sec-h" style="margin-top:22px"><h2>Facturas de autoconsumo</h2><span class="hint">Las registra cada tienda con su motivo.${AUC_EDITA ? ' Revisa cada una y autorízala o recházala.' : ' Diego las autoriza o rechaza.'}</span></div>
+    <div class="kpis">
+      <div class="kpi ${pend.length ? 'warn' : ''}"><b>${pend.length}</b><span>por autorizar (${usd.format(suma(pend))})</span></div>
+      <div class="kpi"><b>${usd.format(suma(delMes))}</b><span>facturado este mes (${delMes.length})</span></div>
+      <div class="kpi good"><b>${usd.format(suma(delMes.filter(x => x.estado === 'Autorizada')))}</b><span>autorizado este mes</span></div>
+      <div class="kpi ${delMes.some(x => x.estado === 'Rechazada') ? 'bad' : ''}"><b>${delMes.filter(x => x.estado === 'Rechazada').length}</b><span>rechazadas este mes</span></div>
+    </div>
+    ${Object.keys(porT).length ? `<p class="small faint" style="margin:8px 0 0">Este mes por tienda: ${Object.entries(porT).sort((a, b) => b[1] - a[1]).map(([t, v]) => esc(t) + ' ' + usd.format(v)).join(' · ')}</p>` : ''}
+    <div class="cl-col">
+      <div class="rec-st">${chip('pend', 'Por autorizar')}${chip('aut', 'Autorizadas')}${chip('rech', 'Rechazadas')}${chip('todas', 'Todas')}
+        <select id="aucT" aria-label="Tienda" class="cl-sel"><option value="">Todas las tiendas</option>${tiendas.map(t => `<option value="${esc(t)}" ${t === fT ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
+      <div class="panel flush scroll"><table class="exec vf-t"><thead><tr><th>Factura</th><th>Tienda</th><th class="num">Valor</th><th>Motivo y productos</th><th>Estado</th></tr></thead><tbody>
+      ${V.map(x => `<tr><td><b>${esc(x.factura)}</b><div class="small faint">${fd(x.fechaFac)}${x.foto ? ` · <a href="${esc(x.foto)}" target="_blank" rel="noopener">foto</a>` : ''}</div></td>
+        <td>${esc(x.tienda)}<div class="small faint">registró ${esc(x.registro)} el ${fd(x.fecha)}</div></td>
+        <td class="num">${usd.format(x.valor)}</td>
+        <td><b>${esc(x.motivo)}</b><div class="obs">${esc(x.detalle)}</div><div class="obs">Productos: ${esc(x.productos)}</div><div class="small faint">Pidió: ${esc(x.pidio)}</div></td>
+        <td><span class="pill ${AUC_PILL[x.estado] || 'p-na'}">${esc(x.estado)}</span>${x.fechaRev ? `<div class="small faint">${esc(x.reviso)} ${fd(x.fechaRev)}</div>` : ''}${x.comentario ? `<div class="obs">${esc(x.comentario)}</div>` : ''}
+          ${AUC_EDITA ? `<div><button class="kmas" data-aucr="${x.fila}">${x.estado === 'Por autorizar' ? 'Revisar' : 'Cambiar'}</button></div>` : ''}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">Sin facturas con este filtro.</td></tr>'}
+      </tbody></table></div>
+    </div>`;
+  el.querySelectorAll('[data-auce]').forEach(b => b.onclick = () => { st.aucE = b.dataset.auce; renderAuc(); });
+  if ($('#aucT')) $('#aucT').onchange = e => { st.aucT = e.target.value; renderAuc(); };
+  if (!AUC_EDITA) return;
+  el.querySelectorAll('[data-aucr]').forEach(b => b.onclick = () => {
+    const fila = +b.dataset.aucr, x = L.find(y => y.fila === fila), r = st.auc[fila - 1];
+    $('#drawer').innerHTML = `<div class="drawer-bg"><div class="drawer" role="dialog" aria-label="Revisar autoconsumo">
+      <div class="d-top"><div class="d-top-t"><b>Factura ${esc(x.factura)} · ${usd.format(x.valor)}</b><span>${esc(x.tienda)} · ${fd(x.fechaFac)}</span></div><button class="d-x" id="dClose">Cerrar</button></div>
+      <p><b>${esc(x.motivo)}</b>: ${esc(x.detalle)}</p><p class="small">Productos: ${esc(x.productos)}<br>Pidió: ${esc(x.pidio)} · registró ${esc(x.registro)}${x.foto ? ` · <a href="${esc(x.foto)}" target="_blank" rel="noopener">ver foto</a>` : ''}</p>
+      <div class="lbl">Comentario para la tienda${x.estado === 'Por autorizar' ? ' (obligatorio si la rechazas)' : ''}</div><input type="text" id="aucCom" maxlength="300" value="${esc(x.comentario)}">
+      <div class="actions"><button class="btn good" id="aucAut">Autorizar</button><button class="btn bad" id="aucRech">Rechazar</button>${x.estado !== 'Por autorizar' ? '<button class="btn" id="aucPend">Volver a por autorizar</button>' : ''}</div></div></div>`;
+    $('#dClose').onclick = () => $('#drawer').innerHTML = '';
+    $('.drawer-bg').onclick = e => { if (e.target.classList.contains('drawer-bg')) $('#drawer').innerHTML = ''; };
+    const guardar = async (estado, k) => {
+      const com = $('#aucCom').value.trim();
+      if (estado === 'Rechazada' && com.length < 3) { toast('Escribe por qué la rechazas.'); return; }
+      k.disabled = true; k.textContent = 'Guardando…';
+      const v = estado === 'Por autorizar' ? ['Por autorizar', '', '', com] : [estado, 'Diego Revelo', hoyISO(), com];
+      try {
+        await setRange('Autoconsumo!N' + fila + ':Q' + fila, [v.map(safe)]);
+        while (r.length < 17) r.push(''); r[13] = v[0]; r[14] = v[1]; r[15] = v[2]; r[16] = v[3];
+        $('#drawer').innerHTML = ''; toast(estado === 'Por autorizar' ? 'Queda por autorizar.' : 'Factura ' + estado.toLowerCase() + '.'); renderAuc();
+      } catch (e) { k.disabled = false; k.textContent = estado === 'Autorizada' ? 'Autorizar' : estado === 'Rechazada' ? 'Rechazar' : 'Volver a por autorizar'; toast('No se pudo guardar: ' + e.message); }
+    };
+    $('#aucAut').onclick = e => guardar('Autorizada', e.target);
+    $('#aucRech').onclick = e => guardar('Rechazada', e.target);
+    if ($('#aucPend')) $('#aucPend').onclick = e => guardar('Por autorizar', e.target);
+  });
 }
 function renderFlash(){
   const el = $('#flashBody'); if (!el) return;

@@ -321,6 +321,17 @@
   API.apiDatoPanel = function (p) { panelOk(p); return {fecha: new Date().toISOString().slice(0, 10), texto: '🏆 Dato de prueba: Portal tuvo su mejor lunes desde que abrió.', tienda: 'Todas'}; };   // dd1
   API.apiGarantiasPanel = function (p) { panelOk(p); return {mesA: '2026-11', mesP: '2026-10', hasta: '2026-11-04', tomado: '2026-11-04 22:31', filas: [['2026-10-01','2026-10-31','Portal','ASESOR1',30,280.5,8],['2026-10-01','2026-10-31','Scala','ASESOR2',25,210,6],['2026-11-01','2026-11-04','Portal','ASESOR1',4,38.9,8],['2026-11-01','2026-11-04','Scala','ASESOR2',3,27,6]]}; };   // gt1
   API.apiStockPanel = function (p) { panelOk(p); return '../stock/'; };   // stk1
+  /* aco1: facturas de autoconsumo */
+  function acTab() { try { return DB.hoja('Autoconsumo'); } catch (e) {} DB.escribir('Autoconsumo!A1:Q1', [['ID', 'Fecha registro', 'Hora', 'Tienda', 'Registró', 'N° factura', 'Fecha factura', 'Valor', 'Productos', 'Motivo', 'Detalle del motivo', 'Pidió', 'Foto', 'Estado', 'Revisó', 'Fecha revisión', 'Comentario revisión']]); return DB.hoja('Autoconsumo'); }
+  function acObj(r) { return {id: r[0], fecha: S(r[1]), hora: S(r[2]), tienda: r[3], registro: r[4], factura: S(r[5]), fechaFac: S(r[6]), valor: N(r[7]) || 0, productos: r[8], motivo: r[9], detalle: r[10], pidio: r[11], foto: r[12], estado: S(r[13]) || 'Por autorizar', reviso: r[14], fechaRev: S(r[15]), comentario: r[16]}; }
+  API.apiAutoconsumoLista = function (tok) { var t = tiendaDe(tok); return acTab().slice(1).map(acObj).filter(function (x) { return x.tienda === t; }).sort(function (a, b) { return (b.fecha + b.hora).localeCompare(a.fecha + a.hora); }); };
+  API.apiAutoconsumoRegistrar = function (tok, d) {
+    var t = tiendaDe(tok), dd = new Date(), L = acTab();
+    if (L.slice(1).some(function (r) { return r[3] === t && S(r[5]).replace(/\D/g, '') === S(d.factura).replace(/\D/g, ''); })) throw new Error('Esa factura ya está registrada.');
+    var fila = ['AC' + String(1000 + L.length), DB.isoDe(dd), DB.hm(dd), t, d.registro, d.factura, d.fechaFac, String(d.valor), d.productos, d.motivo, d.detalle, d.pidio, d.foto || '', 'Por autorizar', '', '', ''];
+    DB.agregar('Autoconsumo', fila); return acObj(fila);
+  };
+  API.apiAutoconsumoPanel = function (p) { panelOk(p); return acTab().slice(1); };
   API.apiPPTienda = function (tok) { tiendaDe(tok); return []; };
   API.apiClientesPanel = function (p) {   // pestaña Clientes del panel: las dos hojas tal cual, con encabezado (en la foto real celular y correo van tapados)
     panelOk(p);
