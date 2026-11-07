@@ -1200,13 +1200,14 @@ async function setRange(range, values, id){
 /* Carga: todas las lecturas salen a la vez. Lo principal (tiendas, supervisiones, pendientes) se pinta apenas llega;
    cada pestaña se completa cuando llegan sus datos. El Registro de uso (lo más pesado) solo se lee en Equipo y Supervisores. */
 const TABS_REGISTRO = ['equipo', 'supervisores'];
+const UA_T = "'Uso admin'";   /* sj2 */
 let pintarPend = false;
 function pintar(){ if (pintarPend) return; pintarPend = true; requestAnimationFrame(() => { pintarPend = false; if (st.d) render(); }); }
 function armarUso(){ st.uso = st.sv ? {rg: st.rg || [[]], sv: st.sv} : null; }
 async function cargarRegistro(fresh){
   if (st.rgCargando) return;
   st.rgCargando = true;
-  try { st.rg = await getRange('Registro!A1:I', fresh, CLAVES); st.rgT = Date.now(); } catch (e) { if (st.rg === undefined) st.rg = null; }
+  try { /* sj2 */ const [rg, ua] = await Promise.all([getRange('Registro!A1:I', fresh, CLAVES), getRange(UA_T + '!A1:I', fresh, CLAVES).catch(() => [[]])]); st.rg = (rg || [[]]).concat((ua || []).slice(1)); st.rgT = Date.now(); } catch (e) { if (st.rg === undefined) st.rg = null; }
   finally { st.rgCargando = false; }
   armarUso(); pintar();
 }
@@ -2414,8 +2415,8 @@ function svDatos(){
   const activas = D.tiendas.filter(t => t.activa).map(t => t.nombre);
   const M = {};
   const fila = n => M[n] = M[n] || {nombre: n, sups: [], todas: [], val: 0, reab: 0, msg: 0, seg: 0, ing: 0, ultIng: ''};
-  lista.filter(x => x.activo && !x.admin).forEach(x => fila(x.nombre));
-  D.sups.filter(x => x.tipo === 'Supervisión').forEach(x => { const n = quien(x.por); if (!n || lista.some(s => s.admin && s.nombre === n)) return; const u = fila(n); u.todas.push(x); if (en(x.fecha)) u.sups.push(x); });
+  lista.filter(x => x.activo).forEach(x => fila(x.nombre));
+  D.sups.filter(x => x.tipo === 'Supervisión').forEach(x => { const n = quien(x.por); if (!n) return; const u = fila(n); u.todas.push(x); if (en(x.fecha)) u.sups.push(x); });
   regLimpio().filter(r => r[2] === 'Supervisores' && r[3] && M[r[3]]).forEach(r => {
     const u = M[r[3]], f = iso(r[0]);
     if (r[4] === 'Ingreso' && f + ' ' + r[1] > u.ultIng) u.ultIng = f + ' ' + r[1];
@@ -2427,7 +2428,7 @@ function svDatos(){
   Object.values(M).forEach(u => {
     const s = lista.find(x => x.nombre === u.nombre);
     u.asig = !s || /^todas$/i.test(s.tiendas) ? activas : s.tiendas.split(',').map(x => x.trim()).filter(t => activas.indexOf(t) >= 0);
-    u.permiso = s ? s.permiso : '';
+    u.permiso = s ? s.permiso : ''; u.admin = !!(s && s.admin);
     u.visitadas = [...new Set(u.sups.map(x => x.tienda))];
     const sc = u.sups.map(x => x.total).filter(x => x != null);
     u.prom = sc.length ? sc.reduce((a, b) => a + b, 0) / sc.length : null;
@@ -2438,8 +2439,8 @@ function svDatos(){
   /* sj1 */ const PA = st.pol && st.pol.po ? st.pol.po.slice(1).filter(r => r[0] && r[2] && !/^no$/i.test(String(r[4] || '').trim())).map(r => String(r[0]).trim()) : null;
   const igual = (a, b) => { const x = svNorm(a), y = svNorm(b); if (!x.length || !y.length) return false; const [c, l] = x.length <= y.length ? [x, y] : [y, x]; return c.every(t => l.indexOf(t) >= 0); };
   Object.values(M).forEach(u => { u.polOk = PA ? PA.filter(id => (st.pol.lp || []).some(r => String(r[2]).trim() === id && r[7] === 'Aprobó' && igual(r[4], u.nombre))) : null; });
-  const esSup = u => { const s = lista.find(x => x.nombre === u.nombre); return s && s.activo && !s.admin && (!s.cargo || /^supervisor/i.test(s.cargo)); };
-  return {P, PA, filas: Object.values(M).filter(esSup).sort((a, b) => a.nombre.localeCompare(b.nombre))};
+  const esSup = u => { const s = lista.find(x => x.nombre === u.nombre); return s && s.activo && (s.admin || !s.cargo || /^supervisor/i.test(s.cargo)); };
+  return {P, PA, filas: Object.values(M).filter(esSup).sort((a, b) => (b.admin - a.admin) || a.nombre.localeCompare(b.nombre))};
 }
 function renderSupervisores(){
   const box = $('#supBody'); if (!box || !st.d) return;
@@ -2448,31 +2449,33 @@ function renderSupervisores(){
   const per = [['mes', 'Este mes'], ['ant', 'Mes pasado'], ['90', '90 días']].map(([k, t]) => `<button class="chip${st.svPer === k ? ' on' : ''}" data-per="${k}">${t}</button>`).join('');
   const cero = '<span class="cnt-bad"><b>0</b></span>';
   box.innerHTML = `<div class="kpis">
-      <div class="kpi ${R.entraron < filas.length ? 'bad' : 'good'}"><b>${R.entraron} de ${filas.length}</b><span>entraron a la app en ${esc(P.txt)}</span></div>
+      <div class="kpi ${R.entraron < R.n ? 'bad' : 'good'}"><b>${R.entraron} de ${R.n}</b><span>entraron a la app en ${esc(P.txt)}</span></div>
       <div class="kpi ${R.vis < R.act ? 'bad' : 'good'}"><b>${R.vis} de ${R.act}</b><span>tiendas supervisadas por el equipo</span></div>
-      <div class="kpi ${PA && R.alDia < filas.length ? 'bad' : 'good'}"><b>${PA ? R.alDia + ' de ' + filas.length : '…'}</b><span>leyeron todas las políticas</span></div>
+      <div class="kpi ${PA && R.alDia < R.n ? 'bad' : 'good'}"><b>${PA ? R.alDia + ' de ' + R.n : '…'}</b><span>leyeron todas las políticas</span></div>
     </div>
     <div>
       <div class="sec-h"><h2>Por supervisor</h2><div class="sv-per">${per}<button class="btn primary" id="svPdf">Descargar PDF</button></div></div>
-      <div class="panel flush scroll"><table class="exec sv-t"><thead><tr><th>Supervisor</th><th class="num">Ingresos a la app</th><th>Último ingreso</th><th class="num">Supervisiones</th><th>Última supervisión</th><th class="num">Políticas leídas</th></tr></thead><tbody>
+      <div class="panel flush scroll"><table class="exec sv-t"><thead><tr><th>Supervisor</th><th class="num">Ingresos a la app</th><th class="num">Tiempo en la app</th><th>Último ingreso</th><th class="num">Supervisiones</th><th>Última supervisión</th><th class="num">Políticas leídas</th></tr></thead><tbody>
       ${filas.map(u => { const dd = u.ult ? dias(u.ult, hoy) : null, di = u.ultIng ? dias(u.ultIng.slice(0, 10), hoy) : null, np = u.polOk ? u.polOk.length : null;
-        return `<tr class="click" data-sv="${esc(u.nombre)}"><td class="store">${esc(u.nombre)}</td>
+        return `<tr class="click" data-sv="${esc(u.nombre)}"><td class="store">${esc(u.nombre)}${u.admin ? '<div class="small faint">Administrador · no cuenta en los totales</div>' : ''}</td>
         <td class="num">${u.ing || cero}</td>
+        <td class="num">${u.seg ? durTxt(u.seg) : cero}</td>
         <td>${u.ultIng ? `<span class="${di > 14 ? 'cnt-bad' : di > 7 ? 'cnt-warn' : ''}">${fmtF(u.ultIng.slice(0, 10))}</span><div class="small faint">hace ${di} días</div>` : '<span class="pill p-bad">Nunca</span>'}</td>
         <td class="num">${u.sups.length ? u.sups.length + `<div class="small faint">${esc(u.visitadas.join(', '))}</div>` : cero}</td>
         <td>${u.ult ? `<span class="${dd > 30 ? 'cnt-bad' : dd > 14 ? 'cnt-warn' : ''}">${fmtF(u.ult)}</span><div class="small faint">hace ${dd} días</div>` : '<span class="pill p-bad">Nunca</span>'}</td>
         <td class="num">${np == null ? '…' : `<span class="${np < PA.length ? 'cnt-bad' : 'good-t'}"><b>${np} de ${PA.length}</b></span>`}</td></tr>`; }).join('') ||
-        '<tr><td colspan="6" class="empty">No hay supervisores con cargo Supervisor en la pestaña Supervisores de la hoja privada.</td></tr>'}
+        '<tr><td colspan="7" class="empty">No hay supervisores con cargo Supervisor en la pestaña Supervisores de la hoja privada.</td></tr>'}
       </tbody></table></div>
-      <p class="small faint" style="margin:8px 0 0">${R.sin.length ? 'Sin supervisión del equipo en ' + esc(P.txt) + ': ' + esc(R.sin.join(', ')) + '. ' : ''}Ingresos: veces que abrió el panel de supervisores. Supervisiones: las de tipo Supervisión que registró en la app. Políticas: aprobó las preguntas de cada política activa.</p>
+      <p class="small faint" style="margin:8px 0 0">${R.sin.length ? 'Sin supervisión del equipo en ' + esc(P.txt) + ': ' + esc(R.sin.join(', ')) + '. ' : ''}Ingresos y tiempo: veces que abrió la app y minutos con ella abierta y en uso. Supervisiones: las de tipo Supervisión que registró en la app. Políticas: aprobó las preguntas de cada política activa.</p>
     </div>`;
   $('#svPdf').onclick = e => svPdf(e.target);
   box.querySelectorAll('[data-per]').forEach(b => b.onclick = () => { st.svPer = b.dataset.per; renderSupervisores(); });
   box.querySelectorAll('tr[data-sv]').forEach(tr => tr.onclick = () => detalleSupervisor(tr.dataset.sv));
 }
-function svResumen(P, PA, filas){
+function svResumen(P, PA, todas){
+  const filas = todas.filter(u => !u.admin), n = filas.length;
   const act = st.d.tiendas.filter(t => t.activa).length, vis = new Set([].concat(...filas.map(u => u.visitadas))).size;
-  return {act, vis, entraron: filas.filter(u => u.ing > 0).length, alDia: PA ? filas.filter(u => u.polOk && u.polOk.length === PA.length).length : 0,
+  return {n, act, vis, entraron: filas.filter(u => u.ing > 0).length, alDia: PA ? filas.filter(u => u.polOk && u.polOk.length === PA.length).length : 0,
     sin: st.d.tiendas.filter(t => t.activa && !filas.some(u => u.visitadas.indexOf(t.nombre) >= 0)).map(t => t.nombre)};
 }
 async function svPdf(btn){
@@ -2482,13 +2485,13 @@ async function svPdf(btn){
   const box = document.createElement('div'); box.id = 'polPdf';
   box.innerHTML = `<div class="hoja"><div class="cab">TEFES · Steren Ecuador · Supervisión de tiendas · ${fmtF(hoy, new Date().toTimeString().slice(0, 5))}</div>
     <h1>Supervisores del equipo de ventas · ${esc(P.txt)}</h1>
-    <p style="margin:0 0 12px">${R.entraron} de ${filas.length} supervisores entraron a la app, el equipo supervisó ${R.vis} de ${R.act} tiendas y ${PA ? R.alDia : 0} de ${filas.length} leyeron todas las políticas.</p>
-    <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f1f3f5;text-align:left"><th ${td}>Supervisor</th><th ${tn}>Ingresos a la app</th><th ${td}>Último ingreso</th><th ${tn}>Supervisiones</th><th ${td}>Última supervisión</th><th ${tn}>Políticas leídas</th></tr></thead><tbody>
-    ${filas.map(u => `<tr><td ${td}><b>${esc(u.nombre)}</b></td><td ${tn}>${u.ing || mal(0)}</td><td ${td}>${u.ultIng ? fmtF(u.ultIng.slice(0, 10)) : mal('Nunca')}</td>
+    <p style="margin:0 0 12px">${R.entraron} de ${R.n} supervisores entraron a la app, el equipo supervisó ${R.vis} de ${R.act} tiendas y ${PA ? R.alDia : 0} de ${R.n} leyeron todas las políticas.</p>
+    <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#f1f3f5;text-align:left"><th ${td}>Supervisor</th><th ${tn}>Ingresos a la app</th><th ${tn}>Tiempo en la app</th><th ${td}>Último ingreso</th><th ${tn}>Supervisiones</th><th ${td}>Última supervisión</th><th ${tn}>Políticas leídas</th></tr></thead><tbody>
+    ${filas.map(u => `<tr><td ${td}><b>${esc(u.nombre)}</b>${u.admin ? ' <span style="color:#666">(Administrador, fuera de los totales)</span>' : ''}</td><td ${tn}>${u.ing || mal(0)}</td><td ${tn}>${u.seg ? durTxt(u.seg) : mal('0')}</td><td ${td}>${u.ultIng ? fmtF(u.ultIng.slice(0, 10)) : mal('Nunca')}</td>
       <td ${tn}>${u.sups.length ? u.sups.length + ' <span style="color:#666">(' + esc(u.visitadas.join(', ')) + ')</span>' : mal(0)}</td><td ${td}>${u.ult ? fmtF(u.ult) : mal('Nunca')}</td>
       <td ${tn}>${PA ? (u.polOk.length < PA.length ? mal(u.polOk.length + ' de ' + PA.length) : u.polOk.length + ' de ' + PA.length) : '–'}</td></tr>`).join('')}</tbody></table>
     ${R.sin.length ? `<p style="margin:12px 0 0"><b>Tiendas sin supervisión del equipo en ${esc(P.txt)}:</b> ${esc(R.sin.join(', '))}.</p>` : ''}
-    <p style="margin:12px 0 0;font-size:10.5px;color:#666">Fuente: app de supervisión TEFES. Ingresos = veces que abrió el panel de supervisores en el período. Supervisiones = visitas registradas en la app. Políticas = aprobó las preguntas de cada una de las ${PA ? PA.length : ''} políticas vigentes.</p></div>`;
+    <p style="margin:12px 0 0;font-size:10.5px;color:#666">Fuente: app de supervisión TEFES. Ingresos y tiempo = veces que abrió la app y tiempo de uso en el período. Supervisiones = visitas registradas en la app. Políticas = aprobó las preguntas de cada una de las ${PA ? PA.length : ''} políticas vigentes.</p></div>`;
   document.body.appendChild(box);
   try {
     const h2p = await cargarH2p();
@@ -4394,6 +4397,38 @@ async function cvLeerHoja(fn, nombre, tienda){
 }
 window.cvCtx = {api: cvLeerHoja, yo: () => st.mcp ? {nombre: 'Diego'} : null};
 
+/* ---------- sj2: registro de uso del admin (pestaña 'Uso admin' de la hoja privada, mismo formato que Registro) ---------- */
+const UA = {ses: '', fila: 0, fecha: '', ini: '', seg: 0, guardado: -1, tick: Date.now(), act: Date.now(), quien: 'Administrador', ocupado: false};
+function uaDisp(){ const u = navigator.userAgent, mov = /iPhone|Android.*Mobile/.test(u), tab = !mov && /iPad|Android/.test(u);
+  return (mov ? 'Celular ' : tab ? 'Tablet ' : 'Computadora ') + (/iPhone|iPad/.test(u) ? 'iOS' : /Android/.test(u) ? 'Android' : /Windows/.test(u) ? 'Windows' : /Mac OS X/.test(u) ? 'Mac' : 'otro'); }
+async function uaGuardar(){
+  if (!st.mcp || UA.ocupado || /github\.io$|^localhost$|^127\./.test(location.hostname)) return;
+  const hoy = hoyISO(), h = new Date().toTimeString().slice(0, 8);
+  if (UA.fecha !== hoy) Object.assign(UA, {fecha: hoy, ini: h, seg: 0, guardado: -1, fila: 0, ses: Math.random().toString(36).slice(2, 10)});
+  if (UA.fila && UA.seg === UA.guardado) return;
+  UA.ocupado = true;
+  try {
+    if (!UA.fila) { const v = await getRange(UA_T + '!A1:A', true, CLAVES); UA.fila = Math.max(2, (v || []).length + 1); }
+    const f = UA.fila, seg = Math.round(UA.seg), d = uaDisp();
+    await setRange(UA_T + '!A' + f + ':I' + (f + 1), [[UA.fecha, UA.ini, 'Supervisores', UA.quien, 'Ingreso', 'Panel admin', '', UA.ses, d],
+      [UA.fecha, h, 'Supervisores', UA.quien, 'Tiempo', 'Panel admin', seg, UA.ses, d]], CLAVES);
+    const chk = await getRange(UA_T + '!H' + f + ':H' + (f + 1), true, CLAVES);   // otra pestaña abierta pudo tomar las mismas filas
+    if (!chk || !chk[0] || chk[0][0] !== UA.ses || !chk[1] || chk[1][0] !== UA.ses) UA.fila = 0; else UA.guardado = UA.seg;
+  } catch (e) { UA.fila = 0; }
+  finally { UA.ocupado = false; }
+}
+function uaIniciar(){
+  const vivo = () => { UA.act = Date.now(); };
+  ['pointerdown', 'keydown', 'wheel', 'touchstart', 'scroll'].forEach(ev => window.addEventListener(ev, vivo, {passive: true, capture: true}));
+  let mv = 0; window.addEventListener('mousemove', () => { const t = Date.now(); if (t - mv > 5000) { mv = t; vivo(); } }, {passive: true});
+  setInterval(() => { const t = Date.now(), dt = Math.min((t - UA.tick) / 1000, 20); UA.tick = t;
+    // cuenta solo con la pestaña visible y con uso en los últimos 5 minutos
+    if (document.visibilityState === 'visible' && t - UA.act < 300000) UA.seg += dt; }, 10000);
+  setInterval(uaGuardar, 60000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') uaGuardar(); else { UA.tick = Date.now(); vivo(); } });
+  uaGuardar();
+}
+
 /* ---------- inicio ---------- */
 (async () => {
   st.mcp = await window.claude?.use?.('mcp') ?? null;
@@ -4405,6 +4440,7 @@ window.cvCtx = {api: cvLeerHoja, yo: () => st.mcp ? {nombre: 'Diego'} : null};
   }
   await cargar(false);
   cvCargar();
+  uaIniciar();   // sj2
   setInterval(() => { if (document.visibilityState === 'visible') cargar(true); }, 180000);
 })();
 </script>
