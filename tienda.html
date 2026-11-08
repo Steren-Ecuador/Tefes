@@ -568,6 +568,33 @@ input[type=tel],input[type=email]{width:100%;border:1px solid var(--line);border
 @media(min-width:701px){.tem-on{display:none!important}}
 @media(max-width:700px){.tem-nav,.tem-sub{display:none!important}.tem-buscar{flex-basis:100%;max-width:none;order:9;margin:4px 0 6px}}
 </style>
+<style>/* ts1 */
+.card{border-radius:16px;box-shadow:0 1px 2px rgba(16,32,48,.06),0 2px 10px rgba(16,32,48,.04)}
+.ts-h{display:flex;align-items:center;gap:8px;margin:18px 2px 10px;font-size:20px;font-weight:800}
+.ts-h small{margin-left:auto;font-size:12px;font-weight:500;color:var(--muted)}
+.ts-eq{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 10px;margin:0 -2px 6px;scrollbar-width:none}
+.ts-eq::-webkit-scrollbar{display:none}
+.ts-st{flex:none;width:68px;text-align:center;background:none;border:0;padding:0;cursor:pointer;color:inherit;font:inherit}
+.ts-ring{width:62px;height:62px;border-radius:50%;padding:3px;margin:0 auto 6px;position:relative}
+.ts-av{width:100%;height:100%;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:17px}
+.ts-pct{position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);background:#fff;color:#1b2733;border-radius:9px;font-size:10.5px;font-weight:800;padding:0 6px;box-shadow:0 1px 2px rgba(0,0,0,.15);white-space:nowrap}
+.ts-st small{display:block;font-size:12px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ts-st em{display:block;font-style:normal;font-size:11px;color:var(--muted)}
+.ts-pc{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ts-pc .ts-av{width:38px;height:38px;border:0;font-size:14px;flex:none}
+.ts-pc b{display:block;font-size:14px}
+.anuncio.falta{border-left:0}
+.anuncio h4{font-size:17px}
+.ts-chip{font-size:12px;font-weight:700;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.ts-chip.ok{background:var(--ok-soft,#e3f4ea);color:var(--ok)}
+.ts-chip.amb{background:#fff1d6;color:#9a5b00}
+.fl-cab h3 .ts-sub{display:block;font-size:12px;font-weight:500;color:var(--muted)}
+.dato-dia{border-radius:16px;padding:14px 16px;border:0;box-shadow:0 1px 2px rgba(16,32,48,.06),0 2px 10px rgba(16,32,48,.04)}
+.dato-dia .dd-ico{font-size:30px}
+.hoja .toca{padding:12px 0}
+.hoja h2{font-size:19px}
+@media (prefers-color-scheme:dark){.ts-pct{background:#22303c;color:#e8eef4}.ts-av{border-color:#1b2733}}
+</style>
 <style>.dato-dia{display:flex;gap:10px;align-items:flex-start;background:linear-gradient(90deg,#fff7e0,#fffdf6);border:1px solid #f2d58a;border-radius:12px;padding:10px 14px;margin:0 0 12px;color:#5a4300}.dato-dia b{display:block;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#a07400;margin-bottom:2px}.dato-dia .dd-ico{font-size:22px;line-height:1}@media (prefers-color-scheme:dark){.dato-dia{background:#3a3010;border-color:#6b5520;color:#f5e6b8}.dato-dia b{color:#e8c25a}}</style>
 <style>/* gt1 garantías extendidas */
 .gt .fl-mia b small{font-size:13px;font-weight:600;margin-left:4px}
@@ -1027,9 +1054,8 @@ const faltan = a => { const ya = a.lecturas.map(l => l.persona); return gente().
 const activo = a => a.hasta >= S.data.hoy || faltan(a).length > 0;
 function anuncioHtmlBase(a){
   const f = faltan(a), n = gente().length, completo = n > 0 && !f.length;
-  return '<div class="card anuncio' + (completo ? '' : ' falta') + '" data-an="' + esc(a.id) + '"><h4>' + esc(a.titulo) + '</h4>' +
+  return '<div class="card anuncio' + (completo ? '' : ' falta') + '" data-an="' + esc(a.id) + '"><div class="ts-pc"><span class="ts-av" style="background:#14202b">T</span><div><b>Gerencia TEFES</b><span class="tiny muted">' + fechaCorta(a.desde) + ' · Anuncio · hasta el ' + fechaCorta(a.hasta) + '</span></div></div><h4>' + esc(a.titulo) + '</h4>' +
     (a.texto ? '<div class="txt">' + esc(a.texto) + '</div>' : '') +
-    '<div class="tiny muted" style="margin-top:6px">Publicado el ' + fechaCorta(a.desde) + ' · vigente hasta el ' + fechaCorta(a.hasta) + '</div>' +
     '<div class="conf"><div class="conf-h' + (completo ? ' ok' : '') + '"><b>' + (completo ? '✓ Todo el equipo confirmó la lectura' : 'Confirmaron ' + a.lecturas.length + (n ? ' de ' + n : '')) + '</b></div>' +
     '<div class="nombres">' + a.lecturas.map(l => '<span class="si" title="' + esc(fechaCorta(l.fecha) + ' ' + fmtH(l.hora)) + '">✓ ' + esc(l.persona) + '</span>').join('') +
       f.map(x => '<span class="no">' + esc(x) + '</span>').join('') + '</div>' +
@@ -1419,8 +1445,9 @@ function flashHtml(){
   const tabla = '<table class="fl-t"><thead><tr><th>Tienda</th><th class="n hs">Día</th><th class="n">Mes</th><th>Presupuesto</th></tr></thead><tbody>' +
     T.map(fila).join('') + '<tr class="tot"><td>Total tiendas</td><td class="n hs">' + usd0.format(tot.dia) + '</td><td class="n">' + usd0.format(tot.mes) + '</td><td>' + barra(tot.pres ? tot.mes / tot.pres : 0) + '</td></tr>' +
     (C.length ? '<tr class="sub"><td colspan="4">CEDIS B2B (sin presupuesto, no suman al total)</td></tr>' + C.map(x => '<tr' + (x.local === F.mio ? ' class="yo"' : '') + '><td>' + esc(x.local) + '</td><td class="n hs">' + usd0.format(x.dia) + '</td><td class="n">' + usd0.format(x.mes) + '</td><td></td></tr>').join('') : '') + '</tbody></table>';
-  return '<div class="card fl" id="flash"><div class="fl-cab"><h3>Flash de Ventas</h3><span class="tiny muted">' + esc(fechaTxt) + (consTxt ? ' · actualizado ' + esc(consTxt) : '') + '</span></div>' + mia +
-    (mia ? '<details open><summary>Todas las tiendas</summary>' + tabla + '</details>' : tabla) +
+  const tsCu = yo && yo.tipo === 'Tienda' && yo.pres ? yo.mes / yo.pres : null, tsMes = new Intl.DateTimeFormat('es-EC', {month: 'long', timeZone: 'UTC'}).format(d);   /* ts1 */
+  return '<div class="card fl" id="flash"><div class="fl-cab"><h3>' + (tsCu != null ? esc(F.mio) + ' en ' + tsMes + '<span class="ts-sub">Flash de ventas</span>' : 'Flash de Ventas') + '</h3>' + (tsCu != null ? '<span class="ts-chip ' + (tsCu >= ritmo ? 'ok' : 'amb') + '">' + Math.round(tsCu * 100) + '% de la meta</span>' : '') + '</div><div class="tiny muted" style="margin:-4px 0 8px">' + esc(fechaTxt) + (consTxt ? ' · actualizado ' + esc(consTxt) : '') + '</div>' + mia +
+    (mia ? '<details><summary>Ver todas las tiendas</summary>' + tabla + '</details>' : tabla) +
     '<div class="tiny muted" style="margin:6px 0 4px">La línea punteada es el ritmo esperado a la fecha: ' + p1(ritmo) + ' del mes.</div>' + fdsHtml() + '</div>';   // fds1
 }
 /* fds1/pps1 en la página de la tienda: dentro de la tarjeta Flash, Explorar ventas (abre en su tienda) y el presupuesto de su equipo, solo consulta */
@@ -1552,6 +1579,21 @@ function garHtml(){
   return '<div class="card fl gt" id="garantias"><div class="fl-cab"><h3>Garantías extendidas</h3><span class="tiny muted">' + (tomTxt ? 'Datos del POS Steren del ' + esc(tomTxt) + ' · ventas hasta el ' + fd(G.hasta) : 'Del POS Steren, ventas hasta el ' + fd(G.hasta)) + '</span></div>' +
     tiles + ant + '<details><summary>Por asesor</summary>' + tabla + '</details></div>';
 }
+/* ts1: el equipo en círculos, como en la app de asesores. El aro es lo que cada persona ya leyó y confirmó. */
+const TS_COL = ['#0078be', '#7b4bc4', '#d0477a', '#1a8f7a', '#e07b16', '#3d5a80'];
+const tsIni = n => String(n || '').split(' ').filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase();
+function tsEquipo(){
+  const G = gente(); if (!G.length) return '';
+  const A = (S.data.anuncios || []).filter(a => a.hasta >= S.data.hoy), P = S.data.politicas || [], Gu = guiasDe();
+  const tot = A.length + P.length + Gu.length;
+  const hecho = n => A.filter(a => a.lecturas.some(l => l.persona === n)).length + P.filter(x => x.aprobados.some(l => l.persona === n)).length + Gu.filter(g => g.lecturas.some(l => l.persona === n)).length;
+  const L = G.map((n, i) => { const h = hecho(n), c = tot ? h / tot : 1; return {n, i, h, c}; }).sort((a, b) => b.c - a.c || a.n.localeCompare(b.n));
+  const al = L.filter(x => x.c >= 1).length;
+  return '<div class="ts-h">👥 Tu equipo<small>' + al + ' de ' + G.length + ' al día con las lecturas</small></div><div class="ts-eq">' + L.map(x => {
+    const col = x.c >= 1 ? 'var(--ok)' : x.c >= .5 ? 'var(--warn)' : 'var(--bad)';
+    return '<button class="ts-st" data-ir="' + (x.c >= 1 ? 'inicio' : 'pol') + '" title="' + esc(x.n) + ': leyó ' + x.h + ' de ' + tot + '"><div class="ts-ring" style="background:conic-gradient(' + col + ' ' + Math.min(x.c, 1) * 360 + 'deg,#e2e7ee 0)"><span class="ts-av" style="background:' + TS_COL[x.i % TS_COL.length] + '">' + esc(tsIni(x.n)) + '</span><span class="ts-pct">' + (x.c >= 1 ? '✓' : Math.round(x.c * 100) + '%') + '</span></div><small>' + esc(String(x.n).split(' ')[0]) + '</small><em>' + (x.c >= 1 ? 'al día' : 'faltan ' + (tot - x.h)) + '</em></button>';
+  }).join('') + '</div>';
+}
 function renderInicio(){
   const D = S.data, A = D.anuncios || [], hoy = D.hoy, sem = semanaDe(hoy);
   const act = A.filter(activo), ant = A.filter(a => !activo(a));
@@ -1560,7 +1602,7 @@ function renderInicio(){
   const reab = abiertos.filter(p => p.estado === 'Reabierto').length;
   const auto = D.supervisiones.find(s => s.tipo === 'Autosupervisión' && String(s.fecha).slice(0, 10) >= sem[0]);
   const primera = !lsGet(INTRO_KEY); lsSet(INTRO_KEY, 1);
-  let h = '<div class="sec-t" id="anuncios"><h3>Anuncios</h3><span class="tiny muted">Semana del ' + fechaCorta(sem[0]) + ' al ' + fechaCorta(sem[1]) + '</span></div>';
+  let h = '<div class="ts-h" id="anuncios">📣 Anuncios<small>Semana del ' + fechaCorta(sem[0]) + ' al ' + fechaCorta(sem[1]) + '</small></div>';
   h = datoHtml(D.dato) + h;   // dd1b
   if (!act.length) h += '<div class="card muted small">No hay anuncios nuevos.</div>';
   h += act.map(anuncioHtml).join('');
@@ -1568,7 +1610,7 @@ function renderInicio(){
     ant.map(a => '<div class="arch-i"><div><b>' + esc(a.titulo) + '</b><div class="tiny muted">' + fechaCorta(a.desde) + '</div></div><span class="tiny muted" style="white-space:nowrap">' + a.lecturas.length + ' confirmaron</span></div>').join('') + '</div></details>';
   const linea = (titulo, det, color, boton) => '<div class="toca"><div><b>' + titulo + '</b><span class="tiny" style="color:' + color + '">' + det + '</span></div>' + boton + '</div>';
   h += '<div class="card hoja" style="margin-top:16px"><div class="cuerpo">' +
-    '<h2>Hoja de trabajo de ' + esc(D.tienda) + '</h2>' +
+    '<h2>📋 Hoja de trabajo de ' + esc(D.tienda) + '</h2>' +
     linea(abiertos.length ? abiertos.length + ' pendiente' + (abiertos.length > 1 ? 's' : '') + ' por corregir' : 'Sin pendientes abiertos',
       [vencidos ? vencidos + ' vencido' + (vencidos > 1 ? 's' : '') : '', reab ? reab + ' devuelto' + (reab > 1 ? 's' : '') + ' por el supervisor' : ''].filter(Boolean).join(' · ') || (abiertos.length ? 'Todos a tiempo' : '¡Bien!'),
       vencidos || reab ? 'var(--bad)' : 'var(--muted)', abiertos.length ? '<button class="btn" data-ir="pend">Ver</button>' : '') +
@@ -1580,7 +1622,7 @@ function renderInicio(){
       '<li>En <b>Pendientes</b>, corrige lo que encontró el supervisor y envíalo con foto.</li>' +
       '<li>En <b>Inventario</b>, haz el Muestreo Top 50 con el teléfono y registra las ventas futuras: lo que un cliente pide y no tenemos.</li>' +
       '<li>En <b>Supervisión</b>, haz la autosupervisión una vez por semana y ve cómo te fue en cada supervisión.</li></ol></details></div></div>';
-  $('#main').innerHTML = perfilHtml() + stockBtn(D.stock) + flashHtml() + garHtml() + h;   // gt1 stk1
+  $('#main').innerHTML = perfilHtml() + tsEquipo() + stockBtn(D.stock) + flashHtml() + garHtml() + h;   /* ts1 */   // gt1 stk1
   fdsMontar();   // fds1
   document.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => { irA(b.dataset.ir); const an = b.dataset.ancla; if (an) setTimeout(() => { const x = document.getElementById(an); if (x) window.scrollTo(0, x.getBoundingClientRect().top + window.scrollY - (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hh')) || 0) - 8); }, 60); });
   document.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => modalConfirmar(A.find(x => x.id === b.closest('[data-an]').dataset.an)));
