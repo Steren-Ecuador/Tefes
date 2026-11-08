@@ -2901,7 +2901,10 @@ const getRange = rango => api('apiInvLeer', st.yo.nombre, rango);
 const setRange = (rango, valores) => api('apiInvEscribir', st.yo.nombre, rango, valores);
 const errorCopy = e => (e && e.message) || String(e);
 const ivPuede = () => !!st.yo && st.yo.permiso === 'Seguimiento';
-const nombreCorto = s => { const p = String(s || '').trim().split(/\s+/).filter(Boolean); if (!p.length) return ''; const t = w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); return p.length >= 3 ? t(p[2]) + ' ' + t(p[0]) : p.map(t).join(' '); };
+const nombreCortoBase = s => { const p = String(s || '').trim().split(/\s+/).filter(Boolean); if (!p.length) return ''; const t = w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); return p.length >= 3 ? t(p[2]) + ' ' + t(p[0]) : p.map(t).join(' '); };
+const ncNorm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+/* ma2: alias en todas las apps (pestaña Alias de CLAVES) */
+const nombreCorto = s => { const b = nombreCortoBase(s); return (b && (window.NC_ALIAS || {})[ncNorm(b)]) || b; };
 async function invAbrir(tienda, sem, filtro){
   if (!st.yo) { toast('Identifícate para ver el detalle del inventario.'); login(); return; }
   if (!/^todas$/i.test(String(st.yo.tiendas || '').trim()) && lista(st.yo.tiendas).indexOf(tienda) < 0) { toast(tienda + ' no está asignada a ti.'); return; }
@@ -4781,5 +4784,14 @@ table.us.hl .hl-pc{display:inline-block;min-width:44px;text-align:center;padding
 .ut-b{height:8px;border-radius:5px;background:rgba(127,127,127,.18);overflow:hidden}.ut-b i{display:block;height:100%;background:#2da44e}
 table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe td.l .us-r{display:block;font-size:11.5px;opacity:.6}
 </style>
+<script>/* ma2: alias — el panel pide el mapa al servidor una vez y vuelve a pintar */
+(function(){
+  let n = 0;
+  const ir = () => {
+    if (typeof api !== 'function' || typeof st === 'undefined' || !st.d) { if (n++ < 60) setTimeout(ir, 1000); return; }
+    api('apiAliasNombres').then(m => { if (m && typeof m === 'object') { window.NC_ALIAS = m; if (typeof render === 'function') try { render(); } catch (e) {} } }).catch(() => {});
+  };
+  setTimeout(ir, 1500);
+})();</script>
 </body>
 </html>
