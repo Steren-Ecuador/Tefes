@@ -1259,6 +1259,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   <div class="view" data-view="clientes" hidden>
     <div id="vfBody"><div class="skeleton">Cargando ventas futuras…</div></div>
     <div id="recBody" style="margin-top:26px"><div class="skeleton">Cargando reclamos…</div></div>
+    <div id="pfBody" style="margin-top:26px"></div>
   </div>
 
   <div class="view" data-view="guias" hidden>
@@ -1363,6 +1364,7 @@ async function cargar(liviano){
     api('apiGarantiasPanel').then(x => { st.gar = x; renderGar(); }).catch(() => { st.gar = null; renderGar(); });   // gt1
     api('apiAutoconsumoPanel').then(x => { st.auc = [[]].concat(x || []); renderAuc(); }).catch(() => { st.auc = null; renderAuc(); });   // aco1
     api('apiStockPanel').then(u => { const el = $('#stockBtn'); if (el) el.innerHTML = stockBtn(u); }).catch(() => {});   // stk1
+    api('apiPFPanel', st.pfPer || 'mes').then(x => { st.pf = x; renderPF(); }).catch(() => {});   // pf2:
     api('apiClientesPanel').then(x => { st.vf = x.vf; st.rec = x.rec; renderVF(); renderReclamos(); }).catch(() => { st.vf = null; st.rec = null; renderVF(); renderReclamos(); });   // paneles-iguales-1
     api('apiPoliticasInformePanel').then(x => { st.polInfD = x; renderPoliticas(); }).catch(() => { st.polInfD = null; renderPoliticas(); });
     if (liviano && st.avisos !== undefined) return;
@@ -1847,6 +1849,24 @@ function uniInformeHtml0(U, todas, filtro){
       '<td class="n">' + (x.visita ? fd(x.visita) + ' <span class="uni-s">hace ' + x.dias + ' d</span>' : '—') + '</td>' +
       '<td class="n">#' + x.pos + ' de ' + U.total + '</td><td>' + chip(x.estado) + '</td></tr>').join('') + '</tbody></table></div>' +
     '<div class="uni-s" style="margin-top:8px">🚨 Alerta: más de 14 días sin entrar, o ningún curso aprobado en la semana teniendo pendientes. ⚠️ Atención: de 8 a 14 días sin entrar o más de 10 cursos pendientes. "Última semana" se mide desde la segunda lectura.</div>';
+}
+/* pf2: proformas del POS, SOLO números por tienda (sin clientes ni notas) */
+function renderPF(){
+  const el = $('#pfBody'); if (!el || !st.pf) return;
+  const X = st.pf, T = X.tiendas.filter(t => enCiudad(t.tienda)), sum = k => T.reduce((a, t) => a + t[k], 0);
+  const usd = n => '$' + Math.round(n).toLocaleString('es-EC');
+  const n = sum('n'), cer = sum('cerradas'), ev = sum('evaluables'), at = sum('aTiempo');
+  const per = st.pfPer || 'mes', seg = [['semana', 'Esta semana'], ['mes', 'Este mes'], ['mesAnt', 'Mes pasado']].map(([k, l]) => '<button class="btn' + (k === per ? ' primary' : '') + '" data-pfp="' + k + '">' + l + '</button>').join(' ');
+  const M = X.motivos || {}, mt = Object.keys(M).sort((a, b) => M[b] - M[a]);
+  el.innerHTML = '<div class="panel-h"><h2>📋 Proformas<span class="cfil"></span></h2><span class="small faint">Pedidos sin facturar del POS que cada asesor sigue con su cliente. Solo números.</span></div>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px">' + seg + '</div>' +
+    '<div class="uni-res"><span class="uni-e">' + n + ' nuevas · ' + usd(sum('monto')) + '</span><span class="uni-e ' + (ev && at / ev >= 0.8 ? 'o' : 'a') + '">' + (ev ? Math.round(at / ev * 100) : 0) + '% contactadas en 48 h</span><span class="uni-e ' + (sum('sinContacto') ? 'r' : 'o') + '">' + sum('sinContacto') + ' esperando sin contacto</span><span class="uni-e o">' + cer + ' cerradas · ' + usd(sum('cerradoUsd')) + (n ? ' · ' + Math.round(cer / n * 100) + '%' : '') + '</span><span class="uni-e">' + sum('perdidas') + ' perdidas</span></div>' +
+    (T.length ? '<div class="uni-t"><table><thead><tr><th>Tienda</th><th>Nuevas</th><th>Valor</th><th>Contacto 48 h</th><th>Esperando</th><th>Cerradas</th><th>Cierre</th><th>Vendido</th><th>Perdidas</th></tr></thead><tbody>' +
+      T.map(t => '<tr><td class="n"><b>' + esc(t.tienda) + '</b></td><td>' + t.n + '</td><td class="n">' + usd(t.monto) + '</td><td>' + (t.evaluables ? Math.round(t.aTiempo / t.evaluables * 100) + '%' : '—') + '</td><td' + (t.sinContacto >= 5 ? ' style="color:#c0352b;font-weight:700"' : '') + '>' + t.sinContacto + '</td><td>' + t.cerradas + '</td><td>' + (t.n ? Math.round(t.cerradas / t.n * 100) + '%' : '—') + '</td><td class="n">' + usd(t.cerradoUsd) + '</td><td>' + t.perdidas + '</td></tr>').join('') + '</tbody></table></div>'
+      : '<div class="small faint">Todavía no hay proformas en este periodo.</div>') +
+    (mt.length ? '<div class="small" style="margin-top:8px"><b>Por qué se pierden:</b> ' + mt.map(m => esc(m) + ' ' + M[m]).join(' · ') + '</div>' : '') +
+    '<div class="uni-s" style="margin-top:6px">"Esperando" = abiertas con más de 48 h sin ningún contacto. Cierre = cerradas ÷ nuevas del periodo.</div>';
+  el.querySelectorAll('[data-pfp]').forEach(b => b.onclick = () => { st.pfPer = b.dataset.pfp; api('apiPFPanel', st.pfPer).then(x => { st.pf = x; renderPF(); }).catch(() => {}); });
 }
 function renderUniversidad(){
   const sec = $('#universidad'), el = $('#uniBody'); if (!sec || !st.uni) return;

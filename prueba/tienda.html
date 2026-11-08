@@ -1478,6 +1478,42 @@ function uniTiendaCargar(){ if (UNI_T) return Promise.resolve(UNI_T); return api
 function uniDetalle(){ const el = document.getElementById('uniDet'); if (!el || !UNI_T) return; const r = UNI_T.filas.filter(x => x.estado === 'rojo').length;
   el.textContent = UNI_T.filas.length ? (r ? r + ' en alerta' : 'Todos al día o en atención') + ' · actualizado al ' + new Date(UNI_T.fecha + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'short'}) : 'Sin datos todavía';
   el.style.color = r ? 'var(--bad)' : 'var(--muted)'; }
+/* pf2: proformas del POS de la tienda (gerente y subgerentes). Con datos del cliente: solo para la tienda. */
+let PF_T = null;
+function pfTCargar(f){ if (PF_T && !f) return Promise.resolve(PF_T); return api('apiPFTienda').then(x => (PF_T = x)); }
+function pfTDetalle(){ const el = document.getElementById('pfDet'); if (!el || !PF_T) return;
+  const ab = PF_T.filas.filter(x => x.estado === 'Abierta'), e = ab.filter(x => x.espera).length;
+  el.textContent = ab.length ? ab.length + ' abiertas' + (e ? ' · ' + e + ' esperando más de 48 h' : ' · todas atendidas') : 'Sin proformas abiertas';
+  el.style.color = e ? 'var(--bad)' : 'var(--muted)'; }
+function pfTHtml(X){
+  const usd = n => '$' + (Math.round(n * 100) / 100).toLocaleString('es-EC', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const fd = i => i ? new Date(i + 'T12:00:00').toLocaleDateString('es-EC', {weekday: 'short', day: 'numeric', month: 'short'}) : '';
+  const hoy = new Date().toLocaleDateString('en-CA', {timeZone: 'America/Guayaquil'}), mes = hoy.slice(0, 7);
+  const L = X.filas, ab = L.filter(x => x.estado === 'Abierta'), P = {};
+  L.forEach(x => { const k = x.asesor || 'Sin asesor en el POS'; const a = P[k] = P[k] || {n: k, ab: 0, esp: 0, cer: 0, mes: 0};
+    if (x.estado === 'Abierta') { a.ab++; if (x.espera) a.esp++; } if (x.creada.slice(0, 7) === mes) a.mes++; if (x.estado === 'Compró' && (x.cierre || '').slice(0, 7) === mes) a.cer++; });
+  const J = X.juego || {tienda: {}};
+  const tile = (l, v, c) => '<div style="flex:1;background:rgba(127,127,127,.1);border-radius:12px;padding:10px"><div class="small muted">' + l + '</div><div style="font-size:20px;font-weight:800;color:' + (c || 'inherit') + '">' + v + '</div></div>';
+  const opts = sel => (X.gente || []).map(g => '<option' + (g === sel ? ' selected' : '') + '>' + esc(g) + '</option>').join('');
+  return '<div style="display:flex;gap:8px;margin-bottom:12px">' + tile('Abiertas', ab.length) + tile('Esperando +48 h', ab.filter(x => x.espera).length, 'var(--bad)') + tile('Cierre del mes', J.tienda && J.tienda.n ? Math.round(J.tienda.pct * 100) + '%' : '—', 'var(--ok)') + '</div>' +
+    '<h4 style="margin:6px 0">Por asesor</h4><div class="uni-t"><table><thead><tr><th>Asesor</th><th>Abiertas</th><th>Esperando</th><th>Del mes</th><th>Cerradas</th></tr></thead><tbody>' +
+    Object.keys(P).map(k => P[k]).sort((a, b) => b.esp - a.esp || b.ab - a.ab).map(a => '<tr><td class="n"><b>' + esc(a.n) + '</b></td><td>' + a.ab + '</td><td style="color:' + (a.esp ? 'var(--bad);font-weight:700' : 'inherit') + '">' + a.esp + '</td><td>' + a.mes + '</td><td>' + a.cer + (a.mes ? ' <span class="uni-s">' + Math.round(a.cer / a.mes * 100) + '%</span>' : '') + '</td></tr>').join('') + '</tbody></table></div>' +
+    '<h4 style="margin:14px 0 6px">Abiertas</h4>' + (ab.length ? ab.sort((a, b) => b.espera - a.espera || (a.creada < b.creada ? -1 : 1)).map(x =>
+      '<div style="border:1px solid rgba(127,127,127,.25);border-radius:12px;padding:10px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;gap:8px"><b>' + esc(x.cliente) + '</b><b>' + usd(x.monto) + '</b></div>' +
+      '<div class="small">' + esc(x.productos) + '</div><div class="small muted">' + (x.doc ? 'Proforma ' + esc(x.doc) + ' · ' : '') + fd(x.creada) + (x.cel ? ' · ' + esc(x.cel) : '') + '</div>' +
+      '<div class="small" style="margin-top:4px">' + (x.fuera ? '<span class="uni-e a">Ya no está en el POS: falta que confirme</span>' : x.espera ? '<span class="uni-e r">Esperando sin contacto</span>' : x.hist.length ? '<span class="uni-e o">Último: ' + esc(x.hist[x.hist.length - 1].res) + ' · ' + fd(x.hist[x.hist.length - 1].f) + '</span>' : '<span class="uni-e">En plazo</span>') + '</div>' +
+      '<div style="display:flex;gap:6px;align-items:center;margin-top:8px"><span class="small muted">Asesor</span><select class="pf-reas" data-id="' + esc(x.id) + '" style="flex:1;min-height:36px">' + (x.asesor ? '' : '<option value="">(sin asesor)</option>') + opts(x.asesor) + '</select></div></div>').join('')
+      : '<div class="small muted">No hay proformas abiertas.</div>') +
+    (Object.keys(X.motivos || {}).length ? '' : '') + '<div class="uni-s" style="margin-top:8px">Llegan solas cada día desde los pedidos sin facturar del POS. "Esperando" = más de 48 h sin ningún contacto. Cambiar el asesor se la pasa a otra persona.</div>';
+}
+function pfTAbrir(){
+  openModal('<h3 style="margin-top:0">📋 Proformas · ' + esc(S.data.tienda) + '</h3><div id="pfB" class="small muted">Cargando…</div><button class="btn" id="pfX" style="width:100%;margin-top:12px">Cerrar</button>');
+  $('#pfX').onclick = closeModal;
+  const pinta = X => { const b = $('#pfB'); if (!b) return; b.className = ''; b.innerHTML = pfTHtml(X);
+    b.querySelectorAll('.pf-reas').forEach(sel => sel.onchange = () => { if (!sel.value) return; sel.disabled = true;
+      api('apiPFReasignar', sel.dataset.id, sel.value).then(() => pfTCargar(true)).then(Y => { pinta(Y); pfTDetalle(); }, e => { sel.disabled = false; alert(e.message); }); }); };
+  pfTCargar(true).then(X => { pinta(X); pfTDetalle(); }, e => { const b = $('#pfB'); if (b) b.textContent = e.message; });
+}
 function uniAbrir(){
   openModal('<h3 style="margin-top:0">Universidad Steren · ' + esc(S.data.tienda) + '</h3><div id="uniB" class="small muted">Cargando…</div><button class="btn" id="uniX" style="width:100%;margin-top:12px">Cerrar</button>');
   $('#uniX').onclick = closeModal;
@@ -1555,7 +1591,7 @@ function renderInicio(){
     linea('Autosupervisión de la semana', auto ? 'Hecha el ' + fechaCorta(auto.fecha) + ' · ' + pct(auto.total) : 'Todavía no se hace',
       auto ? 'var(--muted)' : 'var(--warn)', auto ? '' : '<button class="btn primary" data-ir="sup">Hacer</button>') +
     (D.inventario ? linea('Muestreo Top 50', esc(invTexto(D.inventario)), D.inventario.fase && D.inventario.fase !== 'Enviado' ? 'var(--warn)' : 'var(--muted)', '<button class="btn" data-ir="inv">Ver</button>') : '') +
-    actToca(linea) + vfToca(linea) + polToca(linea) + guiaToca(linea) + linea('Universidad Steren del equipo', '<span id="uniDet">Avance de cada persona</span>', 'var(--muted)', '<button class="btn" id="uniVer">Ver</button>') + '<details' + (primera ? ' open' : '') + '><summary>¿Cómo funciona?</summary><ol class="pasos">' +
+    actToca(linea) + vfToca(linea) + polToca(linea) + guiaToca(linea) + linea('Universidad Steren del equipo', '<span id="uniDet">Avance de cada persona</span>', 'var(--muted)', '<button class="btn" id="uniVer">Ver</button>') + linea('📋 Proformas del equipo', '<span id="pfDet">Seguimiento de cada asesor</span>', 'var(--muted)', '<button class="btn" id="pfVer">Ver</button>') + '<details' + (primera ? ' open' : '') + '><summary>¿Cómo funciona?</summary><ol class="pasos">' +
       '<li>Cada persona lee los anuncios y confirma con su nombre.</li>' +
       '<li>En <b>Pendientes</b>, corrige lo que encontró el supervisor y envíalo con foto.</li>' +
       '<li>En <b>Inventario</b>, haz el Muestreo Top 50 con el teléfono y registra las ventas futuras: lo que un cliente pide y no tenemos.</li>' +
@@ -1566,6 +1602,7 @@ function renderInicio(){
   document.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => modalConfirmar(A.find(x => x.id === b.closest('[data-an]').dataset.an)));
   confetiFx();
   const ub = $('#uniVer'); if (ub) ub.onclick = uniAbrir;
+  const pb = $('#pfVer'); if (pb) pb.onclick = pfTAbrir; pfTCargar().then(pfTDetalle, () => {});   // pf2:
   uniTiendaCargar().then(uniDetalle, () => {});
 }
 function marcaInicio(){ const el = $('#bIni'); if (el) el.hidden = !(S.data.anuncios || []).some(a => activo(a) && (faltan(a).length || !gente().length && !a.lecturas.length)); }
