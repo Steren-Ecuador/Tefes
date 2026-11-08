@@ -1611,18 +1611,48 @@ function hlPintar(filas, todas){
         if (!k) return; e.classList.add(k); if (e.nextElementSibling && !e.nextElementSibling.classList.contains('eyebrow')) e.nextElementSibling.classList.add(k); });
     }
   }
-  function ctLista(el, k){
+  function ctLista(el, k){   /* ct3: contactos en tarjetas */
     if (!CT_K[k]) return;
-    let w = el.querySelector(':scope > .mn-ctw'); if (!w) { w = document.createElement('section'); w.className = 'panel mn-ctw'; const c = el.querySelector(':scope > .mn-chips'); c ? c.after(w) : el.prepend(w); }
+    let w = el.querySelector(':scope > .mn-ctw'); if (!w) { w = document.createElement('section'); w.className = 'mn-ctw'; const c = el.querySelector(':scope > .mn-chips'); c ? c.after(w) : el.prepend(w); }
+    w.classList.remove('panel');
     const L = (typeof contactos === 'function' ? contactos() : (st.contactos || [])).filter(c => enCiudad(c.tienda));
     const cd = c => c.ciudad || CIUDAD[c.tienda] || 'Sin ciudad', nom = c => (typeof WA_VIS !== 'undefined' && WA_VIS[c.tienda]) || c.tienda;
-    const val = c => k === 'tel' ? (c.tel ? '<a href="tel:+' + telIntl(c.tel) + '">' + esc(c.tel) + '</a>' : '') :
-      k === 'wa' ? (c.wa ? '<a href="https://wa.me/' + telIntl(c.wa) + '" target="_blank" rel="noopener">' + esc(c.wa) + '</a>' : '') :
-      k === 'mail' ? (c.correo ? '<a href="mailto:' + esc(c.correo) + '">' + esc(c.correo) + '</a>' : '') : esc(c.horario || '');
+    const GER = typeof waGerentes === 'function' ? (() => { try { return waGerentes() || {}; } catch (e) { return {}; } })() : {};
+    const gcel = c => c.gerCel || (GER[c.tienda] || {}).cel || '';
+    const ini = n => String(n).replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9 ]/g, ' ').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase();
+    const IC = {tel: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2', wa: 'M3 21l1.6-4.8A8.5 8.5 0 1 1 8 19.6zM9 8.5c0 3.5 3 6.5 6.5 6.5l1-1.6-2-1-1 1a5 5 0 0 1-3-3l1-1-1-2z', mail: 'M3 6h18v12H3zM3 7l9 6 9-6', hor: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2', map: 'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5'};
+    const ico = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + d + '"/></svg>';
+    const DI = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'], nd = t => String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().slice(0, 3);
+    function horas(h){   // "Lun–Sáb 10:00–21:00 · Dom 10:00–20:00" → {0:[600,1200],...}
+      const r = {}; String(h || '').split('·').forEach(seg => {
+        const m = seg.match(/(\d{1,2})[:h](\d{2})\s*(?:[–-]|a)\s*(\d{1,2})[:h](\d{2})/); if (!m) return;
+        const ab = +m[1] * 60 + +m[2], ci = +m[3] * 60 + +m[4], txt = seg.slice(0, m.index).trim();
+        let dias = [];
+        if (/todos/i.test(txt) || !txt) dias = [0, 1, 2, 3, 4, 5, 6];
+        else { const d = txt.split(/\s*[–-]\s*|\s+a\s+/).map(nd).map(x => DI.indexOf(x)).filter(x => x >= 0);
+          if (d.length === 2) { for (let i = d[0]; ; i = (i + 1) % 7) { dias.push(i); if (i === d[1] || dias.length > 7) break; } } else dias = d; }
+        dias.forEach(x => { if (!r[x]) r[x] = [ab, ci]; }); });
+      return r; }
+    const hhmm = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+    const ahora = new Date(), hoyD = ahora.getDay(), min = ahora.getHours() * 60 + ahora.getMinutes();
+    function accion(c){
+      if (k === 'tel') return c.tel ? '<a class="ct3-go" data-ct="Llamar" href="tel:+' + telIntl(c.tel) + '">' + ico(IC.tel) + '<span><small>Teléfono de la tienda</small><b>' + esc(c.tel) + '</b></span><em>Llamar</em></a>' +
+        (gcel(c) ? '<a class="ct3-sub" data-ct="Llamar gerente" href="tel:+' + telIntl(gcel(c)) + '">' + ico(IC.tel) + 'Celular del gerente · ' + esc(gcel(c)) + '</a>' : '') : '';
+      if (k === 'wa') return c.wa ? '<a class="ct3-go wa" data-ct="WhatsApp" href="https://wa.me/' + telIntl(c.wa) + '" target="_blank" rel="noopener">' + ico(IC.wa) + '<span><small>WhatsApp de la tienda</small><b>' + esc(c.wa) + '</b></span><em>Escribir</em></a>' : '';
+      if (k === 'mail') return c.correo ? '<a class="ct3-go" data-ct="Correo" href="mailto:' + esc(c.correo) + '">' + ico(IC.mail) + '<span><small>Correo de la tienda</small><b>' + esc(c.correo) + '</b></span><em>Escribir</em></a>' : '';
+      const H = horas(c.horario), t = H[hoyD];
+      const est = !t ? '' : min >= t[0] && min < t[1] ? '<span class="ct3-est ok">Abierto ahora · cierra ' + hhmm(t[1]) + '</span>' : min < t[0] ? '<span class="ct3-est no">Cerrado · abre ' + hhmm(t[0]) + '</span>' : '<span class="ct3-est no">Cerrado ahora</span>';
+      const sem = [1, 2, 3, 4, 5, 6, 0].map(d => '<span class="' + (d === hoyD ? 'hoy' : '') + '"><i>' + ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][d] + '</i>' + (H[d] ? hhmm(H[d][0]) + '<br>' + hhmm(H[d][1]) : '—') + '</span>').join('');
+      return (c.horario ? '<div class="ct3-hor">' + est + (Object.keys(H).length ? '<div class="ct3-sem">' + sem + '</div>' : '<div>' + esc(c.horario) + '</div>') + '</div>' : '') +
+        '<a class="ct3-sub" data-ct="Cómo llegar" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent('Steren ' + (c.ubic || c.tienda + ', ' + cd(c))) + '">' + ico(IC.map) + (c.ubic ? esc(c.ubic) : 'Cómo llegar') + '</a>';
+    }
     const cds = [...new Set(L.map(cd))].sort((a, b) => a.localeCompare(b));
-    w.innerHTML = '<div class="panel-h"><h2>' + CT_K[k] + '</h2><span class="small faint">' + L.length + ' tiendas</span></div>' + (!L.length ? '<div class="empty">Todavía no hay contactos cargados.</div>' :
-      cds.map(c => '<div class="mn-cc">' + esc(c) + '</div>' + L.filter(x => cd(x) === c).sort((a, b) => nom(a).localeCompare(nom(b))).map(x => { const v = val(x);
-        return '<div class="mn-ctr"><b>' + esc(nom(x)) + '</b><span>' + (v || '<span class="faint">Falta</span>') + '</span></div>'; }).join('')).join(''));
+    const tarj = x => { const a = accion(x);
+      return '<div class="ct3-card"><div class="ct3-top"><span class="ct3-av c-' + (nd(cd(x)) === 'gua' ? 'g' : 'q') + '">' + esc(ini(nom(x))) + '</span><span class="ct3-nm"><b>' + esc(nom(x)) + '</b>' + (x.enc ? '<small>Encargado: ' + esc(x.enc) + '</small>' : '') + '</span></div>' +
+        (a || '<div class="ct3-falta">Falta este dato</div>') + '</div>'; };
+    w.innerHTML = '<div class="ct3-h"><span class="ct3-hi">' + ico(IC[k]) + '</span><div><h2>' + CT_K[k] + '</h2><span class="small faint">' + L.length + ' tiendas · toca para ' + ({tel: 'llamar', wa: 'abrir WhatsApp', mail: 'escribir', hor: 'ver cómo llegar'})[k] + '</span></div></div>' +
+      (!L.length ? '<div class="empty">Todavía no hay contactos cargados.</div>' :
+      cds.map(c => '<div class="ct3-city">' + esc(c) + '<span>' + L.filter(x => cd(x) === c).length + '</span></div><div class="ct3-grid">' + L.filter(x => cd(x) === c).sort((a, b) => nom(a).localeCompare(nom(b))).map(tarj).join('') + '</div>').join(''));
   }
   function asesores(){
     if (typeof regLimpio !== 'function') return;
@@ -4642,6 +4672,37 @@ table.us.hl .hl-pc{display:inline-block;min-width:44px;text-align:center;padding
 .mrc-stk .mrc-f{margin-left:auto;font-size:26px}
 #stockBtn{display:none!important}
 .bar #nuevaSup{display:none!important}
+</style>
+<style>
+/* ct3: contactos en tarjetas */
+.mn-ctw .ct3-h{display:flex;align-items:center;gap:12px;margin:2px 0 6px}
+.mn-ctw .ct3-h h2{margin:0;font-size:22px}
+.ct3-hi{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:#0078be;color:#fff;flex:none}.ct3-hi svg{width:24px;height:24px}
+.ct3-city{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-2);margin:18px 0 8px}
+.ct3-city span{background:var(--surface-2,#e9eef3);border-radius:10px;padding:0 8px;font-size:11px;line-height:18px;letter-spacing:0}
+.ct3-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.ct3-card{background:var(--surface,#fff);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.ct3-top{display:flex;align-items:center;gap:12px}
+.ct3-av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:15px;color:#fff;flex:none}
+.ct3-av.c-q{background:linear-gradient(135deg,#0078be,#2bb3e6)}.ct3-av.c-g{background:linear-gradient(135deg,#0f9b8e,#3ccf9a)}
+.ct3-nm{display:flex;flex-direction:column;min-width:0}.ct3-nm b{font-size:16px}.ct3-nm small{color:var(--fg-3);font-size:12.5px}
+.ct3-go{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;background:var(--surface-2,#eef3f8);color:var(--fg);text-decoration:none;border:1px solid transparent}
+.ct3-go:hover{border-color:#0078be}
+.ct3-go svg{width:22px;height:22px;color:#0078be;flex:none}
+.ct3-go span{display:flex;flex-direction:column;min-width:0;flex:1}.ct3-go small{font-size:11.5px;color:var(--fg-3)}.ct3-go b{font-size:15.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ct3-go em{font-style:normal;font-weight:700;font-size:13px;background:#0078be;color:#fff;border-radius:999px;padding:6px 12px;flex:none}
+.ct3-go.wa svg{color:#1faa53}.ct3-go.wa em{background:#25d366}.ct3-go.wa:hover{border-color:#25d366}
+.ct3-sub{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--fg-2);text-decoration:none;line-height:1.35}
+.ct3-sub svg{width:16px;height:16px;flex:none;margin-top:1px;color:var(--fg-3)}.ct3-sub:hover{color:#0078be}
+.ct3-hor{display:flex;flex-direction:column;gap:8px}
+.ct3-est{align-self:flex-start;font-size:12.5px;font-weight:700;border-radius:999px;padding:4px 10px}
+.ct3-est.ok{background:#dff5e7;color:#157a3b}.ct3-est.no{background:#fde7e4;color:#b3261e}
+.ct3-sem{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.ct3-sem span{display:flex;flex-direction:column;align-items:center;font-size:10.5px;padding:5px 0;border-radius:8px;background:var(--surface-2,#eef3f8);color:var(--fg-2);line-height:1.3;text-align:center;min-width:0;font-variant-numeric:tabular-nums}
+.ct3-sem span i{font-style:normal;font-weight:700;font-size:11px;color:var(--fg)}
+.ct3-sem span.hoy{background:#0078be;color:#fff}.ct3-sem span.hoy i{color:#fff}
+.ct3-falta{font-size:13px;color:var(--bad,#b3261e)}
+@media(max-width:700px){.ct3-grid{grid-template-columns:minmax(0,1fr)}.ct3-sem{gap:3px}.ct3-sem span{font-size:10px}}
 </style>
 </body>
 </html>
