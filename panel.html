@@ -1142,8 +1142,8 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
     <button data-v="calendario" title="Las visitas de todos a las tiendas, mes a mes">Calendario</button>
     <button data-v="anuncios" title="Anuncios a las tiendas y quién los leyó">Anuncios</button>
     <button data-v="flash" title="Venta del día y del mes contra presupuesto, desde el ERP">Flash de Ventas</button>
-    <button data-v="pendientes">Pendientes<span class="n bad" id="nPend"></span></button>
-    <button data-v="supervision">Supervisión</button>
+    <button data-v="pendientes">Todos los pendientes<span class="n bad" id="nPend"></span></button>
+    <button data-v="supervision">Nueva supervisión</button>
     <button data-v="inventario">Inventario<span class="n bad" id="nInv"></span></button>
     <button data-v="politicas">Políticas<span class="n" id="nPol"></span></button>
     <button data-v="clientes" title="El número son los reclamos abiertos">Clientes<span class="n bad" id="nRec"></span></button>
@@ -1582,6 +1582,92 @@ function hlPintar(filas, todas){
       Object.entries(por).sort((a, b) => b[1] - a[1]).map(([c, x]) => '<div><div class="hl-ct"><b>' + esc(c) + '</b><span>' + din(x) + ' · <b>' + Math.round(x / T * 100) + '%</b></span></div><div class="hl-bar"><i style="width:' + (x / T * 100).toFixed(1) + '%"></i></div></div>').join('') + '</div>';
   }
 }
+/* mn1: sub-opciones del menú por temas (Diego 8-nov): una vista muestra solo la parte elegida */
+(function(){
+  const MN_T = {"hoy": [["hoy", "", "Hoy"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "", "Flash de ventas"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "extra", "Inventario EXTRA"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "vf", "Venta futura"], ["clientes", "rec", "Reclamos"]]};
+  window.MN_SUB = window.MN_SUB || {};
+  const subsDe = v => { const r = []; Object.keys(MN_T).forEach(t => MN_T[t].forEach(x => { if (x[0] === v && x[1]) r.push(x); })); return r; };
+  const vistaEl = v => document.querySelector('.view[data-view="' + v + '"]');
+  const CT_K = {tel: 'Teléfonos de las tiendas', wa: 'WhatsApp de las tiendas', mail: 'Correos de las tiendas', hor: 'Horarios de atención al público'};
+  const repintar = () => { const t = document.getElementById('tabs'); if (t) t.dataset.mn = String(Date.now()); };
+  function chips(el, v, S){
+    let c = el.querySelector(':scope > .mn-chips'); if (!c) { c = document.createElement('div'); c.className = 'mn-chips'; el.prepend(c); }
+    c.innerHTML = S.map(x => '<button type="button" data-k="' + x[1] + '" class="' + (MN_SUB[v] === x[1] ? 'on' : '') + '">' + esc(x[2]) + '</button>').join('');
+    c.querySelectorAll('button').forEach(b => b.onclick = () => { MN_SUB[v] = b.dataset.k; aplicar(v); repintar(); window.scrollTo(0, 0); });
+  }
+  function etiquetar(v, el){
+    if (v === 'inventario') {
+      el.querySelectorAll('#invBody details, #invBody .li').forEach(d => {
+        if (d.parentElement && d.parentElement.closest('.mn-x,.mn-t')) { d.classList.remove('mn-x', 'mn-t'); return; }
+        const t = ((d.querySelector('summary') || d).textContent || '').slice(0, 400), x = /c[ií]clico|inventario completo/i.test(t);
+        d.classList.toggle('mn-x', x); d.classList.toggle('mn-t', !x); });
+      el.querySelectorAll('#invBody h2').forEach(h => { if (/c[ií]clico/i.test(h.textContent)) { const c = h.closest('.sec-h'); if (c && c.parentElement && c.parentElement.id !== 'invBody') c.parentElement.classList.add('mn-x'); } });
+    }
+    if (v === 'politicas') el.querySelectorAll('#polBody h2').forEach(h => { let c = h; while (c.parentElement && c.parentElement.id !== 'polBody') c = c.parentElement;
+      if (c.parentElement) { const l = /^leer/i.test(h.textContent.trim()); c.classList.toggle('mn-leer', l); c.classList.toggle('mn-rep', !l); } });
+    if (v === 'equipo') {
+      const sb = el.querySelector('#supBody'); if (sb && sb.parentElement !== el) sb.parentElement.classList.add('mn-sup');
+      el.querySelectorAll('#usoBody > .eyebrow').forEach(e => { const k = /^supervisores/i.test(e.textContent.trim()) ? 'mn-usup' : /^tiendas/i.test(e.textContent.trim()) ? 'mn-uger' : '';
+        if (!k) return; e.classList.add(k); if (e.nextElementSibling && !e.nextElementSibling.classList.contains('eyebrow')) e.nextElementSibling.classList.add(k); });
+    }
+  }
+  function ctLista(el, k){
+    if (!CT_K[k]) return;
+    let w = el.querySelector(':scope > .mn-ctw'); if (!w) { w = document.createElement('section'); w.className = 'panel mn-ctw'; const c = el.querySelector(':scope > .mn-chips'); c ? c.after(w) : el.prepend(w); }
+    const L = (typeof contactos === 'function' ? contactos() : (st.contactos || [])).filter(c => enCiudad(c.tienda));
+    const cd = c => c.ciudad || CIUDAD[c.tienda] || 'Sin ciudad', nom = c => (typeof WA_VIS !== 'undefined' && WA_VIS[c.tienda]) || c.tienda;
+    const val = c => k === 'tel' ? (c.tel ? '<a href="tel:+' + telIntl(c.tel) + '">' + esc(c.tel) + '</a>' : '') :
+      k === 'wa' ? (c.wa ? '<a href="https://wa.me/' + telIntl(c.wa) + '" target="_blank" rel="noopener">' + esc(c.wa) + '</a>' : '') :
+      k === 'mail' ? (c.correo ? '<a href="mailto:' + esc(c.correo) + '">' + esc(c.correo) + '</a>' : '') : esc(c.horario || '');
+    const cds = [...new Set(L.map(cd))].sort((a, b) => a.localeCompare(b));
+    w.innerHTML = '<div class="panel-h"><h2>' + CT_K[k] + '</h2><span class="small faint">' + L.length + ' tiendas</span></div>' + (!L.length ? '<div class="empty">Todavía no hay contactos cargados.</div>' :
+      cds.map(c => '<div class="mn-cc">' + esc(c) + '</div>' + L.filter(x => cd(x) === c).sort((a, b) => nom(a).localeCompare(nom(b))).map(x => { const v = val(x);
+        return '<div class="mn-ctr"><b>' + esc(nom(x)) + '</b><span>' + (v || '<span class="faint">Falta</span>') + '</span></div>'; }).join('')).join(''));
+  }
+  function asesores(){
+    if (typeof regLimpio !== 'function') return;
+    const sec = document.getElementById('uso'); if (!sec) return;
+    let w = document.getElementById('mnAse'); if (!w) { w = document.createElement('div'); w.id = 'mnAse'; sec.appendChild(w); }
+    if (st.rg === undefined) { w.innerHTML = '<div class="skeleton">Cargando…</div>'; return; }
+    const hoy = hoyISO(), d7 = new Date(new Date(hoy + 'T12:00').getTime() - 6 * 864e5).toISOString().slice(0, 10), mes = hoy.slice(0, 8) + '01', m = {};
+    regLimpio().filter(r => r[2] === 'Tienda' && r[4] === 'Ingreso' && /^Asesor: /.test(String(r[5])) && !/eligiendo/i.test(String(r[5]))).forEach(r => {
+      const n = String(r[5]).replace(/^Asesor: /, '').replace(/ · correo.*$/, '').trim(), f = iso(r[0]), u = m[n] = m[n] || {t: r[3], ult: '', i7: 0, im: 0};
+      if (f + ' ' + r[1] > u.ult) { u.ult = f + ' ' + r[1]; u.t = r[3]; } if (f >= d7) u.i7++; if (f >= mes) u.im++; });
+    ((st.anun && st.anun.pe) || []).slice(1).filter(r => r[0] && String(r[6] || 'Activo').trim() === 'Activo' && /asesor/i.test(String(r[4] || ''))).forEach(r => {
+      const n = nombreCorto(r[0]); if (!m[n]) m[n] = {t: String(r[1] || '').trim(), ult: '', i7: 0, im: 0}; });
+    const L = Object.entries(m).sort((a, b) => b[1].i7 - a[1].i7 || b[1].im - a[1].im || a[0].localeCompare(b[0])), nunca = L.filter(x => !x[1].ult).length;
+    w.innerHTML = '<div class="eyebrow" style="margin:6px 0 4px">Asesores</div><p class="small faint" style="margin:0 0 8px">' + L.length + ' asesores · ' + L.filter(x => x[1].i7).length + ' entraron en los últimos 7 días' + (nunca ? ' · ' + nunca + ' nunca entraron' : '') + '. Cuenta cada vez que abren su app.</p>' +
+      '<div class="scroll"><table><thead><tr><th>Asesor</th><th>Último ingreso</th><th class="num">Ingresos 7 d</th><th class="num">Ingresos del mes</th></tr></thead><tbody>' +
+      L.map(([n, u]) => '<tr><td class="store">' + esc(n) + '<div class="small faint">' + esc(u.t || '') + '</div></td><td>' + (u.ult ? esc(fmtF(u.ult.slice(0, 10), u.ult.slice(11, 16))) + ' · hace ' + dias(u.ult.slice(0, 10), hoy) + ' d' : '<span class="pill p-bad">Nunca</span>') + '</td><td class="num">' + (u.i7 || '<span class="zero">0</span>') + '</td><td class="num">' + (u.im || '<span class="zero">0</span>') + '</td></tr>').join('') + '</tbody></table></div>';
+  }
+  function aplicar(v){
+    const el = vistaEl(v), S = subsDe(v); if (!el || !S.length) return;
+    if (!S.some(x => x[1] === MN_SUB[v])) MN_SUB[v] = S[0][1];
+    if (el.dataset.sub !== MN_SUB[v]) el.dataset.sub = MN_SUB[v];
+    chips(el, v, S); etiquetar(v, el);
+    if (CT_K[MN_SUB[v]]) ctLista(el, MN_SUB[v]);
+    if (v === 'equipo' && MN_SUB[v] === 'ase') asesores();
+  }
+  window.mnAplicar = aplicar;
+  window.mnSubBar = (sub, tOn, on, btn) => {
+    if (!tOn || !MN_T[tOn.id]) return;
+    const L = MN_T[tOn.id].filter(x => { const b = btn(x[0]); return b && !b.hidden && b.style.display !== 'none'; }); if (!L.length) return;
+    if (on && subsDe(on.dataset.v).length && !subsDe(on.dataset.v).some(x => x[1] === MN_SUB[on.dataset.v])) aplicar(on.dataset.v);
+    const cnt = b => { const n = b && b.querySelector('.n'); return n && n.textContent.trim() ? ' <b>' + esc(n.textContent.trim()) + '</b>' : ''; };
+    sub.innerHTML = L.map(x => '<button type="button" data-v="' + x[0] + '" data-k="' + x[1] + '" class="' + (on && on.dataset.v === x[0] && (!x[1] || MN_SUB[x[0]] === x[1]) ? 'on' : '') + '">' + esc(x[2]) + (x[1] ? '' : cnt(btn(x[0]))) + '</button>').join('');
+    sub.hidden = L.length < 2;
+    sub.querySelectorAll('button').forEach(x => x.onclick = () => { if (x.dataset.k) MN_SUB[x.dataset.v] = x.dataset.k; const b = btn(x.dataset.v); if (b) b.click(); aplicar(x.dataset.v); repintar(); });
+  };
+  [...new Set([].concat(...Object.values(MN_T)).filter(x => x[1]).map(x => x[0]))].forEach(v => {
+    const el = vistaEl(v); if (!el) return;
+    new MutationObserver(() => { if (!el.hidden) aplicar(v); }).observe(el, {attributes: true, attributeFilter: ['hidden']});
+    let pend = false;
+    new MutationObserver(ms => { if (el.hidden || ms.every(m => m.target.closest && m.target.closest('.mn-ctw,.mn-chips,#mnAse'))) return;
+      if (pend) return; pend = true; requestAnimationFrame(() => { pend = false; etiquetar(v, el); if (CT_K[MN_SUB[v]]) ctLista(el, MN_SUB[v]); if (v === 'equipo' && MN_SUB[v] === 'ase') asesores(); }); })
+      .observe(el, {childList: true, subtree: true});
+    if (!el.hidden) aplicar(v);
+  });
+})();
 /* ---------- render ---------- */
 function render(){
   const d = st.d, hoy = d.hoy;
@@ -3946,7 +4032,7 @@ button.cal-fila:hover{background:var(--surface-2)}
 <script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "¿Qué buscas? Inventario, Scala, política…",
-  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "clientes"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "supervision", "inventario"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Contactos", "vistas": ["contactos"]}],
+  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash"]}, {"id": "inventarios", "nombre": "Inventarios", "vistas": ["inventario"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["contactos"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["clientes"]}],
   items: [{"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa y validar", "kw": "inicio resumen mapa validar actividades caja chica"}, {"t": "Anuncios a tiendas", "v": "anuncios", "sub": "Anuncios", "kw": "anuncios avisos comunicados publicar aviso semana leyeron lectura confirmar"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Clientes", "v": "clientes", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Supervisión", "v": "supervision", "sub": "Tiendas · hacer o revisar una supervisión", "kw": "supervisar visita checklist nueva supervision puntaje hoja"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Contactos de tiendas", "v": "contactos", "sub": "Contactos · por ciudad, con encargado y celular del gerente", "kw": "telefono whatsapp correo llamar personas gerente tienda encargado celular ciudad contactos"}],
   extra: function(){
     const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
@@ -3989,7 +4075,7 @@ window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "af
     if (on && tOn) ultima[tOn.id] = on.dataset.v;
     const ts = C.temas.filter(t => bs.some(b => t.vistas.indexOf(b.dataset.v) >= 0));
     const f = ts.map(t => t.id + (t === tOn ? '*' : '') + bs.filter(b => t.vistas.indexOf(b.dataset.v) >= 0).map(b => b.dataset.v + (b === on ? '*' : '') + cuenta(b)).join(',')).join('|');
-    if (f === firma) return; firma = f;
+    const fM = f + '#' + JSON.stringify(window.MN_SUB || {}); if (fM === firma) return; firma = fM;   // mn1
     nav.innerHTML = ts.map(t => { const n = bs.filter(b => t.vistas.indexOf(b.dataset.v) >= 0).reduce((s, b) => s + cuenta(b), 0);
       return '<button type="button" data-t="' + t.id + '" class="' + (t === tOn ? 'on' : '') + '"' + (t === tOn ? ' aria-current="page"' : '') + '>' + esc(t.nombre) + (n ? '<span class="tem-n">' + n + '</span>' : '') + '</button>'; }).join('');
     nav.querySelectorAll('[data-t]').forEach(x => x.onclick = () => irTema(C.temas.find(t => t.id === x.dataset.t)));
@@ -3997,6 +4083,7 @@ window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "af
     sub.hidden = vs.length < 2;
     sub.innerHTML = vs.map(b => { const n = cuenta(b); return '<button type="button" data-v="' + b.dataset.v + '" class="' + (b === on ? 'on' : '') + '">' + esc((C.nombres || {})[b.dataset.v] || texto(b)) + (n ? ' <b>' + n + '</b>' : '') + '</button>'; }).join('');
     sub.querySelectorAll('[data-v]').forEach(x => x.onclick = () => { const b = btn(x.dataset.v); if (b) b.click(); });
+    if (window.mnSubBar) window.mnSubBar(sub, tOn, on, btn);   // mn1
   }
   new MutationObserver(pintar).observe(tabs, {subtree: true, childList: true, attributes: true, characterData: true});
   pintar();
@@ -4490,6 +4577,26 @@ table.us.hl .hl-pc{display:inline-block;min-width:44px;text-align:center;padding
 .hl-cd{display:grid;gap:10px;margin:0 0 12px}
 .hl-ct{display:flex;justify-content:space-between;gap:8px;font-size:14px;margin-bottom:4px}
 .hl-bar{height:8px;border-radius:99px;background:rgba(127,127,127,.15);overflow:hidden}.hl-bar i{display:block;height:100%;background:var(--accent,#2f81f7);border-radius:99px}
+</style>
+<style>/* mn1 */
+.mn-chips{display:none}
+@media (max-width:700px){
+  .mn-chips{display:flex;gap:6px;overflow-x:auto;margin:0 0 12px;padding:2px 0 4px;-webkit-overflow-scrolling:touch}
+  .mn-chips button{flex:none;border:1px solid var(--line);background:var(--surface,#fff);color:inherit;border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600}
+  .mn-chips button.on{background:var(--accent,#2f81f7);border-color:var(--accent,#2f81f7);color:#fff}
+}
+.view[data-sub="top"] .mn-x,.view[data-sub="extra"] .mn-t{display:none!important}
+.view[data-sub="leer"] .mn-rep,.view[data-sub="rep"] .mn-leer{display:none!important}
+.view[data-sub="sup"] .mn-uger,.view[data-sub="sup"] #mnAse,.view[data-sub="ger"] .mn-sup,.view[data-sub="ger"] .mn-usup,.view[data-sub="ger"] #mnAse,.view[data-sub="ase"] .mn-sup,.view[data-sub="ase"] .mn-usup,.view[data-sub="ase"] .mn-uger{display:none!important}
+.view[data-sub="ase"] #usoBody>div[style*="height"]{display:none!important}
+.view[data-sub="vf"] #recBody,.view[data-sub="rec"] #vfBody{display:none!important}
+.view[data-sub="tel"]>:not(.mn-ctw):not(.mn-chips),.view[data-sub="wa"]>:not(.mn-ctw):not(.mn-chips),.view[data-sub="mail"]>:not(.mn-ctw):not(.mn-chips),.view[data-sub="hor"]>:not(.mn-ctw):not(.mn-chips){display:none!important}
+.view:not([data-sub="tel"]):not([data-sub="wa"]):not([data-sub="mail"]):not([data-sub="hor"])>.mn-ctw{display:none!important}
+.view[data-view="enlaces"][data-sub="lk"]>:not(#lkGit):not(#compartir):not(.mn-chips){display:none!important}
+.mn-cc{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.6;margin:12px 0 2px}
+.mn-ctr{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line)}
+.mn-ctr:last-child{border-bottom:0}.mn-ctr>span{text-align:right;overflow-wrap:anywhere}
+#mnAse{margin-top:14px}
 </style>
 </body>
 </html>
