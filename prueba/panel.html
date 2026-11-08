@@ -1093,6 +1093,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   <div id="banner"></div>
 
   <div class="view" data-view="flash" hidden>
+    <div id="stockBtn"></div>
     <div id="flashBody"><div class="skeleton">Cargando Flash de Ventas…</div></div>
     <div id="garBody"></div>
     <div id="fdBody"></div>
@@ -1104,25 +1105,25 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   </div>
 
   <div class="view" data-view="hoy">
-    <div id="stockBtn"></div><div id="datoDia"></div>
+    <div id="datoDia"></div>
     <div class="bx-wrap">
         <div class="sec-h"><h2>Esperan validación <span class="bx-n" id="bxN"></span></h2><span class="hint">La tienda dice que ya lo resolvió. Toca uno para revisarlo.</span></div>
         <div class="panel flush bx" id="validar"><div class="skeleton">Cargando…</div></div>
     </div>
-    <div class="kpis" id="kpis"></div>
-    <div>
-      <div class="sec-h"><h2>Tiendas: ventas del mes y supervisión<span class="cfil"></span></h2><span class="hint">Peor puntaje de supervisión primero. Toca una tienda para ver su detalle.</span></div>
-      <div class="panel flush scroll" id="stores"><div class="skeleton">Cargando tiendas…</div></div>
+    <div class="hl-sec"><!-- hl1 -->
+      <div class="sec-h"><h2>Tabla de posiciones · Supervisión<span class="cfil"></span></h2><span class="hint">De mejor a peor puntaje.</span></div>
+      <div class="panel flush" id="hlSup"><div class="skeleton">Cargando…</div></div>
     </div>
-    <section class="panel" id="universidad" hidden>
-      <div class="panel-h"><h2>Universidad Steren<span class="cfil"></span></h2><span class="small faint">Tabla de tiendas: gana quien tiene más cursos aprobados; si empatan, más cursos en la semana y luego mejor %. Toca una tienda para ver a su equipo.</span></div>
-      <div id="uniBody"></div>
-    </section>
+    <div class="hl-sec"><!-- hl1 -->
+      <div class="sec-h"><h2>Tabla de posiciones · Ventas vs presupuesto<span class="cfil"></span></h2><span class="hint">De mayor a menor cumplimiento del mes.</span></div>
+      <div class="panel flush" id="hlVen"><div class="skeleton">Cargando…</div></div>
+    </div>
     <section class="panel" id="actividades" hidden>
       <div class="panel-h"><h2>Actividades del mes<span class="cfil"></span></h2><span class="small faint">Lo que cada tienda marca en su Inicio, como el sobre de caja chica. Solo para consultar.</span></div>
       <div id="acBody"></div>
     </section>
     <div class="bx-mapa">
+    <div id="hlCiudad"></div>
     <section class="panel mapa" id="mapa" aria-label="Mapa de tiendas">
       <div class="panel-h"><h2>Mapa de tiendas</h2></div>
       <div class="mapcard">
@@ -1164,6 +1165,11 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   </div>
 
   <div class="view" data-view="pendientes" hidden>
+    <div class="kpis" id="kpis"></div>
+    <div>
+      <div class="sec-h"><h2>Tiendas: detalle de ventas y supervisión<span class="cfil"></span></h2><span class="hint">Peor puntaje de supervisión primero. Toca una tienda para ver su detalle.</span></div>
+      <div class="panel flush scroll" id="stores"><div class="skeleton">Cargando tiendas…</div></div>
+    </div>
     <section class="panel" id="explorer">
       <div class="panel-h"><h2>Todos los pendientes<span class="cfil"></span></h2><span class="small faint" id="pcount"></span></div>
       <p class="small faint" id="masFallan" style="margin:-6px 0 12px"></p>
@@ -1195,6 +1201,10 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
 
   <div class="view" data-view="guias" hidden>
     <div id="guiBody"><div class="skeleton">Cargando manuales y guías…</div></div>
+    <section class="panel" id="universidad" hidden>
+      <div class="panel-h"><h2>Universidad Steren<span class="cfil"></span></h2><span class="small faint">Tabla de tiendas: gana quien tiene más cursos aprobados; si empatan, más cursos en la semana y luego mejor %. Toca una tienda para ver a su equipo.</span></div>
+      <div id="uniBody"></div>
+    </section>
   </div>
 
   <div class="view" data-view="contactos" hidden>
@@ -1472,6 +1482,44 @@ function metaMes6(ss, hoy){
 }
 const m6Atras = m => m.n < Math.min(6, m.esp);
 const m6Pill = m => `<span class="pill p-${!m6Atras(m) ? 'good' : m.esp - m.n >= 2 ? 'bad' : 'warn'}" title="Diego ${m.d} de 1 · Ventas ${m.v} de 1 · Autosupervisiones ${m.a} de 4">${m.n} de 6 en el mes</span>`;
+/* hl1: tablas de posiciones de HOY (supervisión y ventas) y aporte de ventas por ciudad */
+function hlPintar(filas, todas){
+  const S = $('#hlSup'), V = $('#hlVen'), C = $('#hlCiudad');
+  const din = x => '$' + Math.round(x || 0).toLocaleString('es-EC');
+  const nro = (i, ok) => '<span class="us-n' + (ok && i < 3 ? ' g' + (i + 1) : '') + '">' + (ok ? i + 1 : '–') + '</span>';
+  const ir = el => el.querySelectorAll('tr.hl-r').forEach(tr => tr.onclick = () => detalleTienda(tr.dataset.t));
+  const tot = f => f.ult && f.ult.total != null ? f.ult.total : -1;
+  if (S) {
+    const L = filas.slice().sort((a, b) => tot(b) - tot(a) || a.venc - b.venc || a.ab - b.ab || String(a.t.nombre).localeCompare(String(b.t.nombre)));
+    S.innerHTML = !L.length ? '<div class="empty">No hay tiendas para mostrar.</div>' :
+      '<table class="us hl no-mv"><colgroup><col class="c1"><col><col style="width:74px"><col style="width:92px"></colgroup><thead><tr><th class="p">#</th><th class="l">Tienda</th><th>Puntaje</th><th>Pendientes</th></tr></thead><tbody>' +
+      L.map((f, i) => { const u = f.ult, ok = tot(f) >= 0;
+        return '<tr class="hl-r" data-t="' + esc(f.t.nombre) + '"><td class="p">' + nro(i, ok) + '</td><td class="l"><b>' + esc(f.t.nombre) + '</b><span class="us-r">' +
+          (u ? (u.tipo === 'Autosupervisión' ? 'autosup. · ' : '') + 'hace ' + f.dUlt + ' d' : 'sin evaluar') + '</span></td>' +
+          '<td>' + (ok ? '<span class="hl-pc ' + band(u.total) + '">' + pct(u.total) + '</span>' : '–') + '</td>' +
+          '<td class="k">' + f.ab + (f.venc ? '<span class="hl-v">' + f.venc + ' vencido' + (f.venc > 1 ? 's' : '') + '</span>' : '') + '</td></tr>'; }).join('') +
+      '</tbody></table><div class="hl-foot">Puntaje de la última evaluación (supervisión o autosupervisión). Pendientes: abiertos; en rojo los vencidos. Toca una tienda para ver su detalle.</div>';
+    ir(S);
+  }
+  const VT = st.ventas && st.ventas.tiendas || {};
+  if (V) {
+    const L = filas.map(f => ({f, v: VT[f.t.nombre]})).filter(x => x.v && x.v.meta && x.v.cumpl != null).sort((a, b) => b.v.cumpl - a.v.cumpl);
+    const sin = filas.filter(f => !L.some(x => x.f === f)).map(f => f.t.nombre), ult = String(st.ventas && st.ventas.ultimo || '');
+    V.innerHTML = !L.length ? '<div class="empty">Todavía no hay ventas del mes para mostrar.</div>' :
+      '<table class="us hl no-mv"><colgroup><col class="c1"><col><col style="width:62px"><col style="width:52px"><col style="width:58px"></colgroup><thead><tr><th class="p">#</th><th class="l">Tienda</th><th>%</th><th>Fact.</th><th>Ticket</th></tr></thead><tbody>' +
+      L.map((x, i) => { const v = x.v, c = v.cumplProy == null ? 'warn' : v.cumplProy >= 1 ? 'good' : v.cumplProy >= 0.9 ? 'warn' : 'bad', fa = v.fact != null ? v.fact : v.facturas;
+        return '<tr class="hl-r" data-t="' + esc(x.f.t.nombre) + '"><td class="p">' + nro(i, true) + '</td><td class="l"><b>' + esc(x.f.t.nombre) + '</b><span class="us-r">' + din(v.venta) + ' de ' + din(v.meta) + '</span></td>' +
+          '<td><span class="hl-pc ' + c + '">' + pct(v.cumpl) + '</span></td><td>' + (fa != null ? Math.round(fa).toLocaleString('es-EC') : '–') + '</td><td>' + (v.ticket != null ? '$' + Math.round(v.ticket) : '–') + '</td></tr>'; }).join('') +
+      '</tbody></table><div class="hl-foot">' + (ult ? 'Ventas al ' + ult.slice(8, 10) + '/' + ult.slice(5, 7) + '. ' : '') + '% = venta del mes sobre el presupuesto; el color es la proyección al cierre (verde ≥ 100%, ámbar 90–99%, rojo &lt; 90%). Ticket = venta promedio por factura.' + (sin.length ? ' Sin dato: ' + sin.map(esc).join(', ') + '.' : '') + '</div>';
+    ir(V);
+  }
+  if (C) {
+    const por = {}; let T = 0;
+    todas.forEach(f => { const v = VT[f.t.nombre]; if (!v || !v.venta) return; const c = CIUDAD[f.t.nombre] || 'Otras'; por[c] = (por[c] || 0) + v.venta; T += v.venta; });
+    C.innerHTML = !T ? '' : '<div class="sec-h"><h2>Aporte de ventas por ciudad</h2><span class="hint">Venta del mes de cada ciudad sobre el total. Toca una ciudad en el mapa para filtrar.</span></div><div class="panel hl-cd" style="padding:12px 14px">' +
+      Object.entries(por).sort((a, b) => b[1] - a[1]).map(([c, x]) => '<div><div class="hl-ct"><b>' + esc(c) + '</b><span>' + din(x) + ' · <b>' + Math.round(x / T * 100) + '%</b></span></div><div class="hl-bar"><i style="width:' + (x / T * 100).toFixed(1) + '%"></i></div></div>').join('') + '</div>';
+  }
+}
 /* ---------- render ---------- */
 function render(){
   const d = st.d, hoy = d.hoy;
@@ -1511,7 +1559,7 @@ function render(){
   ].map(([v, l, c]) => `<div class="kpi ${c}"><b>${v}</b><span>${l}</span></div>`).join('');
 
   const orden = filas;
-  st.filas = todas;
+  st.filas = todas; hlPintar(filas, todas);   // hl1
   const din = x => '$' + Math.round(x).toLocaleString('es-EC');
   const hayV = st.ventas && st.ventas.mes;
   const vCols = n => { const v = hayV && st.ventas.tiendas[n];
@@ -4365,6 +4413,21 @@ table.us tr.us-p td{font-size:13px;padding:6px 4px;background:rgba(127,127,127,.
 table.us tr.us-p td.l{padding-left:10px;white-space:normal}
 table.us tr.us-p .us-r{display:block;font-size:11.5px;opacity:.6}
 .us-ley{font-size:12px;opacity:.65;margin-top:8px;line-height:1.45}
+</style>
+<style>/* hl1 */
+table.us.hl tr.hl-r{cursor:pointer}
+table.us.hl tr.hl-r:hover td{background:rgba(127,127,127,.06)}
+table.us.hl .us-r{display:block;font-size:11.5px;font-weight:400;opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+table.us.hl td.l b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+table.us.hl .hl-v{display:block;font-size:11px;color:#e5534b;font-weight:600}
+table.us.hl .hl-pc{display:inline-block;min-width:44px;text-align:center;padding:2px 6px;border-radius:999px;font-weight:700;font-size:13px}
+.hl-pc.good{background:rgba(45,164,78,.16);color:#2da44e}.hl-pc.warn{background:rgba(212,145,0,.16);color:#c98a00}.hl-pc.bad{background:rgba(229,83,75,.16);color:#e5534b}
+.hl-sec{margin:18px 0}
+.hl-sec .panel{padding:8px 12px}
+.hl-foot{font-size:12px;opacity:.65;margin:8px 2px 0;line-height:1.45}
+.hl-cd{display:grid;gap:10px;margin:0 0 12px}
+.hl-ct{display:flex;justify-content:space-between;gap:8px;font-size:14px;margin-bottom:4px}
+.hl-bar{height:8px;border-radius:99px;background:rgba(127,127,127,.15);overflow:hidden}.hl-bar i{display:block;height:100%;background:var(--accent,#2f81f7);border-radius:99px}
 </style>
 </body>
 </html>
