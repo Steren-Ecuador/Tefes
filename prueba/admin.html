@@ -5778,19 +5778,34 @@ if (typeof st !== 'undefined' && st.tab === 'servicio') stAbrir();
   const nombre = b => CORTO[b.dataset.v] || b.textContent.trim();
   const num = b => { const n = b.querySelector('.n'); return n ? '<span class="' + n.className + '">' + n.textContent + '</span>' : ''; };
   let firma = '';
+  /* mbt1: la barra usa los temas del menú de la computadora (window.TEM.temas) */
+  const T_ABAJO = ['hoy', 'supervision', 'ventas', 'inventarios'];
+  const T_ICO = {hoy: P.hoy, supervision: P.supervision, anuncios: P.anuncios, ventas: P.flash, inventarios: P.inventario, politicas: P.politicas, uso: P.equipo, contactos: P.contactos, clientes: P.reclamos, sistema: P.enlaces};
+  const T_CORTO = {supervision: 'Supervisión', inventarios: 'Inventarios', uso: 'Uso app'};
+  const ultimaT = {};
+  const nums = vb => { let bad = 0, neu = 0; vb.forEach(b => b.querySelectorAll('.n').forEach(n => { const k = parseInt(n.textContent, 10); if (k > 0 && !n.hidden) { if (n.classList.contains('bad')) bad += k; else neu += k; } })); return bad ? '<span class="n bad">' + bad + '</span>' : neu ? '<span class="n">' + neu + '</span>' : ''; };
   function pintar(){
     const bs = [...tabs.querySelectorAll('button[data-v]')].filter(b => !b.hidden && b.style.display !== 'none');
-    const abajo = ORDEN.map(v => bs.find(b => b.dataset.v === v)).filter(Boolean).slice(0, 4), resto = bs.filter(b => !abajo.includes(b));
-    const on = bs.find(b => b.classList.contains('on')), masOn = on && resto.includes(on);
-    const f = bs.map(b => b.dataset.v + (b === on ? '*' : '') + num(b)).join('|');
+    const TT = (window.TEM && window.TEM.temas) || [];
+    if (!TT.length) return;
+    const on = bs.find(b => b.classList.contains('on'));
+    const ts = TT.map(t => ({t, vb: bs.filter(b => t.vistas.indexOf(b.dataset.v) >= 0).sort((a, c) => t.vistas.indexOf(a.dataset.v) - t.vistas.indexOf(c.dataset.v))})).filter(x => x.vb.length);
+    const tOn = on ? ts.find(x => x.vb.includes(on)) : null;
+    if (tOn) ultimaT[tOn.t.id] = on.dataset.v;
+    const abajo = T_ABAJO.map(id => ts.find(x => x.t.id === id)).filter(Boolean), resto = ts.filter(x => !abajo.includes(x));
+    const masOn = tOn && resto.includes(tOn);
+    const f = ts.map(x => x.t.id + (x === tOn ? '*' : '') + nums(x.vb)).join('|');
     if (f === firma) return; firma = f;
-    bnav.innerHTML = abajo.map(b => '<button data-v="' + b.dataset.v + '" class="' + (b === on ? 'on' : '') + '">' + ico(P[b.dataset.v]) + '<span class="l">' + nombre(b) + '</span>' + num(b) + '</button>').join('') +
-      (resto.length ? '<button data-mas class="' + (masOn ? 'on' : '') + '">' + ico(masOn ? P[on.dataset.v] : P.mas) + '<span class="l">' + (masOn ? nombre(on) : 'Más') + '</span>' + (resto.some(b => { const n = b.querySelector('.n.bad'); return n && n.textContent.trim(); }) ? '<span class="n bad">!</span>' : '') + '</button>' : '');
-    mas.innerHTML = resto.map(b => '<button data-v="' + b.dataset.v + '" class="' + (b === on ? 'on' : '') + '">' + ico(P[b.dataset.v]) + '<span>' + b.textContent.replace(/\d+$/, '').trim() + '</span>' + num(b) + '</button>').join('');
-    bnav.querySelectorAll('[data-v]').forEach(x => x.onclick = () => { const t = tabs.querySelector('button[data-v="' + x.dataset.v + '"]'); if (t) t.click(); window.scrollTo(0, 0); });
-    mas.querySelectorAll('[data-v]').forEach(x => x.onclick = () => { bg.hidden = true; const t = tabs.querySelector('button[data-v="' + x.dataset.v + '"]'); if (t) t.click(); window.scrollTo(0, 0); });
+    const nom = x => T_CORTO[x.t.id] || x.t.nombre;
+    bnav.innerHTML = abajo.map(x => '<button data-t="' + x.t.id + '" class="' + (x === tOn ? 'on' : '') + '">' + ico(T_ICO[x.t.id]) + '<span class="l">' + nom(x) + '</span>' + nums(x.vb) + '</button>').join('') +
+      (resto.length ? '<button data-mas class="' + (masOn ? 'on' : '') + '">' + ico(masOn ? T_ICO[tOn.t.id] : P.mas) + '<span class="l">' + (masOn ? nom(tOn) : 'Más') + '</span>' + (resto.some(x => /n bad/.test(nums(x.vb))) ? '<span class="n bad">!</span>' : '') + '</button>' : '');
+    mas.innerHTML = resto.map(x => '<button data-t="' + x.t.id + '" class="' + (x === tOn ? 'on' : '') + '">' + ico(T_ICO[x.t.id]) + '<span>' + x.t.nombre + '</span>' + nums(x.vb) + '</button>').join('');
+    const ir = id => { const x = ts.find(y => y.t.id === id); if (!x) return; const b = x.vb.find(y => y.dataset.v === ultimaT[id]) || x.vb[0]; if (b) b.click(); window.scrollTo(0, 0); };
+    bnav.querySelectorAll('[data-t]').forEach(x => x.onclick = () => ir(x.dataset.t));
+    mas.querySelectorAll('[data-t]').forEach(x => x.onclick = () => { bg.hidden = true; ir(x.dataset.t); });
     const m = bnav.querySelector('[data-mas]'); if (m) m.onclick = () => { bg.hidden = false; };
   }
+  setTimeout(pintar, 0); setTimeout(pintar, 800);
   bg.onclick = e => { if (e.target === bg) bg.hidden = true; };
   new MutationObserver(pintar).observe(tabs, {subtree: true, childList: true, attributes: true, characterData: true});
   pintar();
@@ -6638,5 +6653,14 @@ table.us.hl .hl-pc{display:inline-block;min-width:44px;text-align:center;padding
 .mn-ctr{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line)}
 .mn-ctr:last-child{border-bottom:0}.mn-ctr>span{text-align:right;overflow-wrap:anywhere}
 #mnAse{margin-top:14px}
+</style>
+<style>
+/* mbt1: en el celular las sub-opciones del tema (las mismas de la computadora) salen como chips arriba */
+@media(max-width:700px){
+  body .tem-sub:not([hidden]){display:flex!important;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:6px;padding:2px 12px 10px;scrollbar-width:none}
+  body .tem-sub::-webkit-scrollbar{display:none}
+  body .tem-sub button{flex:none;font-size:13px;padding:7px 13px}
+  body .mn-chips{display:none!important}
+}
 </style>
 </body></html>
