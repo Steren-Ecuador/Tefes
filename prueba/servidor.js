@@ -409,5 +409,24 @@
     return {sem: sem, tiendas: tiendas, tienda: tienda, lista: lst, conteo: conteo, lect: lect.slice(-30), metodos: metodos, hora: new Date().toTimeString().slice(0, 8)};
   };
 
+  // pf2: proformas del POS (datos de ejemplo; en la prueba no hay bajada real del POS)
+  var PF2 = null;
+  function pf2Ej(t) {
+    if (PF2 && PF2.t === t) return PF2;
+    var g = gente(t).map(function (p) { var n = p.nombre.split(/\s+/); return n.length >= 3 ? n[2].charAt(0) + n[2].slice(1).toLowerCase() + ' ' + n[0].charAt(0) + n[0].slice(1).toLowerCase() : p.nombre; });
+    var d = function (n) { var x = new Date(); x.setDate(x.getDate() + n); return DB.isoDe(x); };
+    var cli = ['Cliente de ejemplo 1', 'Cliente de ejemplo 2', 'Cliente de ejemplo 3', 'Cliente de ejemplo 4', 'Cliente de ejemplo 5'];
+    var filas = cli.map(function (c, i) { var ab = i < 4;
+      return {id: 'PV90000' + i, doc: '90000' + i, creada: d(-i - 1), tienda: t, asesor: g[i % Math.max(g.length, 1)] || '', cliente: c, cel: '09' + (91234560 + i), productos: 'Producto de ejemplo', monto: 50 + i * 37.5,
+        estado: ab ? 'Abierta' : 'Compró', cierre: ab ? '' : d(-1), contactos: i === 1 ? 1 : 0, hist: i === 1 ? [{f: d(-1), canal: 'WhatsApp', res: 'Lo está pensando', nota: ''}] : [], fuera: i === 3, espera: ab && i >= 2 && i !== 3 && i !== 1, origen: 'POS'}; });
+    PF2 = {t: t, filas: filas, gente: g};
+    return PF2;
+  }
+  API.apiPFTienda = function (tok) { var t = tiendaDe(tok), X = pf2Ej(t); return {tienda: t, filas: X.filas, gente: X.gente, juego: {tienda: {n: 5, cerradas: 1, pct: 0.2}}}; };
+  API.apiPFReasignar = function (tok, id, persona) { var t = tiendaDe(tok), X = pf2Ej(t); X.filas.forEach(function (f) { if (f.id === id) f.asesor = persona; }); return true; };
+  API.apiPFPanel = function (p, per) { panelOk(p);
+    return {desde: '', hasta: '', motivos: {'Le pareció caro': 3, 'No teníamos stock': 2, 'Compró en otro lado': 1},
+      tiendas: activas().slice(0, 6).map(function (t, i) { return {tienda: t, n: 20 - i * 2, monto: 4000 - i * 300, aTiempo: 15 - i * 2, evaluables: 18 - i * 2, sinContacto: i, cerradas: 6 - i, cerradoUsd: 1500 - i * 180, perdidas: 2 + (i % 2), abiertas: 8}; })}; };
+
   window.TEFES_SERVIDOR = API;
 })();
