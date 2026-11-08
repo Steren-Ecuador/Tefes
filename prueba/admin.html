@@ -842,6 +842,7 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
 
   <div class="view" data-view="reclamos" hidden>
     <div id="vfBody"><div class="skeleton">Cargando ventas futuras…</div></div>
+    <div id="pfBody" style="margin-bottom:30px"></div>
     <div id="recBody"><div class="skeleton">Cargando reclamos…</div></div>
   </div>
 
@@ -1268,6 +1269,7 @@ async function cargar(fresh){
     pp: g("'Presupuesto personas'!A1:G", CLAVES).catch(() => [[]]),   // pp1
     presT: g('Presupuesto!A1:C', CLAVES).catch(() => [[]]),
     fp: g("'FormasPago'!A1:G", CLAVES).catch(() => [[]]),   // fp1 formas de pago POS
+    pf: Promise.all([g("'Proformas'!A1:W", CLAVES), g("'Proformas seguimiento'!A1:I", CLAVES).catch(() => [[]])]).then(([a, b]) => ({a, b})),   // pf2
     gar: Promise.all([g("'Garantías'!A1:G", CLAVES), g('Fuentes!A1:B', CLAVES).catch(() => [])]).then(([a, f]) => { a.tomado = String(((f || []).find(r => String(r[0]).trim() === 'GARANTIAS_TOMADO') || [])[1] || '').trim(); return a; }).catch(() => [[]])
   };
   Object.values(extras).forEach(p => p.catch(() => {}));   // sin avisos de promesa rechazada mientras se espera lo principal
@@ -1651,6 +1653,7 @@ function render(){
   try { renderFlash(); } catch (e) { console.error(e); }
   try { renderFuentes(); } catch (e) { console.error(e); }
   try { renderGar(); } catch (e) { console.error(e); }
+  try { renderPFA(); } catch (e) { console.error(e); }   // pf2
   try { renderFP(); } catch (e) { console.error(e); }
   try { renderPP(); } catch (e) { console.error(e); }
   renderReclamos();
@@ -2824,6 +2827,44 @@ function renderFP(){
   el.querySelectorAll('#fpSeg button').forEach(b => b.onclick = () => { st.fpV = b.dataset.v; renderFP(); });
 }
 /* ---------- garantías extendidas (hoja privada 'Garantías', reportes de Codex desde el POS Steren) ---------- */
+/* ---------- pf2: proformas del POS por tienda, SOLO números (pestañas privadas 'Proformas' y 'Proformas seguimiento') ---------- */
+function renderPFA(){
+  const el = $('#pfBody'); if (!el) return;
+  if (st.pf === undefined) { el.innerHTML = '<div class="skeleton">Cargando proformas…</div>'; return; }
+  if (!st.pf || !st.pf.a || st.pf.a.length < 2) { el.innerHTML = ''; return; }
+  const mon = v => { const n = Number(String(v == null ? '' : v).replace(/[$\s]/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.')); return isNaN(n) ? 0 : n; };
+  const mas = (f, n) => { const d = new Date(f + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+  const hoy = hoyISO(), per = st.pfPer || 'mes', dHoy = new Date(hoy + 'T12:00:00');
+  let desde = hoy.slice(0, 8) + '01', hasta = hoy;
+  if (per === 'semana') desde = mas(hoy, -((dHoy.getDay() + 6) % 7));
+  if (per === 'mesAnt') { const p = new Date(dHoy.getFullYear(), dHoy.getMonth() - 1, 1), u = new Date(dHoy.getFullYear(), dHoy.getMonth(), 0); desde = iso(p.getFullYear() + '-' + String(p.getMonth() + 1).padStart(2, '0') + '-01'); hasta = iso(u.getFullYear() + '-' + String(u.getMonth() + 1).padStart(2, '0') + '-' + String(u.getDate()).padStart(2, '0')); }
+  const prim = {}; (st.pf.b || [[]]).slice(1).forEach(r => { const id = String(r[2] || ''), f = iso(r[0]); if (id && f && (!prim[id] || f < prim[id])) prim[id] = f; });
+  const T = {}, M = {}, en = f => f && f >= desde && f <= hasta;
+  st.pf.a.slice(1).filter(r => r[0] && r[3]).forEach(r => {
+    const id = String(r[0]), creada = iso(r[1]), estado = String(r[12] || 'Abierta'), cierre = iso(r[13]), monto = mon(r[8]), p = prim[id] || iso(r[14]);
+    const t = T[r[3]] = T[r[3]] || {tienda: String(r[3]), n: 0, monto: 0, at: 0, ev: 0, esp: 0, cer: 0, cerUsd: 0, per: 0};
+    if (en(creada)) { t.n++; t.monto += monto; if (p || mas(creada, 2) < hoy) { t.ev++; if (p && p <= mas(creada, 2)) t.at++; } }
+    if (estado === 'Abierta' && !p && mas(creada, 2) < hoy) t.esp++;
+    if (estado === 'Compró' && en(cierre)) { t.cer++; t.cerUsd += monto; }
+    if (estado === 'No compró' && en(cierre)) { t.per++; const m = String(r[19] || 'Otro'); M[m] = (M[m] || 0) + 1; }
+  });
+  const L = Object.values(T).sort((a, b) => b.n - a.n), S = k => L.reduce((a, t) => a + t[k], 0);
+  const usd0 = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD', maximumFractionDigits: 0});
+  const n = S('n'), ev = S('ev'), cer = S('cer'), mt = Object.keys(M).sort((a, b) => M[b] - M[a]);
+  const seg = [['semana', 'Esta semana'], ['mes', 'Este mes'], ['mesAnt', 'Mes pasado']].map(([k, l]) => `<button class="btn${k === per ? ' primary' : ''}" data-pfp="${k}">${l}</button>`).join(' ');
+  el.innerHTML = `<div class="sec-h"><h2>📋 Proformas</h2><span class="hint">Pedidos sin facturar del POS que cada asesor sigue con su cliente. Solo números; el detalle lo ve cada asesor y su gerente.</span></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px">${seg}</div>
+    <div class="kpis">
+      <div class="kpi acc"><b>${n}</b><span>nuevas · ${usd0.format(S('monto'))}</span></div>
+      <div class="kpi"><b>${ev ? Math.round(S('at') / ev * 100) : 0}%</b><span>contactadas en 48 h</span></div>
+      <div class="kpi"><b>${S('esp')}</b><span>esperando sin contacto</span></div>
+      <div class="kpi"><b>${cer}${n ? ' · ' + Math.round(cer / n * 100) + '%' : ''}</b><span>cerradas · ${usd0.format(S('cerUsd'))}</span></div>
+      <div class="kpi"><b>${S('per')}</b><span>perdidas</span></div>
+    </div>
+    ${L.length ? `<div class="panel flush scroll" style="margin-top:12px"><table class="exec fl-t"><thead><tr><th>Tienda</th><th class="num">Nuevas</th><th class="num">Valor</th><th class="num">Contacto 48 h</th><th class="num">Esperando</th><th class="num">Cerradas</th><th class="num">Cierre</th><th class="num">Vendido</th><th class="num">Perdidas</th></tr></thead><tbody>${L.map(t => `<tr><td class="store">${esc(t.tienda)}</td><td class="num">${t.n}</td><td class="num">${usd0.format(t.monto)}</td><td class="num">${t.ev ? Math.round(t.at / t.ev * 100) + '%' : '–'}</td><td class="num"${t.esp >= 5 ? ' style="color:var(--bad);font-weight:700"' : ''}>${t.esp}</td><td class="num">${t.cer}</td><td class="num">${t.n ? Math.round(t.cer / t.n * 100) + '%' : '–'}</td><td class="num">${usd0.format(t.cerUsd)}</td><td class="num">${t.per}</td></tr>`).join('')}</tbody></table></div>` : '<div class="small faint">Todavía no hay proformas en este periodo.</div>'}
+    ${mt.length ? `<div class="small" style="margin-top:8px"><b>Por qué se pierden:</b> ${mt.map(m => esc(m) + ' ' + M[m]).join(' · ')}</div>` : ''}`;
+  el.querySelectorAll('[data-pfp]').forEach(b => b.onclick = () => { st.pfPer = b.dataset.pfp; renderPFA(); });
+}
 function renderGar(){
   const el = $('#garBody'); if (!el) return;
   if (st.gar === undefined) { el.innerHTML = '<div class="skeleton">Cargando garantías…</div>'; return; }
