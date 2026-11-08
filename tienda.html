@@ -2740,10 +2740,10 @@ async function fdPintar(){
   const cIni = isoD(new Date(y0, m0 - 1, desdeD - 28)), cFin = isoD(new Date(y0, m0 - 1, hastaD - 28));
   const RC = dim => [...(A ? filtra(A.R, ['dia', dim]) : []), ...filtra(D.R, ['dia', dim])].filter(x => x.f >= cIni && x.f <= cFin);
   const fc = s => { const d = new Date(s + 'T12:00:00'); return DIAS[d.getDay()] + ' ' + d.getDate() + ' ' + MESES[d.getMonth()].slice(0, 3); };
-  const cTxt = cIni === cFin ? fc(cIni) : fc(cIni) + ' – ' + fc(cFin);
+  const rg = (a, b) => a === b ? fc(a) : fc(a) + ' al ' + fc(b), cTxt = rg(cIni, cFin), aTxt = rg(isoD(new Date(y0, m0 - 1, desdeD)), isoD(new Date(y0, m0 - 1, hastaD)));   // fd3: los dos rangos (Diego 8-nov)
   let cmp = '';
   { const ta = RC('dia').reduce((a, x) => a + x.s, 0);
-    if (ta > 0) { const v = tot / ta - 1; cmp = `<div class="kpi"><b class="${v >= 0 ? 'fd-up' : 'fd-down'}">${v >= 0 ? '+' : ''}${pct(v)}</b><span>vs ${cTxt}, mismos días de la semana (${usd.format(ta)})</span></div>`; } }
+    if (ta > 0) { const v = tot / ta - 1; cmp = `<div class="kpi"><b class="${v >= 0 ? 'fd-up' : 'fd-down'}">${v >= 0 ? '+' : ''}${pct(v)}</b><span>${aTxt} vs ${cTxt} (${usd.format(ta)}): mismos días de la semana, 4 semanas antes</span></div>`; } }
   const ms = Object.keys(FD.idx.meses).sort().reverse();
   const [yy, mm] = m.split('-').map(Number);
   const opDia = D.dias.map(x => { const d = new Date(x + 'T12:00:00'); return `<option value="${+x.slice(8)}" ${+f.dia === +x.slice(8) ? 'selected' : ''}>${DIAS[d.getDay()]} ${+x.slice(8)}</option>`; }).join('');

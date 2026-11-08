@@ -4203,10 +4203,10 @@ async function fdPintar(){
   const cIni = isoD(new Date(y0, m0 - 1, desdeD - 28)), cFin = isoD(new Date(y0, m0 - 1, hastaD - 28));
   const RC = dim => [...(A ? filtra(A.R, ['dia', dim]) : []), ...filtra(D.R, ['dia', dim])].filter(x => x.f >= cIni && x.f <= cFin);
   const fc = s => { const d = new Date(s + 'T12:00:00'); return DIAS[d.getDay()] + ' ' + d.getDate() + ' ' + MESES[d.getMonth()].slice(0, 3); };
-  const cTxt = cIni === cFin ? fc(cIni) : fc(cIni) + ' – ' + fc(cFin);
+  const rg = (a, b) => a === b ? fc(a) : fc(a) + ' al ' + fc(b), cTxt = rg(cIni, cFin), aTxt = rg(isoD(new Date(y0, m0 - 1, desdeD)), isoD(new Date(y0, m0 - 1, hastaD)));   // fd3: los dos rangos (Diego 8-nov)
   let cmp = '';
   { const ta = RC('dia').reduce((a, x) => a + x.s, 0);
-    if (ta > 0) { const v = tot / ta - 1; cmp = `<div class="kpi"><b class="${v >= 0 ? 'fd-up' : 'fd-down'}">${v >= 0 ? '+' : ''}${pct(v)}</b><span>vs ${cTxt}, mismos días de la semana (${usd.format(ta)})</span></div>`; } }
+    if (ta > 0) { const v = tot / ta - 1; cmp = `<div class="kpi"><b class="${v >= 0 ? 'fd-up' : 'fd-down'}">${v >= 0 ? '+' : ''}${pct(v)}</b><span>${aTxt} vs ${cTxt} (${usd.format(ta)}): mismos días de la semana, 4 semanas antes</span></div>`; } }
   const ms = Object.keys(FD.idx.meses).sort().reverse();
   const [yy, mm] = m.split('-').map(Number);
   const opDia = D.dias.map(x => { const d = new Date(x + 'T12:00:00'); return `<option value="${+x.slice(8)}" ${+f.dia === +x.slice(8) ? 'selected' : ''}>${DIAS[d.getDay()]} ${+x.slice(8)}</option>`; }).join('');
@@ -4307,5 +4307,69 @@ window.ppLectura = async function(el, filas, op){
 })();
 </script>
 
+<style>/* mv1 */
+@media (max-width:700px){
+  html,body{overflow-x:hidden}
+  .view,.view>*,.panel,.scroll{max-width:100%}
+  .scroll:has(> table.mv-c),.panel.scroll:has(table.mv-c){overflow:visible}
+  table.mv-c{display:block;width:100%!important;min-width:0!important;border:0}
+  table.mv-c thead,table.mv-c tr.mv-h{display:none!important}
+  table.mv-c tbody,table.mv-c tfoot{display:block}
+  table.mv-c tr{display:block;background:var(--surface,#fff);border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin:0 0 10px;box-shadow:0 1px 2px rgba(16,32,48,.05)}
+  table.mv-c tr:hover{background:var(--surface,#fff)}
+  table.mv-c td,table.mv-c th{display:block;padding:5px 0!important;border:0!important;text-align:right!important;white-space:normal!important;min-width:0;width:auto!important;overflow-wrap:anywhere;overflow:hidden}
+  table.mv-c td::before,table.mv-c th::before{content:attr(data-l);float:left;width:42%;margin-right:10px;text-align:left;font-size:12px;font-weight:600;letter-spacing:.02em;opacity:.62;text-transform:none;line-height:1.5}
+  table.mv-c td.mv-t,table.mv-c th.mv-t{display:block;text-align:left!important;font-size:15.5px;font-weight:700;padding:0 0 6px!important;margin-bottom:4px;border-bottom:1px solid var(--line)!important}
+  table.mv-c td.mv-t::before,table.mv-c th.mv-t::before,table.mv-c td.mv-x::before{display:none}
+  table.mv-c td.mv-x{display:block;text-align:left!important}
+  table.mv-c td:empty{display:none}
+  table.mv-c td>*{max-width:100%}
+  .hmenu-pop.mv-fix{position:fixed;left:12px;right:12px;min-width:0}
+}
+</style>
+<script>/* mv1: tablas como tarjetas en el celular; el texto de cada columna sale de su encabezado */
+(function(){
+  const cel = matchMedia('(max-width:700px)');
+  function etiquetas(t){
+    const hs = t.tHead ? [...t.tHead.rows] : [];
+    let fila = hs[hs.length - 1];
+    if (!fila) { const r0 = t.rows[0]; if (!r0 || ![...r0.cells].every(c => c.tagName === 'TH')) return null; fila = r0; r0.classList.add('mv-h'); }
+    const L = [];
+    [...fila.cells].forEach(c => { const n = c.colSpan || 1, tx = c.textContent.replace(/\s+/g, ' ').trim(); for (let i = 0; i < n; i++) L.push(tx); });
+    return L;
+  }
+  function tarjetas(){
+    if (!cel.matches) return;
+    document.querySelectorAll('.view table, .drawer table').forEach(t => {
+      if (t.closest('#polPdf') || t.classList.contains('no-mv')) return;
+      if (!t.classList.contains('mv-c') && t.tBodies[0] && getComputedStyle(t.tBodies[0]).display === 'block') return;   // ya tiene su propio diseño de celular (tiendas de Hoy, Flash, Explorar ventas)
+      const L = etiquetas(t); if (!L || L.length < 3) return;
+      t.classList.add('mv-c');
+      [...t.tBodies].concat(t.tFoot ? [t.tFoot] : []).forEach(b => [...b.rows].forEach(r => {
+        if (r.classList.contains('mv-h')) return;
+        if (r.dataset.mv === '1' && r.cells.length && r.cells[0].hasAttribute('data-l')) return;
+        let k = 0;
+        [...r.cells].forEach((c, i) => {
+          const n = c.colSpan || 1;
+          if (n > 1 && r.cells.length === 1) c.classList.add('mv-x');
+          else if (i === 0) { c.classList.add('mv-t'); c.setAttribute('data-l', L[k] || ''); }
+          else c.setAttribute('data-l', L[k] || '');
+          k += n;
+        });
+        r.dataset.mv = '1';
+      }));
+    });
+  }
+  let pend = false; const pedir = () => { if (pend) return; pend = true; requestAnimationFrame(() => { pend = false; tarjetas(); }); };
+  new MutationObserver(pedir).observe(document.body, {childList: true, subtree: true});
+  cel.addEventListener ? cel.addEventListener('change', pedir) : cel.addListener(pedir);
+  pedir();
+  // Accesos: en el celular el menú se abre debajo del botón, dentro de la pantalla
+  const m = document.getElementById('hMenu');
+  if (m) m.addEventListener('toggle', () => { const pop = m.querySelector('.hmenu-pop'); if (!pop) return;
+    if (m.open && cel.matches) { pop.classList.add('mv-fix'); pop.style.top = Math.round(m.querySelector('summary').getBoundingClientRect().bottom + 6) + 'px'; }
+    else { pop.classList.remove('mv-fix'); pop.style.top = ''; } });
+})();
+</script>
 </body>
 </html>

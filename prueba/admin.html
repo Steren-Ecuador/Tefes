@@ -636,6 +636,8 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
 @media(max-width:620px){.fl-t:has(.fl-bar) tr{grid-template-columns:minmax(0,1fr) auto auto auto}.fl-t:has(.fl-bar) td:nth-child(5)::before{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--fg-3);font-weight:600;content:"Art./f."}}   /* fd2 */
 /* ---------- garantías extendidas ---------- */
 #garBody{margin-top:30px}
+#fpBody{margin-top:30px}
+.fp-t td,.fp-t th{white-space:nowrap}.fp-t td.store{white-space:normal}.fp-t .pc{color:var(--fg-2);font-size:12.5px;margin-left:5px}.fp-t tr.cd td{color:var(--fg-2)}
 #ppBody{margin-top:30px}
 .pp-ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .pp-t input{width:84px;text-align:right;font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
@@ -1253,6 +1255,7 @@ async function cargar(fresh){
     fue: g("'Estado fuentes'!A1:H", CLAVES).catch(() => [[]]),   // ef1
     pp: g("'Presupuesto personas'!A1:G", CLAVES).catch(() => [[]]),   // pp1
     presT: g('Presupuesto!A1:C', CLAVES).catch(() => [[]]),
+    fp: g("'FormasPago'!A1:G", CLAVES).catch(() => [[]]),   // fp1 formas de pago POS
     gar: Promise.all([g("'Garantías'!A1:G", CLAVES), g('Fuentes!A1:B', CLAVES).catch(() => [])]).then(([a, f]) => { a.tomado = String(((f || []).find(r => String(r[0]).trim() === 'GARANTIAS_TOMADO') || [])[1] || '').trim(); return a; }).catch(() => [[]])
   };
   Object.values(extras).forEach(p => p.catch(() => {}));   // sin avisos de promesa rechazada mientras se espera lo principal
@@ -1473,6 +1476,7 @@ function render(){
   try { renderFlash(); } catch (e) { console.error(e); }
   try { renderFuentes(); } catch (e) { console.error(e); }
   try { renderGar(); } catch (e) { console.error(e); }
+  try { renderFP(); } catch (e) { console.error(e); }
   try { renderPP(); } catch (e) { console.error(e); }
   renderReclamos();
   try { renderGuias(); } catch (e) { console.error(e); }
@@ -2584,6 +2588,37 @@ function renderGuias(){
 
 /* ---------- ventas futuras (hoja privada 'Ventas futuras'): lo que piden los clientes y no hay ---------- */
 const VF_PILL = {'Esperando': 'p-na', 'Llegó': 'p-good', 'Avisado': 'p-acc', 'Compró': 'p-good', 'No compró': 'p-bad', 'Cancelado': 'p-bad'};
+/* ---------- fp1: formas de pago por tienda (hoja privada 'FormasPago', POS Steren cada noche 21:10; Diego 2026-11-04) ---------- */
+// Cuadre 8-nov: el total del POS = facturas emitidas (sin restar notas de crédito); en la factura SC/AC/NC/CH/CR van como "transferencia".
+const FP_G = [['TC','Crédito'],['TD','Débito'],['EF','Efectivo'],['TE','Transferencia'],['SC','Steren Card'],['OT','Otros']];
+const FP_ORD = ['MALL SOL','SAMBORONDON','URDESA','CONDADO','MALL EL JARDIN','SCALA','MEGAKYWI','PORTAL','MEGAMAXI','TUMBACO'];
+const FP_NOM = {'MALL SOL':'Mall Sol','SAMBORONDON':'Samborondón','URDESA':'Urdesa','CONDADO':'Condado','MALL EL JARDIN':'Mall Jardín','SCALA':'Scala','MEGAKYWI':'Megakywi','PORTAL':'Portal','MEGAMAXI':'Megamaxi','TUMBACO':'Tumbaco','CEDIS QUITO':'CEDIS Quito','CEDIS GUAYAQUIL':'CEDIS Guayaquil'};
+function renderFP(){
+  const el = $('#fpBody'); if (!el) return;
+  if (st.fp === undefined) { el.innerHTML = '<div class="skeleton">Cargando formas de pago…</div>'; return; }
+  const R = (st.fp || [[]]).slice(1).filter(r => r[0] && r[1] && String(r[1]).trim() !== 'TOTAL').map(r => {
+    const c = String(r[1]).trim().slice(0, 2).toUpperCase();
+    return {t: String(r[0]).trim().toUpperCase(), g: ['TC','TD','EF','TE','SC'].includes(c) ? c : 'OT', fp: String(r[1]).trim(), dia: num(r[2]) || 0, mes: num(r[3]) || 0, fecha: iso(r[6])}; });
+  if (!R.length) { el.innerHTML = ''; return; }
+  const k = st.fpV === 'dia' ? 'dia' : 'mes';
+  const usd0 = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD', maximumFractionDigits: 0});
+  const pc = x => (x * 100).toFixed(1).replace('.', ',') + '%';
+  const f = R.reduce((a, x) => x.fecha > a ? x.fecha : a, ''), m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f) || [];
+  const fTxt = f ? new Intl.DateTimeFormat('es-EC', {weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC'}).format(new Date(f + 'T12:00:00Z')) : '';
+  const S = {}; R.forEach(x => { const s = S[x.t] = S[x.t] || {tot: 0, otros: {}}; s[x.g] = (s[x.g] || 0) + x[k]; s.tot += x[k]; if (x.g === 'OT' && x[k]) s.otros[x.fp] = (s.otros[x.fp] || 0) + x[k]; });
+  const tiendas = FP_ORD.filter(t => S[t]).concat(Object.keys(S).filter(t => !FP_ORD.includes(t) && !/^CEDIS/.test(t)));
+  const cedis = Object.keys(S).filter(t => /^CEDIS/.test(t));
+  const T = {tot: 0, otros: {}}; tiendas.forEach(t => { FP_G.forEach(([g]) => T[g] = (T[g] || 0) + (S[t][g] || 0)); T.tot += S[t].tot; Object.entries(S[t].otros).forEach(([n, v]) => T.otros[n] = (T.otros[n] || 0) + v); });
+  const celda = (s, g) => { const v = s[g] || 0; return v ? `${usd0.format(v)}<span class="pc">${pc(s.tot ? v / s.tot : 0)}</span>` : '<span class="zero">–</span>'; };
+  const otTit = s => Object.entries(s.otros).map(([n, v]) => n + ': ' + usd0.format(v)).join(' · ');
+  const fila = (t, s, cls) => `<tr class="${cls || ''}"><td class="store">${esc(FP_NOM[t] || t)}</td>${FP_G.map(([g]) => `<td class="num"${g === 'OT' && s.tot ? ` title="${esc(otTit(s))}"` : ''}>${celda(s, g)}</td>`).join('')}<td class="num"><b>${usd0.format(s.tot)}</b></td></tr>`;
+  el.innerHTML = `<div class="sec-h"><h2>Formas de pago</h2><span class="hint">Del POS Steren, con IVA, ${k === 'dia' ? 'del ' + esc(fTxt) : 'del mes al ' + (m[3] ? (+m[3]) + '/' + (+m[2]) : '')}. Se actualiza cada noche. "Otros" = autoconsumo, pago con nota de crédito, cheque y crédito (pasa el mouse para el detalle).</span></div>
+    <span class="seg" id="fpSeg" style="margin-bottom:10px"><button data-v="mes" class="${k === 'mes' ? 'on' : ''}">Mes acumulado</button><button data-v="dia" class="${k === 'dia' ? 'on' : ''}">Último día</button></span>
+    <div class="kpis">${FP_G.filter(([g]) => T[g]).map(([g, n]) => `<div class="kpi${g === 'SC' ? ' acc' : ''}"><b>${pc(T.tot ? T[g] / T.tot : 0)}</b><span>${esc(n)} · ${usd0.format(T[g])}</span></div>`).join('')}</div>
+    <div class="panel flush scroll" style="margin-top:12px"><table class="exec fp-t"><thead><tr><th>Tienda</th>${FP_G.map(([, n]) => `<th class="num">${esc(n)}</th>`).join('')}<th class="num">Total</th></tr></thead>
+      <tbody>${tiendas.map(t => fila(t, S[t])).join('')}${fila('Total tiendas', T, 'fl-tot')}${cedis.map(t => fila(t, S[t], 'cd')).join('')}</tbody></table></div>`;
+  el.querySelectorAll('#fpSeg button').forEach(b => b.onclick = () => { st.fpV = b.dataset.v; renderFP(); });
+}
 /* ---------- garantías extendidas (hoja privada 'Garantías', reportes de Codex desde el POS Steren) ---------- */
 function renderGar(){
   const el = $('#garBody'); if (!el) return;
@@ -5950,7 +5985,7 @@ function CAL_YO(){ const r = (st.sv || []).slice(1).find(r => /diego/i.test(Stri
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "Buscar: inventario, Mall Sol, caja chica, política…",
   temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy", "calendario", "mispendientes", "fuentes"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "reclamos"]}, {"id": "tiendas", "nombre": "Tiendas", "vistas": ["pendientes", "inventario", "transferencias", "servicio", "perchas"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["politicas", "guias"]}, {"id": "personas", "nombre": "Personas", "vistas": ["equipo"]}, {"id": "ajustes", "nombre": "Contactos", "vistas": ["enlaces"]}],
-  items: [{"t": "Estado de la información", "v": "fuentes", "sub": "Hoy · solo tú", "kw": "fuentes datos actualizado actualizacion erp onedrive codex pos atrasado ultima extraccion estado informacion"}, {"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Mis pendientes con otras áreas", "v": "mispendientes", "sub": "Hoy · solo tú", "kw": "tareas todo lista bodega cedis contabilidad talento humano rrhh compras sistemas gerencia marketing areas departamentos"}, {"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa y validar", "kw": "inicio resumen mapa validar actividades caja chica"}, {"t": "Anuncios a tiendas", "v": "anuncios", "sub": "Anuncios", "kw": "anuncios avisos comunicados publicar aviso semana leyeron lectura confirmar"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Transferencias", "v": "transferencias", "sub": "Tiendas · solo tú", "kw": "transferencias traslados envios agencias cedis semaforo diferencias faltantes sobrantes arregladas gestion erp producto codigo"}, {"t": "Servicio Técnico", "v": "servicio", "sub": "Tiendas · solo tú", "kw": "servicio tecnico ordenes trabajo reparacion garantia cambios menores 50 st erp"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Clientes", "v": "reclamos", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Garantías extendidas", "v": "flash", "sub": "Ventas", "kw": "garantia garantias extendidas", "go": () => TEM_ABRIR("#garBody")}, {"t": "Presupuesto por persona", "v": "flash", "sub": "Ventas · solo tú", "kw": "presupuesto meta metas asesor asesores persona reparto repartir distribuir cuota porcentaje", "go": () => TEM_ABRIR("#ppBody")}, {"t": "Perchas", "v": "perchas", "sub": "Tiendas · exhibición", "kw": "perchas exhibicion layout planograma"}, {"t": "Equipo de supervisores", "v": "equipo", "sub": "Personas", "kw": "supervisores equipo visitas ranking personas"}, {"t": "Contactos de tiendas", "v": "enlaces", "sub": "Contactos", "kw": "contactos telefono llamar whatsapp correo direccion horario tienda numero"}, {"t": "Enlaces para compartir", "v": "enlaces", "sub": "Contactos", "kw": "enlaces links claves compartir gerentes supervisores portal ajustes configuracion"}, {"t": "Nueva supervisión", "sub": "Abrir el formulario", "kw": "supervisar visita checklist nueva supervision", "go": () => document.querySelector("#nuevaSup").click()}],
+  items: [{"t": "Estado de la información", "v": "fuentes", "sub": "Hoy · solo tú", "kw": "fuentes datos actualizado actualizacion erp onedrive codex pos atrasado ultima extraccion estado informacion"}, {"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Mis pendientes con otras áreas", "v": "mispendientes", "sub": "Hoy · solo tú", "kw": "tareas todo lista bodega cedis contabilidad talento humano rrhh compras sistemas gerencia marketing areas departamentos"}, {"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa y validar", "kw": "inicio resumen mapa validar actividades caja chica"}, {"t": "Anuncios a tiendas", "v": "anuncios", "sub": "Anuncios", "kw": "anuncios avisos comunicados publicar aviso semana leyeron lectura confirmar"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Transferencias", "v": "transferencias", "sub": "Tiendas · solo tú", "kw": "transferencias traslados envios agencias cedis semaforo diferencias faltantes sobrantes arregladas gestion erp producto codigo"}, {"t": "Servicio Técnico", "v": "servicio", "sub": "Tiendas · solo tú", "kw": "servicio tecnico ordenes trabajo reparacion garantia cambios menores 50 st erp"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Clientes", "v": "reclamos", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Garantías extendidas", "v": "flash", "sub": "Ventas", "kw": "garantia garantias extendidas", "go": () => TEM_ABRIR("#garBody")}, {"t": "Formas de pago", "v": "flash", "sub": "Ventas · solo tú", "kw": "formas pago tarjeta credito debito efectivo transferencia steren card deuna autoconsumo cobro", "go": () => TEM_ABRIR("#fpBody")}, {"t": "Presupuesto por persona", "v": "flash", "sub": "Ventas · solo tú", "kw": "presupuesto meta metas asesor asesores persona reparto repartir distribuir cuota porcentaje", "go": () => TEM_ABRIR("#ppBody")}, {"t": "Perchas", "v": "perchas", "sub": "Tiendas · exhibición", "kw": "perchas exhibicion layout planograma"}, {"t": "Equipo de supervisores", "v": "equipo", "sub": "Personas", "kw": "supervisores equipo visitas ranking personas"}, {"t": "Contactos de tiendas", "v": "enlaces", "sub": "Contactos", "kw": "contactos telefono llamar whatsapp correo direccion horario tienda numero"}, {"t": "Enlaces para compartir", "v": "enlaces", "sub": "Contactos", "kw": "enlaces links claves compartir gerentes supervisores portal ajustes configuracion"}, {"t": "Nueva supervisión", "sub": "Abrir el formulario", "kw": "supervisar visita checklist nueva supervision", "go": () => document.querySelector("#nuevaSup").click()}],
   extra: function(){
     const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
     (S.d.tiendas || []).filter(t => t.activa).forEach(t => out.push({grupo: 'Tiendas', t: t.nombre, sub: 'Pendientes de ' + t.nombre, kw: 'tienda local', v: 'pendientes',
@@ -6242,10 +6277,10 @@ async function fdPintar(){
   const cIni = isoD(new Date(y0, m0 - 1, desdeD - 28)), cFin = isoD(new Date(y0, m0 - 1, hastaD - 28));
   const RC = dim => [...(A ? filtra(A.R, ['dia', dim]) : []), ...filtra(D.R, ['dia', dim])].filter(x => x.f >= cIni && x.f <= cFin);
   const fc = s => { const d = new Date(s + 'T12:00:00'); return DIAS[d.getDay()] + ' ' + d.getDate() + ' ' + MESES[d.getMonth()].slice(0, 3); };
-  const cTxt = cIni === cFin ? fc(cIni) : fc(cIni) + ' – ' + fc(cFin);
+  const rg = (a, b) => a === b ? fc(a) : fc(a) + ' al ' + fc(b), cTxt = rg(cIni, cFin), aTxt = rg(isoD(new Date(y0, m0 - 1, desdeD)), isoD(new Date(y0, m0 - 1, hastaD)));   // fd3: los dos rangos (Diego 8-nov)
   let cmp = '';
   { const ta = RC('dia').reduce((a, x) => a + x.s, 0);
-    if (ta > 0) { const v = tot / ta - 1; cmp = `<div class="kpi"><b class="${v >= 0 ? 'fd-up' : 'fd-down'}">${v >= 0 ? '+' : ''}${pct(v)}</b><span>vs ${cTxt}, mismos días de la semana (${usd.format(ta)})</span></div>`; } }
+    if (ta > 0) { const v = tot / ta - 1; cmp = `<div class="kpi"><b class="${v >= 0 ? 'fd-up' : 'fd-down'}">${v >= 0 ? '+' : ''}${pct(v)}</b><span>${aTxt} vs ${cTxt} (${usd.format(ta)}): mismos días de la semana, 4 semanas antes</span></div>`; } }
   const ms = Object.keys(FD.idx.meses).sort().reverse();
   const [yy, mm] = m.split('-').map(Number);
   const opDia = D.dias.map(x => { const d = new Date(x + 'T12:00:00'); return `<option value="${+x.slice(8)}" ${+f.dia === +x.slice(8) ? 'selected' : ''}>${DIAS[d.getDay()]} ${+x.slice(8)}</option>`; }).join('');
@@ -6308,4 +6343,68 @@ if (typeof st !== 'undefined' && st.tab === 'flash') fdAbrir();
   m.addEventListener('click', e => { if (e.target.closest('.hmenu-pop .hbtn')) setTimeout(() => m.open = false, 0); });
   document.addEventListener('click', e => { if (m.open && !m.contains(e.target)) m.open = false; });
 })();</script>
+<style>/* mv1 */
+@media (max-width:700px){
+  html,body{overflow-x:hidden}
+  .view,.view>*,.panel,.scroll{max-width:100%}
+  .scroll:has(> table.mv-c),.panel.scroll:has(table.mv-c){overflow:visible}
+  table.mv-c{display:block;width:100%!important;min-width:0!important;border:0}
+  table.mv-c thead,table.mv-c tr.mv-h{display:none!important}
+  table.mv-c tbody,table.mv-c tfoot{display:block}
+  table.mv-c tr{display:block;background:var(--surface,#fff);border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin:0 0 10px;box-shadow:0 1px 2px rgba(16,32,48,.05)}
+  table.mv-c tr:hover{background:var(--surface,#fff)}
+  table.mv-c td,table.mv-c th{display:block;padding:5px 0!important;border:0!important;text-align:right!important;white-space:normal!important;min-width:0;width:auto!important;overflow-wrap:anywhere;overflow:hidden}
+  table.mv-c td::before,table.mv-c th::before{content:attr(data-l);float:left;width:42%;margin-right:10px;text-align:left;font-size:12px;font-weight:600;letter-spacing:.02em;opacity:.62;text-transform:none;line-height:1.5}
+  table.mv-c td.mv-t,table.mv-c th.mv-t{display:block;text-align:left!important;font-size:15.5px;font-weight:700;padding:0 0 6px!important;margin-bottom:4px;border-bottom:1px solid var(--line)!important}
+  table.mv-c td.mv-t::before,table.mv-c th.mv-t::before,table.mv-c td.mv-x::before{display:none}
+  table.mv-c td.mv-x{display:block;text-align:left!important}
+  table.mv-c td:empty{display:none}
+  table.mv-c td>*{max-width:100%}
+  .hmenu-pop.mv-fix{position:fixed;left:12px;right:12px;min-width:0}
+}
+</style>
+<script>/* mv1: tablas como tarjetas en el celular; el texto de cada columna sale de su encabezado */
+(function(){
+  const cel = matchMedia('(max-width:700px)');
+  function etiquetas(t){
+    const hs = t.tHead ? [...t.tHead.rows] : [];
+    let fila = hs[hs.length - 1];
+    if (!fila) { const r0 = t.rows[0]; if (!r0 || ![...r0.cells].every(c => c.tagName === 'TH')) return null; fila = r0; r0.classList.add('mv-h'); }
+    const L = [];
+    [...fila.cells].forEach(c => { const n = c.colSpan || 1, tx = c.textContent.replace(/\s+/g, ' ').trim(); for (let i = 0; i < n; i++) L.push(tx); });
+    return L;
+  }
+  function tarjetas(){
+    if (!cel.matches) return;
+    document.querySelectorAll('.view table, .drawer table').forEach(t => {
+      if (t.closest('#polPdf') || t.classList.contains('no-mv')) return;
+      if (!t.classList.contains('mv-c') && t.tBodies[0] && getComputedStyle(t.tBodies[0]).display === 'block') return;   // ya tiene su propio diseño de celular (tiendas de Hoy, Flash, Explorar ventas)
+      const L = etiquetas(t); if (!L || L.length < 3) return;
+      t.classList.add('mv-c');
+      [...t.tBodies].concat(t.tFoot ? [t.tFoot] : []).forEach(b => [...b.rows].forEach(r => {
+        if (r.classList.contains('mv-h')) return;
+        if (r.dataset.mv === '1' && r.cells.length && r.cells[0].hasAttribute('data-l')) return;
+        let k = 0;
+        [...r.cells].forEach((c, i) => {
+          const n = c.colSpan || 1;
+          if (n > 1 && r.cells.length === 1) c.classList.add('mv-x');
+          else if (i === 0) { c.classList.add('mv-t'); c.setAttribute('data-l', L[k] || ''); }
+          else c.setAttribute('data-l', L[k] || '');
+          k += n;
+        });
+        r.dataset.mv = '1';
+      }));
+    });
+  }
+  let pend = false; const pedir = () => { if (pend) return; pend = true; requestAnimationFrame(() => { pend = false; tarjetas(); }); };
+  new MutationObserver(pedir).observe(document.body, {childList: true, subtree: true});
+  cel.addEventListener ? cel.addEventListener('change', pedir) : cel.addListener(pedir);
+  pedir();
+  // Accesos: en el celular el menú se abre debajo del botón, dentro de la pantalla
+  const m = document.getElementById('hMenu');
+  if (m) m.addEventListener('toggle', () => { const pop = m.querySelector('.hmenu-pop'); if (!pop) return;
+    if (m.open && cel.matches) { pop.classList.add('mv-fix'); pop.style.top = Math.round(m.querySelector('summary').getBoundingClientRect().bottom + 6) + 'px'; }
+    else { pop.classList.remove('mv-fix'); pop.style.top = ''; } });
+})();
+</script>
 </body></html>
