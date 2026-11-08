@@ -6186,7 +6186,7 @@ window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "af
    Datos: facturas del ERP sin IVA y SIN clientes, un archivo por mes en los assets del artefacto; índice en db flashdet/indice.
    La tarea diaria de la nube actualiza el mes en curso y el índice. */
 (function(){
-const FD = window.FD = {f: {mes: '', dia: '', canal: 'T', loc: '', ven: '', fam: '', cod: ''}, ver: 'loc', datos: {}, todos: false};
+const FD = window.FD = {f: {mes: '', dia: '', sem: '', canal: 'T', loc: '', ven: '', fam: '', cod: ''}, ver: 'loc', datos: {}, todos: false};
 const LOCS = [['2TMSOL','Mall Sol'],['2TSAMB','Samborondón'],['2TURDE','Urdesa'],['2TCOND','Condado'],['2TJARD','Mall Jardín'],['2TSCAL','Scala'],['2TMKWY','Megakywi'],['2TPORT','Portal'],['2TMMXI','Megamaxi'],['2TUMBAC','Tumbaco'],['2TCUIO','CEDIS Quito'],['2TCGYQ','CEDIS Guayaquil']];
 const LOCN = Object.fromEntries(LOCS), LOCO = Object.fromEntries(LOCS.map((x, i) => [x[0], i]));
 const CEDIS = c => c === '2TCUIO' || c === '2TCGYQ';
@@ -6207,7 +6207,8 @@ function venN(l){
   const a = FD.meta && FD.meta.ase[l]; if (!a) return l;
   const p = a[0].split(/\s+/); return tit((p[2] || p[0]) + ' ' + p[0]);
 }
-const DIM = {loc: 'Tienda', ven: 'Asesor', fam: 'Familia', cod: 'Producto', dia: 'Día'};
+const DIM = {loc: 'Tienda', ven: 'Asesor', fam: 'Familia', cod: 'Producto', dia: 'Día', sem: 'Semana'};
+const finSem = s => { const d = new Date(s + 'T12:00:00'); d.setDate(d.getDate() + 6); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };   // fd4
 const SIG = {loc: 'ven', ven: 'fam', fam: 'cod', cod: 'loc'};
 
 async function json(u){ const r = await fetch(u); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
@@ -6250,7 +6251,7 @@ window.fdAbrir = async function(){
 
 function filtra(R, sin){
   const f = FD.f, S = new Set([].concat(sin || []));
-  return R.filter(x => (f.canal === 'X' || (f.canal === 'B') === CEDIS(x.loc)) && (!f.dia || S.has('dia') || x.d === +f.dia)
+  return R.filter(x => (f.canal === 'X' || (f.canal === 'B') === CEDIS(x.loc)) && (!f.dia || S.has('dia') || x.d === +f.dia) && (!f.sem || S.has('dia') || (x.f >= f.sem && x.f <= finSem(f.sem)))
     && (!f.loc || S.has('loc') || x.loc === f.loc) && (!f.ven || S.has('ven') || x.ven === f.ven) && (!f.fam || S.has('fam') || x.fam === f.fam) && (!f.cod || S.has('cod') || x.cod === f.cod));
 }
 function facturas(D, R){   // facturas de lo filtrado; sin sentido si hay filtro de familia o producto
@@ -6273,11 +6274,14 @@ async function fdPintar(){
   const ultimo = D.dias.length ? +D.dias[D.dias.length - 1].slice(8) : 0;
   // comparación (Diego 4-nov): mismo día de la semana 4 semanas antes (28 días): dom 1-nov vs dom 4-oct
   const isoD = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  const [y0, m0] = m.split('-').map(Number), hastaD = f.dia ? +f.dia : ultimo, desdeD = f.dia ? +f.dia : 1;
+  const [y0, m0] = m.split('-').map(Number), ndM = new Date(y0, m0, 0).getDate();
+  const SEM = []; for (let d = 1; d <= ndM; d++) { const lun = isoD(new Date(y0, m0 - 1, d - (new Date(y0, m0 - 1, d).getDay() + 6) % 7)); let s = SEM[SEM.length - 1]; if (!s || s.k !== lun) SEM.push(s = {k: lun, a: d, b: d}); s.b = d; }   // fd4: semanas lun-dom
+  const SS = f.sem ? SEM.find(s => s.k === f.sem) : null, rgD = (a, b) => { const t = d => DIAS[new Date(y0, m0 - 1, d).getDay()] + ' ' + d; return a === b ? t(a) : t(a) + ' al ' + t(b); };
+  const hastaD = f.dia ? +f.dia : SS ? Math.min(SS.b, ultimo) : ultimo, desdeD = f.dia ? +f.dia : SS ? SS.a : 1;
   const cIni = isoD(new Date(y0, m0 - 1, desdeD - 28)), cFin = isoD(new Date(y0, m0 - 1, hastaD - 28));
   const RC = dim => [...(A ? filtra(A.R, ['dia', dim]) : []), ...filtra(D.R, ['dia', dim])].filter(x => x.f >= cIni && x.f <= cFin);
   const fc = s => { const d = new Date(s + 'T12:00:00'); return DIAS[d.getDay()] + ' ' + d.getDate() + ' ' + MESES[d.getMonth()].slice(0, 3); };
-  const rg = (a, b) => a === b ? fc(a) : fc(a) + ' al ' + fc(b), cTxt = rg(cIni, cFin), aTxt = rg(isoD(new Date(y0, m0 - 1, desdeD)), isoD(new Date(y0, m0 - 1, hastaD)));   // fd3: los dos rangos (Diego 8-nov)
+  const rg = (a, b) => a === b ? fc(a) : fc(a) + ' al ' + fc(b), cTxt = rg(cIni, cFin), aTxt = rg(isoD(new Date(y0, m0 - 1, desdeD)), isoD(new Date(y0, m0 - 1, hastaD)));   // fd3: los dos rangos (Diego 8-nov; semanas lun-dom en fd4)
   let cmp = '';
   { const ta = RC('dia').reduce((a, x) => a + x.s, 0);
     if (ta > 0) { const v = tot / ta - 1; cmp = `<div class="kpi"><b class="${v >= 0 ? 'fd-up' : 'fd-down'}">${v >= 0 ? '+' : ''}${pct(v)}</b><span>${aTxt} vs ${cTxt} (${usd.format(ta)}): mismos días de la semana, 4 semanas antes</span></div>`; } }
@@ -6285,14 +6289,15 @@ async function fdPintar(){
   const [yy, mm] = m.split('-').map(Number);
   const opDia = D.dias.map(x => { const d = new Date(x + 'T12:00:00'); return `<option value="${+x.slice(8)}" ${+f.dia === +x.slice(8) ? 'selected' : ''}>${DIAS[d.getDay()]} ${+x.slice(8)}</option>`; }).join('');
   const seg = (k, t) => `<button class="${f.canal === k ? 'on' : ''}" data-fdc="${k}">${t}</button>`;
-  const chips = ['dia', 'loc', 'ven', 'fam', 'cod'].filter(k => f[k]).map(k => {
-    const t = k === 'dia' ? DIAS[new Date(yy, mm - 1, +f.dia).getDay()] + ' ' + f.dia : k === 'loc' ? LOCN[f.loc] || f.loc : k === 'ven' ? venN(f.ven) : k === 'fam' ? famN(f.fam) : f.cod + ' ' + ((FD.meta.cat[f.cod] || '').slice(0, 28));
+  const opSem = SEM.filter(s => s.a <= ultimo).map(s => `<option value="s:${s.k}" ${f.sem === s.k ? 'selected' : ''}>${rgD(s.a, s.b)}</option>`).join('');
+  const chips = ['dia', 'sem', 'loc', 'ven', 'fam', 'cod'].filter(k => f[k]).map(k => {
+    const t = k === 'dia' ? DIAS[new Date(yy, mm - 1, +f.dia).getDay()] + ' ' + f.dia : k === 'sem' ? (SS ? rgD(SS.a, SS.b) : f.sem) : k === 'loc' ? LOCN[f.loc] || f.loc : k === 'ven' ? venN(f.ven) : k === 'fam' ? famN(f.fam) : f.cod + ' ' + ((FD.meta.cat[f.cod] || '').slice(0, 28));
     return `<button class="chip" data-fdx="${k}" title="Quitar">${e(DIM[k])}: ${e(t)} <b aria-hidden="true">×</b></button>`; }).join('');
   // gráfico por día (sin el filtro de día, para poder elegir otro)
   const RD = filtra(D.R, 'dia'), pd = {}; RD.forEach(x => pd[x.d] = (pd[x.d] || 0) + x.s);
   const nd = new Date(yy, mm, 0).getDate(), mx = Math.max(1, ...Object.values(pd)), W = 760, H = 150, bw = W / nd;
   const barras = Array.from({length: nd}, (_, i) => { const d = i + 1, v = pd[d] || 0, h = Math.max(v > 0 ? 2 : 0, (v / mx) * (H - 22)); const dw = new Date(yy, mm - 1, d).getDay();
-    return `<rect class="b${+f.dia === d ? ' on' : f.dia ? ' dim' : ''}" data-fdd="${d}" x="${(i * bw + 1.5).toFixed(1)}" y="${(H - 14 - h).toFixed(1)}" width="${(bw - 3).toFixed(1)}" height="${h.toFixed(1)}"><title>${DIAS[dw]} ${d}: ${usd2.format(v)}</title></rect>${d === 1 || d % 5 === 0 ? `<text x="${(i * bw + bw / 2).toFixed(1)}" y="${H - 2}" text-anchor="middle">${d}</text>` : ''}`; }).join('');
+    return `<rect class="b${+f.dia === d || (SS && d >= SS.a && d <= SS.b) ? ' on' : f.dia || SS ? ' dim' : ''}" data-fdd="${d}" x="${(i * bw + 1.5).toFixed(1)}" y="${(H - 14 - h).toFixed(1)}" width="${(bw - 3).toFixed(1)}" height="${h.toFixed(1)}"><title>${DIAS[dw]} ${d}: ${usd2.format(v)}</title></rect>${d === 1 || d % 5 === 0 ? `<text x="${(i * bw + bw / 2).toFixed(1)}" y="${H - 2}" text-anchor="middle">${d}</text>` : ''}`; }).join('');
   // ranking por la dimensión elegida
   const ver = FD.ver, G = agrupa(filtra(D.R, ver), ver).sort((a, b) => b.s - a.s), gt = G.reduce((a, x) => a + x.s, 0) || 1, gmx = Math.max(1, ...G.map(x => x.s));
   let ant = {};
@@ -6312,7 +6317,7 @@ async function fdPintar(){
     <div class="sec-h"><h2>Explorar ventas</h2><span class="hint">Facturas del ERP, sin IVA ni clientes; facturas y artículos netos de notas de crédito, como el POS · al ${hasta.getDate()} de ${MESES[hasta.getMonth()]}. Lo de hoy está arriba, en vivo.</span></div>
     <div class="fd-ctl">
       <select id="fdMes" aria-label="Mes">${ms.map(x => `<option value="${x}" ${x === m ? 'selected' : ''}>${tit(MESES[+x.slice(5) - 1])} ${x.slice(0, 4)}</option>`).join('')}</select>
-      <select id="fdDia" aria-label="Día"><option value="">Todo el mes</option>${opDia}</select>
+      <select id="fdDia" aria-label="Día"><option value="">Todo el mes</option><optgroup label="Semana (lunes a domingo)">${opSem}</optgroup><optgroup label="Día">${opDia}</optgroup></select>
       <span class="seg">${seg('T', 'Tiendas')}${seg('B', 'CEDIS B2B')}${seg('X', 'Todo')}</span>
     </div>
     <div class="fd-crumbs">${chips || '<span class="todo">Toca una barra o una fila para bajar al detalle.</span>'}</div>
@@ -6326,11 +6331,11 @@ async function fdPintar(){
     <div class="panel flush scroll"><table class="exec fd-t"><thead><tr><th>${DIM[ver]}</th><th class="num">Venta</th><th class="num hide-sm">%</th><th class="bc"></th><th class="num">${colN}</th>${uCol ? '' : '<th class="num">Art./fact.</th>'}<th class="num hide-sm">vs ant.</th></tr></thead><tbody>${filas || '<tr><td colspan="7" class="empty">Sin ventas con estos filtros.</td></tr>'}</tbody></table></div>
     ${lista.length > 25 ? `<button class="btn fd-mas" id="fdTodos">${FD.todos ? 'Ver solo los 25 primeros' : 'Ver las ' + lista.length}</button>` : ''}
   </section>`;
-  el.querySelector('#fdMes').onchange = ev => { f.mes = ev.target.value; f.dia = ''; FD.todos = false; fdPintar(); };
-  el.querySelector('#fdDia').onchange = ev => { f.dia = ev.target.value; fdPintar(); };
+  el.querySelector('#fdMes').onchange = ev => { f.mes = ev.target.value; f.dia = ''; f.sem = ''; FD.todos = false; fdPintar(); };
+  el.querySelector('#fdDia').onchange = ev => { const v = ev.target.value; if (/^s:/.test(v)) { f.sem = v.slice(2); f.dia = ''; } else { f.dia = v; f.sem = ''; } fdPintar(); };
   el.querySelectorAll('[data-fdc]').forEach(b => b.onclick = () => { f.canal = b.dataset.fdc; if (f.loc && (f.canal === 'B') !== CEDIS(f.loc) && f.canal !== 'X') f.loc = ''; fdPintar(); });
   el.querySelectorAll('[data-fdx]').forEach(b => b.onclick = () => { f[b.dataset.fdx] = ''; fdPintar(); });
-  el.querySelectorAll('[data-fdd]').forEach(b => b.onclick = () => { f.dia = +f.dia === +b.dataset.fdd ? '' : b.dataset.fdd; fdPintar(); });
+  el.querySelectorAll('[data-fdd]').forEach(b => b.onclick = () => { f.dia = +f.dia === +b.dataset.fdd ? '' : b.dataset.fdd; f.sem = ''; fdPintar(); });
   el.querySelectorAll('[data-fdv]').forEach(b => b.onclick = () => { FD.ver = b.dataset.fdv; FD.todos = false; fdPintar(); });
   el.querySelectorAll('[data-fdk]').forEach(r => r.onclick = () => { f[ver] = r.dataset.fdk; let s = SIG[ver]; for (let i = 0; i < 4 && f[s]; i++) s = SIG[s]; FD.ver = s; FD.todos = false; fdPintar(); });
   const t = el.querySelector('#fdTodos'); if (t) t.onclick = () => { FD.todos = !FD.todos; fdPintar(); };
