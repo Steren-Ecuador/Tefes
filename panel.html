@@ -1584,7 +1584,7 @@ function hlPintar(filas, todas){
 }
 /* mn1: sub-opciones del menú por temas (Diego 8-nov): una vista muestra solo la parte elegida */
 (function(){
-  const MN_T = {"hoy": [["hoy", "", "Hoy"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "", "Flash de ventas"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "extra", "Inventario EXTRA"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "vf", "Venta futura"], ["clientes", "rec", "Reclamos"]]};
+  const MN_T = {"hoy": [["hoy", "", "Hoy"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "", "Flash de ventas"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "extra", "Inventario EXTRA"], ["inventario", "stock", "Consultar stock"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "vf", "Venta futura"], ["clientes", "rec", "Reclamos"]]};
   window.MN_SUB = window.MN_SUB || {};
   const subsDe = v => { const r = []; Object.keys(MN_T).forEach(t => MN_T[t].forEach(x => { if (x[0] === v && x[1]) r.push(x); })); return r; };
   const vistaEl = v => document.querySelector('.view[data-view="' + v + '"]');
@@ -1640,6 +1640,14 @@ function hlPintar(filas, todas){
       '<div class="scroll"><table><thead><tr><th>Asesor</th><th>Último ingreso</th><th class="num">Ingresos 7 d</th><th class="num">Ingresos del mes</th></tr></thead><tbody>' +
       L.map(([n, u]) => '<tr><td class="store">' + esc(n) + '<div class="small faint">' + esc(u.t || '') + '</div></td><td>' + (u.ult ? esc(fmtF(u.ult.slice(0, 10), u.ult.slice(11, 16))) + ' · hace ' + dias(u.ult.slice(0, 10), hoy) + ' d' : '<span class="pill p-bad">Nunca</span>') + '</td><td class="num">' + (u.i7 || '<span class="zero">0</span>') + '</td><td class="num">' + (u.im || '<span class="zero">0</span>') + '</td></tr>').join('') + '</tbody></table></div>';
   }
+  /* mrc1: Consultar stock dentro de Mercadería */
+  function mrcStock(el){
+    let w = el.querySelector(':scope > #mrcStock'); if (!w) { w = document.createElement('section'); w.id = 'mrcStock'; w.className = 'panel'; const c = el.querySelector(':scope > .mn-chips'); c ? c.after(w) : el.prepend(w); }
+    const a = document.querySelector('#stockLnk[href], #stockBtn a[href]'), u = a ? a.href : '';
+    const h = u ? '<a class="mrc-stk" href="' + esc(u) + '" target="_blank" rel="noopener"><span class="mrc-i">🔍</span><span><b>Consultar stock</b><small>Escanea o escribe un código y mira cuánto hay en cada tienda y bodega</small></span><span class="mrc-f">›</span></a>' : '<div class="skeleton">Cargando el enlace de stock…</div>';
+    if (w.innerHTML !== h) w.innerHTML = h;
+    if (!u) setTimeout(() => { if (MN_SUB.inventario === 'stock' && !el.hidden) mrcStock(el); }, 1500);
+  }
   function aplicar(v){
     const el = vistaEl(v), S = subsDe(v); if (!el || !S.length) return;
     if (!S.some(x => x[1] === MN_SUB[v])) MN_SUB[v] = S[0][1];
@@ -1647,6 +1655,7 @@ function hlPintar(filas, todas){
     chips(el, v, S); etiquetar(v, el);
     if (CT_K[MN_SUB[v]]) ctLista(el, MN_SUB[v]);
     if (v === 'equipo' && MN_SUB[v] === 'ase') asesores();
+    if (v === 'inventario' && MN_SUB[v] === 'stock') mrcStock(el);   // mrc1
   }
   window.mnAplicar = aplicar;
   window.mnSubBar = (sub, tOn, on, btn) => {
@@ -1662,7 +1671,7 @@ function hlPintar(filas, todas){
     const el = vistaEl(v); if (!el) return;
     new MutationObserver(() => { if (!el.hidden) aplicar(v); }).observe(el, {attributes: true, attributeFilter: ['hidden']});
     let pend = false;
-    new MutationObserver(ms => { if (el.hidden || ms.every(m => m.target.closest && m.target.closest('.mn-ctw,.mn-chips,#mnAse'))) return;
+    new MutationObserver(ms => { if (el.hidden || ms.every(m => m.target.closest && m.target.closest('.mn-ctw,.mn-chips,#mnAse,#mrcStock'))) return;
       if (pend) return; pend = true; requestAnimationFrame(() => { pend = false; etiquetar(v, el); if (CT_K[MN_SUB[v]]) ctLista(el, MN_SUB[v]); if (v === 'equipo' && MN_SUB[v] === 'ase') asesores(); }); })
       .observe(el, {childList: true, subtree: true});
     if (!el.hidden) aplicar(v);
@@ -3684,7 +3693,7 @@ pintarYo();
   /* mbt1: la barra usa los temas del menú de la computadora (window.TEM.temas) */
   const T_ABAJO = ['hoy', 'supervision', 'ventas', 'inventarios'];
   const T_ICO = {hoy: P.hoy, supervision: P.supervision, anuncios: P.anuncios, ventas: P.flash, inventarios: P.inventario, politicas: P.politicas, uso: P.equipo, contactos: P.contactos, clientes: P.reclamos, sistema: P.enlaces};
-  const T_CORTO = {supervision: 'Supervisión', inventarios: 'Inventarios', uso: 'Uso app'};
+  const T_CORTO = {supervision: 'Supervisión', inventarios: 'Mercadería', uso: 'Uso app'};
   const ultimaT = {};
   const nums = vb => { let bad = 0, neu = 0; vb.forEach(b => b.querySelectorAll('.n').forEach(n => { const k = parseInt(n.textContent, 10); if (k > 0 && !n.hidden) { if (n.classList.contains('bad')) bad += k; else neu += k; } })); return bad ? '<span class="n bad">' + bad + '</span>' : neu ? '<span class="n">' + neu + '</span>' : ''; };
   function pintar(){
@@ -4047,7 +4056,7 @@ button.cal-fila:hover{background:var(--surface-2)}
 <script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "¿Qué buscas? Inventario, Scala, política…",
-  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash"]}, {"id": "inventarios", "nombre": "Inventarios", "vistas": ["inventario"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["contactos"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["clientes"]}],
+  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash"]}, {"id": "inventarios", "nombre": "Mercadería", "vistas": ["inventario"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["contactos"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["clientes"]}],
   items: [{"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa y validar", "kw": "inicio resumen mapa validar actividades caja chica"}, {"t": "Anuncios a tiendas", "v": "anuncios", "sub": "Anuncios", "kw": "anuncios avisos comunicados publicar aviso semana leyeron lectura confirmar"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Clientes", "v": "clientes", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Supervisión", "v": "supervision", "sub": "Tiendas · hacer o revisar una supervisión", "kw": "supervisar visita checklist nueva supervision puntaje hoja"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Contactos de tiendas", "v": "contactos", "sub": "Contactos · por ciudad, con encargado y celular del gerente", "kw": "telefono whatsapp correo llamar personas gerente tienda encargado celular ciudad contactos"}],
   extra: function(){
     const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
@@ -4621,6 +4630,18 @@ table.us.hl .hl-pc{display:inline-block;min-width:44px;text-align:center;padding
   body .tem-sub button{flex:none;font-size:13px;padding:7px 13px}
   body .mn-chips{display:none!important}
 }
+</style>
+<style>
+/* mrc1: Consultar stock dentro de Mercadería; sin menú Accesos */
+.view[data-view="inventario"][data-sub="stock"]>:not(#mrcStock):not(.mn-chips){display:none!important}
+.view[data-view="inventario"]:not([data-sub="stock"])>#mrcStock{display:none}
+#mrcStock{padding:14px}
+.mrc-stk{display:flex;align-items:center;gap:14px;padding:16px;border-radius:14px;background:#0078be;color:#fff;text-decoration:none}
+.mrc-stk:hover{background:#006aa8}
+.mrc-stk .mrc-i{font-size:26px}.mrc-stk b{display:block;font-size:17px}.mrc-stk small{display:block;opacity:.9;font-size:13px;margin-top:2px}
+.mrc-stk .mrc-f{margin-left:auto;font-size:26px}
+#stockBtn{display:none!important}
+.bar #nuevaSup{display:none!important}
 </style>
 </body>
 </html>
