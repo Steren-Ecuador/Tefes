@@ -1601,6 +1601,7 @@ function renderUso(){
 /* ---------- correos automáticos enviados (pestaña Correos de la hoja privada, la escribe Notificaciones.gs) ---------- */
 function renderCorreos(){
   const box = $('#correosBody'); if (!box) return;
+  box.innerHTML = ''; box.hidden = true; return;   // cx1 (Diego 8-nov): la tabla de correos automáticos se quitó; los correos se siguen enviando igual
   if (st.correos === undefined || st.rg === undefined) { box.innerHTML = ''; return; }
   const rows = (st.correos || []).slice(1).filter(r => r[0] && r[4]);
   const head = '<div class="eyebrow" style="margin:18px 0 6px">Correos automáticos enviados</div>';
