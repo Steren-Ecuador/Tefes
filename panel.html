@@ -1265,7 +1265,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   <div class="view" data-view="guias" hidden>
     <div id="guiBody"><div class="skeleton">Cargando manuales y guías…</div></div>
     <section class="panel" id="universidad" hidden>
-      <div class="panel-h"><h2>Universidad Steren<span class="cfil"></span></h2><span class="small faint">Tabla de tiendas: gana quien tiene más cursos aprobados; si empatan, más cursos en la semana y luego mejor %. Toca una tienda para ver a su equipo.</span></div>
+      <div class="panel-h"><h2>Universidad Steren<span class="cfil"></span></h2><span class="small faint">Tabla de tiendas: gana quien tiene más cursos de carrera; si empatan, los microcursos (como el gol diferencia), luego la semana y el %. Toca una tienda para ver a su equipo.</span></div>
       <div id="uniBody"></div>
     </section>
   </div>
@@ -1807,28 +1807,29 @@ function render(){
 
 /* ---------- actividades del mes de las tiendas (actividades-mes, vía apiActividadesPanel; solo lectura) ---------- */
 /* uni1: informe de actividad en Universidad Steren (pestaña privada "Universidad asesores", se lee cada mañana) */
-/* us1: ranking de tiendas tipo tabla de fútbol (cursos aprobados > última semana > % aprobados); tocar una tienda abre su equipo */
+/* us1+uc1: ranking de tiendas tipo tabla de fútbol: puntos = cursos de carrera; micro = gol diferencia; luego semana y %. Tocar una tienda abre su equipo */
 function uniInformeHtml(U, todas, filtro){
   if (!todas) return uniInformeHtml0(U, todas, filtro);
   const fd = i => new Date(i + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'short'});
   const F = (U && U.filas || []).filter(x => !filtro || filtro(x));
   if (!U || !U.fecha || !F.length) return '<div class="uni-s">Todavía no hay datos de la Universidad para mostrar.</div>';
+  const ca = x => x.carr != null ? x.carr : x.ok, mi = x => x.mic != null ? x.mic : 0, se = x => x.semC !== undefined ? x.semC : x.semana;
   const G = {};
-  F.forEach(x => { const k = x.t || 'Sin tienda', g = G[k] || (G[k] = {t: k, ok: 0, asig: 0, sem: null, P: []}); g.ok += x.ok; g.asig += x.asig; if (x.semana != null) g.sem = (g.sem || 0) + x.semana; g.P.push(x); });
-  const pc = (a, b) => b ? a / b : 0, T = Object.values(G).sort((a, b) => b.ok - a.ok || (b.sem || 0) - (a.sem || 0) || pc(b.ok, b.asig) - pc(a.ok, a.asig) || a.t.localeCompare(b.t));
+  F.forEach(x => { const k = x.t || 'Sin tienda', g = G[k] || (G[k] = {t: k, c: 0, m: 0, ok: 0, asig: 0, sem: null, P: []}); g.c += ca(x); g.m += mi(x); g.ok += x.ok; g.asig += x.asig; if (se(x) != null) g.sem = (g.sem || 0) + se(x); g.P.push(x); });
+  const pc = (a, b) => b ? a / b : 0, T = Object.values(G).sort((a, b) => b.c - a.c || b.m - a.m || (b.sem || 0) - (a.sem || 0) || pc(b.ok, b.asig) - pc(a.ok, a.asig) || a.t.localeCompare(b.t));
   const n = e => F.filter(x => x.estado === e).length, emo = e => e === 'rojo' ? '🚨' : e === 'naranja' ? '⚠️' : '';
   const sem = v => v == null ? '—' : v ? '+' + v : '0', pct = (a, b) => Math.round(pc(a, b) * 100) + '%';
-  const filaP = (x, k) => '<tr class="us-p" data-us="' + k + '" hidden><td class="p">' + emo(x.estado) + '</td><td class="l">' + esc(x.n) + '<span class="us-r">' + (x.visita ? 'entró hace ' + x.dias + ' d' : 'nunca entró') + '</span></td><td class="k">' + x.ok + '</td><td' + (x.semana ? ' class="up"' : '') + '>' + sem(x.semana) + '</td><td>' + pct(x.ok, x.asig) + '</td></tr>';
+  const filaP = (x, k) => '<tr class="us-p" data-us="' + k + '" hidden><td class="p">' + emo(x.estado) + '</td><td class="l">' + esc(x.n) + '<span class="us-r">' + (x.visita ? 'entró hace ' + x.dias + ' d' : 'nunca entró') + '</span></td><td class="k">' + ca(x) + '</td><td class="m">' + mi(x) + '</td><td' + (se(x) ? ' class="up"' : '') + '>' + sem(se(x)) + '</td><td>' + pct(x.ok, x.asig) + '</td></tr>';
   return '<div class="uni-s">Actualizado al <b>' + fd(U.fecha) + '</b> · ' + F.length + ' personas en ' + T.length + ' tiendas</div>' +
     '<div class="uni-res">' + (n('rojo') ? '<span class="uni-e r">' + n('rojo') + ' en alerta</span>' : '') + (n('naranja') ? '<span class="uni-e a">' + n('naranja') + ' en atención</span>' : '') + '<span class="uni-e o">' + n('ok') + ' al día</span></div>' +
-    '<div class="us-w"><table class="us no-mv"><colgroup><col class="c1"><col><col class="c3"><col class="c4"><col class="c5"></colgroup><thead><tr><th class="p">#</th><th class="l">Tienda</th><th>Cursos</th><th>Semana</th><th>%</th></tr></thead><tbody>' +
+    '<div class="us-w"><table class="us no-mv"><colgroup><col class="c1"><col><col class="c3"><col class="c6"><col class="c4"><col class="c5"></colgroup><thead><tr><th class="p">#</th><th class="l">Tienda</th><th>Carrera</th><th>Micro</th><th>Sem.</th><th>%</th></tr></thead><tbody>' +
     T.map((g, i) => { const k = 'u' + i, al = g.P.filter(x => x.estado === 'rojo').length;
       return '<tr class="us-t' + (i >= T.length - 2 && T.length > 4 ? ' us-z' : '') + '" data-ust="' + k + '"><td class="p"><span class="us-n' + (i < 3 ? ' g' + (i + 1) : '') + '">' + (i + 1) + '</span></td>' +
         '<td class="l"><b>' + esc(g.t) + '</b><span class="us-c">▶</span>' + (al ? ' <span title="en alerta">🚨' + (al > 1 ? al : '') + '</span>' : '') + '</td>' +
-        '<td class="k">' + g.ok + '</td><td' + (g.sem ? ' class="up"' : '') + '>' + sem(g.sem) + '</td><td>' + pct(g.ok, g.asig) + '</td></tr>' +
-        g.P.slice().sort((a, b) => b.ok - a.ok || (b.semana || 0) - (a.semana || 0)).map(x => filaP(x, k)).join('');
+        '<td class="k">' + g.c + '</td><td class="m">' + g.m + '</td><td' + (g.sem ? ' class="up"' : '') + '>' + sem(g.sem) + '</td><td>' + pct(g.ok, g.asig) + '</td></tr>' +
+        g.P.slice().sort((a, b) => ca(b) - ca(a) || mi(b) - mi(a) || (se(b) || 0) - (se(a) || 0)).map(x => filaP(x, k)).join('');
     }).join('') + '</tbody></table></div>' +
-    '<div class="us-ley">Cursos: aprobados en total por el equipo. Semana: aprobados en los últimos 7 días. %: aprobados sobre asignados. Toca una tienda para ver a su equipo. 🚨 más de 14 días sin entrar o ningún curso en la semana teniendo pendientes; ⚠️ de 8 a 14 días sin entrar o más de 10 pendientes.</div>';
+    '<div class="us-ley">Carrera: cursos de las carreras aprobados por el equipo (son los puntos). Micro: microcursos sueltos de producto; desempatan, como el gol diferencia. Sem.: cursos de carrera aprobados en los últimos 7 días. %: aprobados sobre asignados. Toca una tienda para ver a su equipo. 🚨 más de 14 días sin entrar o ningún curso en la semana teniendo pendientes; ⚠️ de 8 a 14 días sin entrar o más de 10 pendientes.</div>';
 }
 document.addEventListener('click', e => { const r = e.target.closest && e.target.closest('tr.us-t'); if (!r) return;
   const on = !r.classList.contains('on'); r.classList.toggle('on', on);
@@ -4724,5 +4725,6 @@ table.us.hl .hl-pc{display:inline-block;min-width:44px;text-align:center;padding
 .ct3-falta{font-size:13px;color:var(--bad,#b3261e)}
 @media(max-width:700px){.ct3-grid{grid-template-columns:minmax(0,1fr)}.ct3-sem{gap:3px}.ct3-sem span{font-size:10px}}
 </style>
+<style>/* uc1 */table.us col.c3{width:54px}table.us col.c6{width:44px}table.us col.c4{width:46px}table.us col.c5{width:42px}table.us td.m{opacity:.7}</style>
 </body>
 </html>

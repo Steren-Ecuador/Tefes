@@ -849,7 +849,7 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
   <div class="view" data-view="guias" hidden>
     <div id="guiBody"><div class="skeleton">Cargando manuales y guías…</div></div>
     <section class="panel" id="universidad" hidden>
-      <div class="panel-h"><h2>Universidad Steren</h2><span class="small faint">Tabla de tiendas: gana quien tiene más cursos aprobados; si empatan, más cursos en la semana y luego mejor %. Toca una tienda para ver a su equipo.</span></div>
+      <div class="panel-h"><h2>Universidad Steren</h2><span class="small faint">Tabla de tiendas: gana quien tiene más cursos de carrera; si empatan, los microcursos (como el gol diferencia), luego la semana y el %. Toca una tienda para ver a su equipo.</span></div>
       <div id="uniBody"></div>
     </section>
   </div>
@@ -1253,7 +1253,7 @@ async function cargar(fresh){
     contactos: g('Contactos!A1:I', CLAVES),
     wa: g("'WhatsApp gerentes'!A1:D", CLAVES).catch(() => null),
     aud: g('Auditores!A1:D', CLAVES).catch(() => null),
-    uni: g("'Universidad asesores'!A1:Q", CLAVES).catch(() => getRange1("'Universidad asesores'!A1:Q", true, CLAVES)).catch(() => null),   // uni1: si falla la lectura en lote, va sola; si igual falla, avisa (uni2)
+    uni: g("'Universidad asesores'!A1:R", CLAVES).catch(() => getRange1("'Universidad asesores'!A1:R", true, CLAVES)).catch(() => null),   // uni1: si falla la lectura en lote, va sola; si igual falla, avisa (uni2)
     act: Promise.all([g('Actividades!A1:G').catch(() => [[]]), g("'Actividades entregadas'!A1:H").catch(() => [[]])]).then(([de, en]) => ({de, en})),
     anun: Promise.all([g('Anuncios!A1:I'), g("'Lecturas de anuncios'!A1:F"), g('Personal!A1:G')]).then(([an, le, pe]) => ({an, le, pe})),
     mue: Promise.all([g('MueEstado!A1:E', CLAVES), g('MueLista!A1:S', CLAVES), g('MueCorrecciones!A1:M', CLAVES).catch(() => [[]]), g("'Informes de inventario'!A1:P", CLAVES).catch(() => [[]])]).then(([me, ml, co, inf]) => ({me, ml, co, inf})),
@@ -1871,28 +1871,29 @@ function actPeriodos(desde, hoy){
 }
 function actVence(p, dia){ const d = new Date(+p.slice(0, 4), +p.slice(5, 7), Math.min(dia, 28), 12); while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() - 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 /* uni1: informe de actividad en Universidad Steren (pestaña privada "Universidad asesores", se lee cada mañana) */
-/* us1: ranking de tiendas tipo tabla de fútbol (cursos aprobados > última semana > % aprobados); tocar una tienda abre su equipo */
+/* us1+uc1: ranking de tiendas tipo tabla de fútbol: puntos = cursos de carrera; micro = gol diferencia; luego semana y %. Tocar una tienda abre su equipo */
 function uniInformeHtml(U, todas, filtro){
   if (!todas) return uniInformeHtml0(U, todas, filtro);
   const fd = i => new Date(i + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'short'});
   const F = (U && U.filas || []).filter(x => !filtro || filtro(x));
   if (!U || !U.fecha || !F.length) return '<div class="uni-s">Todavía no hay datos de la Universidad para mostrar.</div>';
+  const ca = x => x.carr != null ? x.carr : x.ok, mi = x => x.mic != null ? x.mic : 0, se = x => x.semC !== undefined ? x.semC : x.semana;
   const G = {};
-  F.forEach(x => { const k = x.t || 'Sin tienda', g = G[k] || (G[k] = {t: k, ok: 0, asig: 0, sem: null, P: []}); g.ok += x.ok; g.asig += x.asig; if (x.semana != null) g.sem = (g.sem || 0) + x.semana; g.P.push(x); });
-  const pc = (a, b) => b ? a / b : 0, T = Object.values(G).sort((a, b) => b.ok - a.ok || (b.sem || 0) - (a.sem || 0) || pc(b.ok, b.asig) - pc(a.ok, a.asig) || a.t.localeCompare(b.t));
+  F.forEach(x => { const k = x.t || 'Sin tienda', g = G[k] || (G[k] = {t: k, c: 0, m: 0, ok: 0, asig: 0, sem: null, P: []}); g.c += ca(x); g.m += mi(x); g.ok += x.ok; g.asig += x.asig; if (se(x) != null) g.sem = (g.sem || 0) + se(x); g.P.push(x); });
+  const pc = (a, b) => b ? a / b : 0, T = Object.values(G).sort((a, b) => b.c - a.c || b.m - a.m || (b.sem || 0) - (a.sem || 0) || pc(b.ok, b.asig) - pc(a.ok, a.asig) || a.t.localeCompare(b.t));
   const n = e => F.filter(x => x.estado === e).length, emo = e => e === 'rojo' ? '🚨' : e === 'naranja' ? '⚠️' : '';
   const sem = v => v == null ? '—' : v ? '+' + v : '0', pct = (a, b) => Math.round(pc(a, b) * 100) + '%';
-  const filaP = (x, k) => '<tr class="us-p" data-us="' + k + '" hidden><td class="p">' + emo(x.estado) + '</td><td class="l">' + esc(x.n) + '<span class="us-r">' + (x.visita ? 'entró hace ' + x.dias + ' d' : 'nunca entró') + '</span></td><td class="k">' + x.ok + '</td><td' + (x.semana ? ' class="up"' : '') + '>' + sem(x.semana) + '</td><td>' + pct(x.ok, x.asig) + '</td></tr>';
+  const filaP = (x, k) => '<tr class="us-p" data-us="' + k + '" hidden><td class="p">' + emo(x.estado) + '</td><td class="l">' + esc(x.n) + '<span class="us-r">' + (x.visita ? 'entró hace ' + x.dias + ' d' : 'nunca entró') + '</span></td><td class="k">' + ca(x) + '</td><td class="m">' + mi(x) + '</td><td' + (se(x) ? ' class="up"' : '') + '>' + sem(se(x)) + '</td><td>' + pct(x.ok, x.asig) + '</td></tr>';
   return '<div class="uni-s">Actualizado al <b>' + fd(U.fecha) + '</b> · ' + F.length + ' personas en ' + T.length + ' tiendas</div>' +
     '<div class="uni-res">' + (n('rojo') ? '<span class="uni-e r">' + n('rojo') + ' en alerta</span>' : '') + (n('naranja') ? '<span class="uni-e a">' + n('naranja') + ' en atención</span>' : '') + '<span class="uni-e o">' + n('ok') + ' al día</span></div>' +
-    '<div class="us-w"><table class="us no-mv"><colgroup><col class="c1"><col><col class="c3"><col class="c4"><col class="c5"></colgroup><thead><tr><th class="p">#</th><th class="l">Tienda</th><th>Cursos</th><th>Semana</th><th>%</th></tr></thead><tbody>' +
+    '<div class="us-w"><table class="us no-mv"><colgroup><col class="c1"><col><col class="c3"><col class="c6"><col class="c4"><col class="c5"></colgroup><thead><tr><th class="p">#</th><th class="l">Tienda</th><th>Carrera</th><th>Micro</th><th>Sem.</th><th>%</th></tr></thead><tbody>' +
     T.map((g, i) => { const k = 'u' + i, al = g.P.filter(x => x.estado === 'rojo').length;
       return '<tr class="us-t' + (i >= T.length - 2 && T.length > 4 ? ' us-z' : '') + '" data-ust="' + k + '"><td class="p"><span class="us-n' + (i < 3 ? ' g' + (i + 1) : '') + '">' + (i + 1) + '</span></td>' +
         '<td class="l"><b>' + esc(g.t) + '</b><span class="us-c">▶</span>' + (al ? ' <span title="en alerta">🚨' + (al > 1 ? al : '') + '</span>' : '') + '</td>' +
-        '<td class="k">' + g.ok + '</td><td' + (g.sem ? ' class="up"' : '') + '>' + sem(g.sem) + '</td><td>' + pct(g.ok, g.asig) + '</td></tr>' +
-        g.P.slice().sort((a, b) => b.ok - a.ok || (b.semana || 0) - (a.semana || 0)).map(x => filaP(x, k)).join('');
+        '<td class="k">' + g.c + '</td><td class="m">' + g.m + '</td><td' + (g.sem ? ' class="up"' : '') + '>' + sem(g.sem) + '</td><td>' + pct(g.ok, g.asig) + '</td></tr>' +
+        g.P.slice().sort((a, b) => ca(b) - ca(a) || mi(b) - mi(a) || (se(b) || 0) - (se(a) || 0)).map(x => filaP(x, k)).join('');
     }).join('') + '</tbody></table></div>' +
-    '<div class="us-ley">Cursos: aprobados en total por el equipo. Semana: aprobados en los últimos 7 días. %: aprobados sobre asignados. Toca una tienda para ver a su equipo. 🚨 más de 14 días sin entrar o ningún curso en la semana teniendo pendientes; ⚠️ de 8 a 14 días sin entrar o más de 10 pendientes.</div>';
+    '<div class="us-ley">Carrera: cursos de las carreras aprobados por el equipo (son los puntos). Micro: microcursos sueltos de producto; desempatan, como el gol diferencia. Sem.: cursos de carrera aprobados en los últimos 7 días. %: aprobados sobre asignados. Toca una tienda para ver a su equipo. 🚨 más de 14 días sin entrar o ningún curso en la semana teniendo pendientes; ⚠️ de 8 a 14 días sin entrar o más de 10 pendientes.</div>';
 }
 document.addEventListener('click', e => { const r = e.target.closest && e.target.closest('tr.us-t'); if (!r) return;
   const on = !r.classList.contains('on'); r.classList.toggle('on', on);
@@ -1920,15 +1921,16 @@ function uniDesdeFilas(F0, pe){
   const isoU = v => { const x = String(v || '').replace(/^'/, '').trim(), m = x.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); return m ? m[3] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2) : x.slice(0, 10); };
   const n = v => Number(String(v == null ? '' : v).replace(',', '.')) || 0, mas = (f, d) => { const x = new Date(f + 'T12:00:00'); x.setDate(x.getDate() + d); return x.toLocaleDateString('en-CA'); };
   const fecha = F.reduce((m, r) => isoU(r[0]) > m ? isoU(r[0]) : m, ''), lim = mas(fecha, -6), antes = {}, hoy = hoyISO();
-  F.forEach(r => { const f = isoU(r[0]), q = String(r[16]).trim(); if (f > lim) return; if (!antes[q] || f > antes[q].f) antes[q] = {f, ok: n(r[10])}; });
+  F.forEach(r => { const f = isoU(r[0]), q = String(r[16]).trim(); if (f > lim) return; if (!antes[q] || f > antes[q].f) antes[q] = {f, ok: n(r[10]), carr: String(r[17] == null ? '' : r[17]).trim() !== '' ? n(r[17]) : n(r[10])}; });   // uc1
   const PER = {}; (pe || []).slice(1).forEach(r => { if (String(r[6] || 'Activo').trim() === 'Activo') PER[nombreCorto(r[0])] = {t: String(r[1]).trim(), c: String(r[4] || '').trim()}; });
   const hayPer = Object.keys(PER).length;
   const L = F.filter(r => isoU(r[0]) === fecha && !/REVELO/i.test(r[16]) && (!hayPer || PER[nombreCorto(r[16])])).map(r => {
     const q = String(r[16]).trim(), asig = n(r[9]), ok = n(r[10]), visita = isoU(r[14]);
     const dias = visita ? Math.round((new Date(hoy + 'T12:00:00') - new Date(visita + 'T12:00:00')) / 864e5) : 99;
     const semana = antes[q] ? Math.max(ok - antes[q].ok, 0) : null, faltan = Math.max(asig - ok, 0);
+    const carr = String(r[17] == null ? '' : r[17]).trim() !== '' ? n(r[17]) : ok, mic = Math.max(ok - carr, 0), semC = antes[q] ? Math.max(carr - antes[q].carr, 0) : null;   // uc1
     const per = PER[nombreCorto(q)] || {t: String(r[1]).split('/')[0].trim(), c: ''};
-    return {n: nombreCorto(q), t: per.t, rol: per.c ? per.c.charAt(0) + per.c.slice(1).toLowerCase() : String(r[4] || ''), asig, ok, visita, dias, semana, faltan,
+    return {n: nombreCorto(q), t: per.t, rol: per.c ? per.c.charAt(0) + per.c.slice(1).toLowerCase() : String(r[4] || ''), asig, ok, carr, mic, semC, visita, dias, semana, faltan,
       estado: dias > 14 || (semana === 0 && faltan > 0) ? 'rojo' : dias > 7 || faltan > 10 ? 'naranja' : 'ok'};
   });
   L.sort((a, b) => b.ok - a.ok || (b.ok / (b.asig || 1)) - (a.ok / (a.asig || 1)));
@@ -6743,4 +6745,5 @@ table.us.hl .hl-pc{display:inline-block;min-width:44px;text-align:center;padding
 .ct3-falta{font-size:13px;color:var(--bad,#b3261e)}
 @media(max-width:700px){.ct3-grid{grid-template-columns:minmax(0,1fr)}.ct3-sem{gap:3px}.ct3-sem span{font-size:10px}}
 </style>
+<style>/* uc1 */table.us col.c3{width:54px}table.us col.c6{width:44px}table.us col.c4{width:46px}table.us col.c5{width:42px}table.us td.m{opacity:.7}</style>
 </body></html>
