@@ -305,7 +305,8 @@
     panelOk(p); var pe = F('Personal'), lp = F('Lecturas de políticas');
     return {pe: [['Nombre completo', 'Tienda', 'Departamento', 'Ciudad', 'Cargo', 'Ingreso', 'Estado']].concat(pe), lp: [['Fecha', 'Hora', 'Política', 'Tienda', 'Persona', 'Cargo', 'Correctas', 'Resultado']].concat(lp)};
   };
-  API.apiAliasNombres = function () { return {}; };   // ma2: alias de nombres; en la prueba no hay alias
+  API.apiAliasNombres = function () { return {}; };
+  API.apiMenusPerfil = function () { var c = ''; try { c = localStorage.getItem('mpfPrueba') || ''; } catch (e) {} return c ? {perfil: 'Prueba', todo: false, claves: JSON.parse(c)} : {perfil: '', todo: true}; };   // mp3: en la prueba ve todo salvo que se fije mpfPrueba   // ma2: alias de nombres; en la prueba no hay alias
   API.apiUniPanel = function (p) { panelOk(p); return {fecha: '', total: 0, filas: []}; };   // Universidad Steren: en la prueba no hay lecturas de cursos
   API.apiUniTienda = function (tok) {   // c01u: datos de ejemplo, uno sin cuenta, uno con carreras a medias y uno sin entrar hace 20 días
     var t = tiendaDe(tok), g = gente(t), hoy = DB.isoDe(new Date());

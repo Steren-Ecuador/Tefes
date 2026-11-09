@@ -1592,6 +1592,7 @@ function hlPintar(filas, todas){
 (function(){
   const MN_T = {"hoy": [["hoy", "", "Hoy"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "", "Flash de ventas"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "extra", "Inventario EXTRA"], ["inventario", "stock", "Consultar stock"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "pf", "Proformas"], ["clientes", "vf", "Lista de espera"]]};
   window.MN_SUB = window.MN_SUB || {};
+  window.MN_T_REF = MN_T;   // mp3
   const subsDe = v => { const r = []; Object.keys(MN_T).forEach(t => MN_T[t].forEach(x => { if (x[0] === v && x[1]) r.push(x); })); return r; };
   const vistaEl = v => document.querySelector('.view[data-view="' + v + '"]');
   const CT_K = {tel: 'Teléfonos de las tiendas', wa: 'WhatsApp de las tiendas', mail: 'Correos de las tiendas', hor: 'Horarios de atención al público'};
@@ -4794,5 +4795,34 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
   setTimeout(ir, 1500);
 })();</script>
 <style>/* cl1 */.view[data-view="clientes"] #recBody{display:none!important}.view[data-view="clientes"][data-sub="pf"] #vfBody,.view[data-view="clientes"][data-sub="vf"] #pfBody{display:none!important}</style>
+<script>/* mp3: menús por perfil */
+(function(){
+  const K = {'hoy|': 'hoy/hoy', 'supervision|': 'supervision/nueva', 'pendientes|': 'supervision/pendientes', 'calendario|': 'supervision/calendario',
+    'anuncios|': 'anuncios/leer', 'flash|': 'ventas/flash', 'inventario|top': 'mercaderia/top', 'inventario|extra': 'mercaderia/extra', 'inventario|stock': 'mercaderia/stock',
+    'universidad|tabla': 'universidad/tabla', 'universidad|gol': 'universidad/gol', 'universidad|car': 'universidad/car', 'universidad|al': 'universidad/al',
+    'politicas|leer': 'politicas/politicas', 'guias|': 'politicas/guias', 'politicas|rep': 'politicas/reporte',
+    'contactos|tel': 'contactos/tel', 'contactos|wa': 'contactos/wa', 'contactos|mail': 'contactos/mail', 'contactos|hor': 'contactos/hor',
+    'clientes|pf': 'clientes/pf', 'clientes|vf': 'clientes/vf'};
+  let quien = '', pedido = false;
+  function aplicar(cfg){
+    window.MPF_CFG = cfg;
+    if (!cfg || cfg.todo || !Array.isArray(cfg.claves)) return;
+    const A = new Set(cfg.claves), M = window.MN_T_REF, tabs = document.getElementById('tabs'); if (!M || !tabs) return;
+    const vivas = {}, todas = {};
+    Object.keys(M).forEach(t => { const keep = M[t].filter(x => { const k = K[x[0] + '|' + x[1]]; todas[x[0]] = 1; const ok = !k || A.has(k); if (ok) vivas[x[0]] = 1; return ok; }); M[t].length = 0; keep.forEach(x => M[t].push(x)); });
+    Object.keys(todas).forEach(v => { if (!vivas[v]) { const b = tabs.querySelector('button[data-v="' + v + '"]'); if (b) { b.dataset.mpf = '1'; b.hidden = true; } } });
+    new MutationObserver(() => tabs.querySelectorAll('button[data-mpf]').forEach(b => { if (!b.hidden) b.hidden = true; })).observe(tabs, {subtree: true, attributes: true, attributeFilter: ['hidden', 'style']});
+    const on = tabs.querySelector('button[data-v].on');
+    if (on && on.hidden) { const p = [...tabs.querySelectorAll('button[data-v]')].find(b => !b.hidden && b.style.display !== 'none'); if (p) p.click(); }
+    tabs.dataset.mn = String(Date.now());
+  }
+  setInterval(() => {
+    const y = window.cvCtx && cvCtx.yo && cvCtx.yo(); if (!y || !y.nombre || pedido && quien === y.nombre) return;
+    if (pedido && quien && quien !== y.nombre) { location.reload(); return; }   // otra persona en el mismo equipo
+    quien = y.nombre; pedido = true;
+    cvCtx.api('apiMenusPerfil', y.nombre).then(aplicar).catch(() => {});
+  }, 700);
+})();
+</script>
 </body>
 </html>
