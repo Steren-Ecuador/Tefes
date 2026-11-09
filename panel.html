@@ -1258,9 +1258,9 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   </div>
 
   <div class="view" data-view="clientes" hidden>
-    <div id="vfBody"><div class="skeleton">Cargando ventas futuras…</div></div>
+    <div id="vfBody"><div class="skeleton">Cargando lista de espera…</div></div>
     <div id="recBody" style="margin-top:26px"><div class="skeleton">Cargando reclamos…</div></div>
-    <div id="pfBody" style="margin-top:26px"></div>
+    <div id="pfBody" style="margin-top:26px"><div class="skeleton">Cargando proformas…</div></div>
   </div>
 
   <div class="view" data-view="guias" hidden>
@@ -1590,7 +1590,7 @@ function hlPintar(filas, todas){
 }
 /* mn1: sub-opciones del menú por temas (Diego 8-nov): una vista muestra solo la parte elegida */
 (function(){
-  const MN_T = {"hoy": [["hoy", "", "Hoy"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "", "Flash de ventas"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "extra", "Inventario EXTRA"], ["inventario", "stock", "Consultar stock"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "vf", "Venta futura"], ["clientes", "rec", "Reclamos"]]};
+  const MN_T = {"hoy": [["hoy", "", "Hoy"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "", "Flash de ventas"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "extra", "Inventario EXTRA"], ["inventario", "stock", "Consultar stock"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "pf", "Proformas"], ["clientes", "vf", "Lista de espera"]]};
   window.MN_SUB = window.MN_SUB || {};
   const subsDe = v => { const r = []; Object.keys(MN_T).forEach(t => MN_T[t].forEach(x => { if (x[0] === v && x[1]) r.push(x); })); return r; };
   const vistaEl = v => document.querySelector('.view[data-view="' + v + '"]');
@@ -3538,8 +3538,8 @@ async function polInfPdf(btn){
 const VF_PILL = {'Esperando': 'p-na', 'Llegó': 'p-good', 'Avisado': 'p-acc', 'Compró': 'p-good', 'No compró': 'p-bad', 'Cancelado': 'p-bad'};
 function renderVF(){
   const el = $('#vfBody'); if (!el || !st.d) return;
-  if (st.vf === undefined) { el.innerHTML = '<div class="skeleton">Cargando ventas futuras…</div>'; return; }
-  if (!st.vf) { el.innerHTML = '<section class="panel"><h2>Ventas futuras</h2><div class="empty">No se pudieron leer las ventas futuras. Pulsa Actualizar.</div></section>'; return; }
+  if (st.vf === undefined) { el.innerHTML = '<div class="skeleton">Cargando lista de espera…</div>'; return; }
+  if (!st.vf) { el.innerHTML = '<section class="panel"><h2>Lista de espera</h2><div class="empty">No se pudo leer la lista de espera. Pulsa Actualizar.</div></section>'; return; }
   const L = st.vf.slice(1).map(r => ({id: String(r[0] || '').trim(), fecha: iso(r[1]), tienda: String(r[3] || ''), asesor: String(r[4] || ''),
     cod: String(r[5] || ''), prod: String(r[6] || ''), cant: num(r[7]) || 1, cli: String(r[8] || ''), cel: String(r[9] || ''), contacto: String(r[11] || ''),
     obs: String(r[12] || ''), estado: String(r[14] || 'Esperando'), llego: iso(r[15]), aviso: iso(r[16]), cierre: iso(r[19]), nota: String(r[20] || ''), cedis: iso(r[21])}))
@@ -3547,7 +3547,7 @@ function renderVF(){
   const ABV = ['Esperando', 'Llegó', 'Avisado'], ab = L.filter(x => ABV.includes(x.estado));
   const fd = f => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f); return m ? (+m[3]) + '/' + (+m[2]) : f; };
   const dd = f => f ? Math.round((new Date(hoyISO() + 'T12:00') - new Date(f + 'T12:00')) / 864e5) : '';
-  if (!L.length) { el.innerHTML = '<section class="panel"><h2>Ventas futuras</h2><div class="empty">Todavía no hay registros. Las tiendas los hacen en Inventario → Registrar venta futura.</div></section>'; return; }
+  if (!L.length) { el.innerHTML = '<section class="panel"><h2>Lista de espera</h2><div class="empty">Todavía no hay registros. Las tiendas los hacen en Inventario → Registrar venta futura.</div></section>'; return; }
   const porCod = {};
   ab.forEach(x => { const p = porCod[x.cod] = porCod[x.cod] || {cod: x.cod, prod: x.prod, cli: 0, u: 0, t: new Set(), lle: 0, cedis: false};
     p.cli++; p.u += x.cant; p.t.add(x.tienda); if (x.estado !== 'Esperando') p.lle++; if (x.cedis && x.estado === 'Esperando') p.cedis = true; });
@@ -3559,7 +3559,7 @@ function renderVF(){
   const tiendas = [...new Set(L.map(x => x.tienda))].sort();
   const chip = (k, t) => `<button class="chip${fE === k ? ' on' : ''}" data-vfe="${k}">${t}</button>`;
   const vendidos = L.filter(x => x.estado === 'Compró').length, cerr = L.filter(x => ['Compró', 'No compró'].includes(x.estado)).length;
-  el.innerHTML = `<div class="sec-h"><h2>Ventas futuras<span class="cfil"></span></h2></div>
+  el.innerHTML = `<div class="sec-h"><h2>Lista de espera<span class="cfil"></span></h2></div>
     <div class="kpis">
       <div class="kpi acc"><b>${ab.filter(x => x.estado === 'Esperando').length}</b><span>clientes esperando</span></div>
       <div class="kpi ${ab.some(x => x.estado === 'Llegó') ? 'warn' : ''}"><b>${ab.filter(x => x.estado === 'Llegó').length}</b><span>llegó, por avisar</span></div>
@@ -3594,7 +3594,7 @@ function renderReclamos(){
     tipo: String(r[3] || '').trim(), origen: String(r[4] || '').trim(), prod: String(r[5] || '').trim(), cli: String(r[6] || '').trim(), nov: String(r[7] || '').trim(),
     acc: String(r[8] || '').trim(), abierto: !/^cerrad/i.test(String(r[9] || '').trim()), cierre: iso(r[10]) || String(r[10] || '').trim()})).filter(x => enCiudad(x.tienda) || x.tienda === 'Por definir');
   const ab = L.filter(x => x.abierto).length;
-  $('#nRec').textContent = ab || '';
+  $('#nRec').textContent = '';   /* cl1: sin reclamos */
   const fd = f => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f); return m ? (+m[3]) + '/' + (+m[2]) : f; };
   if (!L.length) { el.innerHTML = '<section class="panel"><h2>Reclamos de clientes</h2><div class="empty">Todavía no hay reclamos registrados.</div></section>'; return; }
   const fE = st.recE || 'todos', fT = st.recT || '';
@@ -4793,5 +4793,6 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
   };
   setTimeout(ir, 1500);
 })();</script>
+<style>/* cl1 */.view[data-view="clientes"] #recBody{display:none!important}.view[data-view="clientes"][data-sub="pf"] #vfBody,.view[data-view="clientes"][data-sub="vf"] #pfBody{display:none!important}</style>
 </body>
 </html>
