@@ -873,10 +873,10 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
 /* mp2: árbol de menús por app. adm = hoy solo existe en el panel de Diego */
 const MPF_ARBOL = {
   panel: [
-    ['hoy','Hoy',[['hoy','Hoy']]],
+    ['inicio','Inicio',[['validacion','Esperan tu validación'],['supervision','Tabla de posiciones de supervisión'],['ventas','Ventas vs presupuesto (con mapa)'],['actividades','Actividades del mes']]],
     ['supervision','Supervisión',[['nueva','Nueva supervisión'],['pendientes','Todos los pendientes'],['calendario','Calendario']]],
     ['anuncios','Anuncios',[['leer','Leer anuncios'],['publicar','Publicar anuncios',1]]],
-    ['ventas','Ventas',[['flash','Flash de ventas']]],
+    ['ventas','Ventas',[['flash','Flash de ventas'],['explorar','Explorar ventas'],['garantias','Garantías'],['presupuesto','Presupuesto']]],
     ['universidad','Universidad',[['tabla','Tabla'],['gol','Goleadores'],['car','Carreras'],['al','Alertas']]],
     ['mercaderia','Mercadería',[['top','Inventario Top 50'],['extra','Inventario EXTRA'],['stock','Consultar stock'],['transferencias','Transferencias',1],['perchas','Perchas',1]]],
     ['politicas','Políticas',[['politicas','Políticas'],['guias','Manuales y guías'],['reporte','Reporte de lectura']]],
@@ -918,19 +918,27 @@ function mpfDefecto(p, tema, op, adm){
 
 (function(){
   const HM = "'Menús por perfil'", HS = 'Supervisores';
-  const S = {sel: 'Gerentes', ve: {}, gente: [], cargado: false, cambios: false, cambiosP: {}, guardando: false, msg: ''};
+  const S = {sel: 'Gerentes', ve: {}, gente: [], cargado: false, cambios: false, cambiosP: {}, guardando: false, msg: '', ord: {}};
   const e = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const k = (p, t, o) => p + '|' + t + '/' + o;
   const perf = p => MPF_PERFILES.find(x => x.p === p);
   const PERF_PERSONA = ['Administrador', 'Gerentes', 'Supervisores'];
   function base(){
     MPF_PERFILES.forEach(x => MPF_ARBOL[x.app].forEach(([t,, ops]) => ops.forEach(([o,, adm]) => { S.ve[k(x.p, t, o)] = mpfDefecto(x.p, t, o, !!adm); })));
+    MPF_PERFILES.forEach(x => S.ord[x.p] = ordenar(x, []));
+  }
+  function ordenar(x, filas){   /* mp4: orden de menús y opciones por perfil = orden de las filas en la hoja */
+    const T = MPF_ARBOL[x.app], ot = [], oo = {};
+    filas.forEach(r => { const [t, o] = String(r[3] || '').split('/'), d = T.find(z => z[0] === t); if (!d || !d[2].some(z => z[0] === o)) return; if (!ot.includes(t)) ot.push(t); oo[t] = oo[t] || []; if (!oo[t].includes(o)) oo[t].push(o); });
+    T.forEach(([t,, ops]) => { if (!ot.includes(t)) ot.push(t); oo[t] = oo[t] || []; ops.forEach(([o]) => { if (!oo[t].includes(o)) oo[t].push(o); }); });
+    return ot.map(t => [t, oo[t]]);
   }
   async function cargar(){
     base();
     try {
-      const [m, s] = await Promise.all([getRange(HM + '!A2:E400', true, CLAVES), getRange(HS + '!A2:J100', true, CLAVES)]);
+      const [m, s] = await Promise.all([getRange(HM + '!A2:G400', true, CLAVES), getRange(HS + '!A2:J100', true, CLAVES)]);
       (m || []).forEach(r => { if (r[0] && r[3]) S.ve[r[0] + '|' + r[3]] = /^s/i.test(String(r[4] || '').trim()); });
+      MPF_PERFILES.forEach(x => S.ord[x.p] = ordenar(x, (m || []).filter(r => r[0] === x.p)));
       S.gente = (s || []).map((r, i) => ({fila: i + 2, nombre: r[0] || '', activo: r[4] || '', cargo: r[8] || '', perfil: r[9] || ''})).filter(x => x.nombre);
       S.cargado = true; S.err = '';
     } catch (er) { S.err = 'No pude leer CLAVES: ' + (er && er.message || er); }
@@ -943,19 +951,20 @@ function mpfDefecto(p, tema, op, adm){
     if (!S.cargado) return;
     const P = perf(S.sel), arbol = MPF_ARBOL[P.app], panel = P.app === 'panel';
     const chips = MPF_PERFILES.map(x => '<button type="button" class="mpf-chip' + (x.p === S.sel ? ' on' : '') + '" data-p="' + e(x.p) + '">' + e(x.p) + '</button>').join('');
-    const temas = arbol.map(([t, tn, ops]) => {
+    const mv = (i, n, t, o) => '<span class="mpf-mv"><button type="button" title="Subir" data-mv="-1" data-t="' + t + '"' + (o ? ' data-o="' + o + '"' : '') + (i === 0 ? ' disabled' : '') + '>↑</button><button type="button" title="Bajar" data-mv="1" data-t="' + t + '"' + (o ? ' data-o="' + o + '"' : '') + (i === n - 1 ? ' disabled' : '') + '>↓</button></span>';
+    const temas = S.ord[S.sel].map(([t, oids], ti, arr) => { const def = arbol.find(z => z[0] === t), tn = def[1], ops = oids.map(o => def[2].find(z => z[0] === o));
       const on = ops.filter(([o]) => S.ve[k(S.sel, t, o)]).length, todo = on === ops.length, nada = !on;
       const unico = ops.length === 1 && ops[0][1] === tn;
       return '<div class="mpf-t"><label class="mpf-tl"><input type="checkbox" data-t="' + t + '"' + (todo ? ' checked' : '') + (!todo && !nada ? ' data-ind="1"' : '') + '><b>' + e(tn) + '</b>' +
-        (unico && panel && ops[0][2] ? '<span class="mpf-adm">hoy solo en tu panel</span>' : '') + '<span class="mpf-n">' + on + '/' + ops.length + '</span></label>' +
-        (unico ? '' : '<div class="mpf-ops">' + ops.map(([o, on2, adm]) => '<label><input type="checkbox" data-t="' + t + '" data-o="' + o + '"' + (S.ve[k(S.sel, t, o)] ? ' checked' : '') + '>' + e(on2) +
-          (panel && adm ? '<span class="mpf-adm">hoy solo en tu panel</span>' : '') + '</label>').join('') + '</div>') + '</div>';
+        (unico && panel && ops[0][2] ? '<span class="mpf-adm">hoy solo en tu panel</span>' : '') + '<span class="mpf-n">' + on + '/' + ops.length + '</span>' + mv(ti, arr.length, t) + '</label>' +
+        (unico ? '' : '<div class="mpf-ops">' + ops.map(([o, on2, adm], oi) => '<label><input type="checkbox" data-t="' + t + '" data-o="' + o + '"' + (S.ve[k(S.sel, t, o)] ? ' checked' : '') + '>' + e(on2) +
+          (panel && adm ? '<span class="mpf-adm">hoy solo en tu panel</span>' : '') + mv(oi, ops.length, t, o) + '</label>').join('') + '</div>') + '</div>';
     }).join('');
     const gente = S.gente.map(g => '<tr><td><b>' + e(nombreVisible(g.nombre)) + '</b>' + (/^no/i.test(g.activo) ? ' <span class="mpf-adm">inactivo</span>' : '') + '</td><td>' + e(g.cargo) + '</td><td><select data-fila="' + g.fila + '">' +
       ['', ...PERF_PERSONA].map(p => '<option value="' + e(p) + '"' + ((S.cambiosP[g.fila] != null ? S.cambiosP[g.fila] : g.perfil) === p ? ' selected' : '') + '>' + (p || '—') + '</option>').join('') + '</select></td></tr>').join('');
     el.innerHTML =
       '<section class="panel mpf"><div class="panel-h"><h2>1. Qué ve cada perfil</h2><span class="small faint">' + e(P.d) + '</span></div>' +
-      '<div class="mpf-chips">' + chips + '</div>' +
+      '<div class="mpf-chips">' + chips + '</div><p class="mpf-nota">Marca lo que ve y usa ↑ ↓ para ordenar menús y opciones como quieres que aparezcan.</p>' +
       (S.sel === 'Gerentes' || S.sel === 'Supervisores' ? '<p class="mpf-nota">Las opciones marcadas "hoy solo en tu panel" todavía no existen en la app de ' + e(S.sel.toLowerCase()) + ': si las marcas, quedan pedidas y se construyen.</p>' : '') +
       '<div class="mpf-arbol">' + temas + '</div>' +
       '<div class="mpf-bar"><button type="button" class="btn primary" id="mpfGuardar"' + (S.cambios && !S.guardando ? '' : ' disabled') + '>' + (S.guardando ? 'Guardando…' : 'Guardar menús') + '</button><span class="small faint" id="mpfMsg">' + e(S.msg) + '</span></div></section>' +
@@ -970,6 +979,10 @@ function mpfDefecto(p, tema, op, adm){
       if (i.dataset.o) S.ve[k(S.sel, t, i.dataset.o)] = i.checked; else ops.forEach(([o]) => S.ve[k(S.sel, t, o)] = i.checked);
       S.cambios = true; S.msg = 'Sin guardar'; pintar();
     });
+    el.querySelectorAll('.mpf-mv button').forEach(b => b.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); const d = +b.dataset.mv, L = S.ord[S.sel];
+      if (b.dataset.o) { const it = L.find(z => z[0] === b.dataset.t)[1], i = it.indexOf(b.dataset.o); if (it[i + d] == null) return; [it[i], it[i + d]] = [it[i + d], it[i]]; }
+      else { const i = L.findIndex(z => z[0] === b.dataset.t); if (!L[i + d]) return; [L[i], L[i + d]] = [L[i + d], L[i]]; }
+      S.cambios = true; S.msg = 'Sin guardar'; pintar(); });
     el.querySelectorAll('.mpf-tb select').forEach(s => s.onchange = () => { S.cambiosP[s.dataset.fila] = s.value; pintar(); });
     const g = document.getElementById('mpfGuardar'); if (g) g.onclick = guardarMenus;
     const gp = document.getElementById('mpfGuardarP'); if (gp) gp.onclick = guardarPerfiles;
@@ -977,9 +990,9 @@ function mpfDefecto(p, tema, op, adm){
   }
   async function guardarMenus(){
     S.guardando = true; pintar();
-    const filas = [['Perfil', 'Menú', 'Opción', 'Clave', 'Ve']];
-    MPF_PERFILES.forEach(x => MPF_ARBOL[x.app].forEach(([t, tn, ops]) => ops.forEach(([o, on]) => filas.push([x.p, tn, on, t + '/' + o, S.ve[k(x.p, t, o)] ? 'Sí' : 'No']))));
-    try { await setRange(HM + '!A1:E' + filas.length, filas, CLAVES); S.cambios = false; S.msg = 'Guardado ' + new Date().toLocaleTimeString('es-EC', {hour: '2-digit', minute: '2-digit'}); }
+    const filas = [['Perfil', 'Menú', 'Opción', 'Clave', 'Ve', 'Orden menú', 'Orden opción']];
+    MPF_PERFILES.forEach(x => S.ord[x.p].forEach(([t, oids], ti) => { const d = MPF_ARBOL[x.app].find(z => z[0] === t); oids.forEach((o, oi) => filas.push([x.p, d[1], d[2].find(z => z[0] === o)[1], t + '/' + o, S.ve[k(x.p, t, o)] ? 'Sí' : 'No', ti + 1, oi + 1])); }));
+    try { await setRange(HM + '!A1:G' + filas.length, filas, CLAVES); S.cambios = false; S.msg = 'Guardado ' + new Date().toLocaleTimeString('es-EC', {hour: '2-digit', minute: '2-digit'}); }
     catch (er) { S.msg = 'No se guardó: ' + (er && er.message || er); }
     S.guardando = false; pintar();
   }
@@ -1010,13 +1023,15 @@ function mpfDefecto(p, tema, op, adm){
 .mpf{margin-bottom:14px}.mpf-chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
 .mpf-chip{border:1px solid var(--line,#ddd);background:var(--surface,#fff);color:inherit;border-radius:999px;padding:6px 12px;font-weight:600;cursor:pointer}
 .mpf-chip.on{background:var(--accent,#111);border-color:var(--accent,#111);color:var(--accent-ink,#fff)}
-.mpf-arbol{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.mpf-arbol{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
 .mpf-t{border:1px solid var(--line,#e5e5e5);border-radius:10px;padding:8px 10px}
 .mpf-t label{display:flex;align-items:center;gap:8px;padding:3px 0;cursor:pointer}
 .mpf-tl{font-size:15px}.mpf-n{margin-left:auto;font-size:12px;opacity:.6}
 .mpf-ops{padding-left:22px;font-size:13.5px}
 .mpf-adm{font-size:11px;font-weight:600;color:#a07400;background:#fff3cc;border-radius:6px;padding:0 5px;white-space:nowrap}
 .mpf-nota{font-size:12.5px;opacity:.75;margin:0 0 10px}
+.mpf-mv{display:inline-flex;gap:2px;margin-left:6px}.mpf-n+.mpf-mv{margin-left:6px}.mpf-mv button{border:1px solid var(--line,#ddd);background:var(--surface,#fff);color:inherit;border-radius:6px;width:24px;height:22px;padding:0;font-size:12px;line-height:1;cursor:pointer}.mpf-mv button:disabled{opacity:.25;cursor:default}
+.mpf-ops label .mpf-mv{margin-left:auto}
 .mpf-bar{display:flex;align-items:center;gap:12px;margin-top:12px}
 .mpf-tb{width:100%;border-collapse:collapse}.mpf-tb th,.mpf-tb td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line,#eee)}
 .mpf-add{margin-top:10px}.mpf-add summary{cursor:pointer;font-weight:600}.mpf-addf{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.mpf-addf input{flex:1 1 180px}
@@ -1472,7 +1487,7 @@ async function cargar(fresh){
   g("'Dato del día'!A1:D", CLAVES).then(v => { const el = $('#datoDia'); if (el) el.innerHTML = datoHtml(datoDeFilas(v)); }).catch(() => {});   // dd1c
   const extras = {
     ventas: Promise.all([g('Ventas!A1:G', CLAVES), g('Presupuesto!A1:F', CLAVES), g('Curva!A1:AF', CLAVES), g('Flash!A1:I', CLAVES).catch(() => [])]).then(([vv, pp, cc, ff]) => modeloVentas(vv, pp, cc, ff)),
-    sv: g('Supervisores!A1:I', CLAVES),
+    sv: g('Supervisores!A1:J', CLAVES),   // up1: J = Perfil
     correos: g('Correos!A1:F', CLAVES),
     contactos: g('Contactos!A1:I', CLAVES),
     wa: g("'WhatsApp gerentes'!A1:D", CLAVES).catch(() => null),
@@ -1626,7 +1641,7 @@ function hlPintar(filas, todas){
 }
 /* mn1: sub-opciones del menú por temas (Diego 8-nov): una vista muestra solo la parte elegida */
 (function(){
-  const MN_T = {"hoy": [["hoy", "val", "Esperan tu validación"], ["hoy", "sup", "Posiciones de supervisión"], ["hoy", "ven", "Ventas vs presupuesto"], ["hoy", "act", "Actividades del mes"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "fl", "Flash de ventas"], ["flash", "fd", "Explorar ventas"], ["flash", "gar", "Garantías extendidas"], ["flash", "pp", "Presupuesto por persona"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "extra", "Inventario EXTRA"], ["inventario", "stock", "Consultar stock"], ["transferencias", "", "Transferencias"], ["perchas", "", "Perchas"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "uso": [["equipo", "sup", "Uso supervisores"], ["equipo", "ger", "Uso gerentes"], ["equipo", "ase", "Uso asesores"]], "contactos": [["enlaces", "tel", "Teléfonos"], ["enlaces", "wa", "WhatsApp"], ["enlaces", "mail", "Correos"], ["enlaces", "hor", "Horarios de atención"], ["enlaces", "lk", "Enlaces para compartir"]], "clientes": [["reclamos", "pf", "Proformas"], ["reclamos", "vf", "Lista de espera"]], "sistema": [["fuentes", "", "Fuentes"], ["mispendientes", "", "Mis pendientes"], ["catalogo", "", "Catálogo de colaboradores"], ["menus", "", "Menús por perfil"]]};
+  const MN_T = {"hoy": [["hoy", "val", "Esperan tu validación"], ["hoy", "sup", "Posiciones de supervisión"], ["hoy", "ven", "Ventas vs presupuesto"], ["hoy", "act", "Actividades del mes"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "fl", "Flash de ventas"], ["flash", "fd", "Explorar ventas"], ["flash", "gar", "Garantías extendidas"], ["flash", "pp", "Presupuesto por persona"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "stock", "Consultar stock"], ["transferencias", "", "Transferencias"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "uso": [["equipo", "per", "Uso por perfil"], ["equipo", "sup", "Equipo de supervisión"]], "contactos": [["enlaces", "tel", "Teléfonos"], ["enlaces", "wa", "WhatsApp"], ["enlaces", "mail", "Correos"], ["enlaces", "hor", "Horarios de atención"], ["enlaces", "lk", "Enlaces para compartir"]], "clientes": [["reclamos", "pf", "Proformas"], ["reclamos", "vf", "Lista de espera"]], "sistema": [["fuentes", "", "Fuentes"], ["mispendientes", "", "Mis pendientes"], ["catalogo", "", "Catálogo de colaboradores"], ["menus", "", "Menús por perfil"]]};
   window.MN_SUB = window.MN_SUB || {};
   const subsDe = v => { const r = []; Object.keys(MN_T).forEach(t => MN_T[t].forEach(x => { if (x[0] === v && x[1]) r.push(x); })); return r; };
   const vistaEl = v => document.querySelector('.view[data-view="' + v + '"]');
@@ -1727,6 +1742,7 @@ function hlPintar(filas, todas){
     chips(el, v, S); etiquetar(v, el);
     if (CT_K[MN_SUB[v]]) ctLista(el, MN_SUB[v]);
     if (v === 'equipo' && MN_SUB[v] === 'ase') asesores();
+    if (v === 'equipo' && MN_SUB[v] === 'per' && window.usoPerfiles) usoPerfiles(el);   // up1
     if (v === 'inventario' && MN_SUB[v] === 'stock') mrcStock(el);   // mrc1
     if (v === 'hoy' && MN_SUB[v] === 'ven' && typeof M !== 'undefined' && M.ok) requestAnimationFrame(() => mDraw());   // in1
   }
@@ -1744,8 +1760,8 @@ function hlPintar(filas, todas){
     const el = vistaEl(v); if (!el) return;
     new MutationObserver(() => { if (!el.hidden) aplicar(v); }).observe(el, {attributes: true, attributeFilter: ['hidden']});
     let pend = false;
-    new MutationObserver(ms => { if (el.hidden || ms.every(m => m.target.closest && m.target.closest('.mn-ctw,.mn-chips,#mnAse,#mrcStock'))) return;
-      if (pend) return; pend = true; requestAnimationFrame(() => { pend = false; etiquetar(v, el); if (CT_K[MN_SUB[v]]) ctLista(el, MN_SUB[v]); if (v === 'equipo' && MN_SUB[v] === 'ase') asesores(); }); })
+    new MutationObserver(ms => { if (el.hidden || ms.every(m => m.target.closest && m.target.closest('.mn-ctw,.mn-chips,#mnAse,#mrcStock,#usoPer'))) return;
+      if (pend) return; pend = true; requestAnimationFrame(() => { pend = false; etiquetar(v, el); if (CT_K[MN_SUB[v]]) ctLista(el, MN_SUB[v]); if (v === 'equipo' && MN_SUB[v] === 'ase') asesores(); if (v === 'equipo' && MN_SUB[v] === 'per' && window.usoPerfiles) usoPerfiles(el); }); })
       .observe(el, {childList: true, subtree: true});
     if (!el.hidden) aplicar(v);
   });
@@ -2271,13 +2287,15 @@ function renderAnuncios(){
     </div>
     <div class="an-list">${!L.length ? '<div class="empty">Todavía no hay anuncios. El primero que publiques aparece en la pestaña Inicio de cada tienda.</div>' : L.map(a => {
       const vig = a.desde <= hoy && hoy <= a.hasta, futuro = a.desde > hoy, c = a.tot && a.ok >= a.tot ? 'good' : a.ok ? 'warn' : 'bad';
+      const chips = a.porTienda.map(x => `<span class="${x.total && !x.faltan.length ? 'ok' : x.leyeron.length ? 'med' : 'cero'}">${esc(x.t)} ${x.leyeron.length}/${x.total}</span>`).join(''), fal = [].concat(...a.porTienda.map(x => x.faltan));   // an2
       const filas = a.porTienda.map(x => `<span class="store">${esc(x.t)}</span><span class="${x.total && !x.faltan.length ? 'ok' : ''}">${x.leyeron.length} de ${x.total}</span><span class="faint">${x.faltan.length ? 'Falta: ' + x.faltan.map(esc).join(', ') : x.total ? '✓ Todos leyeron' : 'Sin personal registrado'}</span>`).join('');
-      return `<div class="an-it ${a.activo ? '' : 'off'}"><div class="an-cab"><div><b>${esc(a.titulo)}</b>
+      return `<details class="an2 an-it ${a.activo ? '' : 'off'}"><summary><div class="an2-cab"><div><b>${esc(a.titulo)}</b>
           <div class="small faint">${fmtF(a.desde)} al ${fmtF(a.hasta)} · ${/^todas$/i.test(a.tiendasTxt) ? 'Todas las tiendas' : esc(a.tiendasTxt)} · ${!a.activo ? 'oculto' : futuro ? 'programado' : vig ? 'vigente' : 'terminó'}</div></div>
-          <span class="pill p-${c}">${a.ok} de ${a.tot} leyeron</span></div>
-        ${/^🔒/.test(a.efecto || '') && hoy <= a.hasta ? veloHtml(a, hoy) : ''}${a.texto ? `<div class="small muted an-txt">${esc(a.texto)}</div>` : ''}
-        <details ${vig && a.activo ? 'open' : ''}><summary>Lectura por tienda</summary><div class="an-st">${filas}</div></details>
-        <div class="actions" style="margin:0"><button class="btn" data-an="${a.row}" data-act="${a.activo ? 1 : 0}">${a.activo ? 'Ocultar en las tiendas' : 'Volver a mostrar'}</button></div></div>`;
+          <span style="white-space:nowrap"><span class="pill p-${c}">${a.ok} de ${a.tot} leyeron</span><span class="an2-v">Detalle</span></span></div>
+        <div class="an2-ch">${chips}</div>${fal.length ? `<div class="an2-f">Faltan ${fal.length}: ${fal.map(esc).join(', ')}</div>` : a.tot ? '<div class="an2-f">✓ Todos leyeron</div>' : ''}</summary>
+        <div class="an2-d">${/^🔒/.test(a.efecto || '') && hoy <= a.hasta ? veloHtml(a, hoy) : ''}${a.texto ? `<div class="small muted an-txt">${esc(a.texto)}</div>` : ''}
+        <div class="an-st" style="margin-bottom:10px">${filas}</div>
+        <div class="actions" style="margin:0"><button class="btn" data-an="${a.row}" data-act="${a.activo ? 1 : 0}">${a.activo ? 'Ocultar en las tiendas' : 'Volver a mostrar'}</button></div></div></details>`;
     }).join('')}</div>`;
   el.querySelectorAll('#anT [data-t]').forEach(b => b.onclick = () => {
     const t = b.dataset.t;
@@ -6530,7 +6548,7 @@ function CAL_YO(){ const r = (st.sv || []).slice(1).find(r => /diego/i.test(Stri
 <script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "Buscar: inventario, Mall Sol, caja chica, política…",
-  temas: [{"id": "hoy", "nombre": "Inicio", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash"]}, {"id": "universidad", "nombre": "Universidad", "vistas": ["universidad"]}, {"id": "inventarios", "nombre": "Mercadería", "vistas": ["inventario", "transferencias", "perchas"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "uso", "nombre": "Uso app", "vistas": ["equipo"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["enlaces"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["reclamos"]}, {"id": "sistema", "nombre": "Sistema", "vistas": ["fuentes", "mispendientes", "catalogo", "menus"]}],
+  temas: [{"id": "hoy", "nombre": "Inicio", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash"]}, {"id": "universidad", "nombre": "Universidad", "vistas": ["universidad"]}, {"id": "inventarios", "nombre": "Mercadería", "vistas": ["inventario", "transferencias"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "uso", "nombre": "Uso app", "vistas": ["equipo"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["enlaces"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["reclamos"]}, {"id": "sistema", "nombre": "Sistema", "vistas": ["fuentes", "mispendientes", "catalogo", "menus"]}],
   items: [{"t": "Catálogo de colaboradores", "v": "catalogo", "sub": "Sistema · solo tú", "kw": "catalogo colaboradores favorita filiales uso visitas ctr clics whatsapp productos vistos busquedas"}, {"t": "Estado de la información", "v": "fuentes", "sub": "Hoy · solo tú", "kw": "fuentes datos actualizado actualizacion erp onedrive codex pos atrasado ultima extraccion estado informacion"}, {"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Mis pendientes con otras áreas", "v": "mispendientes", "sub": "Hoy · solo tú", "kw": "tareas todo lista bodega cedis contabilidad talento humano rrhh compras sistemas gerencia marketing areas departamentos"}, {"t": "Inicio", "v": "hoy", "sub": "Validar, supervisión, ventas y actividades", "kw": "inicio resumen mapa validar actividades caja chica"}, {"t": "Anuncios a tiendas", "v": "anuncios", "sub": "Anuncios", "kw": "anuncios avisos comunicados publicar aviso semana leyeron lectura confirmar"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Transferencias", "v": "transferencias", "sub": "Tiendas · solo tú", "kw": "transferencias traslados envios agencias cedis semaforo diferencias faltantes sobrantes arregladas gestion erp producto codigo"}, {"t": "Servicio Técnico", "v": "servicio", "sub": "Tiendas · solo tú", "kw": "servicio tecnico ordenes trabajo reparacion garantia cambios menores 50 st erp"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Clientes", "v": "reclamos", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Garantías extendidas", "v": "flash", "sub": "Ventas", "kw": "garantia garantias extendidas", "go": () => TEM_ABRIR("#garBody")}, {"t": "Formas de pago", "v": "flash", "sub": "Ventas · solo tú", "kw": "formas pago tarjeta credito debito efectivo transferencia steren card deuna autoconsumo cobro", "go": () => TEM_ABRIR("#fpBody")}, {"t": "Presupuesto por persona", "v": "flash", "sub": "Ventas · solo tú", "kw": "presupuesto meta metas asesor asesores persona reparto repartir distribuir cuota porcentaje", "go": () => TEM_ABRIR("#ppBody")}, {"t": "Perchas", "v": "perchas", "sub": "Tiendas · exhibición", "kw": "perchas exhibicion layout planograma"}, {"t": "Equipo de supervisores", "v": "equipo", "sub": "Personas", "kw": "supervisores equipo visitas ranking personas"}, {"t": "Contactos de tiendas", "v": "enlaces", "sub": "Contactos", "kw": "contactos telefono llamar whatsapp correo direccion horario tienda numero"}, {"t": "Enlaces para compartir", "v": "enlaces", "sub": "Contactos", "kw": "enlaces links claves compartir gerentes supervisores portal ajustes configuracion"}, {"t": "Nueva supervisión", "sub": "Abrir el formulario", "kw": "supervisar visita checklist nueva supervision", "go": () => document.querySelector("#nuevaSup").click()}],
   extra: function(){
     const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
@@ -7269,4 +7287,64 @@ setInterval(() => { const E = [...new Set(window.RENDER_ERR || [])]; let b = doc
 </script>
 <style>/* in1 */.view[data-view="hoy"][data-sub][data-sub="val"]>:not(#datoDia):not(.bx-wrap):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="sup"]>:not(#datoDia):not(.hl-sec:has(#hlSup)):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="ven"]>:not(#datoDia):not(.hl-sec:has(#hlVen)):not(.bx-mapa):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="act"]>:not(#datoDia):not(#actividades):not(.mn-chips){display:none!important}.view[data-view="hoy"][data-sub][data-sub="act"] #actividades{display:block!important}.view[data-view="hoy"][data-sub][data-sub="act"] #acBody:empty::before{content:"No hay actividades este mes.";color:var(--muted,#888);font-size:14px}</style>
 <style>/* vs1 */.view[data-view="flash"][data-sub="fl"]>#fdBody,.view[data-view="flash"][data-sub="fl"]>#garBody,.view[data-view="flash"][data-sub="fl"]>#ppBody,.view[data-view="flash"][data-sub="fd"]>:not(#fdBody):not(.mn-chips),.view[data-view="flash"][data-sub="gar"]>:not(#garBody):not(.mn-chips),.view[data-view="flash"][data-sub="pp"]>:not(#ppBody):not(.mn-chips){display:none!important}.view[data-view="flash"][data-sub="gar"]>#garBody:empty::before,.view[data-view="flash"][data-sub="pp"]>#ppBody:empty::before{content:"Cargando…";color:var(--muted,#888);font-size:14px}</style>
+<style>/* mx1 */#tabs button[data-v="perchas"]{display:none!important}</style>
+<style>/* an2 */.an2{border-bottom:1px solid var(--line);padding:2px 0}.an2:last-child{border-bottom:0}.an2>summary{list-style:none;cursor:pointer;padding:10px 2px;display:block}.an2>summary::-webkit-details-marker{display:none}.an2>summary:hover{background:var(--surface-2,#f6f7f9)}.an2-cab{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.an2-cab b{font-size:15px}.an2-ch{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}.an2-ch span{font-size:12px;border-radius:999px;padding:2px 8px;background:var(--surface-2,#f1f3f5);white-space:nowrap}.an2-ch .ok{background:#e3f4ea;color:#1e7b45}.an2-ch .med{background:#fdf1dc;color:#9a6200}.an2-ch .cero{background:#fde4e2;color:#b3261e}.an2-f{font-size:12.5px;color:var(--muted,#6b7280);margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.an2-v{font-size:12px;color:var(--accent,#0b5394);font-weight:600;margin-left:6px;white-space:nowrap}.an2[open] .an2-v::after{content:" ▲"}.an2:not([open]) .an2-v::after{content:" ▼"}.an2.an-it{display:block;padding:2px 0;gap:0}.an2.an-it>summary{color:inherit;font-weight:400;font-size:inherit}.an2-d{padding:0 2px 12px}.an2-d p,.an2-d .an-txt{margin:0 0 8px;white-space:pre-line}</style>
+<style>/* up1 */
+.view[data-view="equipo"][data-sub="per"]>:not(#usoPer):not(.mn-chips){display:none!important}
+.view[data-view="equipo"]:not([data-sub="per"])>#usoPer{display:none!important}
+.view[data-view="equipo"][data-sub="sup"]>#uso{display:none!important}
+.up-t{width:100%}.up-p{border-bottom:1px solid var(--line)}.up-p:last-child{border-bottom:0}
+.up-p>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:minmax(150px,1.4fr) repeat(5,minmax(70px,1fr)) 70px;gap:8px;align-items:center;padding:12px 6px}
+.up-p>summary::-webkit-details-marker{display:none}.up-p>summary:hover{background:var(--surface-2,#f6f7f9)}
+.up-p>summary b{font-size:15px}.up-p>summary .num{text-align:right;font-variant-numeric:tabular-nums}
+.up-h{display:grid;grid-template-columns:minmax(150px,1.4fr) repeat(5,minmax(70px,1fr)) 70px;gap:8px;padding:0 6px 6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted,#6b7280)}.up-h span:not(:first-child){text-align:right}
+.up-v{font-size:12px;color:var(--accent,#0b5394);font-weight:600;text-align:right}.up-p[open] .up-v::after{content:" ▲"}.up-p:not([open]) .up-v::after{content:" ▼"}
+.up-d{padding:0 6px 14px}
+@media(max-width:700px){.up-h{display:none}.up-p>summary{grid-template-columns:1fr auto;row-gap:2px}.up-p>summary .num{display:none}.up-p>summary .up-m{display:block!important;grid-column:1/-1;font-size:12.5px;color:var(--muted,#6b7280)}}
+.up-m{display:none}
+</style>
+<script>/* up1: uso de la app por perfil, con el detalle por persona */
+window.usoPerfiles = function(view){
+  let w = view.querySelector(':scope > #usoPer');
+  if (!w) { w = document.createElement('section'); w.id = 'usoPer'; w.className = 'panel'; const c = view.querySelector(':scope > .mn-chips'); c ? c.after(w) : view.prepend(w); }
+  if (typeof regLimpio !== 'function' || st.sv === undefined || st.rg === undefined || !st.d) { if (!w.innerHTML) w.innerHTML = '<div class="skeleton">Cargando el uso…</div>'; return; }
+  const abiertos = [...w.querySelectorAll('details[open]')].map(d => d.dataset.p);
+  const rows = regLimpio(), hoy = hoyISO(), d7 = new Date(new Date(hoy + 'T12:00').getTime() - 6 * 864e5).toISOString().slice(0, 10), mes = hoy.slice(0, 8) + '01';
+  const nuevo = t => ({t: t || '', ult: '', disp: '', ing7: 0, ingMes: 0, seg7: 0, segMes: 0, acc7: 0});
+  const sumar = (m, k, r) => { const u = m[k] = m[k] || nuevo(), f = iso(r[0]), seg = Number(r[6]) || 0;
+    if (r[4] === 'Ingreso') { if (f + ' ' + r[1] > u.ult) { u.ult = f + ' ' + r[1]; u.disp = r[8] || u.disp; } if (f >= d7) u.ing7++; if (f >= mes) u.ingMes++; }
+    if (r[4] === 'Tiempo') { if (f >= d7) u.seg7 += seg; if (f >= mes) u.segMes += seg; }
+    if (r[4] === 'Acción' && f >= d7) u.acc7++; };
+  const sup = {}, tie = {}, ase = {};
+  rows.forEach(r => {
+    if (r[2] === 'Supervisores') sumar(sup, r[3], r);
+    if (r[2] === 'Tienda') { if (r[4] === 'Ingreso' && /^Asesor: /.test(String(r[5])) && !/eligiendo/i.test(String(r[5]))) { const n = String(r[5]).replace(/^Asesor: /, '').replace(/ · correo.*$/, '').trim(); sumar(ase, n, r); ase[n].t = r[3]; } else sumar(tie, r[3], r); }
+  });
+  /* perfiles de quienes entran al panel: Supervisores!J (o Cargo) */
+  const sv = (st.sv || [[]]).slice(1).filter(r => r[0] && /^s/i.test(String(r[4] || '').trim()));
+  const perfilDe = r => String(r[9] || '').trim() || (/gerente/i.test(String(r[8] || '')) ? 'Gerentes' : 'Supervisores');
+  const G = {};
+  sv.forEach(r => { const pf = perfilDe(r); (G[pf] = G[pf] || []).push([String(r[0]).trim(), sup[String(r[0]).trim()] || nuevo(String(r[2] || ''))]); });
+  Object.keys(sup).filter(n => n !== '(sin identificarse)' && !sv.some(r => String(r[0]).trim() === n)).forEach(n => (G['Supervisores'] = G['Supervisores'] || []).push([n, sup[n]]));
+  G['Tiendas'] = st.d.tiendas.filter(t => t.activa).map(t => [t.nombre, tie[t.nombre] || nuevo()]);
+  ((st.anun && st.anun.pe) || []).slice(1).filter(r => r[0] && String(r[6] || 'Activo').trim() === 'Activo' && /asesor/i.test(String(r[4] || ''))).forEach(r => { const n = typeof nombreCorto === 'function' ? nombreCorto(r[0]) : String(r[0]); if (!ase[n]) ase[n] = nuevo(String(r[1] || '').trim()); });
+  G['Asesores'] = Object.entries(ase);
+  const ORD = ['Administrador', 'Supervisores', 'Gerentes', 'Tiendas', 'Asesores'], NOTA = {Tiendas: 'Cada tienda (la usan el gerente y el equipo de la tienda)', Asesores: 'Cuenta cada vez que abren su app'};
+  const perfiles = Object.keys(G).filter(k => G[k].length).sort((a, b) => (ORD.indexOf(a) + 1 || 99) - (ORD.indexOf(b) + 1 || 99));
+  const ultCell = u => !u.ult ? '<span class="pill p-bad">Nunca</span>' : (d => '<span class="' + (d > 7 ? 'cnt-warn' : '') + '">' + esc(fmtF(u.ult.slice(0, 10), u.ult.slice(11, 16))) + ' · ' + (d === 0 ? 'hoy' : 'hace ' + d + ' d') + '</span>')(dias(u.ult.slice(0, 10), hoy));
+  const z = v => v || '<span class="zero">0</span>';
+  w.innerHTML = '<div class="panel-h"><h2>Uso de la app por perfil</h2><span class="small faint">Últimos 7 días · toca un perfil para ver a cada persona</span></div>' +
+    '<div class="up-h"><span>Perfil</span><span>Personas</span><span>Entraron 7 d</span><span>Nunca</span><span>Ingresos 7 d</span><span>Tiempo 7 d</span><span></span></div>' +
+    perfiles.map(pf => { const L = G[pf].slice().sort((a, b) => b[1].seg7 - a[1].seg7 || b[1].ing7 - a[1].ing7 || a[0].localeCompare(b[0]));
+      const n = L.length, ent = L.filter(x => x[1].ing7).length, nun = L.filter(x => !x[1].ult).length, ing = L.reduce((s, x) => s + x[1].ing7, 0), seg = L.reduce((s, x) => s + x[1].seg7, 0);
+      const c = !n ? '' : ent >= n ? 'p-good' : ent ? 'p-warn' : 'p-bad', conTiempo = pf !== 'Asesores';
+      const tabla = '<div class="scroll"><table><thead><tr><th>' + (pf === 'Tiendas' ? 'Tienda' : 'Persona') + '</th><th>Último ingreso</th><th class="num">Ingresos 7 d</th><th class="num">Ingresos del mes</th>' + (conTiempo ? '<th class="num">Tiempo 7 d</th><th class="num">Tiempo del mes</th><th class="num">Acciones 7 d</th>' : '') + '</tr></thead><tbody>' +
+        L.map(([nm, u]) => '<tr><td class="store">' + esc(nm) + (u.t && pf !== 'Tiendas' ? '<div class="small faint">' + esc(u.t) + '</div>' : '') + '</td><td>' + ultCell(u) + '</td><td class="num">' + z(u.ing7) + '</td><td class="num">' + z(u.ingMes) + '</td>' +
+          (conTiempo ? '<td class="num">' + durTxt(u.seg7) + '</td><td class="num">' + durTxt(u.segMes) + '</td><td class="num">' + z(u.acc7) + '</td>' : '') + '</tr>').join('') + '</tbody></table></div>';
+      return '<details class="up-p" data-p="' + esc(pf) + '"' + (abiertos.includes(pf) ? ' open' : '') + '><summary><span><b>' + esc(pf) + '</b>' + (NOTA[pf] ? '<div class="small faint">' + NOTA[pf] + '</div>' : '') + '</span>' +
+        '<span class="num">' + n + '</span><span class="num"><span class="pill ' + c + '">' + ent + ' de ' + n + '</span></span><span class="num">' + z(nun) + '</span><span class="num">' + z(ing) + '</span><span class="num">' + (conTiempo ? durTxt(seg) : '–') + '</span><span class="up-v">Detalle</span>' +
+        '<span class="up-m">' + ent + ' de ' + n + ' entraron en 7 días · ' + nun + ' nunca · ' + ing + ' ingresos' + (conTiempo ? ' · ' + durTxt(seg) : '') + '</span></summary><div class="up-d">' + tabla + '</div></details>'; }).join('') +
+    '<p class="small faint" style="margin:10px 6px 0">Tiempo = solo tiempo activo (página en pantalla y con algún toque en los últimos 2 minutos). El perfil de cada persona sale de Sistema › Menús por perfil.</p>';
+};
+</script>
 </body></html>
