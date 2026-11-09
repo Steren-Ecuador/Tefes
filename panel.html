@@ -1590,7 +1590,7 @@ function hlPintar(filas, todas){
 }
 /* mn1: sub-opciones del menú por temas (Diego 8-nov): una vista muestra solo la parte elegida */
 (function(){
-  const MN_T = {"hoy": [["hoy", "val", "Esperan tu validación"], ["hoy", "sup", "Posiciones de supervisión"], ["hoy", "ven", "Ventas vs presupuesto"], ["hoy", "act", "Actividades del mes"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "fl", "Flash de ventas"], ["flash", "fd", "Explorar ventas"], ["flash", "gar", "Garantías extendidas"], ["flash", "pp", "Presupuesto por persona"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "extra", "Inventario EXTRA"], ["inventario", "stock", "Consultar stock"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "pf", "Proformas"], ["clientes", "vf", "Lista de espera"]]};
+  const MN_T = {"hoy": [["hoy", "val", "Esperan tu validación"], ["hoy", "sup", "Posiciones de supervisión"], ["hoy", "ven", "Ventas vs presupuesto"], ["hoy", "act", "Actividades del mes"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "fl", "Flash de ventas"], ["flash", "fd", "Explorar ventas"], ["flash", "gar", "Garantías extendidas"], ["flash", "pp", "Presupuesto por persona"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "stock", "Consultar stock"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "pf", "Proformas"], ["clientes", "vf", "Lista de espera"]]};
   window.MN_SUB = window.MN_SUB || {};
   window.MN_T_REF = MN_T;   // mp3
   const subsDe = v => { const r = []; Object.keys(MN_T).forEach(t => MN_T[t].forEach(x => { if (x[0] === v && x[1]) r.push(x); })); return r; };
@@ -1944,9 +1944,14 @@ function renderAvisos(){
   if (!L.length) { el.innerHTML = '<div class="empty">No hay avisos vigentes' + (st.ciudad ? ' en ' + esc(st.ciudad) : '') + '.</div>'; return; }
   el.innerHTML = L.map(a => {
     const tot = a.lecturas.reduce((s, l) => s + l.total, 0), ley = a.lecturas.reduce((s, l) => s + l.leyeron, 0);
-    const faltan = a.lecturas.filter(l => l.leyeron < l.total).map(l => esc(l.tienda) + ' ' + l.leyeron + '/' + l.total);
-    return `<div class="av-item"><h3>${esc(a.titulo)}</h3>${/^🔒/.test(a.efecto || '') ? veloHtml(a, st.d && st.d.hoy || new Date().toLocaleDateString('en-CA', {timeZone: 'America/Guayaquil'})) : ''}${a.texto ? `<p>${esc(a.texto)}</p>` : ''}
-      <div class="small faint">Del ${fd(a.desde)} al ${fd(a.hasta)} · ${a.lecturas.length === 1 ? esc(a.lecturas[0].tienda) : a.lecturas.length + ' tiendas'} · leyeron ${ley} de ${tot}${faltan.length ? ' · faltan en ' + faltan.join(', ') : ''}</div></div>`;
+    const c = tot && ley >= tot ? 'good' : ley ? 'warn' : 'bad', fal = [].concat(...a.lecturas.map(l => l.faltan || []));   // an2
+    const chips = a.lecturas.map(l => `<span class="${l.total && l.leyeron >= l.total ? 'ok' : l.leyeron ? 'med' : 'cero'}">${esc(l.tienda)} ${l.leyeron}/${l.total}</span>`).join('');
+    const filas = a.lecturas.map(l => `<span class="store">${esc(l.tienda)}</span><span class="${l.total && l.leyeron >= l.total ? 'ok' : ''}">${l.leyeron} de ${l.total}</span><span class="faint">${(l.faltan || []).length ? 'Falta: ' + l.faltan.map(esc).join(', ') : l.total && l.leyeron >= l.total ? '✓ Todos leyeron' : l.total ? 'Faltan ' + (l.total - l.leyeron) : 'Sin personal registrado'}</span>`).join('');
+    return `<details class="an2"><summary><div class="an2-cab"><div><b>${esc(a.titulo)}</b><div class="small faint">Del ${fd(a.desde)} al ${fd(a.hasta)} · ${a.lecturas.length === 1 ? esc(a.lecturas[0].tienda) : a.lecturas.length + ' tiendas'}</div></div>
+      <span style="white-space:nowrap"><span class="pill p-${c}">${ley} de ${tot} leyeron</span><span class="an2-v">Detalle</span></span></div>
+      <div class="an2-ch">${chips}</div>${fal.length ? `<div class="an2-f">Faltan ${fal.length}: ${fal.map(esc).join(', ')}</div>` : ''}</summary>
+      <div class="an2-d">${/^🔒/.test(a.efecto || '') ? veloHtml(a, st.d && st.d.hoy || new Date().toLocaleDateString('en-CA', {timeZone: 'America/Guayaquil'})) : ''}${a.texto ? `<p>${esc(a.texto)}</p>` : ''}
+      <div class="an-st an2-st">${filas}</div></div></details>`;
   }).join('');
 }
 
@@ -3788,6 +3793,7 @@ pintarYo();
   let firma = '';
   /* mbt1: la barra usa los temas del menú de la computadora (window.TEM.temas) */
   const T_ABAJO = ['hoy', 'supervision', 'ventas', 'universidad'];   // ut1
+  window.T_ABAJO_REF = T_ABAJO;   // mp5
   const T_ICO = {universidad: 'M22 10 12 5 2 10l10 5 10-5zM6 12v5c3 2 9 2 12 0v-5', hoy: P.hoy, supervision: P.supervision, anuncios: P.anuncios, ventas: P.flash, inventarios: P.inventario, politicas: P.politicas, uso: P.equipo, contactos: P.contactos, clientes: P.reclamos, sistema: P.enlaces};
   const T_CORTO = {supervision: 'Supervisión', inventarios: 'Mercadería', uso: 'Uso app'};
   const ultimaT = {};
@@ -4805,9 +4811,23 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     'contactos|tel': 'contactos/tel', 'contactos|wa': 'contactos/wa', 'contactos|mail': 'contactos/mail', 'contactos|hor': 'contactos/hor',
     'clientes|pf': 'clientes/pf', 'clientes|vf': 'clientes/vf'};
   let quien = '', pedido = false;
+  function ordenar(cfg){   // mp5: orden de temas y sub-opciones del perfil (lo que no está en la hoja va al final)
+    const O = Array.isArray(cfg && cfg.orden) ? cfg.orden : []; if (!O.length) return;
+    const pos = {}; O.forEach((k, i) => { if (!(k in pos)) pos[k] = i; });
+    const M = window.MN_T_REF, TT = window.TEM && window.TEM.temas; if (!M) return;
+    const P = x => { const k = K[x[0] + '|' + x[1]]; return k && k in pos ? pos[k] : 1e9; }, rk = {};
+    Object.keys(M).forEach(t => { const L = M[t].map((x, i) => [x, i]).sort((a, b) => P(a[0]) - P(b[0]) || a[1] - b[1]).map(z => z[0]); M[t].length = 0; L.forEach(x => M[t].push(x)); rk[t] = L.length ? Math.min(...L.map(P)) : 1e9; });
+    if (Array.isArray(TT)) { const L = TT.map((t, i) => [t, i]).sort((a, b) => (t => t in rk ? rk[t] : 1e9)(a[0].id) - (t => t in rk ? rk[t] : 1e9)(b[0].id) || a[1] - b[1]).map(z => z[0]); TT.length = 0; L.forEach(t => TT.push(t)); }
+  }
+  function abajo(){   // mp5: barra del celular = los 4 primeros temas visibles
+    const A = window.T_ABAJO_REF, TT = window.TEM && window.TEM.temas, tabs = document.getElementById('tabs'); if (!A || !Array.isArray(TT) || !tabs || !(window.MPF_CFG && (MPF_CFG.orden || []).length)) return;
+    const vis = TT.filter(t => t.vistas.some(v => { const b = tabs.querySelector('button[data-v="' + v + '"]'); return b && !b.hidden && b.style.display !== 'none'; })).map(t => t.id).slice(0, 4);
+    if (vis.length) { A.length = 0; vis.forEach(x => A.push(x)); }
+  }
   function aplicar(cfg){
     window.MPF_CFG = cfg;
-    if (!cfg || cfg.todo || !Array.isArray(cfg.claves)) return;
+    ordenar(cfg);
+    if (!cfg || cfg.todo || !Array.isArray(cfg.claves)) { abajo(); const t = document.getElementById('tabs'); if (t) t.dataset.mn = String(Date.now()); return; }
     const A = new Set(cfg.claves), M = window.MN_T_REF;   // in1
     if (A.has('hoy/hoy')) ['validacion', 'supervision', 'ventas', 'actividades'].forEach(x => A.add('inicio/' + x));
     const tabs = document.getElementById('tabs'); if (!M || !tabs) return;
@@ -4817,7 +4837,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     new MutationObserver(() => tabs.querySelectorAll('button[data-mpf]').forEach(b => { if (!b.hidden) b.hidden = true; })).observe(tabs, {subtree: true, attributes: true, attributeFilter: ['hidden', 'style']});
     const on = tabs.querySelector('button[data-v].on');
     if (on && on.hidden) { const p = [...tabs.querySelectorAll('button[data-v]')].find(b => !b.hidden && b.style.display !== 'none'); if (p) p.click(); }
-    tabs.dataset.mn = String(Date.now());
+    abajo(); tabs.dataset.mn = String(Date.now());
   }
   setInterval(() => {
     const y = window.cvCtx && cvCtx.yo && cvCtx.yo(); if (!y || !y.nombre || pedido && quien === y.nombre) return;
@@ -4829,5 +4849,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
 </script>
 <style>/* in1 */.view[data-view="hoy"][data-sub][data-sub="val"]>:not(#datoDia):not(.bx-wrap):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="sup"]>:not(#datoDia):not(.hl-sec:has(#hlSup)):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="ven"]>:not(#datoDia):not(.hl-sec:has(#hlVen)):not(.bx-mapa):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="act"]>:not(#datoDia):not(#actividades):not(.mn-chips){display:none!important}.view[data-view="hoy"][data-sub][data-sub="act"] #actividades{display:block!important}.view[data-view="hoy"][data-sub][data-sub="act"] #acBody:empty::before{content:"No hay actividades este mes.";color:var(--muted,#888);font-size:14px}</style>
 <style>/* vs1 */.view[data-view="flash"][data-sub="fl"]>#fdBody,.view[data-view="flash"][data-sub="fl"]>#garBody,.view[data-view="flash"][data-sub="fl"]>#ppBody,.view[data-view="flash"][data-sub="fd"]>:not(#fdBody):not(.mn-chips),.view[data-view="flash"][data-sub="gar"]>:not(#garBody):not(.mn-chips),.view[data-view="flash"][data-sub="pp"]>:not(#ppBody):not(.mn-chips){display:none!important}.view[data-view="flash"][data-sub="gar"]>#garBody:empty::before,.view[data-view="flash"][data-sub="pp"]>#ppBody:empty::before{content:"Cargando…";color:var(--muted,#888);font-size:14px}</style>
+<style>/* mx1 */#tabs button[data-v="perchas"]{display:none!important}</style>
+<style>/* an2 */.an2{border-bottom:1px solid var(--line);padding:2px 0}.an2:last-child{border-bottom:0}.an2>summary{list-style:none;cursor:pointer;padding:10px 2px;display:block}.an2>summary::-webkit-details-marker{display:none}.an2>summary:hover{background:var(--surface-2,#f6f7f9)}.an2-cab{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.an2-cab b{font-size:15px}.an2-ch{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}.an2-ch span{font-size:12px;border-radius:999px;padding:2px 8px;background:var(--surface-2,#f1f3f5);white-space:nowrap}.an2-ch .ok{background:#e3f4ea;color:#1e7b45}.an2-ch .med{background:#fdf1dc;color:#9a6200}.an2-ch .cero{background:#fde4e2;color:#b3261e}.an2-f{font-size:12.5px;color:var(--muted,#6b7280);margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.an2-v{font-size:12px;color:var(--accent,#0b5394);font-weight:600;margin-left:6px;white-space:nowrap}.an2[open] .an2-v::after{content:" ▲"}.an2:not([open]) .an2-v::after{content:" ▼"}.an2.an-it{display:block;padding:2px 0;gap:0}.an2.an-it>summary{color:inherit;font-weight:400;font-size:inherit}.an2-d{padding:0 2px 12px}.an2-d p,.an2-d .an-txt{margin:0 0 8px;white-space:pre-line}.an2-st{display:grid;grid-template-columns:minmax(90px,140px) 64px minmax(0,1fr);gap:5px 10px;font-size:13px}.an2-st .ok{color:var(--good,#1e7b45);font-weight:600}</style>
 </body>
 </html>
