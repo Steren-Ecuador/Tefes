@@ -254,7 +254,10 @@ document.getElementById('q').addEventListener('input',doSearch);
 var APP='https://script.google.com/macros/s/AKfycbxvxIW9iw7D6IyKTMx5Xyj9BW4d_u7G4BMVwRzaI9ug1MIB1tdfVCAWhu2iIWjbz0lgMA/exec';
 var RQ=[], RSES=Math.random().toString(36).slice(2,10), RVID='', RSEEN={}, RQS={}, RVT={};
 try{RVID=localStorage.getItem('cat_vid')||''; if(!RVID){RVID=Math.random().toString(36).slice(2,12); localStorage.setItem('cat_vid',RVID);}}catch(e){RVID='-';}
-var RDISP=(/Mobi|Android|iPhone/i.test(navigator.userAgent)?'Celular':'Computadora')+' '+(window.innerWidth||0);
+var RDISP=(function(){var u=navigator.userAgent||'', mob=/Mobi|Android|iPhone|iPad/i.test(u);
+  var os=/iPhone|iPad|iPod/.test(u)?'iPhone':/Android/.test(u)?'Android':/Windows/.test(u)?'Windows':/Mac OS X|Macintosh/.test(u)?'Mac':/Linux/.test(u)?'Linux':'Otro';
+  var br=/FBAN|FBAV|FB_IAB/.test(u)?'App Facebook':/Instagram/.test(u)?'App Instagram':/TikTok|musical_ly|BytedanceWebview/i.test(u)?'App TikTok':/LinkedInApp/.test(u)?'App LinkedIn':/Teams\//.test(u)?'App Teams':/Outlook/i.test(u)?'App Outlook':/GSA\//.test(u)?'App Google':/; wv\)/.test(u)?'App (webview)':/Edg\//.test(u)?'Edge':/OPR\//.test(u)?'Opera':/SamsungBrowser/.test(u)?'Samsung':/CriOS|Chrome\//.test(u)?'Chrome':/FxiOS|Firefox\//.test(u)?'Firefox':/Safari\//.test(u)?'Safari':'Otro';
+  return (mob?'Celular ':'Computadora ')+os+' · '+br;})();
 var ROR=(function(){try{var u=new URLSearchParams(location.search); var o=u.get('o')||u.get('utm_source'); if(o) return o; if(document.referrer) return new URL(document.referrer).hostname.replace(/^www\./,'');}catch(e){} return 'directo';})();
 function T(ev,c,d){RQ.push({ev:ev,c:c||'',d:d==null?'':String(d),t:Date.now()}); if(RQ.length>=20) RF();}
 function RF(){if(!RQ.length) return; var lote=RQ.splice(0,40);
