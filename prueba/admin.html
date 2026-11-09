@@ -716,11 +716,13 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
     <button class="hbtn" id="refresh">Actualizar</button>
   </div>
   <nav class="tabs" id="tabs" aria-label="Secciones del panel">
-    <button data-v="hoy">Hoy</button>
+    <button data-v="hoy">Inicio</button>
     <button data-v="calendario" title="Las visitas de todos a las tiendas, mes a mes">Calendario</button>
     <button data-v="anuncios" title="Anuncios a las tiendas y quién los leyó">Anuncios</button>
     <button data-v="mispendientes" hidden title="Solo tú: tus pendientes con Bodega, Contabilidad, Talento Humano y otras áreas">Mis pendientes<span class="n bad" id="nMp"></span></button>
+    <button data-v="menus" title="Qué menú y opciones ve cada perfil">Menús por perfil</button>
     <button data-v="fuentes" hidden title="Solo tú: qué tan actualizada está cada fuente de datos (ERP, OneDrive, Codex, POS)">Fuentes<span class="n bad" id="nFue"></span></button>
+    <button data-v="catalogo" hidden title="Solo tú: quién entra al catálogo de colaboradores de Corporación Favorita, qué miran y qué piden">Catálogo de colaboradores</button>
     <button data-v="flash" title="Venta del día y del mes contra presupuesto, desde el ERP"><span class="gar-foco tab" aria-hidden="true"></span>Flash de Ventas</button>
     <button data-v="supervision" title="Elegir la tienda y abrir su formulario">Nueva supervisión</button>
     <button data-v="pendientes" title="El número son los pendientes que esperan tu validación">Todos los pendientes<span class="n bad" id="nPend"></span></button>
@@ -863,9 +865,226 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
     <div id="mpBody"><div class="skeleton">Cargando tus pendientes…</div></div>
   </div>
 
+  <div class="view" data-view="menus" hidden>   <!-- mp1: menús por perfil (Diego 9-nov) --><!-- mp2 -->
+    <div class="sec-h"><h2>Menús por perfil</h2><span class="hint">Marca qué menús y opciones ve cada perfil, y qué perfil tiene cada persona. Se guarda en CLAVES.</span></div>
+    <div id="mpfBody"><div class="skeleton">Cargando perfiles…</div></div>
+<script>
+/* mp2: Menús por perfil como pantalla de mantenimiento (Diego 9-nov). Guarda en CLAVES: 'Menús por perfil'!A:E y Supervisores!J (Perfil). */
+/* mp2: árbol de menús por app. adm = hoy solo existe en el panel de Diego */
+const MPF_ARBOL = {
+  panel: [
+    ['hoy','Hoy',[['hoy','Hoy']]],
+    ['supervision','Supervisión',[['nueva','Nueva supervisión'],['pendientes','Todos los pendientes'],['calendario','Calendario']]],
+    ['anuncios','Anuncios',[['leer','Leer anuncios'],['publicar','Publicar anuncios',1]]],
+    ['ventas','Ventas',[['flash','Flash de ventas']]],
+    ['universidad','Universidad',[['tabla','Tabla'],['gol','Goleadores'],['car','Carreras'],['al','Alertas']]],
+    ['mercaderia','Mercadería',[['top','Inventario Top 50'],['extra','Inventario EXTRA'],['stock','Consultar stock'],['transferencias','Transferencias',1],['perchas','Perchas',1]]],
+    ['politicas','Políticas',[['politicas','Políticas'],['guias','Manuales y guías'],['reporte','Reporte de lectura']]],
+    ['uso','Uso app',[['sup','Uso supervisores',1],['ger','Uso gerentes',1],['ase','Uso asesores',1]]],
+    ['contactos','Contactos',[['tel','Teléfonos'],['wa','WhatsApp'],['mail','Correos'],['hor','Horarios de atención'],['enlaces','Enlaces para compartir',1]]],
+    ['clientes','Clientes',[['pf','Proformas'],['vf','Lista de espera']]],
+    ['sistema','Sistema',[['fuentes','Fuentes',1],['mispendientes','Mis pendientes',1],['catalogo','Catálogo de colaboradores',1],['menus','Menús por perfil',1]]]
+  ],
+  tienda: [
+    ['hoy','Hoy',[['dato','Dato del día y anuncios'],['flash','Flash de ventas'],['pf','Proformas'],['universidad','Universidad Steren'],['garantias','Garantías extendidas'],['actividades','Actividades del mes']]],
+    ['trabajo','Mi trabajo',[['pendientes','Pendientes'],['supervisar','Supervisar (autosupervisión)'],['inventario','Inventario: informes, autoconsumo y lista de espera']]],
+    ['como','Cómo trabajamos',[['politicas','Políticas'],['guias','Guías']]]
+  ],
+  asesor: [
+    ['inicio','Inicio',[['muro','Muro de la tienda y ranking del mes']]],
+    ['comunidad','Comunidad',[['comunidad','Comunidad']]],
+    ['meta','Mi meta',[['meta','Meta y comisión'],['mov','Movimientos'],['medallas','Medallas']]],
+    ['clientes','Clientes',[['pf','Proformas'],['vf','Lista de espera']]],
+    ['horario','Horario',[['horario','Horario']]],
+    ['aprender','Aprender',[['universidad','Ranking Universidad'],['pregunta','Pregunta del día'],['como','Cómo trabajamos']]]
+  ],
+  avisos: [
+    ['avisos','Avisos TEFES',[['anuncios','Anuncios y dato del día'],['politicas','Políticas y guías'],['stock','Consultar stock'],['contactos','Contactos de tiendas'],['promos','Promociones vigentes']]],
+    ['miarea','Mi área',[['bodegas','Bodegas: transferencias'],['cc','Contact center: ventas'],['th','Talento Humano: Universidad']]]
+  ]
+};
+const MPF_PERFILES = [
+  {p:'Gerentes', app:'panel', d:'Samia y Nina. Entran con código.'},
+  {p:'Supervisores', app:'panel', d:'Equipo de ventas de Tventas.'},
+  {p:'Tiendas', app:'tienda', d:'Gerente y equipo de cada tienda.'},
+  {p:'Asesores', app:'asesor', d:'Cada asesor desde su celular.'},
+  {p:'Otras áreas', app:'avisos', d:'Bodegas, contact center y Talento Humano.'}
+];
+/* lo que ve cada perfil hoy (9-nov), si la hoja está vacía */
+function mpfDefecto(p, tema, op, adm){
+  if (p === 'Gerentes' && tema === 'mercaderia' && op === 'transferencias') return true;
+  return !adm;
+}
+
+(function(){
+  const HM = "'Menús por perfil'", HS = 'Supervisores';
+  const S = {sel: 'Gerentes', ve: {}, gente: [], cargado: false, cambios: false, cambiosP: {}, guardando: false, msg: ''};
+  const e = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const k = (p, t, o) => p + '|' + t + '/' + o;
+  const perf = p => MPF_PERFILES.find(x => x.p === p);
+  const PERF_PERSONA = ['Administrador', 'Gerentes', 'Supervisores'];
+  function base(){
+    MPF_PERFILES.forEach(x => MPF_ARBOL[x.app].forEach(([t,, ops]) => ops.forEach(([o,, adm]) => { S.ve[k(x.p, t, o)] = mpfDefecto(x.p, t, o, !!adm); })));
+  }
+  async function cargar(){
+    base();
+    try {
+      const [m, s] = await Promise.all([getRange(HM + '!A2:E400', true, CLAVES), getRange(HS + '!A2:J100', true, CLAVES)]);
+      (m || []).forEach(r => { if (r[0] && r[3]) S.ve[r[0] + '|' + r[3]] = /^s/i.test(String(r[4] || '').trim()); });
+      S.gente = (s || []).map((r, i) => ({fila: i + 2, nombre: r[0] || '', activo: r[4] || '', cargo: r[8] || '', perfil: r[9] || ''})).filter(x => x.nombre);
+      S.cargado = true; S.err = '';
+    } catch (er) { S.err = 'No pude leer CLAVES: ' + (er && er.message || er); }
+    pintar();
+  }
+  function nombreVisible(n){ try { return typeof aliasDe === 'function' ? aliasDe(n) : (typeof alias === 'function' ? alias(n) : n); } catch (x) { return n; } }
+  function pintar(){
+    const el = document.getElementById('mpfBody'); if (!el) return;
+    if (S.err) { el.innerHTML = '<div class="empty">' + e(S.err) + '</div>'; return; }
+    if (!S.cargado) return;
+    const P = perf(S.sel), arbol = MPF_ARBOL[P.app], panel = P.app === 'panel';
+    const chips = MPF_PERFILES.map(x => '<button type="button" class="mpf-chip' + (x.p === S.sel ? ' on' : '') + '" data-p="' + e(x.p) + '">' + e(x.p) + '</button>').join('');
+    const temas = arbol.map(([t, tn, ops]) => {
+      const on = ops.filter(([o]) => S.ve[k(S.sel, t, o)]).length, todo = on === ops.length, nada = !on;
+      const unico = ops.length === 1 && ops[0][1] === tn;
+      return '<div class="mpf-t"><label class="mpf-tl"><input type="checkbox" data-t="' + t + '"' + (todo ? ' checked' : '') + (!todo && !nada ? ' data-ind="1"' : '') + '><b>' + e(tn) + '</b>' +
+        (unico && panel && ops[0][2] ? '<span class="mpf-adm">hoy solo en tu panel</span>' : '') + '<span class="mpf-n">' + on + '/' + ops.length + '</span></label>' +
+        (unico ? '' : '<div class="mpf-ops">' + ops.map(([o, on2, adm]) => '<label><input type="checkbox" data-t="' + t + '" data-o="' + o + '"' + (S.ve[k(S.sel, t, o)] ? ' checked' : '') + '>' + e(on2) +
+          (panel && adm ? '<span class="mpf-adm">hoy solo en tu panel</span>' : '') + '</label>').join('') + '</div>') + '</div>';
+    }).join('');
+    const gente = S.gente.map(g => '<tr><td><b>' + e(nombreVisible(g.nombre)) + '</b>' + (/^no/i.test(g.activo) ? ' <span class="mpf-adm">inactivo</span>' : '') + '</td><td>' + e(g.cargo) + '</td><td><select data-fila="' + g.fila + '">' +
+      ['', ...PERF_PERSONA].map(p => '<option value="' + e(p) + '"' + ((S.cambiosP[g.fila] != null ? S.cambiosP[g.fila] : g.perfil) === p ? ' selected' : '') + '>' + (p || '—') + '</option>').join('') + '</select></td></tr>').join('');
+    el.innerHTML =
+      '<section class="panel mpf"><div class="panel-h"><h2>1. Qué ve cada perfil</h2><span class="small faint">' + e(P.d) + '</span></div>' +
+      '<div class="mpf-chips">' + chips + '</div>' +
+      (S.sel === 'Gerentes' || S.sel === 'Supervisores' ? '<p class="mpf-nota">Las opciones marcadas "hoy solo en tu panel" todavía no existen en la app de ' + e(S.sel.toLowerCase()) + ': si las marcas, quedan pedidas y se construyen.</p>' : '') +
+      '<div class="mpf-arbol">' + temas + '</div>' +
+      '<div class="mpf-bar"><button type="button" class="btn primary" id="mpfGuardar"' + (S.cambios && !S.guardando ? '' : ' disabled') + '>' + (S.guardando ? 'Guardando…' : 'Guardar menús') + '</button><span class="small faint" id="mpfMsg">' + e(S.msg) + '</span></div></section>' +
+      '<section class="panel mpf"><div class="panel-h"><h2>2. Perfil de cada persona</h2><span class="small faint">Quienes entran al panel (pestaña Supervisores de CLAVES). Tiendas y asesores toman su perfil de Personal.</span></div>' +
+      '<table class="mpf-tb"><thead><tr><th>Persona</th><th>Cargo</th><th>Perfil</th></tr></thead><tbody>' + gente + '</tbody></table>' +
+      '<details class="mpf-add"><summary>+ Dar perfil a otra persona</summary><div class="mpf-addf"><input id="mpfNom" placeholder="Nombre y apellido"><input id="mpfMail" type="email" placeholder="Correo"><select id="mpfPer">' + PERF_PERSONA.slice(1).map(p => '<option>' + p + '</option>').join('') + '</select><button type="button" class="btn" id="mpfAdd">Agregar</button></div><p class="small faint">Queda activa en la pestaña Supervisores y entra con su correo por entrar.html.</p></details>' +
+      '<div class="mpf-bar"><button type="button" class="btn primary" id="mpfGuardarP"' + (Object.keys(S.cambiosP).length && !S.guardando ? '' : ' disabled') + '>Guardar perfiles</button></div></section>';
+    el.querySelectorAll('input[data-ind]').forEach(i => i.indeterminate = true);
+    el.querySelectorAll('.mpf-chip').forEach(b => b.onclick = () => { S.sel = b.dataset.p; S.msg = ''; pintar(); });
+    el.querySelectorAll('.mpf-arbol input').forEach(i => i.onchange = () => {
+      const t = i.dataset.t, ops = MPF_ARBOL[P.app].find(x => x[0] === t)[2];
+      if (i.dataset.o) S.ve[k(S.sel, t, i.dataset.o)] = i.checked; else ops.forEach(([o]) => S.ve[k(S.sel, t, o)] = i.checked);
+      S.cambios = true; S.msg = 'Sin guardar'; pintar();
+    });
+    el.querySelectorAll('.mpf-tb select').forEach(s => s.onchange = () => { S.cambiosP[s.dataset.fila] = s.value; pintar(); });
+    const g = document.getElementById('mpfGuardar'); if (g) g.onclick = guardarMenus;
+    const gp = document.getElementById('mpfGuardarP'); if (gp) gp.onclick = guardarPerfiles;
+    const ad = document.getElementById('mpfAdd'); if (ad) ad.onclick = agregar;
+  }
+  async function guardarMenus(){
+    S.guardando = true; pintar();
+    const filas = [['Perfil', 'Menú', 'Opción', 'Clave', 'Ve']];
+    MPF_PERFILES.forEach(x => MPF_ARBOL[x.app].forEach(([t, tn, ops]) => ops.forEach(([o, on]) => filas.push([x.p, tn, on, t + '/' + o, S.ve[k(x.p, t, o)] ? 'Sí' : 'No']))));
+    try { await setRange(HM + '!A1:E' + filas.length, filas, CLAVES); S.cambios = false; S.msg = 'Guardado ' + new Date().toLocaleTimeString('es-EC', {hour: '2-digit', minute: '2-digit'}); }
+    catch (er) { S.msg = 'No se guardó: ' + (er && er.message || er); }
+    S.guardando = false; pintar();
+  }
+  async function guardarPerfiles(){
+    S.guardando = true; pintar();
+    try {
+      for (const f of Object.keys(S.cambiosP)) { await setRange(HS + '!J' + f, [[S.cambiosP[f]]], CLAVES); const p = S.gente.find(x => String(x.fila) === String(f)); if (p) p.perfil = S.cambiosP[f]; }
+      S.cambiosP = {}; S.msg = 'Perfiles guardados';
+    } catch (er) { S.msg = 'No se guardó: ' + (er && er.message || er); }
+    S.guardando = false; pintar();
+  }
+  async function agregar(){
+    const n = (document.getElementById('mpfNom').value || '').trim(), m = (document.getElementById('mpfMail').value || '').trim(), p = document.getElementById('mpfPer').value;
+    if (!n || !/@/.test(m)) { alert('Escribe el nombre y un correo válido.'); return; }
+    if (S.gente.some(x => x.nombre.toLowerCase() === n.toLowerCase())) { alert(n + ' ya está en la lista: cámbiale el perfil arriba.'); return; }
+    const fila = Math.max(1, ...S.gente.map(x => x.fila)) + 1;
+    try {
+      await setRange(HS + '!A' + fila + ':J' + fila, [[n, '', 'Todas', 'Seguimiento', 'Sí', 'Agregado desde Menús por perfil', m, '', p === 'Gerentes' ? 'Gerente' : 'Supervisor', p]], CLAVES);
+      S.gente.push({fila, nombre: n, activo: 'Sí', cargo: p === 'Gerentes' ? 'Gerente' : 'Supervisor', perfil: p}); S.msg = n + ' agregado como ' + p;
+    } catch (er) { alert('No se agregó: ' + (er && er.message || er)); }
+    pintar();
+  }
+  window.mpfAbrir = function(){ const go = () => { if (typeof st !== 'undefined' && st.mcp) { if (!S.cargado) cargar(); else pintar(); } else setTimeout(go, 500); }; go(); };
+  if (location.hash === '#menus') setTimeout(window.mpfAbrir, 300);
+})();
+</script>
+<style>
+.mpf{margin-bottom:14px}.mpf-chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+.mpf-chip{border:1px solid var(--line,#ddd);background:var(--surface,#fff);color:inherit;border-radius:999px;padding:6px 12px;font-weight:600;cursor:pointer}
+.mpf-chip.on{background:var(--accent,#111);border-color:var(--accent,#111);color:var(--accent-ink,#fff)}
+.mpf-arbol{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.mpf-t{border:1px solid var(--line,#e5e5e5);border-radius:10px;padding:8px 10px}
+.mpf-t label{display:flex;align-items:center;gap:8px;padding:3px 0;cursor:pointer}
+.mpf-tl{font-size:15px}.mpf-n{margin-left:auto;font-size:12px;opacity:.6}
+.mpf-ops{padding-left:22px;font-size:13.5px}
+.mpf-adm{font-size:11px;font-weight:600;color:#a07400;background:#fff3cc;border-radius:6px;padding:0 5px;white-space:nowrap}
+.mpf-nota{font-size:12.5px;opacity:.75;margin:0 0 10px}
+.mpf-bar{display:flex;align-items:center;gap:12px;margin-top:12px}
+.mpf-tb{width:100%;border-collapse:collapse}.mpf-tb th,.mpf-tb td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line,#eee)}
+.mpf-add{margin-top:10px}.mpf-add summary{cursor:pointer;font-weight:600}.mpf-addf{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.mpf-addf input{flex:1 1 180px}
+</style>
+    <style>.mp1g{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}.mp1g .panel{padding:12px 14px;margin:0}.mp1g h3{margin:0 0 2px;font-size:15px}.mp1g .mp1q{font-size:12px;opacity:.7;margin:0 0 8px}.mp1g ul{margin:0;padding-left:18px}.mp1g li{margin:2px 0}.mp1g ul ul{padding-left:16px;font-size:13px;opacity:.85}.mp1g .mp1s{font-size:11px;font-weight:600;color:#a07400;background:#fff3cc;border-radius:6px;padding:0 5px;margin-left:4px}</style>
+    <div class="mp1g" hidden>
+      <section class="panel"><h3>Diego · Administrador</h3><p class="mp1q">Este panel</p><ul>
+        <li>Hoy</li>
+        <li>Supervisión<ul><li>Nueva supervisión</li><li>Todos los pendientes</li><li>Calendario</li></ul></li>
+        <li>Anuncios (publicar y leer)</li>
+        <li>Ventas<ul><li>Flash de ventas</li></ul></li>
+        <li>Universidad<ul><li>Tabla</li><li>Goleadores</li><li>Carreras</li><li>Alertas</li></ul></li>
+        <li>Mercadería<ul><li>Inventario Top 50</li><li>Inventario EXTRA</li><li>Consultar stock</li><li>Transferencias<span class="mp1s">solo tú</span></li><li>Perchas<span class="mp1s">solo tú</span></li></ul></li>
+        <li>Políticas<ul><li>Políticas</li><li>Manuales y guías</li><li>Reporte de lectura</li></ul></li>
+        <li>Uso app<span class="mp1s">solo tú</span><ul><li>Uso supervisores</li><li>Uso gerentes</li><li>Uso asesores</li></ul></li>
+        <li>Contactos<ul><li>Teléfonos</li><li>WhatsApp</li><li>Correos</li><li>Horarios de atención</li><li>Enlaces para compartir<span class="mp1s">solo tú</span></li></ul></li>
+        <li>Clientes<ul><li>Proformas</li><li>Lista de espera</li></ul></li>
+        <li>Sistema<span class="mp1s">solo tú</span><ul><li>Fuentes</li><li>Mis pendientes</li><li>Catálogo de colaboradores</li><li>Menús por perfil</li></ul></li>
+      </ul></section>
+      <section class="panel"><h3>Gerentes · Samia y Nina</h3><p class="mp1q">Hoy entran al panel de Supervisores y ven lo mismo que ellos. Dime qué menús y opciones de tu panel quieres que vean.</p><ul>
+        <li>Por definir</li>
+        <li>Ya decidido: Transferencias (solo ver)</li>
+      </ul></section>
+      <section class="panel"><h3>Supervisores</h3><p class="mp1q">Alba, Mercedes, Marco, Iván, Fernando</p><ul>
+        <li>Hoy</li>
+        <li>Supervisión<ul><li>Nueva supervisión</li><li>Todos los pendientes</li><li>Calendario</li></ul></li>
+        <li>Anuncios (solo leer)</li>
+        <li>Ventas<ul><li>Flash de ventas</li></ul></li>
+        <li>Universidad<ul><li>Tabla</li><li>Goleadores</li><li>Carreras</li><li>Alertas</li></ul></li>
+        <li>Mercadería<ul><li>Inventario Top 50</li><li>Inventario EXTRA</li><li>Consultar stock</li></ul></li>
+        <li>Políticas<ul><li>Políticas</li><li>Manuales y guías</li><li>Reporte de lectura</li></ul></li>
+        <li>Contactos<ul><li>Teléfonos</li><li>WhatsApp</li><li>Correos</li><li>Horarios de atención</li></ul></li>
+        <li>Clientes<ul><li>Proformas</li><li>Lista de espera</li></ul></li>
+      </ul></section>
+      <section class="panel"><h3>Tiendas</h3><p class="mp1q">Gerente y equipo de cada tienda</p><ul>
+        <li>Hoy<ul><li>Dato del día y anuncios</li><li>Flash de ventas</li><li>Proformas</li><li>Universidad Steren</li><li>Garantías extendidas</li><li>Actividades del mes</li></ul></li>
+        <li>Mi trabajo<ul><li>Pendientes</li><li>Supervisar (autosupervisión)</li><li>Inventario: informes, autoconsumo y lista de espera</li></ul></li>
+        <li>Cómo trabajamos<ul><li>Políticas</li><li>Guías</li></ul></li>
+      </ul></section>
+      <section class="panel"><h3>Asesores</h3><p class="mp1q">Cada asesor desde su celular</p><ul>
+        <li>Inicio<ul><li>Muro de la tienda y ranking del mes</li></ul></li>
+        <li>Comunidad</li>
+        <li>Mi meta<ul><li>Meta y comisión</li><li>Movimientos</li><li>Medallas</li></ul></li>
+        <li>Clientes<ul><li>Proformas</li><li>Lista de espera</li></ul></li>
+        <li>Horario</li>
+        <li>Aprender<ul><li>Ranking Universidad</li><li>Pregunta del día</li><li>Cómo trabajamos</li></ul></li>
+      </ul></section>
+      <section class="panel"><h3>Otras áreas · Avisos TEFES</h3><p class="mp1q">Bodegas, contact center y Talento Humano</p><ul>
+        <li>Anuncios y dato del día</li>
+        <li>Políticas y guías</li>
+        <li>Consultar stock</li>
+        <li>Contactos de tiendas</li>
+        <li>Promociones vigentes</li>
+        <li>Mi área<ul><li>Bodegas: transferencias</li><li>Contact center: ventas</li><li>Talento Humano: Universidad</li></ul></li>
+      </ul></section>
+    </div>
+  </div>
+
   <div class="view" data-view="fuentes" hidden>
     <div class="sec-h"><h2>Estado de la información</h2><span class="hint" id="fueSub">Cada fuente de datos, cuándo se actualizó y si está al día.</span></div>
     <div id="fueBody"><div class="skeleton">Cargando fuentes…</div></div>
+  </div>
+
+  <div class="view" data-view="catalogo" hidden>
+    <div class="sec-h"><h2>Catálogo de colaboradores</h2><span class="hint">Corporación Favorita y filiales · cuántos entran, qué miran y qué piden</span></div>
+    <div class="cf-share"><div class="cf-sh-t"><span>Enlace para compartir</span><code id="cfLink">https://steren-ecuador.github.io/Tefes/catalogo-colaboradores-CF/</code></div><div class="cf-sh-b"><button type="button" class="hbtn pri" onclick="(async()=>{const u=document.getElementById('cfLink').textContent;try{await navigator.clipboard.writeText(u);(window.toast||alert)('Enlace copiado');}catch(e){prompt('Copia el enlace:',u);}})()">Copiar enlace</button><a class="hbtn wa" target="_blank" rel="noopener" href="https://wa.me/?text=Hola%2C%20te%20comparto%20el%20cat%C3%A1logo%20Steren%20con%20precios%20especiales%20para%20colaboradores%20de%20Corporaci%C3%B3n%20Favorita%20y%20filiales%3A%20https%3A%2F%2Fsteren-ecuador.github.io%2FTefes%2Fcatalogo-colaboradores-CF%2F">Enviar por WhatsApp</a><a class="hbtn" target="_blank" rel="noopener" href="https://steren-ecuador.github.io/Tefes/catalogo-colaboradores-CF/">Abrir</a></div></div>
+    <style>.cf-share{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--accent-soft);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 14px}.cf-sh-t{display:flex;flex-direction:column;gap:3px;min-width:0}.cf-sh-t span{font-size:12px;font-weight:700;color:var(--fg-2,var(--na));text-transform:uppercase;letter-spacing:.04em}.cf-sh-t code{font-size:14px;font-weight:600;word-break:break-all;color:var(--fg)}.cf-sh-b{display:flex;gap:8px;flex-wrap:wrap}.cf-sh-b .hbtn{text-decoration:none;color:var(--fg)!important;background:var(--surface)!important;border:1px solid var(--line)!important;font-weight:600;padding:8px 14px;border-radius:9px;display:inline-flex;align-items:center}.cf-sh-b .hbtn.pri{background:var(--accent)!important;color:var(--accent-ink)!important;border-color:var(--accent)!important}.cf-sh-b .hbtn.wa{background:#25d366!important;color:#06301a!important;border-color:#25d366!important}</style>
+    <div id="cfBody"><div class="skeleton">Cargando el uso del catálogo…</div></div>
   </div>
 
   <div class="view" data-view="transferencias" hidden>
@@ -1407,7 +1626,7 @@ function hlPintar(filas, todas){
 }
 /* mn1: sub-opciones del menú por temas (Diego 8-nov): una vista muestra solo la parte elegida */
 (function(){
-  const MN_T = {"hoy": [["hoy", "", "Hoy"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "", "Flash de ventas"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "extra", "Inventario EXTRA"], ["inventario", "stock", "Consultar stock"], ["transferencias", "", "Transferencias"], ["perchas", "", "Perchas"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "uso": [["equipo", "sup", "Uso supervisores"], ["equipo", "ger", "Uso gerentes"], ["equipo", "ase", "Uso asesores"]], "contactos": [["enlaces", "tel", "Teléfonos"], ["enlaces", "wa", "WhatsApp"], ["enlaces", "mail", "Correos"], ["enlaces", "hor", "Horarios de atención"], ["enlaces", "lk", "Enlaces para compartir"]], "clientes": [["reclamos", "pf", "Proformas"], ["reclamos", "vf", "Lista de espera"]], "sistema": [["fuentes", "", "Fuentes"], ["mispendientes", "", "Mis pendientes"]]};
+  const MN_T = {"hoy": [["hoy", "val", "Esperan tu validación"], ["hoy", "sup", "Posiciones de supervisión"], ["hoy", "ven", "Ventas vs presupuesto"], ["hoy", "act", "Actividades del mes"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "fl", "Flash de ventas"], ["flash", "fd", "Explorar ventas"], ["flash", "gar", "Garantías extendidas"], ["flash", "pp", "Presupuesto por persona"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "extra", "Inventario EXTRA"], ["inventario", "stock", "Consultar stock"], ["transferencias", "", "Transferencias"], ["perchas", "", "Perchas"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "uso": [["equipo", "sup", "Uso supervisores"], ["equipo", "ger", "Uso gerentes"], ["equipo", "ase", "Uso asesores"]], "contactos": [["enlaces", "tel", "Teléfonos"], ["enlaces", "wa", "WhatsApp"], ["enlaces", "mail", "Correos"], ["enlaces", "hor", "Horarios de atención"], ["enlaces", "lk", "Enlaces para compartir"]], "clientes": [["reclamos", "pf", "Proformas"], ["reclamos", "vf", "Lista de espera"]], "sistema": [["fuentes", "", "Fuentes"], ["mispendientes", "", "Mis pendientes"], ["catalogo", "", "Catálogo de colaboradores"], ["menus", "", "Menús por perfil"]]};
   window.MN_SUB = window.MN_SUB || {};
   const subsDe = v => { const r = []; Object.keys(MN_T).forEach(t => MN_T[t].forEach(x => { if (x[0] === v && x[1]) r.push(x); })); return r; };
   const vistaEl = v => document.querySelector('.view[data-view="' + v + '"]');
@@ -1509,6 +1728,7 @@ function hlPintar(filas, todas){
     if (CT_K[MN_SUB[v]]) ctLista(el, MN_SUB[v]);
     if (v === 'equipo' && MN_SUB[v] === 'ase') asesores();
     if (v === 'inventario' && MN_SUB[v] === 'stock') mrcStock(el);   // mrc1
+    if (v === 'hoy' && MN_SUB[v] === 'ven' && typeof M !== 'undefined' && M.ok) requestAnimationFrame(() => mDraw());   // in1
   }
   window.mnAplicar = aplicar;
   window.mnSubBar = (sub, tOn, on, btn) => {
@@ -3292,7 +3512,7 @@ function renderFuentes(){
     <div class="small">Actualizado ${esc(fF(x.u, 1) || '–')}${x.u ? ' <span class="faint">(' + esc(hace(x.u)) + ')</span>' : ''}${x.h ? ' · datos hasta ' + esc(fF(x.h)) : ''}</div>
     ${x.n ? `<div class="small faint">${esc(x.n)}</div>` : ''}</div></div>`).join('') + '</div>';
 }
-const VISTAS = ['supervision','hoy','calendario','mispendientes','fuentes','flash','anuncios','pendientes','whatsapp','inventario','vivo','transferencias','servicio','politicas','reclamos','guias','universidad','perchas','supervisores','equipo','enlaces'];
+const VISTAS = ['supervision','hoy','calendario','mispendientes','fuentes','menus','catalogo','flash','anuncios','pendientes','whatsapp','inventario','vivo','transferencias','servicio','politicas','reclamos','guias','universidad','perchas','supervisores','equipo','enlaces'];
 function ir(v){
   if (v === 'vivo') v = 'inventario';   // En vivo está arriba de Inventario
   if (v === 'supervisores') v = 'equipo';
@@ -3308,6 +3528,8 @@ function ir(v){
   if (v === 'whatsapp') requestAnimationFrame(() => document.querySelectorAll('.wa-it textarea').forEach(t => { t.style.height = 'auto'; t.style.height = t.scrollHeight + 2 + 'px'; }));
   if (v === 'perchas' && window.peAbrir) peAbrir();
   if (v === 'mispendientes' && window.mpAbrir) mpAbrir();
+  if (v === 'menus' && window.mpfAbrir) mpfAbrir();   // mp2
+  if (v === 'catalogo' && window.cfAbrir) cfAbrir();   // cf2
   if (v === 'transferencias' && window.trfAbrir) trfAbrir();
   if (v === 'servicio' && window.stAbrir) stAbrir();   // st1
   if (v === 'flash' && window.fdAbrir) fdAbrir();   // fd1
@@ -5914,8 +6136,9 @@ if (typeof st !== 'undefined' && st.tab === 'servicio') stAbrir();
     enlaces: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
     mispendientes: 'M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9',
     transferencias: 'M4 8h14l-4-4M20 16H6l4 4',
+    catalogo: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM15 15h4M17 13v4',
     mas: 'M5 12h.01M12 12h.01M19 12h.01'};
-  const CORTO = {calendario: 'Calendario', transferencias: 'Transf.', mispendientes: 'Mis pend.', hoy: 'Hoy', flash: 'Flash', pendientes: 'Pendientes', supervision: 'Supervisar', inventario: 'Inventario', politicas: 'Políticas', guias: 'Manuales', contactos: 'Contactos', reclamos: 'Clientes', equipo: 'Equipo', enlaces: 'Contactos'};
+  const CORTO = {calendario: 'Calendario', transferencias: 'Transf.', mispendientes: 'Mis pend.', catalogo: 'Catálogo', hoy: 'Inicio', flash: 'Flash', pendientes: 'Pendientes', supervision: 'Supervisar', inventario: 'Inventario', politicas: 'Políticas', guias: 'Manuales', contactos: 'Contactos', reclamos: 'Clientes', equipo: 'Equipo', enlaces: 'Contactos'};
   const ORDEN = ['hoy', 'pendientes', 'supervision', 'inventario', 'flash'];
   const ico = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + (d || P.mas) + '"/></svg>';
   const nombre = b => CORTO[b.dataset.v] || b.textContent.trim();
@@ -6307,8 +6530,8 @@ function CAL_YO(){ const r = (st.sv || []).slice(1).find(r => /diego/i.test(Stri
 <script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "Buscar: inventario, Mall Sol, caja chica, política…",
-  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash"]}, {"id": "universidad", "nombre": "Universidad", "vistas": ["universidad"]}, {"id": "inventarios", "nombre": "Mercadería", "vistas": ["inventario", "transferencias", "perchas"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "uso", "nombre": "Uso app", "vistas": ["equipo"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["enlaces"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["reclamos"]}, {"id": "sistema", "nombre": "Sistema", "vistas": ["fuentes", "mispendientes"]}],
-  items: [{"t": "Estado de la información", "v": "fuentes", "sub": "Hoy · solo tú", "kw": "fuentes datos actualizado actualizacion erp onedrive codex pos atrasado ultima extraccion estado informacion"}, {"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Mis pendientes con otras áreas", "v": "mispendientes", "sub": "Hoy · solo tú", "kw": "tareas todo lista bodega cedis contabilidad talento humano rrhh compras sistemas gerencia marketing areas departamentos"}, {"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa y validar", "kw": "inicio resumen mapa validar actividades caja chica"}, {"t": "Anuncios a tiendas", "v": "anuncios", "sub": "Anuncios", "kw": "anuncios avisos comunicados publicar aviso semana leyeron lectura confirmar"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Transferencias", "v": "transferencias", "sub": "Tiendas · solo tú", "kw": "transferencias traslados envios agencias cedis semaforo diferencias faltantes sobrantes arregladas gestion erp producto codigo"}, {"t": "Servicio Técnico", "v": "servicio", "sub": "Tiendas · solo tú", "kw": "servicio tecnico ordenes trabajo reparacion garantia cambios menores 50 st erp"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Clientes", "v": "reclamos", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Garantías extendidas", "v": "flash", "sub": "Ventas", "kw": "garantia garantias extendidas", "go": () => TEM_ABRIR("#garBody")}, {"t": "Formas de pago", "v": "flash", "sub": "Ventas · solo tú", "kw": "formas pago tarjeta credito debito efectivo transferencia steren card deuna autoconsumo cobro", "go": () => TEM_ABRIR("#fpBody")}, {"t": "Presupuesto por persona", "v": "flash", "sub": "Ventas · solo tú", "kw": "presupuesto meta metas asesor asesores persona reparto repartir distribuir cuota porcentaje", "go": () => TEM_ABRIR("#ppBody")}, {"t": "Perchas", "v": "perchas", "sub": "Tiendas · exhibición", "kw": "perchas exhibicion layout planograma"}, {"t": "Equipo de supervisores", "v": "equipo", "sub": "Personas", "kw": "supervisores equipo visitas ranking personas"}, {"t": "Contactos de tiendas", "v": "enlaces", "sub": "Contactos", "kw": "contactos telefono llamar whatsapp correo direccion horario tienda numero"}, {"t": "Enlaces para compartir", "v": "enlaces", "sub": "Contactos", "kw": "enlaces links claves compartir gerentes supervisores portal ajustes configuracion"}, {"t": "Nueva supervisión", "sub": "Abrir el formulario", "kw": "supervisar visita checklist nueva supervision", "go": () => document.querySelector("#nuevaSup").click()}],
+  temas: [{"id": "hoy", "nombre": "Inicio", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash"]}, {"id": "universidad", "nombre": "Universidad", "vistas": ["universidad"]}, {"id": "inventarios", "nombre": "Mercadería", "vistas": ["inventario", "transferencias", "perchas"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "uso", "nombre": "Uso app", "vistas": ["equipo"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["enlaces"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["reclamos"]}, {"id": "sistema", "nombre": "Sistema", "vistas": ["fuentes", "mispendientes", "catalogo", "menus"]}],
+  items: [{"t": "Catálogo de colaboradores", "v": "catalogo", "sub": "Sistema · solo tú", "kw": "catalogo colaboradores favorita filiales uso visitas ctr clics whatsapp productos vistos busquedas"}, {"t": "Estado de la información", "v": "fuentes", "sub": "Hoy · solo tú", "kw": "fuentes datos actualizado actualizacion erp onedrive codex pos atrasado ultima extraccion estado informacion"}, {"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Mis pendientes con otras áreas", "v": "mispendientes", "sub": "Hoy · solo tú", "kw": "tareas todo lista bodega cedis contabilidad talento humano rrhh compras sistemas gerencia marketing areas departamentos"}, {"t": "Inicio", "v": "hoy", "sub": "Validar, supervisión, ventas y actividades", "kw": "inicio resumen mapa validar actividades caja chica"}, {"t": "Anuncios a tiendas", "v": "anuncios", "sub": "Anuncios", "kw": "anuncios avisos comunicados publicar aviso semana leyeron lectura confirmar"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Transferencias", "v": "transferencias", "sub": "Tiendas · solo tú", "kw": "transferencias traslados envios agencias cedis semaforo diferencias faltantes sobrantes arregladas gestion erp producto codigo"}, {"t": "Servicio Técnico", "v": "servicio", "sub": "Tiendas · solo tú", "kw": "servicio tecnico ordenes trabajo reparacion garantia cambios menores 50 st erp"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Clientes", "v": "reclamos", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Garantías extendidas", "v": "flash", "sub": "Ventas", "kw": "garantia garantias extendidas", "go": () => TEM_ABRIR("#garBody")}, {"t": "Formas de pago", "v": "flash", "sub": "Ventas · solo tú", "kw": "formas pago tarjeta credito debito efectivo transferencia steren card deuna autoconsumo cobro", "go": () => TEM_ABRIR("#fpBody")}, {"t": "Presupuesto por persona", "v": "flash", "sub": "Ventas · solo tú", "kw": "presupuesto meta metas asesor asesores persona reparto repartir distribuir cuota porcentaje", "go": () => TEM_ABRIR("#ppBody")}, {"t": "Perchas", "v": "perchas", "sub": "Tiendas · exhibición", "kw": "perchas exhibicion layout planograma"}, {"t": "Equipo de supervisores", "v": "equipo", "sub": "Personas", "kw": "supervisores equipo visitas ranking personas"}, {"t": "Contactos de tiendas", "v": "enlaces", "sub": "Contactos", "kw": "contactos telefono llamar whatsapp correo direccion horario tienda numero"}, {"t": "Enlaces para compartir", "v": "enlaces", "sub": "Contactos", "kw": "enlaces links claves compartir gerentes supervisores portal ajustes configuracion"}, {"t": "Nueva supervisión", "sub": "Abrir el formulario", "kw": "supervisar visita checklist nueva supervision", "go": () => document.querySelector("#nuevaSup").click()}],
   extra: function(){
     const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
     (S.d.tiendas || []).filter(t => t.activa).forEach(t => out.push({grupo: 'Tiendas', t: t.nombre, sub: 'Pendientes de ' + t.nombre, kw: 'tienda local', v: 'pendientes',
@@ -6885,4 +7108,165 @@ setInterval(() => { const E = [...new Set(window.RENDER_ERR || [])]; let b = doc
   if (!b) { b = document.createElement('div'); b.id = 'wd2Err'; b.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:99;max-width:70vw;background:#fff3cd;color:#5c4400;border:1px solid #e0c36a;border-radius:8px;padding:6px 10px;font:12px/1.4 system-ui'; document.body.appendChild(b); }
   const t = 'Aviso técnico: ' + E.slice(-3).join(' · '); if (b.textContent !== t) b.textContent = t; window.RENDER_ERR = E.slice(-3); }, 3000);
 </script>
+
+<style>
+/* cf2: Sistema › Catálogo de colaboradores */
+.cf-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 12px}
+.cf-per{display:inline-flex;background:var(--surface-2,var(--nb));border:1px solid var(--line);border-radius:999px;padding:3px}
+.cf-per button{border:0;background:none;color:var(--fg-2,var(--fg));font:600 13px var(--f-body);padding:6px 14px;border-radius:999px;cursor:pointer}
+.cf-per button.on{background:var(--accent);color:var(--accent-ink)}
+.cf-err{background:var(--bad-soft);color:var(--bad);border-radius:var(--r);padding:8px 12px;margin-bottom:10px}
+.cf-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.cf-kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:1px}
+.cf-kpi span{font-size:12.5px;color:var(--fg-2,var(--na));font-weight:600}
+.cf-kpi b{font-family:var(--f-display);font-size:32px;font-weight:700;line-height:1.1}
+.cf-kpi small{font-size:11.5px;color:var(--na)}
+.cf-kpi.hl{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}.cf-kpi.hl span,.cf-kpi.hl small{color:inherit;opacity:.85}
+.cf-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
+.cf-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.cf-card h3{font:700 15px var(--f-display);letter-spacing:.01em;margin:0 0 10px}
+.cf-w2{grid-column:span 2}
+@media (max-width:900px){.cf-grid{grid-template-columns:1fr}.cf-w2{grid-column:auto}}
+.cf-svg{width:100%;height:160px;display:block}
+.cf-r{fill:var(--accent)}.cf-r0{fill:var(--line)}
+.cf-tx{font-size:11px;fill:var(--na);text-anchor:middle}.cf-tv{font-size:11px;font-weight:700;fill:var(--fg);text-anchor:middle}
+.cf-bar{flex:1;min-width:40px;height:8px;background:var(--surface-2,var(--nb));border-radius:99px;overflow:hidden;display:block}
+.cf-bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.cf-emb{display:flex;flex-direction:column;gap:12px}
+.cf-el{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;font-size:13px}
+.cf-el b{font-family:var(--f-display);font-size:20px}.cf-el small{font:600 12px var(--f-body);color:var(--na)}
+.cf-et .cf-bar{height:12px}
+.cf-lst{display:flex;flex-direction:column;gap:8px}
+.cf-li{display:flex;align-items:center;gap:10px;font-size:13px}
+.cf-lt{flex:0 0 46%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cf-li>b{min-width:34px;text-align:right;font-variant-numeric:tabular-nums}.cf-li>b small{font-weight:500;color:var(--na)}
+.cf-tb{display:flex;flex-direction:column}
+.cf-th,.cf-tr{display:grid;grid-template-columns:minmax(0,1fr) 150px 52px 62px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.cf-th{font-size:12px;color:var(--na);font-weight:600;padding-top:0}.cf-th span:not(:first-child),.cf-tr>span:not(:first-child){text-align:right}
+.cf-tr:last-child{border-bottom:0}
+.cf-pn{display:flex;gap:10px;align-items:center;min-width:0}.cf-pn em{font-style:normal;font:700 13px var(--f-display);color:var(--na);width:18px;text-align:right}
+.cf-pn>span{display:flex;flex-direction:column;min-width:0}.cf-pn b{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cf-pn small{font-size:11.5px;color:var(--na)}
+.cf-vb{display:flex;align-items:center;gap:8px}.cf-vb b{min-width:26px}
+.cf-pill{font-style:normal;font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--na-soft);color:var(--na)}
+.cf-pill.ok{background:var(--good-soft);color:var(--good)}
+.cf-chips{display:flex;flex-wrap:wrap;gap:6px}.cf-chips span{background:var(--accent-soft);color:var(--fg);border-radius:99px;padding:4px 10px;font-size:13px}.cf-chips b{color:var(--accent)}
+.cf-vacio{color:var(--na);font-size:13px;padding:6px 0}
+@media (max-width:560px){.cf-th,.cf-tr{grid-template-columns:minmax(0,1fr) 40px 36px 52px;gap:6px}.cf-vb .cf-bar{display:none}.cf-pn b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.cf-pn em{width:14px}.cf-kpi b{font-size:26px}.cf-li{flex-wrap:wrap;row-gap:3px}.cf-lt{flex:1 1 100%;white-space:normal;line-height:1.25}.cf-li .cf-pill{margin-right:auto}.cf-sh-b{width:100%}.cf-sh-b .hbtn{flex:1 1 auto;justify-content:center;padding:11px 12px;font-size:14px}.cf-sh-t code{font-size:13px}.cf-per{width:100%}.cf-per button{flex:1;padding:8px 6px}.cf-card{padding:12px}} /* cf2m */
+</style>
+<script>
+/* cf2 (9-nov-2026): Sistema › Catálogo de colaboradores (solo Diego). Uso del catálogo Corporación Favorita.
+   Lee la pestaña cruda 'Catálogo CF' de CLAVES y calcula todo aquí; deja fuera las visitas con origen "prueba". */
+(function(){
+  const MAPA = {"SHOME-100":["Contacto Wi-Fi","Hogar inteligente"],"SHOME-160":["Control remoto universal Wi-Fi","Hogar inteligente"],"SHOME-120":["Foco LED Wi-Fi RGB+W multicolor de 10 W","Hogar inteligente"],"SHOME-110":["Apagador Wi-Fi touch doble","Hogar inteligente"],"SHOME-111":["Apagador Wi-Fi touch","Hogar inteligente"],"SHOME-100/3":["3 contactos Wi-Fi","Hogar inteligente"],"SHOME-120/3":["Foco inteligente Steren 3 piezas","Hogar inteligente"],"LOCK-510":["Cerradura digital Wi-Fi de seguridad","Hogar inteligente"],"SHOME-MED":["Báscula Digital Bluetooth Inteligente","Hogar inteligente"],"SHOME-113":["Apagador Wi-Fi touch triple","Hogar inteligente"],"SHOME-142":["Sensor Wi-Fi para puerta o ventana","Hogar inteligente"],"CCTV-0990":["Video timbre Wi-Fi con pantalla touch a color de 7\", compatible con asistentes de voz","Hogar inteligente"],"SHOME-140":["Interruptor Wi-Fi","Hogar inteligente"],"SHOME-122":["Foco LED Wi-Fi RGB+W multicolor de 15 W","Hogar inteligente"],"CCTV-219":["Cámara WiFi Interior con Inteligencia Artificial","Seguridad"],"CCTV-235":["Cámara con Sensor de Movimiento para Exterior WiFi 4MPX Robotizada","Seguridad"],"CCTV-203":["Cámara de seguridad Wi-Fi 3 Mpx fija","Seguridad"],"CCTV-233":["Mini cámara de seguridad Wi-Fi 3 Mpx robotizada con seguidor de movimiento, para exterior","Seguridad"],"CCTV-213":["Cámara de seguridad Wi-Fi 3 Mpx robotizada con seguidor de movimiento, doble banda","Seguridad"],"ALA-010":["Alarma para puertas o ventanas","Seguridad"],"CCTV-238":["Cámara de seguridad Wi-Fi 3 Mpx robotizada con seguidor de movimiento para socket","Seguridad"],"ALA-HUM":["Alarma detectora de humo","Seguridad"],"CCTV-086":["TV portero con pantalla a color de 7\"","Seguridad"],"ALA-033":["Alarma con sensor de movimiento","Seguridad"],"ALA-049":["Alarma inalámbrica con sensor de movimiento y campana","Seguridad"],"ALA-038":["Alarma de seguridad personal de 120 dB","Seguridad"],"PB-2010AC":["Power bank de 10 000 mAh con cargador de pared PD 20 W","Celular"],"PB-S010-NE":["Power bank de 10 000 mAh con PD 20 W y QC","Celular"],"PB-S020-NE":["Power bank de 20 000 mAh PD 20 W / QC 18 W","Celular"],"PB-C020-NE":["Power bank de 20 000 mAh PD 20 W / QC 18 W con cables","Celular"],"PB-045-10AH":["Power bank de 10 000 mAh con cable PD 45 W","Celular"],"PB-S005-NE":["Power bank de 5 000 mAh con PD 20 W y QC","Celular"],"POD-274":["Soporte para celular con Autolock y brazo extensible","Celular"],"ELI-762":["Cargador USB C PD 20 W / USB QC 18 W","Celular"],"ELI-755":["Cargador USB C PD 20 W","Celular"],"ELI-7032":["Cargador GaN USB C PD 30 W","Celular"],"USB-S21":["Cable USB a USB C de 1 m 65 W","Celular"],"ELI-7065":["Cargador GaN USB QC y USB C PD de 65 W","Celular"],"USB-456":["Adaptador USB C a jack 3,5 mm","Celular"],"POD-460":["Cable USB tipo C a Lightning, de 1,8 m","Celular"],"USB-3956":["Cable USB a USB C de 2 m con forro de nylon","Celular"],"USB-350":["Cable USB a micro USB de 1 m","Celular"],"MIC-285R":["Micrófono inalámbrico recargable","Audio"],"MIC-288R":["Micrófonos inalámbricos de solapa","Audio"],"AUD-336":["Audífonos 3,5 mm manos libres con cable tipo cordón","Audio"],"AUD-331":["Audífonos de oído manos libres, Ultrasoft","Audio"],"MIC-8020":["Sistema de 2 micrófonos inalámbricos UHF con selector automático de frecuencia y batería recargable","Audio"],"AUD-536NE":["Audífonos multimedia USB ultraconfort, negros","Audio"],"AUD-AE-200NE":["Audífonos Bluetooth AEON 200 FreePods TWS con ENC por IA y control por app","Audio"],"AUD-7840NE":["Audífonos Bluetooth TWS con cancelación de ruido","Audio"],"MG-245":["Mini megáfono de 20 W con grabador de voz, batería recargable, Bluetooth y reproductor MP3","Audio"],"AUD-7420NE":["Audífonos Bluetooth TWS","Audio"],"AUD-558":["Audífonos Gamer 3,5 mm","Audio"],"MIC-110":["Micrófono alámbrico","Audio"],"COM-098":["Base de enfriamiento para laptop, con ventilación ajustable","Computación"],"LIM-110":["Kit limpiador universal para pantallas, 100 ml con paño","Computación"],"COM-5606":["Control inalámbrico de diapositivas con apuntador láser y nano receptor magnético","Computación"],"COM-1395":["Cargador USB C Power Delivery de 65 W","Computación"],"506-450":["Adaptador DisplayPort a HDMI","Computación"],"USB-4740":["Estación de conexión USB C 6 en 1","Computación"],"COM-8300":["Repetidor WiFi 5G AC1200","Computación"],"USB-5295":["Estación de conexión USB C 5 en 1","Computación"],"USB-4714":["Adaptador USB C a HDMI","Computación"],"COM-8230+":["Nano adaptador USB Wi-Fi 6 AX900 2,4 GHz y 5 GHz","Computación"],"COM-825":["Repetidor / Router Wi-Fi 300 Mbps 2,4 GHz, hasta 20 m de cobertura","Computación"],"COM-680":["Teclado Bluetooth recargable con iluminación multicolor, compacto","Computación"],"COM-816":["Repetidor Wi-Fi 300 Mbps, 2,4 GHz","Computación"],"COM-628":["Teclado alámbrico con 9 teclas multimedia","Computación"],"PRO-260":["Mini proyector multimedia HD de 110 ANSI lm","TV y video"],"PRO-6000":["Proyector Full HD de 650 ANSI lm con autoenfoque","TV y video"],"PRO-380":["Proyector Full HD de 250 ANSI lm","TV y video"],"PRO-550":["Proyector multimedia Full HD de 600 lm, Wi-Fi y Bluetooth","TV y video"],"ANT-9024":["Antena UHF minimalista","TV y video"],"ANT-9018":["Antena compacta UHF con base de imán y booster de 20 dB","TV y video"],"STV-039":["Soporte para pantallas de 32\" a 85\", con ajuste de inclinación","TV y video"],"STV-105":["Soporte para pantallas de 32” a 75”, con brazo articulado","TV y video"],"295-501":["Cable HDMI 2.0 certificado de alta velocidad, de 1 m","TV y video"],"STV-040":["Soporte para pantallas de 25” a 70\", con ajuste de inclinación","TV y video"],"299-503":["Cable HDMI 2.1 certificado de ultra alta velocidad, de 3 m","TV y video"],"STV-205":["Soporte de escritorio para monitores de hasta 32”","TV y video"],"299-501":["Cable HDMI 2.1 8K certificado de 1 m","TV y video"],"299-830":["Cable HDMI 4K de 10 m","TV y video"],"BAT-LI-AA4 USB":["4 baterías recargables USB Li-Ion tipo AA, de 2200 mWh","Pilas y energía"],"BAT-LI-AAA2 USB":["2 baterías recargables USB Li-Ion tipo AAA, de 600 mWh","Pilas y energía"],"BAT-LI-AAA4 USB":["4 baterías recargables USB Li-Ion tipo AAA, de 600 mWh","Pilas y energía"],"BAT-LI-18650":["Pila recargable Li-ion 18650 de 2 200 mAh","Pilas y energía"],"BAT-LI-9V2 USB":["2 baterías recargables USB Li-Ion tipo 9V (cuadrada), de 4 200 mWh","Pilas y energía"],"BAT-LI-D2 USB":["2 baterías recargables USB Li-Ion tipo D, de 6450 mWh","Pilas y energía"],"BAT-LI-C2 USB":["2 baterías recargables USB Li-ion tipo C, de 3750 mWh","Pilas y energía"],"BAT-AAA4":["4 pilas alcalinas AAA de 1,5 V","Pilas y energía"],"BAT-AA4":["4 pilas alcalinas AA de 1,5 V","Pilas y energía"],"BAT-9V":["Pila alcalina de 9 V (cuadrada)","Pilas y energía"],"BAT-AAA12":["Paquete de 12 pilas alcalinas AAA","Pilas y energía"],"BAT-AA12":["Paquete de 12 pilas alcalinas AA","Pilas y energía"],"BAT-C2":["2 pilas alcalinas tipo C de 1,5 V","Pilas y energía"],"BAT-D2":["2 pilas alcalinas tipo D de 1,5 V","Pilas y energía"],"920-010":["Protector contra variaciones y picos de voltaje, de 3 600 W, 104 J, para electrodomésticos","Pilas y energía"],"920-020":["Protector contra variaciones y picos de voltaje de 1 800 W para equipos eléctricos y electrónicos","Pilas y energía"],"920-025":["Supresor de picos de voltaje de 1 875 W para eléctricos y electrónicos","Pilas y energía"],"REG-1050":["Regulador de voltaje de 1000 W","Pilas y energía"],"905-127":["Adaptador universal de contactos para viaje con cargador USB/USB C","Pilas y energía"],"INV-150":["Inversor de voltaje de 12 Vcd a 110 Vca, 150 W","Pilas y energía"],"MSG-200":["Mini pistola de masaje de 6 intensidades","Casa y oficina"],"MSG-600":["Masajeador de cuello y espalda","Casa y oficina"],"MSG-620":["Cojín masajeador de espalda con calor","Casa y oficina"],"MSG-290":["Masajeador con mango curvo y cabezales","Casa y oficina"],"TIM-400":["Timbre inalámbrico cinético, 100 m de alcance, 52 tonos","Casa y oficina"],"RAD-010":["Kit de 2 radios intercomunicadores","Casa y oficina"],"REPELTRONIC":["Ahuyentador electrónico de plagas","Casa y oficina"],"TIM-240":["Timbre inalámbrico con botón resistente a la lluvia, 80 m de alcance, 36 tonos","Casa y oficina"],"LAM-056":["Socket con fotocelda","Casa y oficina"],"TEL-225":["Teléfono con pantalla y teclado grande","Casa y oficina"],"LAM-094":["Lámpara de 80 LED automática tipo barra recargable con sensor PIR y sujeción magnética","Casa y oficina"],"LAM-081":["Lámpara LED con sensor de movimiento, panel solar y batería recargable","Casa y oficina"],"LAM-290":["Linterna LED de 1 200 lúmenes con batería recargable y estructura de aluminio","Casa y oficina"],"TEL-2420":["Teléfono inalámbrico DECT con extensión","Casa y oficina"],"RAD-630":["Radio intercomunicador profesional con teclado","Casa y oficina"],"RAD-510":["Radio profesional de largo alcance de 3 W","Casa y oficina"],"HER-411":["Calibrador vernier digital","Herramientas"],"HER-358":["Pinza ponchadora de plug RJ45","Herramientas"],"HER-162":["Desarmador con 30 puntas intercambiables","Herramientas"],"MUL-005":["Multímetro digital básico","Herramientas"],"HER-432":["Medidor de consumo eléctrico (Wattimetro)","Herramientas"],"MUL-108":["Multímetro de gancho true RMS auto rango","Herramientas"],"HER-615":["Probador de cables de red UTP, FTP, STP y telefónicos","Herramientas"],"HER-730":["Lámpara LED con lupa (5x), brazo articulado y 3 tonalidades de luz","Herramientas"],"K-455":["Kit solar 4 en 1","Para aprender"],"PCAJA-001":["Caja de toques armada","Para aprender"],"K-720":["Kit para armar SmartBot","Para aprender"],"K-555":["Kit solar 6 en 1 para armar","Para aprender"],"K-950AZIEL":["Curso de electrónica básica Aziel","Para aprender"]};
+  const URL_CAT = 'https://steren-ecuador.github.io/Tefes/catalogo-colaboradores-CF/';
+  const CF = {filas: null, t: 0, per: '7', cargando: false, err: ''};
+  try { CF.per = localStorage.getItem('cfPer') || '7'; } catch (e) {}
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmt = n => Number(n || 0).toLocaleString('es-EC');
+  const pct = (a, b) => b ? Math.round(a * 1000 / b) / 10 : 0;
+  const hoyTxt = () => { const d = new Date(Date.now() - 5 * 3600e3); return d.toISOString().slice(0, 10); };   // fecha Ecuador
+  const diasAtras = n => { const d = new Date(Date.now() - 5 * 3600e3 - n * 864e5); return d.toISOString().slice(0, 10); };
+  const nomProd = c => (MAPA[c] || [c])[0];
+  const catProd = c => (MAPA[c] || [, 'Fuera de los destacados'])[1];
+
+  async function cargar(fresh){
+    if (CF.cargando) return; if (!fresh && CF.filas && Date.now() - CF.t < 60000) { pintar(); return; }
+    CF.cargando = true; if (!CF.filas) pintar();
+    try { const v = await getRange("'Catálogo CF'!A1:I", true, CLAVES); CF.filas = (v || []).slice(1).filter(r => r[0] && r[5] !== 'prueba'); CF.t = Date.now(); CF.err = ''; }
+    catch (e) { CF.err = (e && (e.message || e.code)) || String(e); if (!CF.filas) CF.filas = []; }
+    finally { CF.cargando = false; pintar(); }
+  }
+
+  function calcular(){
+    const desde = CF.per === 'hoy' ? hoyTxt() : CF.per === 'todo' ? '0000' : diasAtras(+CF.per - 1);
+    const F = (CF.filas || []).filter(r => r[0] >= desde);
+    const ses = {}, vis = new Set(), prod = {}, cat = {}, busq = {}, disp = {}, orig = {}, tienda = {}, dia = {}, hora = new Array(24).fill(0);
+    let vistas = 0, clics = 0, pedidos = 0, seg = 0;
+    F.forEach(r => {
+      const [f, h, s, v, d, o, ev, c, det] = r;
+      const S = ses[s] = ses[s] || {ev: {}, f}; S.ev[ev] = 1;
+      if (v) vis.add(v);
+      if (ev === 'Ingreso') { dia[f] = (dia[f] || 0) + 1; hora[+String(h).slice(0, 2) || 0]++; disp[d || '–'] = (disp[d || '–'] || 0) + 1; orig[o || 'directo'] = (orig[o || 'directo'] || 0) + 1; }
+      if (c && (ev === 'Producto' || ev === 'Lo quiero' || ev === 'WA tienda' || ev === 'Agregar' || ev === 'Tiendas')) {
+        const P = prod[c] = prod[c] || {v: 0, k: 0, i: 0}; const K = cat[catProd(c)] = cat[catProd(c)] || {v: 0, k: 0};
+        if (ev === 'Producto') { P.v++; K.v++; vistas++; }
+        else if (ev === 'Lo quiero' || ev === 'WA tienda') { P.k++; K.k++; clics++; }
+        else P.i++;
+      }
+      if (ev === 'WA tienda') tienda[det || '–'] = (tienda[det || '–'] || 0) + 1;
+      if (ev === 'Enviar pedido') { pedidos++; clics++; }
+      if (ev === 'Búsqueda' && det) { const k = det.toLowerCase().trim(); busq[k] = (busq[k] || 0) + 1; }
+      if (ev === 'Tiempo') seg += Math.min(3600, +det || 0);
+    });
+    const S = Object.values(ses), nS = S.length;
+    const emb = [['Entraron', nS], ['Vieron un producto', S.filter(x => x.ev['Producto']).length],
+      ['Mostraron interés', S.filter(x => x.ev['Tiendas'] || x.ev['Agregar'] || x.ev['Ver más'] || x.ev['Lo quiero'] || x.ev['WA tienda']).length],
+      ['Escribieron por WhatsApp', S.filter(x => x.ev['Lo quiero'] || x.ev['WA tienda'] || x.ev['Enviar pedido']).length]];
+    return {F, nS, nV: vis.size, vistas, clics, pedidos, seg, prod, cat, busq, disp, orig, tienda, dia, hora, emb, desde};
+  }
+
+  const barra = (val, max, col) => '<span class="cf-bar"><i style="width:' + (max ? Math.max(2, Math.round(val * 100 / max)) : 0) + '%;' + (col ? 'background:' + col : '') + '"></i></span>';
+  const lista = (obj, tope, etq) => { const L = Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, tope); const mx = L.length ? L[0][1] : 0;
+    return L.length ? '<div class="cf-lst">' + L.map(([k, n]) => '<div class="cf-li"><span class="cf-lt">' + esc(etq ? etq(k) : k) + '</span>' + barra(n, mx) + '<b>' + fmt(n) + '</b></div>').join('') + '</div>' : '<div class="cf-vacio">Aún sin datos en este periodo.</div>'; };
+
+  function grafDias(R){
+    const n = CF.per === 'hoy' ? 1 : CF.per === 'todo' ? Math.min(60, Math.max(7, Object.keys(R.dia).length)) : +CF.per;
+    const D = []; for (let i = n - 1; i >= 0; i--) { const f = diasAtras(i); D.push([f, R.dia[f] || 0]); }
+    if (CF.per === 'hoy') {   // por hora
+      const mx = Math.max(1, ...R.hora), W = 24 * 22;
+      return '<svg class="cf-svg" viewBox="0 0 ' + W + ' 150" preserveAspectRatio="none">' + R.hora.map((v, h) => { const hh = Math.round(v * 96 / mx); return '<rect x="' + (h * 22 + 3) + '" y="' + (120 - hh) + '" width="16" height="' + hh + '" rx="3" class="cf-r"><title>' + h + ':00 · ' + v + ' ingresos</title></rect>' + (h % 3 === 0 ? '<text x="' + (h * 22 + 11) + '" y="140" class="cf-tx">' + h + 'h</text>' : ''); }).join('') + '</svg>';
+    }
+    const mx = Math.max(1, ...D.map(x => x[1])), w = 600 / D.length;
+    return '<svg class="cf-svg" viewBox="0 0 600 150" preserveAspectRatio="none">' + D.map(([f, v], i) => { const hh = Math.round(v * 96 / mx), x = i * w;
+      return '<rect x="' + (x + w * .15) + '" y="' + (120 - hh) + '" width="' + (w * .7) + '" height="' + Math.max(hh, v ? 2 : 1) + '" rx="3" class="' + (v ? 'cf-r' : 'cf-r0') + '"><title>' + f.split('-').reverse().join('/') + ' · ' + v + ' ingresos</title></rect>' +
+        (v && D.length <= 14 ? '<text x="' + (x + w / 2) + '" y="' + (114 - hh) + '" class="cf-tv">' + v + '</text>' : '') +
+        ((D.length <= 14 || i % Math.ceil(D.length / 10) === 0) ? '<text x="' + (x + w / 2) + '" y="140" class="cf-tx">' + f.slice(8) + '/' + f.slice(5, 7) + '</text>' : ''); }).join('') + '</svg>';
+  }
+
+  function pintar(){
+    const el = $('cfBody'); if (!el) return;
+    if (!CF.filas) { el.innerHTML = '<div class="skeleton">Cargando el uso del catálogo…</div>'; return; }
+    const R = calcular();
+    const PER = [['hoy', 'Hoy'], ['7', '7 días'], ['30', '30 días'], ['todo', 'Todo']];
+    const prom = R.nS ? Math.round(R.seg / R.nS) : 0;
+    const top = Object.entries(R.prod).filter(x => x[1].v || x[1].k).sort((a, b) => b[1].v - a[1].v || b[1].k - a[1].k).slice(0, 15), mxV = top.length ? Math.max(...top.map(x => x[1].v)) : 0;
+    const ctrTop = Object.entries(R.prod).filter(x => x[1].v >= 5 && x[1].k).sort((a, b) => b[1].k / b[1].v - a[1].k / a[1].v).slice(0, 5);
+    const cats = Object.entries(R.cat).sort((a, b) => b[1].v - a[1].v), mxC = cats.length ? cats[0][1].v : 0;
+    const e0 = R.emb[0][1] || 0;
+    el.innerHTML =
+      '<div class="cf-top"><div class="cf-per" role="tablist">' + PER.map(([k, t]) => '<button type="button" data-cfper="' + k + '" class="' + (CF.per === k ? 'on' : '') + '">' + t + '</button>').join('') + '</div>' +
+      '<span class="small faint">' + (CF.t ? 'Actualizado ' + new Date(CF.t).toLocaleTimeString('es-EC', {hour: '2-digit', minute: '2-digit'}) : '') + ' · <a href="#" data-cfrec>Actualizar</a></span></div>' +
+      (CF.err ? '<div class="cf-err">No se pudo leer la hoja: ' + esc(CF.err) + '</div>' : '') +
+      '<div class="cf-kpis">' +
+        [['Visitantes únicos', fmt(R.nV), 'personas distintas'], ['Visitas', fmt(R.nS), 'veces que abrieron el catálogo'], ['Productos vistos', fmt(R.vistas), R.nS ? (R.vistas / R.nS).toFixed(1) + ' por visita' : '–'],
+         ['Clics a WhatsApp', fmt(R.clics), 'Lo quiero, tienda y pedidos'], ['CTR', pct(R.clics, R.vistas) + '%', 'clics ÷ productos vistos'], ['Tiempo por visita', prom >= 60 ? Math.floor(prom / 60) + ' min ' + (prom % 60) + ' s' : prom + ' s', 'promedio']]
+        .map(([t, v, s], i) => '<div class="cf-kpi' + (i === 4 ? ' hl' : '') + '"><span>' + t + '</span><b>' + v + '</b><small>' + esc(s) + '</small></div>').join('') + '</div>' +
+      '<div class="cf-grid">' +
+        '<section class="cf-card cf-w2"><h3>Ingresos ' + (CF.per === 'hoy' ? 'por hora' : 'por día') + '</h3>' + grafDias(R) + '</section>' +
+        '<section class="cf-card"><h3>Embudo de la visita</h3><div class="cf-emb">' + R.emb.map(([t, n], i) => '<div class="cf-et"><div class="cf-el"><span>' + t + '</span><b>' + fmt(n) + '<small>' + (i ? ' · ' + pct(n, e0) + '%' : '') + '</small></b></div>' + barra(n, e0, ['var(--accent)', '#3a7fc0', '#e07b00', '#1d9a5a'][i]) + '</div>').join('') + '</div></section>' +
+        '<section class="cf-card cf-w2"><h3>Productos más vistos</h3>' + (top.length ? '<div class="cf-tb"><div class="cf-th"><span>Producto</span><span>Vistas</span><span>Clics</span><span>CTR</span></div>' +
+          top.map(([c, p], i) => '<div class="cf-tr"><span class="cf-pn"><em>' + (i + 1) + '</em><span><b>' + esc(nomProd(c)) + '</b><small>' + esc(c) + ' · ' + esc(catProd(c)) + '</small></span></span><span class="cf-vb">' + barra(p.v, mxV) + '<b>' + p.v + '</b></span><span><b>' + p.k + '</b></span><span><i class="cf-pill' + (p.k ? ' ok' : '') + '">' + pct(p.k, p.v) + '%</i></span></div>').join('') + '</div>' : '<div class="cf-vacio">Aún sin productos vistos en este periodo.</div>') + '</section>' +
+        '<section class="cf-card"><h3>Los que más convierten</h3><p class="small faint" style="margin:0 0 8px">Con 5 o más vistas, ordenados por CTR.</p>' + (ctrTop.length ? '<div class="cf-lst">' + ctrTop.map(([c, p]) => '<div class="cf-li"><span class="cf-lt">' + esc(nomProd(c)) + '</span><i class="cf-pill ok">' + pct(p.k, p.v) + '%</i><b>' + p.k + '/' + p.v + '</b></div>').join('') + '</div>' : '<div class="cf-vacio">Todavía no hay suficientes vistas.</div>') +
+          '<h3 style="margin-top:16px">Tiendas a las que escriben</h3>' + lista(R.tienda, 10) + '</section>' +
+        '<section class="cf-card"><h3>Categorías</h3>' + (cats.length ? '<div class="cf-lst">' + cats.map(([k, c]) => '<div class="cf-li"><span class="cf-lt">' + esc(k) + '</span>' + barra(c.v, mxC) + '<b>' + c.v + '<small> · ' + c.k + ' clics</small></b></div>').join('') + '</div>' : '<div class="cf-vacio">Aún sin datos en este periodo.</div>') + '</section>' +
+        '<section class="cf-card"><h3>Lo que buscan</h3>' + (Object.keys(R.busq).length ? '<div class="cf-chips">' + Object.entries(R.busq).sort((a, b) => b[1] - a[1]).slice(0, 30).map(([k, n]) => '<span>' + esc(k) + (n > 1 ? ' <b>' + n + '</b>' : '') + '</span>').join('') + '</div>' : '<div class="cf-vacio">Nadie ha buscado todavía.</div>') + '</section>' +
+        '<section class="cf-card"><h3>Desde dónde entran</h3>' + lista(R.disp, 8) + (Object.keys(R.orig).length > 1 || !R.orig.directo ? '<h3 style="margin-top:16px">Canal</h3>' + lista(R.orig, 6) : '') + '</section>' +
+      '</div>' +
+      '<p class="small faint" style="margin-top:12px">Anónimo: cada visitante es un celular o computadora. Un producto cuenta como visto si queda 1,5 s en pantalla. No incluye las visitas de prueba. <a href="' + URL_CAT + '" target="_blank" rel="noopener">Abrir el catálogo</a> · <a href="https://docs.google.com/spreadsheets/d/' + CLAVES + '/edit" target="_blank" rel="noopener">Ver el detalle en la hoja</a></p>';
+  }
+
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-cfper]'); if (b) { CF.per = b.dataset.cfper; try { localStorage.setItem('cfPer', CF.per); } catch (x) {} pintar(); return; }
+    if (e.target.closest('[data-cfrec]')) { e.preventDefault(); cargar(true); }
+  });
+  window.cfAbrir = () => cargar(false);
+  (async () => { const u = await window.claude?.use?.('user'); const b = document.querySelector('#tabs button[data-v="catalogo"]');
+    if (b && u && await u.isOwner().catch(() => false)) b.hidden = false; })();
+  if (typeof st !== 'undefined' && st.tab === 'catalogo') cargar(false);
+})();
+
+</script>
+<style>/* in1 */.view[data-view="hoy"][data-sub][data-sub="val"]>:not(#datoDia):not(.bx-wrap):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="sup"]>:not(#datoDia):not(.hl-sec:has(#hlSup)):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="ven"]>:not(#datoDia):not(.hl-sec:has(#hlVen)):not(.bx-mapa):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="act"]>:not(#datoDia):not(#actividades):not(.mn-chips){display:none!important}.view[data-view="hoy"][data-sub][data-sub="act"] #actividades{display:block!important}.view[data-view="hoy"][data-sub][data-sub="act"] #acBody:empty::before{content:"No hay actividades este mes.";color:var(--muted,#888);font-size:14px}</style>
+<style>/* vs1 */.view[data-view="flash"][data-sub="fl"]>#fdBody,.view[data-view="flash"][data-sub="fl"]>#garBody,.view[data-view="flash"][data-sub="fl"]>#ppBody,.view[data-view="flash"][data-sub="fd"]>:not(#fdBody):not(.mn-chips),.view[data-view="flash"][data-sub="gar"]>:not(#garBody):not(.mn-chips),.view[data-view="flash"][data-sub="pp"]>:not(#ppBody):not(.mn-chips){display:none!important}.view[data-view="flash"][data-sub="gar"]>#garBody:empty::before,.view[data-view="flash"][data-sub="pp"]>#ppBody:empty::before{content:"Cargando…";color:var(--muted,#888);font-size:14px}</style>
 </body></html>

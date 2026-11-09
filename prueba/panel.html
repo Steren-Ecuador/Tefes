@@ -1076,7 +1076,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
     <span class="status small" id="status">Cargando…</span><span id="yo"></span><a class="btn" id="inventario" href="./?invp=__PTOKEN__" target="_top" style="display:none;text-decoration:none">Inventario</a><button class="btn" id="refresh">Actualizar</button>
   </div>
   <nav class="tabs" id="tabs" aria-label="Secciones del panel">
-    <button data-v="hoy">Hoy</button>
+    <button data-v="hoy">Inicio</button>
     <button data-v="calendario" title="Las visitas de todos a las tiendas, mes a mes">Calendario</button>
     <button data-v="anuncios" title="Anuncios a las tiendas y quién los leyó">Anuncios</button>
     <button data-v="flash" title="Venta del día y del mes contra presupuesto, desde el ERP">Flash de Ventas</button>
@@ -1108,7 +1108,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   <div class="view" data-view="hoy">
     <div id="datoDia"></div>
     <div class="bx-wrap">
-        <div class="sec-h"><h2>Esperan validación <span class="bx-n" id="bxN"></span></h2><span class="hint">La tienda dice que ya lo resolvió. Toca uno para revisarlo.</span></div>
+        <div class="sec-h"><h2>Esperan tu validación <span class="bx-n" id="bxN"></span></h2><span class="hint">La tienda dice que ya lo resolvió. Toca uno para revisarlo.</span></div>
         <div class="panel flush bx" id="validar"><div class="skeleton">Cargando…</div></div>
     </div>
     <div class="hl-sec"><!-- hl1 -->
@@ -1528,7 +1528,7 @@ function hlPintar(filas, todas){
 }
 /* mn1: sub-opciones del menú por temas (Diego 8-nov): una vista muestra solo la parte elegida */
 (function(){
-  const MN_T = {"hoy": [["hoy", "", "Hoy"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "", "Flash de ventas"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "extra", "Inventario EXTRA"], ["inventario", "stock", "Consultar stock"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "pf", "Proformas"], ["clientes", "vf", "Lista de espera"]]};
+  const MN_T = {"hoy": [["hoy", "val", "Esperan tu validación"], ["hoy", "sup", "Posiciones de supervisión"], ["hoy", "ven", "Ventas vs presupuesto"], ["hoy", "act", "Actividades del mes"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "fl", "Flash de ventas"], ["flash", "fd", "Explorar ventas"], ["flash", "gar", "Garantías extendidas"], ["flash", "pp", "Presupuesto por persona"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "extra", "Inventario EXTRA"], ["inventario", "stock", "Consultar stock"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "pf", "Proformas"], ["clientes", "vf", "Lista de espera"]]};
   window.MN_SUB = window.MN_SUB || {};
   window.MN_T_REF = MN_T;   // mp3
   const subsDe = v => { const r = []; Object.keys(MN_T).forEach(t => MN_T[t].forEach(x => { if (x[0] === v && x[1]) r.push(x); })); return r; };
@@ -1631,6 +1631,7 @@ function hlPintar(filas, todas){
     if (CT_K[MN_SUB[v]]) ctLista(el, MN_SUB[v]);
     if (v === 'equipo' && MN_SUB[v] === 'ase') asesores();
     if (v === 'inventario' && MN_SUB[v] === 'stock') mrcStock(el);   // mrc1
+    if (v === 'hoy' && MN_SUB[v] === 'ven' && typeof M !== 'undefined' && M.ok) requestAnimationFrame(() => mDraw());   // in1
   }
   window.mnAplicar = aplicar;
   window.mnSubBar = (sub, tOn, on, btn) => {
@@ -3717,7 +3718,7 @@ pintarYo();
     reclamos: 'M3 4h2l2.5 11h11L21 7H6.5M9 20h.01M18 20h.01', equipo: 'M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6M21 19v-1a4 4 0 0 0-3-3.8M16 4.2a3 3 0 0 1 0 5.6',
     enlaces: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
     mas: 'M5 12h.01M12 12h.01M19 12h.01'};
-  const CORTO = {calendario: 'Calendario', hoy: 'Hoy', flash: 'Flash', pendientes: 'Pendientes', supervision: 'Supervisar', inventario: 'Inventario', politicas: 'Políticas', guias: 'Manuales', contactos: 'Contactos', reclamos: 'Clientes', equipo: 'Equipo', enlaces: 'Ajustes'};
+  const CORTO = {calendario: 'Calendario', hoy: 'Inicio', flash: 'Flash', pendientes: 'Pendientes', supervision: 'Supervisar', inventario: 'Inventario', politicas: 'Políticas', guias: 'Manuales', contactos: 'Contactos', reclamos: 'Clientes', equipo: 'Equipo', enlaces: 'Ajustes'};
   const ORDEN = ['hoy', 'pendientes', 'supervision', 'inventario', 'flash'];
   const ico = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + (d || P.mas) + '"/></svg>';
   const nombre = b => CORTO[b.dataset.v] || b.textContent.trim();
@@ -4089,8 +4090,8 @@ button.cal-fila:hover{background:var(--surface-2)}
 <script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "¿Qué buscas? Inventario, Scala, política…",
-  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash"]}, {"id": "universidad", "nombre": "Universidad", "vistas": ["universidad"]}, {"id": "inventarios", "nombre": "Mercadería", "vistas": ["inventario"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["contactos"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["clientes"]}],
-  items: [{"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa y validar", "kw": "inicio resumen mapa validar actividades caja chica"}, {"t": "Anuncios a tiendas", "v": "anuncios", "sub": "Anuncios", "kw": "anuncios avisos comunicados publicar aviso semana leyeron lectura confirmar"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Clientes", "v": "clientes", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Supervisión", "v": "supervision", "sub": "Tiendas · hacer o revisar una supervisión", "kw": "supervisar visita checklist nueva supervision puntaje hoja"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Contactos de tiendas", "v": "contactos", "sub": "Contactos · por ciudad, con encargado y celular del gerente", "kw": "telefono whatsapp correo llamar personas gerente tienda encargado celular ciudad contactos"}],
+  temas: [{"id": "hoy", "nombre": "Inicio", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash"]}, {"id": "universidad", "nombre": "Universidad", "vistas": ["universidad"]}, {"id": "inventarios", "nombre": "Mercadería", "vistas": ["inventario"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["contactos"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["clientes"]}],
+  items: [{"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Inicio", "v": "hoy", "sub": "Validar, supervisión, ventas y actividades", "kw": "inicio resumen mapa validar actividades caja chica"}, {"t": "Anuncios a tiendas", "v": "anuncios", "sub": "Anuncios", "kw": "anuncios avisos comunicados publicar aviso semana leyeron lectura confirmar"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Clientes", "v": "clientes", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Supervisión", "v": "supervision", "sub": "Tiendas · hacer o revisar una supervisión", "kw": "supervisar visita checklist nueva supervision puntaje hoja"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Contactos de tiendas", "v": "contactos", "sub": "Contactos · por ciudad, con encargado y celular del gerente", "kw": "telefono whatsapp correo llamar personas gerente tienda encargado celular ciudad contactos"}],
   extra: function(){
     const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
     (S.d.tiendas || []).filter(t => t.activa).forEach(t => out.push({grupo: 'Tiendas', t: t.nombre, sub: 'Pendientes de ' + t.nombre, kw: 'tienda local', v: 'pendientes',
@@ -4735,8 +4736,8 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
 <style>/* cl1 */.view[data-view="clientes"] #recBody{display:none!important}.view[data-view="clientes"][data-sub="pf"] #vfBody,.view[data-view="clientes"][data-sub="vf"] #pfBody{display:none!important}</style>
 <script>/* mp3: menús por perfil */
 (function(){
-  const K = {'hoy|': 'hoy/hoy', 'supervision|': 'supervision/nueva', 'pendientes|': 'supervision/pendientes', 'calendario|': 'supervision/calendario',
-    'anuncios|': 'anuncios/leer', 'flash|': 'ventas/flash', 'inventario|top': 'mercaderia/top', 'inventario|extra': 'mercaderia/extra', 'inventario|stock': 'mercaderia/stock',
+  const K = {'hoy|val': 'inicio/validacion', 'hoy|sup': 'inicio/supervision', 'hoy|ven': 'inicio/ventas', 'hoy|act': 'inicio/actividades', 'supervision|': 'supervision/nueva', 'pendientes|': 'supervision/pendientes', 'calendario|': 'supervision/calendario',
+    'anuncios|': 'anuncios/leer', 'flash|fl': 'ventas/flash', 'flash|fd': 'ventas/explorar', 'flash|gar': 'ventas/garantias', 'flash|pp': 'ventas/presupuesto', 'inventario|top': 'mercaderia/top', 'inventario|extra': 'mercaderia/extra', 'inventario|stock': 'mercaderia/stock',
     'universidad|tabla': 'universidad/tabla', 'universidad|gol': 'universidad/gol', 'universidad|car': 'universidad/car', 'universidad|al': 'universidad/al',
     'politicas|leer': 'politicas/politicas', 'guias|': 'politicas/guias', 'politicas|rep': 'politicas/reporte',
     'contactos|tel': 'contactos/tel', 'contactos|wa': 'contactos/wa', 'contactos|mail': 'contactos/mail', 'contactos|hor': 'contactos/hor',
@@ -4745,7 +4746,9 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
   function aplicar(cfg){
     window.MPF_CFG = cfg;
     if (!cfg || cfg.todo || !Array.isArray(cfg.claves)) return;
-    const A = new Set(cfg.claves), M = window.MN_T_REF, tabs = document.getElementById('tabs'); if (!M || !tabs) return;
+    const A = new Set(cfg.claves), M = window.MN_T_REF;   // in1
+    if (A.has('hoy/hoy')) ['validacion', 'supervision', 'ventas', 'actividades'].forEach(x => A.add('inicio/' + x));
+    const tabs = document.getElementById('tabs'); if (!M || !tabs) return;
     const vivas = {}, todas = {};
     Object.keys(M).forEach(t => { const keep = M[t].filter(x => { const k = K[x[0] + '|' + x[1]]; todas[x[0]] = 1; const ok = !k || A.has(k); if (ok) vivas[x[0]] = 1; return ok; }); M[t].length = 0; keep.forEach(x => M[t].push(x)); });
     Object.keys(todas).forEach(v => { if (!vivas[v]) { const b = tabs.querySelector('button[data-v="' + v + '"]'); if (b) { b.dataset.mpf = '1'; b.hidden = true; } } });
@@ -4762,5 +4765,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
   }, 700);
 })();
 </script>
+<style>/* in1 */.view[data-view="hoy"][data-sub][data-sub="val"]>:not(#datoDia):not(.bx-wrap):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="sup"]>:not(#datoDia):not(.hl-sec:has(#hlSup)):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="ven"]>:not(#datoDia):not(.hl-sec:has(#hlVen)):not(.bx-mapa):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="act"]>:not(#datoDia):not(#actividades):not(.mn-chips){display:none!important}.view[data-view="hoy"][data-sub][data-sub="act"] #actividades{display:block!important}.view[data-view="hoy"][data-sub][data-sub="act"] #acBody:empty::before{content:"No hay actividades este mes.";color:var(--muted,#888);font-size:14px}</style>
+<style>/* vs1 */.view[data-view="flash"][data-sub="fl"]>#fdBody,.view[data-view="flash"][data-sub="fl"]>#garBody,.view[data-view="flash"][data-sub="fl"]>#ppBody,.view[data-view="flash"][data-sub="fd"]>:not(#fdBody):not(.mn-chips),.view[data-view="flash"][data-sub="gar"]>:not(#garBody):not(.mn-chips),.view[data-view="flash"][data-sub="pp"]>:not(#ppBody):not(.mn-chips){display:none!important}.view[data-view="flash"][data-sub="gar"]>#garBody:empty::before,.view[data-view="flash"][data-sub="pp"]>#ppBody:empty::before{content:"Cargando…";color:var(--muted,#888);font-size:14px}</style>
 </body>
 </html>
