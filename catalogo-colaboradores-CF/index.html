@@ -64,7 +64,7 @@ body{overflow:hidden}
 .badge{position:absolute;top:0;right:-2px;min-width:18px;height:18px;border-radius:9px;background:var(--buy);color:#fff;font-size:11px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 4px}
 .badge.on{display:flex}
 .save{color:var(--accent);font-weight:700;font-size:12px}
-.wa{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:8px;border:0;border-radius:12px;background:var(--buy);color:#fff;font-weight:800;font-size:15px;padding:10px 12px;cursor:pointer}
+.wa{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:8px;border:0;border-radius:12px;background:#25d366;color:#05210f;font-weight:800;font-size:15px;padding:10px 12px;cursor:pointer}
 .wa svg{width:20px;height:20px}
 .act.add.on svg{stroke:var(--accent)}
 .act.add.on span{color:var(--accent)}
@@ -121,7 +121,7 @@ body{overflow:hidden}
 .dprice{font-size:28px;font-weight:800;color:var(--accent)}.dpvp{opacity:.75;font-size:14px;margin:2px 0 12px}
 .dfeat{font-size:14px;opacity:.9;padding-left:18px;margin:0 0 14px}.dbtns{display:flex;gap:8px;flex-wrap:wrap}
 .dbtns button{flex:1 1 30%;min-width:96px;padding:12px 8px;border-radius:12px;border:0;font-weight:700;font-size:14px;background:#0b3a66;color:#fff}
-.dbtns .dwant{background:var(--buy);color:#fff;flex-basis:100%}.dbtns .dadd.on{background:var(--blue);color:#fff}
+.dbtns .dwant{background:#25d366;color:#05210f;flex-basis:100%}.dbtns .dadd.on{background:var(--blue);color:#fff}
 #ptiendas{z-index:42}#pdet{z-index:41}#dbody{overflow-y:auto;flex:1;margin-top:40px}
 .sh{font-size:13px;font-weight:700;opacity:.75;margin:14px 2px 6px;text-transform:uppercase;letter-spacing:.04em}
 </style>
@@ -140,7 +140,7 @@ body{overflow:hidden}
   <div class="hint" id="hint">Desliza hacia arriba ↑</div>
 </div>
 <div class="toast" id="toast"></div>
-<script src="datos.js?v=20"></script>
+<script src="datos.js?v=21"></script>
 <script>
 (function(){
 var WA='593990115028'; // WhatsApp de la web Steren Ecuador (consultas generales)
@@ -165,7 +165,7 @@ var pin='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><pa
 var heart='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 21s-7.5-4.6-9.5-9.2C1 8.2 3.3 5 6.6 5c2 0 3.4 1.1 4.4 2.5C12 6.1 13.4 5 15.4 5 18.7 5 21 8.2 19.5 11.8 17.5 16.4 12 21 12 21z"/></svg>';
 var share='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 5l7 7-7 7M21 12H9c-3.3 0-6 2.7-6 6v1"/></svg>';
 var grid='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>';
-var html=['<section class="post cover" data-cat=""><div class="bgblur" style="background:radial-gradient(circle at 30% 20%,#0093d0aa,#001d38 65%)"></div><div class="stage"><img class="big" src="logo.png" alt=""><h1>Productos Steren<br>para ti</h1><p>'+P.length+' productos con precio especial para colaboradores de Corporación Favorita y filiales. Desliza para verlos o elige una categoría.</p><span class="ivabox">Todos los precios incluyen IVA</span><div class="cats">'+CATS.map(function(c){return '<button class="chip" data-go="'+esc(c)+'">'+esc(c)+' · '+byCat[c].length+'</button>';}).join('')+'</div></div></section>'];
+var html=['<section class="post cover" data-cat=""><div class="bgblur" style="background:radial-gradient(circle at 30% 20%,#0093d0aa,#001d38 65%)"></div><div class="stage"><img class="big" src="logo.png" alt=""><h1>Productos Steren<br>para ti</h1><p>Productos de tecnología con precios especiales para colaboradores de Corporación Favorita y filiales. Desliza para verlos o elige una categoría.</p><span class="ivabox">Todos los precios incluyen IVA</span><div class="cats">'+CATS.map(function(c){return '<button class="chip" data-go="'+esc(c)+'">'+esc(c)+'</button>';}).join('')+'</div></div></section>'];
 var n=0;
 CATS.forEach(function(c){ byCat[c].forEach(function(p,i){ n++;
   var imgs=(p.imgs&&p.imgs.length)?p.imgs:(p.img?[p.img]:[]);
@@ -177,7 +177,7 @@ CATS.forEach(function(c){ byCat[c].forEach(function(p,i){ n++;
   html.push('<section class="post" id="p'+n+'" data-cat="'+esc(c)+'" data-i="'+(i+1)+'" data-code="'+esc(p.codigo)+'">'+
    '<div class="bgblur" style="'+bg+'"></div>'+
    '<div class="stage"><div class="card">'+slides+'</div><div class="dots">'+dots+'</div></div>'+
-   '<div class="info"><div class="txt"><span class="tag">#'+esc(c.replace(/\s+/g,''))+' · '+(i+1)+' de '+byCat[c].length+'</span><div class="name">'+esc(p.nombre)+'</div><div class="code">Código '+esc(p.codigo)+'</div>'+
+   '<div class="info"><div class="txt"><span class="tag">#'+esc(c.replace(/\s+/g,''))+'</span><div class="name">'+esc(p.nombre)+'</div><div class="code">Código '+esc(p.codigo)+'</div>'+
    (feats?'<ul class="feat">'+feats+'</ul><button class="more">Ver más</button>':'')+
    '<div class="price">'+precio+'</div><div class="iva">Precios <b>incluyen IVA</b></div><button class="wa want">'+waico+'Lo quiero</button></div>'+
    '<div class="rail"><button class="act add'+(cart[p.codigo]?' on':'')+'" aria-label="Agregar al pedido">'+cartico+'<span>'+(cart[p.codigo]?'En pedido':'Agregar')+'</span></button>'+
