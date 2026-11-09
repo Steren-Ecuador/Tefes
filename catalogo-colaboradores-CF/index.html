@@ -140,7 +140,7 @@ body{overflow:hidden}
   <div class="hint" id="hint">Desliza hacia arriba ↑</div>
 </div>
 <div class="toast" id="toast"></div>
-<script src="datos.js?v=21"></script>
+<script src="datos.js?v=22"></script>
 <script>
 (function(){
 var WA='593990115028'; // WhatsApp de la web Steren Ecuador (consultas generales)
@@ -249,6 +249,39 @@ function doSearch(){var q=norm(document.getElementById('q').value.trim()), w=q.s
   document.getElementById('sres').innerHTML=h||'<div class="empty">No encontramos productos con «'+esc(q)+'».<br>Escríbenos y te ayudamos: <a href="https://wa.me/'+WA+'" target="_blank" style="color:#00b2e3">WhatsApp Steren</a></div>';}
 function openSearch(){loadTodo(); document.getElementById('psearch').classList.add('on'); doSearch(); setTimeout(function(){document.getElementById('q').focus();},50);}
 document.getElementById('q').addEventListener('input',doSearch);
+
+// Registro de uso (Diego 9-nov): eventos anónimos a la hoja de claves, pestaña "Catálogo CF"
+var APP='https://script.google.com/macros/s/AKfycbxvxIW9iw7D6IyKTMx5Xyj9BW4d_u7G4BMVwRzaI9ug1MIB1tdfVCAWhu2iIWjbz0lgMA/exec';
+var RQ=[], RSES=Math.random().toString(36).slice(2,10), RVID='', RSEEN={}, RQS={}, RVT={};
+try{RVID=localStorage.getItem('cat_vid')||''; if(!RVID){RVID=Math.random().toString(36).slice(2,12); localStorage.setItem('cat_vid',RVID);}}catch(e){RVID='-';}
+var RDISP=(/Mobi|Android|iPhone/i.test(navigator.userAgent)?'Celular':'Computadora')+' '+(window.innerWidth||0);
+var ROR=(function(){try{var u=new URLSearchParams(location.search); var o=u.get('o')||u.get('utm_source'); if(o) return o; if(document.referrer) return new URL(document.referrer).hostname.replace(/^www\./,'');}catch(e){} return 'directo';})();
+function T(ev,c,d){RQ.push({ev:ev,c:c||'',d:d==null?'':String(d),t:Date.now()}); if(RQ.length>=20) RF();}
+function RF(){if(!RQ.length) return; var lote=RQ.splice(0,40);
+  try{fetch(APP,{method:'POST',keepalive:true,body:JSON.stringify({fn:'apiRegistroCatalogo',args:[RSES,RVID,RDISP,ROR,lote]}),headers:{'Content-Type':'text/plain;charset=utf-8'}}).catch(function(){});}catch(e){}}
+setInterval(RF,15000);
+var RT0=Date.now(), RACT=0;
+document.addEventListener('visibilitychange',function(){ if(document.hidden){RACT+=Date.now()-RT0; T('Tiempo','',Math.round(RACT/1000)); RACT=0; RF();} else RT0=Date.now(); });
+T('Ingreso','',location.hash||'');
+document.addEventListener('click',function(e){ try{
+  var post=e.target.closest('.post'), pc=post?post.getAttribute('data-code'):'', x;
+  if(e.target.closest('#pdet .dwant')) return T('Lo quiero',CUR,'ficha');
+  if(e.target.closest('#pdet .dwhere')) return T('Tiendas',CUR);
+  if(e.target.closest('#pdet .dadd')){ if(!cart[CUR]) T('Agregar',CUR); return; }
+  if((x=e.target.closest('.waS[data-t]'))) return T('WA tienda',CUR,TI[+x.getAttribute('data-t')][0]);
+  if(e.target.closest('#bcart')) return T('Pedido','',Object.keys(cart).length);
+  if(e.target.closest('#csend')){ var n=0; for(var k in cart) n+=cart[k]; return T('Enviar pedido',Object.keys(cart).join(' ').slice(0,30),n+' u'); }
+  if((x=e.target.closest('.pi[data-x]'))) return T('Producto',x.getAttribute('data-x'),'búsqueda');
+  if((x=e.target.closest('[data-go]'))) return T('Categoría','',x.getAttribute('data-go'));
+  if(!pc) return;
+  if(e.target.closest('.want')) return T('Lo quiero',pc);
+  if(e.target.closest('.where')) return T('Tiendas',pc);
+  if(e.target.closest('.add')){ if(!cart[pc]) T('Agregar',pc); return; }
+  if(e.target.closest('.share')) return T('Compartir',pc);
+  if(e.target.closest('.more')) return T('Ver más',pc);
+ }catch(err){} },true);
+var RST=null;
+document.getElementById('q').addEventListener('input',function(){ clearTimeout(RST); var v=this.value.trim(); RST=setTimeout(function(){ var k=norm(v); if(k.length>=3&&!RQS[k]){RQS[k]=1; T('Búsqueda','',v.slice(0,60));} },1500); });
 upd();
 if(Object.keys(cart).some(function(c){return !BY[c];})) loadTodo();
 function toast(m){var t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); setTimeout(function(){t.classList.remove('on');},1600);}
@@ -281,7 +314,9 @@ document.addEventListener('click',function(e){
 var hint=document.getElementById('hint');
 var io=new IntersectionObserver(function(es){es.forEach(function(en){
   if(!en.isIntersecting) en.target.classList.remove('open');
+  if(!en.isIntersecting||en.intersectionRatio<.6){var oc=en.target.getAttribute('data-code'); if(oc&&RVT[oc]){clearTimeout(RVT[oc]); RVT[oc]=0;}}
   if(en.isIntersecting&&en.intersectionRatio>.6){
+  var rc=en.target.getAttribute('data-code'); if(rc&&!RSEEN[rc]&&!RVT[rc]) RVT[rc]=setTimeout(function(){RVT[rc]=0; RSEEN[rc]=1; T('Producto',rc);},1500);
   var c=en.target.getAttribute('data-cat'); [].forEach.call(chips.children,function(ch){var on=ch.getAttribute('data-go')===c; ch.classList.toggle('on',on); if(on) ch.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});});
   if(en.target.id) hint.style.display='none';
 }});},{root:feed,threshold:[0,.6]});
