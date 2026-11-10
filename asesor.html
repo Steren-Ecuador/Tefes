@@ -902,8 +902,9 @@ function stockBtn(u){ /* stk1 */ return u ? '<a class="stock-btn" href="' + esc(
 function datoHtml(x){ /* dd1 */ if (!x || !x.texto) return ''; const t = String(x.texto); const m = t.match(/^\p{Extended_Pictographic}\uFE0F?\s*/u); return '<div class="dato-dia"><span class="dd-ico">' + (m ? m[0].trim() : '🌟') + '</span><div><b>Dato positivo del día</b>' + esc(m ? t.slice(m[0].length) : t) + '</div></div>'; }
 function arrancar(){
   if (!TOKEN) { cargando('Enlace no válido. Pide a tu gerente el enlace de tu tienda.'); return; }
+  if (DE && leerYo() && slug(leerYo()) !== DE) guardarYo('');   /* de1 */
   const yo = leerYo(); cargando('Cargando tu panel…');
-  llamar('apiAsesor', TOKEN, yo).then(d => {
+  llamar('apiAsesor', TOKEN, yo).then(d => { try {   /* de1 */
     ALIAS = d.alias || {};
     // enlace personal del correo (&de=nombre): entra directo sin elegir de la lista
     if (!yo && DE) { const m = (d.equipo || []).find(p => slug(p.nombre) === DE); if (m) { guardarYo(m.nombre); return arrancar(); } }
@@ -921,7 +922,7 @@ function arrancar(){
     if (!E.perfil || !E.perfil.foto) bienvenida(); else setTimeout(pfFestejarSolas, 400);   /* pf2 */
     const v = Q.get('v'); if (v && SECCIONES.some(x => x[0] === v)) setTimeout(() => ir(v), 50);
     llamar('apiVFLista', TOKEN).then(L => { E.futuras = (L || []).filter(x => x.asesor === YO.nombre).map(vfLocal); render(); }, () => {});
-  }, e => cargando(e.message));
+  } catch (e) { guardarYo(''); cargando('No se pudo abrir tu panel (' + (e && e.message || e) + '). Vuelve a abrir tu enlace; si sigue, avísale a tu gerente.'); } }, e => cargando(e.message));   /* de1 */
 }
 arrancar();
 })();
