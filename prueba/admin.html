@@ -878,9 +878,9 @@ const MPF_ARBOL = {
     ['anuncios','Anuncios',[['leer','Leer anuncios'],['publicar','Publicar anuncios',1]]],
     ['ventas','Ventas',[['flash','Flash de ventas'],['explorar','Explorar ventas'],['garantias','Garantías'],['presupuesto','Presupuesto']]],
     ['universidad','Universidad',[['tabla','Tabla'],['gol','Goleadores'],['car','Carreras'],['al','Alertas']]],
-    ['mercaderia','Mercadería',[['top','Inventario Top 50'],['extra','Inventario EXTRA'],['stock','Consultar stock'],['transferencias','Transferencias',1],['perchas','Perchas',1]]],
+    ['mercaderia','Mercadería',[['top','Inventario Top 50'],['stock','Consultar stock'],['transferencias','Transferencias',1]]],
     ['politicas','Políticas',[['politicas','Políticas'],['guias','Manuales y guías'],['reporte','Reporte de lectura']]],
-    ['uso','Uso app',[['sup','Uso supervisores',1],['ger','Uso gerentes',1],['ase','Uso asesores',1]]],
+    ['uso','Uso app',[['per','Uso por perfil',1],['sup','Equipo de supervisión',1]]],
     ['contactos','Contactos',[['tel','Teléfonos'],['wa','WhatsApp'],['mail','Correos'],['hor','Horarios de atención'],['enlaces','Enlaces para compartir',1]]],
     ['clientes','Clientes',[['pf','Proformas'],['vf','Lista de espera']]],
     ['sistema','Sistema',[['fuentes','Fuentes',1],['mispendientes','Mis pendientes',1],['catalogo','Catálogo de colaboradores',1],['menus','Menús por perfil',1]]]
@@ -904,6 +904,7 @@ const MPF_ARBOL = {
   ]
 };
 const MPF_PERFILES = [
+  {p:'Administrador', app:'panel', d:'Tú ves todo: aquí solo ordenas tu propio menú.', solo: 1},
   {p:'Gerentes', app:'panel', d:'Samia y Nina. Entran con código.'},
   {p:'Supervisores', app:'panel', d:'Equipo de ventas de Tventas.'},
   {p:'Tiendas', app:'tienda', d:'Gerente y equipo de cada tienda.'},
@@ -912,6 +913,7 @@ const MPF_PERFILES = [
 ];
 /* lo que ve cada perfil hoy (9-nov), si la hoja está vacía */
 function mpfDefecto(p, tema, op, adm){
+  if (p === 'Administrador') return true;
   if (p === 'Gerentes' && tema === 'mercaderia' && op === 'transferencias') return true;
   return !adm;
 }
@@ -966,7 +968,7 @@ function mpfDefecto(p, tema, op, adm){
       '<section class="panel mpf"><div class="panel-h"><h2>1. Qué ve cada perfil</h2><span class="small faint">' + e(P.d) + '</span></div>' +
       '<div class="mpf-chips">' + chips + '</div><p class="mpf-nota">Marca lo que ve y usa ↑ ↓ para ordenar menús y opciones como quieres que aparezcan.</p>' +
       (S.sel === 'Gerentes' || S.sel === 'Supervisores' ? '<p class="mpf-nota">Las opciones marcadas "hoy solo en tu panel" todavía no existen en la app de ' + e(S.sel.toLowerCase()) + ': si las marcas, quedan pedidas y se construyen.</p>' : '') +
-      '<div class="mpf-arbol">' + temas + '</div>' +
+      '<div class="mpf-arbol' + (P.solo ? ' mpf-solo' : '') + '">' + temas + '</div>' +
       '<div class="mpf-bar"><button type="button" class="btn primary" id="mpfGuardar"' + (S.cambios && !S.guardando ? '' : ' disabled') + '>' + (S.guardando ? 'Guardando…' : 'Guardar menús') + '</button><span class="small faint" id="mpfMsg">' + e(S.msg) + '</span></div></section>' +
       '<section class="panel mpf"><div class="panel-h"><h2>2. Perfil de cada persona</h2><span class="small faint">Quienes entran al panel (pestaña Supervisores de CLAVES). Tiendas y asesores toman su perfil de Personal.</span></div>' +
       '<table class="mpf-tb"><thead><tr><th>Persona</th><th>Cargo</th><th>Perfil</th></tr></thead><tbody>' + gente + '</tbody></table>' +
@@ -992,7 +994,8 @@ function mpfDefecto(p, tema, op, adm){
     S.guardando = true; pintar();
     const filas = [['Perfil', 'Menú', 'Opción', 'Clave', 'Ve', 'Orden menú', 'Orden opción']];
     MPF_PERFILES.forEach(x => S.ord[x.p].forEach(([t, oids], ti) => { const d = MPF_ARBOL[x.app].find(z => z[0] === t); oids.forEach((o, oi) => filas.push([x.p, d[1], d[2].find(z => z[0] === o)[1], t + '/' + o, S.ve[k(x.p, t, o)] ? 'Sí' : 'No', ti + 1, oi + 1])); }));
-    try { await setRange(HM + '!A1:G' + filas.length, filas, CLAVES); S.cambios = false; S.msg = 'Guardado ' + new Date().toLocaleTimeString('es-EC', {hour: '2-digit', minute: '2-digit'}); }
+    while (filas.length < 300) filas.push(['', '', '', '', '', '', '']);   /* borra filas viejas que sobren */
+    try { await setRange(HM + '!A1:G' + filas.length, filas, CLAVES); S.cambios = false; if (window.mpfOrdenPropio) mpfOrdenPropio(); S.msg = 'Guardado ' + new Date().toLocaleTimeString('es-EC', {hour: '2-digit', minute: '2-digit'}); }
     catch (er) { S.msg = 'No se guardó: ' + (er && er.message || er); }
     S.guardando = false; pintar();
   }
@@ -1017,6 +1020,29 @@ function mpfDefecto(p, tema, op, adm){
   }
   window.mpfAbrir = function(){ const go = () => { if (typeof st !== 'undefined' && st.mcp) { if (!S.cargado) cargar(); else pintar(); } else setTimeout(go, 500); }; go(); };
   if (location.hash === '#menus') setTimeout(window.mpfAbrir, 300);
+  /* mp6: tu propio menú sigue el orden del perfil Administrador (Diego 9-nov) */
+  const KA = {'hoy|val': 'inicio/validacion', 'hoy|sup': 'inicio/supervision', 'hoy|ven': 'inicio/ventas', 'hoy|act': 'inicio/actividades', 'supervision|': 'supervision/nueva', 'pendientes|': 'supervision/pendientes', 'calendario|': 'supervision/calendario',
+    'anuncios|': 'anuncios/leer', 'flash|fl': 'ventas/flash', 'flash|fd': 'ventas/explorar', 'flash|gar': 'ventas/garantias', 'flash|pp': 'ventas/presupuesto', 'inventario|top': 'mercaderia/top', 'inventario|stock': 'mercaderia/stock', 'transferencias|': 'mercaderia/transferencias',
+    'universidad|tabla': 'universidad/tabla', 'universidad|gol': 'universidad/gol', 'universidad|car': 'universidad/car', 'universidad|al': 'universidad/al',
+    'politicas|leer': 'politicas/politicas', 'guias|': 'politicas/guias', 'politicas|rep': 'politicas/reporte', 'equipo|per': 'uso/per', 'equipo|sup': 'uso/sup',
+    'enlaces|tel': 'contactos/tel', 'enlaces|wa': 'contactos/wa', 'enlaces|mail': 'contactos/mail', 'enlaces|hor': 'contactos/hor', 'enlaces|lk': 'contactos/enlaces',
+    'reclamos|pf': 'clientes/pf', 'reclamos|vf': 'clientes/vf', 'fuentes|': 'sistema/fuentes', 'mispendientes|': 'sistema/mispendientes', 'catalogo|': 'sistema/catalogo', 'menus|': 'sistema/menus'};
+  let mp6 = 0;
+  async function ordenPropio(){
+    const M = window.MN_T_REF, TT = window.TEM && window.TEM.temas, tabs = document.getElementById('tabs');
+    if (typeof st === 'undefined' || !st.mcp || !M || !Array.isArray(TT) || !tabs) { if (mp6++ < 60) setTimeout(ordenPropio, 800); return; }
+    let m; try { m = await getRange(HM + '!A2:G400', true, CLAVES); } catch (er) { return; }
+    const F = (m || []).map((r, i) => ({r, i})).filter(x => x.r[0] === 'Administrador' && x.r[3]); if (!F.length) return;
+    F.sort((a, b) => (+a.r[5] || 1e6) - (+b.r[5] || 1e6) || (+a.r[6] || 1e6) - (+b.r[6] || 1e6) || a.i - b.i);
+    const pos = {}; F.forEach((x, i) => { if (!(x.r[3] in pos)) pos[x.r[3]] = i; });
+    const P = x => { const kk = KA[x[0] + '|' + x[1]]; return kk && kk in pos ? pos[kk] : 1e9; }, rk = {};
+    Object.keys(M).forEach(t => { const L = M[t].map((x, i) => [x, i]).sort((a, b) => P(a[0]) - P(b[0]) || a[1] - b[1]).map(z => z[0]); M[t].length = 0; L.forEach(x => M[t].push(x)); rk[t] = L.length ? Math.min(...L.map(P)) : 1e9; });
+    const R = t => t in rk ? rk[t] : 1e9, L = TT.map((t, i) => [t, i]).sort((a, b) => R(a[0].id) - R(b[0].id) || a[1] - b[1]).map(z => z[0]); TT.length = 0; L.forEach(t => TT.push(t));
+    const A = window.T_ABAJO_REF; if (Array.isArray(A)) { const vis = TT.filter(t => t.vistas.some(v => { const b = tabs.querySelector('button[data-v="' + v + '"]'); return b && !b.hidden && b.style.display !== 'none'; })).map(t => t.id).slice(0, 4); if (vis.length) { A.length = 0; vis.forEach(x => A.push(x)); } }
+    tabs.dataset.mn = String(Date.now());
+  }
+  window.mpfOrdenPropio = () => { mp6 = 0; ordenPropio(); };
+  ordenPropio();
 })();
 </script>
 <style>
@@ -1032,6 +1058,7 @@ function mpfDefecto(p, tema, op, adm){
 .mpf-nota{font-size:12.5px;opacity:.75;margin:0 0 10px}
 .mpf-mv{display:inline-flex;gap:2px;margin-left:6px}.mpf-n+.mpf-mv{margin-left:6px}.mpf-mv button{border:1px solid var(--line,#ddd);background:var(--surface,#fff);color:inherit;border-radius:6px;width:24px;height:22px;padding:0;font-size:12px;line-height:1;cursor:pointer}.mpf-mv button:disabled{opacity:.25;cursor:default}
 .mpf-ops label .mpf-mv{margin-left:auto}
+.mpf-solo input[type=checkbox],.mpf-solo .mpf-adm,.mpf-solo .mpf-n{display:none}
 .mpf-bar{display:flex;align-items:center;gap:12px;margin-top:12px}
 .mpf-tb{width:100%;border-collapse:collapse}.mpf-tb th,.mpf-tb td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line,#eee)}
 .mpf-add{margin-top:10px}.mpf-add summary{cursor:pointer;font-weight:600}.mpf-addf{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.mpf-addf input{flex:1 1 180px}
@@ -1643,6 +1670,7 @@ function hlPintar(filas, todas){
 (function(){
   const MN_T = {"hoy": [["hoy", "val", "Esperan tu validación"], ["hoy", "sup", "Posiciones de supervisión"], ["hoy", "ven", "Ventas vs presupuesto"], ["hoy", "act", "Actividades del mes"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "fl", "Flash de ventas"], ["flash", "fd", "Explorar ventas"], ["flash", "gar", "Garantías extendidas"], ["flash", "pp", "Presupuesto por persona"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "stock", "Consultar stock"], ["transferencias", "", "Transferencias"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "uso": [["equipo", "per", "Uso por perfil"], ["equipo", "sup", "Equipo de supervisión"]], "contactos": [["enlaces", "tel", "Teléfonos"], ["enlaces", "wa", "WhatsApp"], ["enlaces", "mail", "Correos"], ["enlaces", "hor", "Horarios de atención"], ["enlaces", "lk", "Enlaces para compartir"]], "clientes": [["reclamos", "pf", "Proformas"], ["reclamos", "vf", "Lista de espera"]], "sistema": [["fuentes", "", "Fuentes"], ["mispendientes", "", "Mis pendientes"], ["catalogo", "", "Catálogo de colaboradores"], ["menus", "", "Menús por perfil"]]};
   window.MN_SUB = window.MN_SUB || {};
+  window.MN_T_REF = MN_T;   // mp6
   const subsDe = v => { const r = []; Object.keys(MN_T).forEach(t => MN_T[t].forEach(x => { if (x[0] === v && x[1]) r.push(x); })); return r; };
   const vistaEl = v => document.querySelector('.view[data-view="' + v + '"]');
   const CT_K = {tel: 'Teléfonos de las tiendas', wa: 'WhatsApp de las tiendas', mail: 'Correos de las tiendas', hor: 'Horarios de atención al público'};
@@ -6164,6 +6192,7 @@ if (typeof st !== 'undefined' && st.tab === 'servicio') stAbrir();
   let firma = '';
   /* mbt1: la barra usa los temas del menú de la computadora (window.TEM.temas) */
   const T_ABAJO = ['hoy', 'supervision', 'ventas', 'universidad'];   // ut1
+  window.T_ABAJO_REF = T_ABAJO;   // mp6
   const T_ICO = {universidad: 'M22 10 12 5 2 10l10 5 10-5zM6 12v5c3 2 9 2 12 0v-5', hoy: P.hoy, supervision: P.supervision, anuncios: P.anuncios, ventas: P.flash, inventarios: P.inventario, politicas: P.politicas, uso: P.equipo, contactos: P.contactos, clientes: P.reclamos, sistema: P.enlaces};
   const T_CORTO = {supervision: 'Supervisión', inventarios: 'Mercadería', uso: 'Uso app'};
   const ultimaT = {};
