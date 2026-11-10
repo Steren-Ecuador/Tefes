@@ -2195,6 +2195,7 @@ function trfE04Dato(){
 }
 function trfE04Html(p){
   if (p.id !== 'E04' || !S.form || S.form.tipo !== 'Supervisión') return '';   // solo supervisores, no en la autosupervisión de la tienda
+  if (TV.d && trfE04Auto(p)) setTimeout(() => pintarPunto(p), 0);
   if (!TV.d) {
     if (!TV.cargando && !TV.error) trfE04Cargar(p);
     return '<div class="vbox"><div class="ttl">Transferencias en el ERP</div><div class="tiny muted">' + (TV.error ? esc(TV.error) : 'Cargando…') + '</div>' +
@@ -2205,15 +2206,30 @@ function trfE04Html(p){
   return '<div class="vbox' + (n ? ' mal' : '') + '"><div class="ttl">Transferencias en el ERP al ' + esc(d.corte) + '</div>' +
     (n ? (d.dif.length ? '<div class="tiny muted">Con diferencias</div>' + d.dif.map(fila).join('') : '') +
          (d.viejas.length ? '<div class="tiny muted" style="margin-top:4px">Abiertas de más de ' + d.umbral + ' días</div>' + d.viejas.map(fila).join('') : '') +
-         '<div class="tiny" style="margin-top:6px">Pide a la tienda el correo de gestión con la bodega o el otro local. 1 si lo muestra, 0 si no hay gestión.</div>'
-       : '<div>Ninguna con diferencias ni abierta de más de ' + d.umbral + ' días: corresponde 2.</div>') +
+         '<div class="tiny" style="margin-top:6px">' + (((S.form.items[p.id] || {}).auto || 'x') === (S.form.items[p.id] || {}).calif ? 'Calificado solo con el ERP. ' : '') + 'Si la tienda te muestra el correo de gestión con la bodega o el otro local, cambia a 1; si no hay gestión, queda en 0.</div>'
+       : '<div>Ninguna con diferencias ni abierta de más de ' + d.umbral + ' días: ' + (((S.form.items[p.id] || {}).auto || 'x') === (S.form.items[p.id] || {}).calif ? 'calificado 2 solo con el ERP.' : 'corresponde 2.') + '</div>') +
     (d.recientes ? '<div class="tiny muted" style="margin-top:4px">' + d.recientes + ' abierta' + (d.recientes > 1 ? 's' : '') + ' de ' + d.umbral + ' días o menos (normal)</div>' : '') +
     '<button class="link" data-tdato>Usar como dato de apoyo</button></div>';
 }
 async function trfE04Cargar(p){
   TV.cargando = true;
   try { TV.d = await api('apiTransfE04'); } catch (e) { TV.error = 'No se pudo leer el ERP: ' + e.message; }
-  TV.cargando = false; pintarPunto(p);
+  TV.cargando = false; trfE04Auto(p); pintarPunto(p);
+}
+/* e04a */ /* E04 se califica solo con el ERP si todavía no tiene nota; el supervisor puede cambiarla */
+function trfE04Auto(p){
+  const F = S.form, d = TV.d; if (!F || !d || F.tipo !== 'Supervisión') return false;
+  const x = F.items[p.id] = F.items[p.id] || {}; if (x.calif != null) return false;
+  const n = d.dif.length + d.viejas.length, lst = a => a.map(t => t.n).join(', ');
+  x.calif = n ? '0' : '2'; x.auto = x.calif; x.dato = trfE04Dato(); x.verDato = true; delete x.abierto;
+  anotarTiempo(F, p.sec);
+  if (n) {
+    x.obs = x.obs || 'Calificado con el ERP: ' + [d.dif.length ? 'con diferencias ' + lst(d.dif) : '', d.viejas.length ? 'abiertas de más de ' + d.umbral + ' días ' + lst(d.viejas) : ''].filter(Boolean).join('; ') + '. Si la tienda muestra el correo de gestión, cambia a 1.';
+    x.accion = x.accion || 'Gestionar con la bodega o el otro local las transferencias ' + lst(d.dif.concat(d.viejas)) + ' hasta dejarlas arregladas, con correo de gestión.';
+    x.fechaCompromiso = x.fechaCompromiso || sumarDias(S.data.hoy, S.data.diasCompromiso);
+    x.responsable = x.responsable || F.gerente || ''; x.prioridad = 'Alta';
+  }
+  guardarBorrador(); actualizarFooter(); return true;
 }
 function puntoHtml(p){
   const it = S.form.items[p.id] || {}, F = S.form;
