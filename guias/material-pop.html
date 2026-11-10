@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Material POP: recepción, instalación y control</title>
+<style>
+body{margin:0}
+/* Layout: manual de una columna para leer en el teléfono; una tarjeta por proceso, pasos numerados */
+:root{
+  --bg:#f4f6f9; --card:#fff; --ink:#16202c; --muted:#5d6b7a; --line:#e2e7ee;
+  --brand:#0b4f8a; --brand-soft:#e7f0f9; --ok:#1a7f4b; --ok-soft:#e5f5ec; --warn:#b26a00; --warn-soft:#fff3df;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141a; --card:#1a222c; --ink:#e6ebf1; --muted:#9aa7b5; --line:#2b3542;
+  --brand:#6fb0ec; --brand-soft:#16304a; --ok:#3fb27a; --ok-soft:#14301f; --warn:#e3a13a; --warn-soft:#3a2a10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --card:#1a222c; --ink:#e6ebf1; --muted:#9aa7b5; --line:#2b3542;
+  --brand:#6fb0ec; --brand-soft:#16304a; --ok:#3fb27a; --ok-soft:#14301f; --warn:#e3a13a; --warn-soft:#3a2a10; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--brand)}
+h1{font-size:28px;line-height:1.2;margin:4px 0 8px;text-wrap:balance}
+h2{font-size:20px;margin:0 0 8px;text-wrap:balance}
+h3{font-size:16px;margin:16px 0 6px;color:var(--brand)}
+p{margin:0 0 10px} .muted{color:var(--muted)}
+.paso{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.num{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;font-weight:800;margin-bottom:8px}
+:root[data-theme="dark"] .num{color:#0b1824}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .num{color:#0b1824}}
+ul,ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.clave{background:var(--brand-soft);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:15px}
+.clave.warn{background:var(--warn-soft)}
+.indice{display:flex;flex-wrap:wrap;gap:8px}
+.indice a{font-size:14px;text-decoration:none;color:var(--brand);background:var(--brand-soft);border-radius:999px;padding:4px 12px}
+.tabla{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
+th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600}
+td b{color:var(--brand)}
+.hero{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.dato b{display:block;font-size:22px;color:var(--brand);line-height:1.2}
+.dato span{font-size:14px;color:var(--muted)}
+.si-no{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.si-no > div{border-radius:10px;padding:12px}
+.si{background:var(--ok-soft)} .no{background:var(--warn-soft)}
+.si h3{color:var(--ok);margin-top:0} .no h3{color:var(--warn);margin-top:0}
+table{min-width:0}
+.frase{border-left:4px solid var(--brand);padding:8px 12px;background:var(--brand-soft);border-radius:0 10px 10px 0;margin:8px 0}
+</style>
+</head><body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TEFES · Guía de proceso</div>
+    <h1>Material publicitario (POP): recepción, instalación y control</h1>
+    <p class="muted">Qué hacer con el material POP de cada campaña, desde que llega hasta que se retira. Es obligatorio para todos los locales Steren Ecuador y aplica a todas las campañas comerciales y promocionales. Procedimiento de Nina Solah, 9 de noviembre de 2026.</p>
+    <nav class="indice">
+      <a href="#aviso">Aviso de campaña</a><a href="#recepcion">Recepción</a><a href="#instalacion">Instalación</a>
+      <a href="#frogmi">Fotos en FROGMI</a><a href="#cierre">Fin de campaña</a><a href="#casos">Casos</a>
+    </nav>
+  </header>
+
+  <section class="hero" aria-label="Resumen">
+    <div class="dato"><b>Manual de México</b><span>Dice cómo y dónde se instala</span></div>
+    <div class="dato"><b>Marketing Ecuador</b><span>Dice cuánto material le toca al local</span></div>
+    <div class="dato"><b>FROGMI</b><span>Ahí se suben las fotos de la instalación</span></div>
+    <div class="dato"><b>Nina y Diego</b><span>A quién se reporta cualquier novedad</span></div>
+  </section>
+
+  <section class="paso" id="aviso">
+    <div class="num">1</div>
+    <h2>Aviso de la campaña</h2>
+    <p>Antes de cada campaña el local recibe dos comunicaciones:</p>
+    <h3>Steren México</h3>
+    <p>Un correo con el asunto <b>«Comunicado Promoción XXXX»</b>, que trae:</p>
+    <ul>
+      <li><b>Manual de implementación:</b> qué material POP corresponde a la campaña, cómo se coloca e imágenes de referencia.</li>
+      <li><b>Listado de promociones:</b> PDF con los productos y descuentos.</li>
+      <li><b>Instrucciones:</b> fechas límite y cómo enviar las fotos por FROGMI.</li>
+    </ul>
+    <h3>Marketing Ecuador</h3>
+    <ul>
+      <li><b>Detalle de distribución:</b> tipo y cantidad de cada material asignado al local y la semana prevista de entrega.</li>
+      <li><b>Novedades:</b> si hay retrasos o entregas parciales, qué material está pendiente y, si se sabe, cuándo llega.</li>
+    </ul>
+    <div class="clave">El manual de Steren México es la guía para <b>instalar</b>. La comunicación de Marketing Ecuador es la referencia para <b>verificar cantidades</b>.</div>
+  </section>
+
+  <section class="paso" id="recepcion">
+    <div class="num">2</div>
+    <h2>Recepción y verificación</h2>
+    <p class="muted">Responsable: encargado del local.</p>
+    <ol>
+      <li>Abre y revisa <b>todos</b> los paquetes recibidos.</li>
+      <li>Compara lo recibido con el detalle de distribución de Marketing Ecuador.</li>
+      <li>Verifica que los tipos de material y las cantidades sean correctos.</li>
+      <li>Revisa que esté en buen estado: sin daños, errores de impresión ni piezas faltantes.</li>
+      <li>Reporta <b>de inmediato</b> cualquier diferencia o novedad por correo a <b>Nina Solah</b> y a <b>Diego Revelo</b>.</li>
+    </ol>
+    <h3>Si llega incompleto, sobrante o incorrecto</h3>
+    <ul>
+      <li>Si Marketing ya avisó del retraso, registra ese material como <b>pendiente</b>.</li>
+      <li>Si falta algo que nadie avisó, sobra material o llega uno equivocado, <b>repórtalo de inmediato</b> a Nina y Diego.</li>
+      <li>No uses material incorrecto ni dispongas del sobrante sin autorización.</li>
+      <li><b>No esperes</b> a los pendientes: instala lo que tienes y respeta las fechas de la campaña.</li>
+    </ul>
+  </section>
+
+  <section class="paso" id="instalacion">
+    <div class="num">3</div>
+    <h2>Instalación</h2>
+    <p class="muted">Responsable: encargado del local y equipo de tienda.</p>
+    <p>Todo se instala siguiendo las instrucciones e imágenes del manual de implementación de la campaña.</p>
+    <div class="si-no">
+      <div class="si"><h3>Sí</h3><ul>
+        <li>Respetar las ubicaciones del manual.</li>
+        <li>Poner cada pieza junto a su producto, categoría o espacio.</li>
+        <li>Verificar que precios, promociones y productos coincidan con la información oficial.</li>
+        <li>Mantener el material visible, limpio, bien colocado y en buen estado.</li>
+        <li>Retirar el material de campañas anteriores que ya no está vigente.</li>
+      </ul></div>
+      <div class="no"><h3>No</h3><ul>
+        <li>Modificar, recortar o alterar piezas sin autorización de Marketing.</li>
+        <li>Sustituir materiales o cambiar ubicaciones sin aprobación.</li>
+      </ul></div>
+    </div>
+    <div class="clave warn">Si el local no permite cumplir alguna instrucción del manual, el encargado lo comunica a Marketing Ecuador y pide una alternativa <b>antes</b> de hacer cualquier cambio.</div>
+  </section>
+
+  <section class="paso" id="frogmi">
+    <div class="num">4</div>
+    <h2>Confirmación: fotos en FROGMI</h2>
+    <p>Al terminar, el local <b>sube las fotos a FROGMI</b> siguiendo las instrucciones de Steren México. Las fotos deben:</p>
+    <ul>
+      <li>Mostrar claramente cada tipo de material instalado.</li>
+      <li>Permitir ver su ubicación y que está bien colocado.</li>
+      <li>Incluir una foto general de los principales espacios promocionales.</li>
+      <li>Tener buena luz y dejar leer los productos y precios.</li>
+    </ul>
+    <p>El encargado verifica que todo quedó según el manual y reporta lo que siga pendiente de recibir o de instalar.</p>
+    <div class="clave">La <b>fecha y hora límite</b> de instalación y de carga de fotos es la del comunicado de Steren México. Si FROGMI falla, avisa de inmediato a Marketing Ecuador.</div>
+  </section>
+
+  <section class="paso" id="cierre">
+    <div class="num">5</div>
+    <h2>Fin de la campaña</h2>
+    <ol>
+      <li>Retira el material que ya no está vigente.</li>
+      <li>Instala el de la siguiente campaña según sus nuevas instrucciones.</li>
+      <li>Guarda o desecha el material retirado según indique Steren México.</li>
+      <li>Revisa que no quede ningún precio o promoción vencida a la vista.</li>
+    </ol>
+  </section>
+
+  <section class="paso" id="casos">
+    <div class="num">6</div>
+    <h2>Casos frecuentes</h2>
+    <div class="tabla"><table>
+      <tr><th>Caso</th><th>Qué hacer</th></tr>
+      <tr><td>Faltan 2 habladores y Marketing ya avisó que llegan la próxima semana</td><td>Regístralos como pendientes e instala el resto ya.</td></tr>
+      <tr><td>Falta un rompetráfico y nadie avisó</td><td>Repórtalo de inmediato a Nina y Diego.</td></tr>
+      <tr><td>Llegaron 3 cenefas de más</td><td>Repórtalo y guárdalas. No las uses ni las regales sin autorización.</td></tr>
+      <tr><td>El exhibidor del manual no entra en el espacio de la tienda</td><td>Pide una alternativa a Marketing Ecuador antes de cambiar algo.</td></tr>
+      <tr><td>Un afiche llegó con un precio distinto al del listado de promociones</td><td>No lo pongas. Repórtalo como material incorrecto.</td></tr>
+      <tr><td>FROGMI no deja subir las fotos</td><td>Avisa de inmediato a Marketing Ecuador, antes de la hora límite.</td></tr>
+      <tr><td>Terminó la campaña y sigue un precio de oferta en la percha</td><td>Retíralo hoy: no puede quedar nada vencido a la vista.</td></tr>
+    </table></div>
+  </section>
+</div>
+</body></html>
