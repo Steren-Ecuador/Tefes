@@ -354,7 +354,7 @@ function chipContacto(p){ const d = dif(p.contacto);
 const wa = (cel, txt) => 'https://wa.me/593' + String(cel).replace(/\D/g, '').replace(/^0/, '') + '?text=' + encodeURIComponent(txt);
 function porContactar(){ return E.proformas.filter(p => p.estado === 'Abierta' && (p.fuera || pfEspera(p) || dif(p.contacto) <= 0)).length + E.futuras.filter(v => v.estado === 'Llegó').length; }
 function renderCli(){
-  const seg = '<div class="seg">' + [['pro', 'Proformas'], ['vf', 'Ventas futuras']].map(([k, l]) => '<button data-sc="' + k + '" class="' + (k === segCli ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
+  const seg = '<div class="seg">' + [['pro', 'Proformas'], ['vf', 'Lista de espera']].map(([k, l]) => '<button data-sc="' + k + '" class="' + (k === segCli ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
   let h = seg;
   if (segCli === 'pro'){   /* pf2 */
     const ab = E.proformas.filter(p => p.estado === 'Abierta').sort((a, b) => (pfUrge(b) - pfUrge(a)) || (a.contacto < b.contacto ? -1 : 1)), ce = E.proformas.filter(p => p.estado !== 'Abierta');
@@ -371,7 +371,7 @@ function renderCli(){
   } else {
     const ab = E.futuras.filter(v => ['Esperando', 'Llegó'].includes(v.estado)), lle = ab.filter(v => v.estado === 'Llegó').length;
     if (lle) h += '<div class="card" style="border-left:4px solid var(--ok)"><b>' + (lle === 1 ? 'Llegó un producto que espera tu cliente' : 'Llegaron ' + lle + ' productos que esperan tus clientes') + '</b><div class="small muted">Contáctalo hoy y sepárale la unidad.</div></div>';
-    h += '<button class="btn pri block" id="nVf" style="margin-bottom:12px">+ Registrar venta futura</button>';
+    h += '<button class="btn pri block" id="nVf" style="margin-bottom:12px">+ Agregar a la lista de espera</button>';
     h += ab.length ? ab.map(v => '<div class="card"><div class="fila"><b>' + esc(v.producto) + '</b><span class="chip ' + (v.estado === 'Llegó' ? 'verde' : 'amb') + '">' + v.estado + '</span></div><div class="small" style="margin-top:4px">' + esc(v.cliente) + ' · ' + v.cant + (v.cant > 1 ? ' unidades' : ' unidad') + '</div>' +
       (v.nota ? '<div class="tiny muted">📝 ' + esc(v.nota) + '</div>' : '') + '<div class="tiny muted">Registrada el ' + fCorta(new Date(v.fecha + 'T12:00:00')) + '</div>' +
       (v.estado === 'Llegó' ? '<div class="btns"><a class="btn" target="_blank" rel="noopener" style="text-decoration:none;color:inherit" href="' + wa(v.cel, 'Hola ' + nombreCorto(v.cliente) + ', te saluda ' + nombreCorto(ver(YO.nombre)) + ' de Steren ' + TIENDA.nombre + '. ¡Ya llegó ' + v.producto + '! Te lo separamos.') + '">Avisar por WhatsApp</a><button class="btn" data-vc="' + v.id + '" style="color:var(--ok)">Compró</button><button class="btn" data-vn="' + v.id + '" style="color:var(--muted)">No compró</button></div>' : '') + '</div>').join('')
@@ -540,7 +540,7 @@ function buscarCat(q){
 }
 function formFutura(){
   let prod = null;
-  abrir('<h3>Nueva venta futura</h3><label class="f">Producto Steren (código o nombre)</label><input class="i" id="fP" autocomplete="off" placeholder="Ej.: CAR-150 o adaptador carplay">' +
+  abrir('<h3>Agregar a la lista de espera</h3><label class="f">Producto Steren (código o nombre)</label><input class="i" id="fP" autocomplete="off" placeholder="Ej.: CAR-150 o adaptador carplay">' +
     '<div id="fSug"></div><div id="fSel" class="tiny" style="margin-top:4px"></div>' +
     '<label class="small" style="display:flex;gap:8px;margin-top:8px;align-items:flex-start"><input type="checkbox" id="fRef" style="margin-top:3px"> No está en la lista: registrar como <b>otra referencia</b> (nombre o modelo que pide el cliente; se pasa a Compras).</label>' +
     '<div class="dos"><div><label class="f">Cantidad</label><input class="i" id="fQ" inputmode="numeric" value="1"></div><div><label class="f">Celular</label><input class="i" id="fT" inputmode="tel" placeholder="09…"></div></div>' +
@@ -637,7 +637,7 @@ const LECTURAS = [
 const PREGUNTAS = [
   {q: '¿Cuánto cuesta la garantía extendida?', o: ['5% del precio', '10% del precio', '$5 fijos'], ok: 1, x: 'Es el 10% del precio del producto y suma un año de garantía.'},
   {q: '¿Desde qué precio se puede ofrecer garantía extendida en productos Steren?', o: ['Desde $19,99', 'Desde $49,99', 'En todos'], ok: 1, x: 'En productos Steren de más de $49,99, solo al momento de la compra.'},
-  {q: 'Un cliente pide un producto que no hay. ¿Qué haces?', o: ['Le digo que no hay', 'Lo registro como venta futura', 'Le pido que vuelva otro día'], ok: 1, x: 'Lo registras en Clientes › Ventas futuras y te avisamos cuando llegue.'},
+  {q: 'Un cliente pide un producto que no hay. ¿Qué haces?', o: ['Le digo que no hay', 'Lo anoto en la lista de espera', 'Le pido que vuelva otro día'], ok: 1, x: 'Lo anotas en Clientes › Lista de espera y te avisamos cuando llegue.'},
   {q: '¿Cuándo se paga el cashback de DeUna en Black Month?', o: ['Del 15 al 30 de noviembre', 'Todo noviembre', 'Solo el Black Friday'], ok: 0, x: 'La promoción va del 15 al 30 de noviembre.'}
 ];
 function renderApr(){
@@ -926,5 +926,6 @@ function arrancar(){
 arrancar();
 })();
 </script>
+<!-- le1 --><script>/* le1 */</script>
 </body>
 </html>

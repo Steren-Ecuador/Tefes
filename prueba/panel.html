@@ -2865,14 +2865,19 @@ async function invAbrir(tienda, sem, filtro){
 const IV_VEND = 'Vendido antes del conteo';
 const IV_DEC = ['Cuadra, fue error de conteo', IV_VEND, 'Ajustar en el sistema', 'Faltante a cargo del personal', 'Sobrante cargar a la tienda', 'Pendiente para el próximo inventario', 'Sigue en revisión'];
 const ivDecN = d => d === 'Faltante a cargo de la tienda' ? 'Faltante a cargo del personal' : d;   // nombre anterior de la decisión
-/* pt2: un producto no queda pendiente más de 4 semanas (Diego 2026-10-31) */
+/* pt2 → pt4: un producto no queda pendiente en más de 3 inventarios (Diego 2026-11-10) */
 const IV_PEND = 'Pendiente para el próximo inventario';
 function ivPendTope(o){
   const ui = st.ivUI, n = s => Number(String(s).slice(0, 4)) * 53 + Number(String(s).slice(6)) || 0, porSem = {};
   ((st.mue && st.mue.co) || []).slice(1).forEach(r => { if (r[2] === ui.tienda && sinApo(r[3]) === o.cod && r[1] < ui.sem) porSem[r[1]] = r[10]; });
-  let primera = '';
-  Object.keys(porSem).sort().reverse().every(s => porSem[s] === IV_PEND ? (primera = s, true) : false);
-  return !!primera && n(ui.sem) - n(primera) >= 4;
+  /* pt4 */ let k = 0;
+  Object.keys(porSem).sort().reverse().every(s => porSem[s] === IV_PEND ? (k++, true) : false);
+  return k >= 3;
+}
+function ivPendVeces(o){   /* pt4: en cuántos inventarios seguidos ya estuvo pendiente (sin contar el actual) */
+  const ui = st.ivUI, porSem = {};
+  ((st.mue && st.mue.co) || []).slice(1).forEach(r => { if (r[2] === ui.tienda && sinApo(r[3]) === o.cod && r[1] < ui.sem) porSem[r[1]] = r[10]; });
+  let k = 0; Object.keys(porSem).sort().reverse().every(s => porSem[s] === IV_PEND ? (k++, true) : false); return k;
 }
 const sinApo = v => String(v == null ? '' : v).replace(/^'/, '');
 /* material de exhibición (góndolas, charolas, porta precios): no es mercadería, no se muestra ni se descuenta */
@@ -3270,7 +3275,7 @@ function invForm(o){
       <span class="small faint" id="ivRecTxt">Déjalo vacío si no recontaste.</span></div>
     <div class="r-lbl">Decisión</div>
     <div class="an-chips" id="ivDec">${IV_DEC.filter(d => !['Ajustar en el sistema', 'Sigue en revisión'].includes(d) && !(d === IV_PEND && ivPendTope(o)) || cr[10] === d).map(d => `<button type="button" class="chip${ivDecN(cr[10]) === d ? ' on' : ''}" data-d="${esc(d)}">${esc(d)}</button>`).join('')}</div>
-    ${ivPendTope(o) ? '<p class="small faint" style="margin:4px 0 0">Ya lleva 4 semanas pendiente: hay que decidir.</p>' : ''}
+    ${ivPendTope(o) ? '<p class="small faint" style="margin:4px 0 0">Ya estuvo pendiente en 3 inventarios: hay que decidir.</p>' : '<p class="small faint" style="margin:4px 0 0">Pendiente: no se descuenta en este inventario y va al conteo de la próxima semana' + (ivPendVeces(o) ? ' (ya estuvo pendiente en ' + ivPendVeces(o) + (ivPendVeces(o) === 1 ? ' inventario' : ' inventarios') + '; máximo 3)' : ' (máximo 3 inventarios)') + '.</p>'}
     <div class="fila" id="ivVendBox" ${cr[10] === IV_VEND ? '' : 'hidden'}><label class="r-lbl" for="ivVend">Unidades vendidas antes del conteo</label>
       <input type="number" id="ivVend" inputmode="numeric" min="1" step="1" value="${esc(cr[10] === IV_VEND && num(cr[8]) != null && o.dif != null ? num(cr[8]) - o.dif : o.dif < 0 ? -o.dif : 1)}">
       <span class="small faint">El archivo del sistema todavía las tenía; no son faltante.</span></div>
@@ -3492,7 +3497,7 @@ function renderVF(){
   const ABV = ['Esperando', 'Llegó', 'Avisado'], ab = L.filter(x => ABV.includes(x.estado));
   const fd = f => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f); return m ? (+m[3]) + '/' + (+m[2]) : f; };
   const dd = f => f ? Math.round((new Date(hoyISO() + 'T12:00') - new Date(f + 'T12:00')) / 864e5) : '';
-  if (!L.length) { el.innerHTML = '<section class="panel"><h2>Lista de espera</h2><div class="empty">Todavía no hay registros. Las tiendas los hacen en Inventario → Registrar venta futura.</div></section>'; return; }
+  if (!L.length) { el.innerHTML = '<section class="panel"><h2>Lista de espera</h2><div class="empty">Todavía no hay registros. Las tiendas los hacen en Inventario → Lista de espera.</div></section>'; return; }
   const porCod = {};
   ab.forEach(x => { const p = porCod[x.cod] = porCod[x.cod] || {cod: x.cod, prod: x.prod, cli: 0, u: 0, t: new Set(), lle: 0, cedis: false};
     p.cli++; p.u += x.cant; p.t.add(x.tienda); if (x.estado !== 'Esperando') p.lle++; if (x.cedis && x.estado === 'Esperando') p.cedis = true; });
@@ -4789,5 +4794,6 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
 <style>/* vs1 */.view[data-view="flash"][data-sub="fl"]>#fdBody,.view[data-view="flash"][data-sub="fl"]>#garBody,.view[data-view="flash"][data-sub="fl"]>#ppBody,.view[data-view="flash"][data-sub="fd"]>:not(#fdBody):not(.mn-chips),.view[data-view="flash"][data-sub="gar"]>:not(#garBody):not(.mn-chips),.view[data-view="flash"][data-sub="pp"]>:not(#ppBody):not(.mn-chips){display:none!important}.view[data-view="flash"][data-sub="gar"]>#garBody:empty::before,.view[data-view="flash"][data-sub="pp"]>#ppBody:empty::before{content:"Cargando…";color:var(--muted,#888);font-size:14px}</style>
 <style>/* mx1 */#tabs button[data-v="perchas"]{display:none!important}</style>
 <style>/* an2 */.an2{border-bottom:1px solid var(--line);padding:2px 0}.an2:last-child{border-bottom:0}.an2>summary{list-style:none;cursor:pointer;padding:10px 2px;display:block}.an2>summary::-webkit-details-marker{display:none}.an2>summary:hover{background:var(--surface-2,#f6f7f9)}.an2-cab{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.an2-cab b{font-size:15px}.an2-ch{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}.an2-ch span{font-size:12px;border-radius:999px;padding:2px 8px;background:var(--surface-2,#f1f3f5);white-space:nowrap}.an2-ch .ok{background:#e3f4ea;color:#1e7b45}.an2-ch .med{background:#fdf1dc;color:#9a6200}.an2-ch .cero{background:#fde4e2;color:#b3261e}.an2-f{font-size:12.5px;color:var(--muted,#6b7280);margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.an2-v{font-size:12px;color:var(--accent,#0b5394);font-weight:600;margin-left:6px;white-space:nowrap}.an2[open] .an2-v::after{content:" ▲"}.an2:not([open]) .an2-v::after{content:" ▼"}.an2.an-it{display:block;padding:2px 0;gap:0}.an2.an-it>summary{color:inherit;font-weight:400;font-size:inherit}.an2-d{padding:0 2px 12px}.an2-d p,.an2-d .an-txt{margin:0 0 8px;white-space:pre-line}.an2-st{display:grid;grid-template-columns:minmax(90px,140px) 64px minmax(0,1fr);gap:5px 10px;font-size:13px}.an2-st .ok{color:var(--good,#1e7b45);font-weight:600}</style>
+<!-- le1 --><script>/* le1 */</script>
 </body>
 </html>
