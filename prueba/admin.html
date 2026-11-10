@@ -3430,7 +3430,7 @@ function renderVF(){
   const ABV = ['Esperando', 'Llegó', 'Avisado'], ab = L.filter(x => ABV.includes(x.estado));
   const fd = f => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f); return m ? (+m[3]) + '/' + (+m[2]) : f; };
   const dias = f => f ? Math.round((new Date(hoyISO() + 'T12:00') - new Date(f + 'T12:00')) / 864e5) : '';
-  if (!L.length) { el.innerHTML = '<section class="panel"><h2>Lista de espera</h2><div class="empty">Todavía no hay registros. Las tiendas los hacen en Inventario → Registrar venta futura.</div></section>'; return; }
+  if (!L.length) { el.innerHTML = '<section class="panel"><h2>Lista de espera</h2><div class="empty">Todavía no hay registros. Las tiendas los hacen en Inventario → Lista de espera.</div></section>'; return; }
   const porCod = {};
   ab.forEach(x => { const p = porCod[x.cod] = porCod[x.cod] || {cod: x.cod, prod: x.prod, cli: 0, u: 0, t: new Set(), lle: 0, cedis: false};
     p.cli++; p.u += x.cant; p.t.add(x.tienda); if (x.estado !== 'Esperando') p.lle++; if (x.cedis && x.estado === 'Esperando') p.cedis = true; });
@@ -7382,4 +7382,5 @@ window.usoPerfiles = function(view){
     '<p class="small faint" style="margin:10px 6px 0">Tiempo = solo tiempo activo (página en pantalla y con algún toque en los últimos 2 minutos). El perfil de cada persona sale de Sistema › Menús por perfil.</p>';
 };
 </script>
+<!-- le1 --><script>/* le1 */</script>
 </body></html>
