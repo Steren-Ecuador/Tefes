@@ -907,6 +907,7 @@ const MPF_PERFILES = [
   {p:'Administrador', app:'panel', d:'Tú ves todo: aquí solo ordenas tu propio menú.', solo: 1},
   {p:'Gerentes', app:'panel', d:'Samia y Nina. Entran con código.'},
   {p:'Supervisores', app:'panel', d:'Equipo de ventas de Tventas.'},
+  {p:'Control y liquidaciones', app:'panel', d:'Fabián Andaluz, jefe de Control y Liquidaciones de TVentas. Solo lectura.'},
   {p:'Tiendas', app:'tienda', d:'Gerente y equipo de cada tienda.'},
   {p:'Asesores', app:'asesor', d:'Cada asesor desde su celular.'},
   {p:'Otras áreas', app:'avisos', d:'Bodegas, contact center y Talento Humano.'}
@@ -914,6 +915,7 @@ const MPF_PERFILES = [
 /* lo que ve cada perfil hoy (9-nov), si la hoja está vacía */
 function mpfDefecto(p, tema, op, adm){
   if (p === 'Administrador') return true;
+  if (p === 'Control y liquidaciones') return ['mercaderia/top', 'mercaderia/stock', 'mercaderia/transferencias', 'ventas/flash', 'politicas/politicas', 'politicas/guias'].includes(tema + '/' + op);
   if (p === 'Gerentes' && tema === 'mercaderia' && op === 'transferencias') return true;
   return !adm;
 }
@@ -924,7 +926,7 @@ function mpfDefecto(p, tema, op, adm){
   const e = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const k = (p, t, o) => p + '|' + t + '/' + o;
   const perf = p => MPF_PERFILES.find(x => x.p === p);
-  const PERF_PERSONA = ['Administrador', 'Gerentes', 'Supervisores'];
+  const PERF_PERSONA = ['Administrador', 'Gerentes', 'Supervisores', 'Control y liquidaciones'];
   function base(){
     MPF_PERFILES.forEach(x => MPF_ARBOL[x.app].forEach(([t,, ops]) => ops.forEach(([o,, adm]) => { S.ve[k(x.p, t, o)] = mpfDefecto(x.p, t, o, !!adm); })));
     MPF_PERFILES.forEach(x => S.ord[x.p] = ordenar(x, []));
@@ -1013,8 +1015,10 @@ function mpfDefecto(p, tema, op, adm){
     if (S.gente.some(x => x.nombre.toLowerCase() === n.toLowerCase())) { alert(n + ' ya está en la lista: cámbiale el perfil arriba.'); return; }
     const fila = Math.max(1, ...S.gente.map(x => x.fila)) + 1;
     try {
-      await setRange(HS + '!A' + fila + ':J' + fila, [[n, '', 'Todas', 'Seguimiento', 'Sí', 'Agregado desde Menús por perfil', m, '', p === 'Gerentes' ? 'Gerente' : 'Supervisor', p]], CLAVES);
-      S.gente.push({fila, nombre: n, activo: 'Sí', cargo: p === 'Gerentes' ? 'Gerente' : 'Supervisor', perfil: p}); S.msg = n + ' agregado como ' + p;
+      const cg = p === 'Gerentes' ? 'Gerente' : p === 'Supervisores' ? 'Supervisor' : p;
+      await setRange(HS + '!A' + fila + ':J' + fila, [[n, '', 'Todas', p === 'Control y liquidaciones' ? 'Solo lectura' : 'Seguimiento', 'Sí', 'Agregado desde Menús por perfil', m, '', cg, p]], CLAVES);
+      try { const ip = await getRange("'Ingreso prueba'!A2:A300", true, CLAVES); if (!(ip || []).some(r => String(r[0] || '').trim().toLowerCase() === m.toLowerCase())) { const f2 = (ip || []).length + 2; await setRange("'Ingreso prueba'!A" + f2 + ':D' + f2, [[m, n, 'Sí', 'Agregado desde Menús por perfil']], CLAVES); } } catch (x) {}   /* mp7: que pueda entrar con su correo */
+      S.gente.push({fila, nombre: n, activo: 'Sí', cargo: cg, perfil: p}); S.msg = n + ' agregado como ' + p + '. Ya puede entrar con su correo.';
     } catch (er) { alert('No se agregó: ' + (er && er.message || er)); }
     pintar();
   }
@@ -2294,7 +2298,9 @@ function anuncios(){
     .filter(a => a.id && a.titulo).map(a => {
       if (!a.hasta && a.desde) a.hasta = sumarD(a.desde, 6);
       const ts = /^todas$/i.test(a.tiendasTxt) ? activas : a.tiendasTxt.split(',').map(s => s.trim()).filter(Boolean);
-      a.porTienda = ts.map(t => { const g = gente[t] || [], l = lect[a.id + '|' + t] || [], ya = l.map(x => x.p); return {t, total: Math.max(g.length, l.length), leyeron: l, faltan: g.filter(n => ya.indexOf(n) < 0)}; });
+      a.porTienda = ts.map(t => { const g = gente[t] || [], ya = [];   /* al4 */
+        const ape = x => ncNorm(x).split(' ').pop(), can = n => { n = nombreCorto(n); if (g.indexOf(n) >= 0) return n; const c = g.filter(x => ape(x) === ape(n)); return c.length === 1 ? c[0] : n; };
+        const l = (lect[a.id + '|' + t] || []).map(x => Object.assign({}, x, {p: can(x.p)})).filter(x => ya.indexOf(x.p) < 0 && ya.push(x.p)); return {t, total: Math.max(g.length, l.length), leyeron: l, faltan: g.filter(n => ya.indexOf(n) < 0)}; });
       a.ok = a.porTienda.reduce((s, x) => s + x.leyeron.length, 0); a.tot = a.porTienda.reduce((s, x) => s + x.total, 0);
       return a;
     }).sort((a, b) => a.desde < b.desde ? 1 : a.desde > b.desde ? -1 : b.row - a.row);
