@@ -887,7 +887,7 @@ function perfilHtml(){
     '<button data-ir="pend"><b class="' + (abiertos ? 'mal' : '') + '">' + abiertos + '</b><span>Pendientes</span></button>' +
     '<button data-ir="pol"><b class="' + (porLeer ? 'warn' : '') + '">' + porLeer + '</b><span>Por leer</span></button>' +
     '<button data-ir="sup"><b>' + (ult ? pct(ult.total) : '–') + '</b><span>Puntaje</span></button></div></div>' +
-    '<div class="pf-btns"><button class="pri" data-ir="sup">Supervisar</button><button data-ir="inv">Muestreo 50</button><button data-ir="inv">Venta futura</button></div>' +
+    '<div class="pf-btns"><button class="pri" data-ir="sup">Supervisar</button><button data-ir="inv">Muestreo 50</button><button data-ir="inv">Lista de espera</button></div>' +
     '<div class="pf-hist">' + circ('Anuncios', ICO6.anuncio, 'inicio', 'anuncios', anunNuevo) + circ('Políticas', ICO6.politica, 'pol', '', polPend().length > 0) +
       circ('Guías', ICO6.guia, 'gui', '', guiaPend().length > 0) + ((D.guias || []).some(g => g.tipo === 'Manual') ? circ('Manuales', ICO6.manual, 'gui', 'manuales', false) : '') +
       circ('Ventas fut.', ICO6.vf, 'inv', '', false) + '</div></section>';
@@ -988,14 +988,19 @@ const INTRO_KEY = 'supIntro_' + TOKEN;
 const semanaDe = i => { const d = new Date(i + 'T12:00:00'), w = (d.getDay() + 6) % 7; return [sumarDias(i, -w), sumarDias(i, 6 - w)]; };
 const fechaCorta = i => fmtF(i).replace(/ \d{4}.*$/, '').toLowerCase();
 const gente = () => (S.data.personal || []).map(p => p.nombre);
-const faltan = a => { const ya = a.lecturas.map(l => l.persona); return gente().filter(n => ya.indexOf(n) < 0); };
+/* al3: la lectura se une a la persona del personal (mismo nombre, o mismo apellido si es único): una persona, una vez, con su alias */
+const alNorm = x => String(x || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+const canonPer = n => { const g = gente(); if (g.indexOf(n) >= 0) return n; const ap = alNorm(n).split(/\s+/).pop();
+  const c = ap ? g.filter(x => alNorm(x).split(/\s+/).pop() === ap) : []; return c.length === 1 ? c[0] : n; };
+const lecs = a => { const vis = {}; return a.lecturas.map(l => Object.assign({}, l, {persona: canonPer(l.persona)})).filter(l => vis[l.persona] ? false : (vis[l.persona] = 1)); };
+const faltan = a => { const ya = lecs(a).map(l => l.persona); return gente().filter(n => ya.indexOf(n) < 0); };
 const activo = a => a.hasta >= S.data.hoy || faltan(a).length > 0;
 function anuncioHtmlBase(a){
   const f = faltan(a), n = gente().length, completo = n > 0 && !f.length;
   return '<div class="card anuncio' + (completo ? '' : ' falta') + '" data-an="' + esc(a.id) + '"><div class="ts-pc"><span class="ts-av" style="background:#14202b">T</span><div><b>Gerencia TEFES</b><span class="tiny muted">' + fechaCorta(a.desde) + ' · Anuncio · hasta el ' + fechaCorta(a.hasta) + '</span></div></div><h4>' + esc(a.titulo) + '</h4>' +
     (a.texto ? '<div class="txt">' + esc(a.texto) + '</div>' : '') +
-    '<div class="conf"><div class="conf-h' + (completo ? ' ok' : '') + '"><b>' + (completo ? '✓ Todo el equipo confirmó la lectura' : 'Confirmaron ' + a.lecturas.length + (n ? ' de ' + n : '')) + '</b></div>' +
-    '<div class="nombres">' + a.lecturas.map(l => '<span class="si" title="' + esc(fechaCorta(l.fecha) + ' ' + fmtH(l.hora)) + '">✓ ' + esc(l.persona) + '</span>').join('') +
+    '<div class="conf"><div class="conf-h' + (completo ? ' ok' : '') + '"><b>' + (completo ? '✓ Todo el equipo confirmó la lectura' : 'Confirmaron ' + lecs(a).length + (n ? ' de ' + n : '')) + '</b></div>' +
+    '<div class="nombres">' + lecs(a).map(l => '<span class="si" title="' + esc(fechaCorta(l.fecha) + ' ' + fmtH(l.hora)) + '">✓ ' + esc(l.persona) + '</span>').join('') +
       f.map(x => '<span class="no">' + esc(x) + '</span>').join('') + '</div>' +
     (completo ? '' : '<button class="btn primary block" data-conf>Confirmar que leí este anuncio</button>') + '</div></div>';
 }
@@ -1134,7 +1139,6 @@ function aucFormulario(){
     '<div class="grid2"><div><label class="f">N° de factura</label><input type="text" id="aucFac" inputmode="numeric" autocomplete="off" placeholder="005-001-000004800"></div>' +
     '<div><label class="f">Fecha de la factura</label><input type="date" id="aucFecha" value="' + esc(hoy) + '" max="' + esc(hoy) + '"></div></div>' +
     '<label class="f">Valor total de la factura (con IVA)</label><input type="number" id="aucValor" min="0" step="0.01" inputmode="decimal" placeholder="0,00">' +
-    '<label class="f">Productos (código y cantidad)</label><textarea id="aucProd" maxlength="500" placeholder="Ej.: COM-13100 x1, CAB-010 x2"></textarea>' +
     '<label class="f">Motivo</label><select id="aucMot"><option value="">Elige el motivo</option>' + AUC_MOTIVOS.map(m => '<option>' + esc(m) + '</option>').join('') + '</select>' +
     '<label class="f">Explica el motivo</label><textarea id="aucDet" maxlength="500" placeholder="Para qué se usó, a quién se entregó, por qué no se vendió…"></textarea>' +
     '<label class="f">¿Quién lo pidió o autorizó?</label><input type="text" id="aucPidio" maxlength="80" autocomplete="off" placeholder="Ej.: Diego Revelo por WhatsApp">' +
@@ -1143,10 +1147,10 @@ function aucFormulario(){
     '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="aucNo">Cancelar</button><button class="btn primary grow" id="aucSi">Guardar</button></div>');
   $('#aucNo').onclick = closeModal;
   $('#aucSi').onclick = async () => {
-    const d = {factura: $('#aucFac').value.trim(), fechaFac: $('#aucFecha').value, valor: $('#aucValor').value, productos: $('#aucProd').value.trim(),
+    const d = {factura: $('#aucFac').value.trim(), fechaFac: $('#aucFecha').value, valor: $('#aucValor').value, productos: '',   /* ac2: el detalle sale del ERP con el n.º de factura */
       motivo: $('#aucMot').value, detalle: $('#aucDet').value.trim(), pidio: $('#aucPidio').value.trim(), registro: $('#aucQuien').value.trim()};
     const falta = (d.factura.match(/\d/g) || []).length < 3 ? 'Escribe el número de factura.' : !d.fechaFac ? 'Pon la fecha de la factura.' : !(Number(d.valor) > 0) ? 'Pon el valor total de la factura.' :
-      d.productos.length < 3 ? 'Escribe qué productos salieron.' : !d.motivo ? 'Elige el motivo.' : d.detalle.length < 10 ? 'Explica el motivo con un poco más de detalle.' :
+      !d.motivo ? 'Elige el motivo.' : d.detalle.length < 10 ? 'Explica el motivo con un poco más de detalle.' :
       d.pidio.length < 3 ? 'Escribe quién lo pidió o autorizó.' : !d.registro ? 'Elige tu nombre.' : '';
     if (falta) { toast(falta, 3500); return; }
     const b = $('#aucSi'); b.disabled = true;
@@ -1225,11 +1229,11 @@ function vfHtml(){
   const orden = {'Llegó': 0, 'Avisado': 1, 'Esperando': 2};
   ab.sort((a, b) => orden[a.estado] - orden[b.estado]);
   const lle = ab.filter(v => v.estado === 'Llegó').length;
-  let h = '<div class="sec-t"><h3>Ventas futuras</h3><span class="tiny muted">' + (VFS.lista ? ab.length + ' por atender' : '') + '</span></div>';
+  let h = '<div class="sec-t"><h3>Lista de espera</h3><span class="tiny muted">' + (VFS.lista ? ab.length + ' por atender' : '') + '</span></div>';
   if (lle) h += '<div class="aviso ok"><div><b>' + (lle === 1 ? 'Llegó un producto que espera un cliente' : 'Llegaron ' + lle + ' productos que esperan clientes') + '</b>Contáctalo hoy y sepárale la unidad.</div></div>';
   const bod = ab.filter(v => v.estado === 'Esperando' && v.cedis).length;
   if (bod) h += '<div class="aviso warn"><div><b>' + (bod === 1 ? 'Un producto que espera un cliente está en otra tienda o en bodega' : bod + ' productos que esperan clientes están en otras tiendas o en bodega') + '</b>Pide la transferencia a tu tienda.</div></div>';
-  h += '<button class="btn primary block" id="vfNuevo">+ Registrar venta futura</button>';
+  h += '<button class="btn primary block" id="vfNuevo">+ Agregar a la lista de espera</button>';
   if (VFS.error) h += '<div class="card small" style="margin-top:10px">' + esc(VFS.error) + ' <button class="link" id="vfRe">Reintentar</button></div>';
   else if (VFS.lista === null) h += '<div class="card muted small" style="margin-top:10px"><span class="spin"></span> Cargando…</div>';
   else if (!L.length) h += '<p class="tiny muted" style="margin:8px 2px 0">Cuando un cliente pida algo que no tenemos, regístralo aquí con su celular. Te avisamos cuando llegue.</p>';
@@ -1308,7 +1312,7 @@ function vfStockHtml(p){
 }
 function vfFormulario(){
   let prod = null;
-  openModal('<h3>Registrar venta futura</h3>' +
+  openModal('<h3>Agregar a la lista de espera</h3>' +
     '<label class="f">Producto (código o nombre)</label><input type="text" id="vfCod" autocomplete="off" autocapitalize="characters" placeholder="Ej.: CAR-150 o adaptador carplay">' +
     '<div id="vfSug" class="vf-sug"></div><div id="vfSel"></div>' +
     '<label class="vf-chk"><input type="checkbox" id="vfRef"> <span>No está en la lista: registrar como <b>otra referencia</b> (nombre o modelo que pide el cliente; se pasa a Compras).</span></label>' +
@@ -1560,7 +1564,7 @@ function tsEquipo(){
   const G = gente(); if (!G.length) return '';
   const A = (S.data.anuncios || []).filter(a => a.hasta >= S.data.hoy), P = S.data.politicas || [], Gu = guiasDe();
   const tot = A.length + P.length + Gu.length;
-  const hecho = n => A.filter(a => a.lecturas.some(l => l.persona === n)).length + P.filter(x => x.aprobados.some(l => l.persona === n)).length + Gu.filter(g => g.lecturas.some(l => l.persona === n)).length;
+  const hecho = n => A.filter(a => a.lecturas.some(l => canonPer(l.persona) === n)).length + P.filter(x => x.aprobados.some(l => l.persona === n)).length + Gu.filter(g => g.lecturas.some(l => l.persona === n)).length;
   const L = G.map((n, i) => { const h = hecho(n), c = tot ? h / tot : 1; return {n, i, h, c}; }).sort((a, b) => b.c - a.c || a.n.localeCompare(b.n));
   const al = L.filter(x => x.c >= 1).length;
   return '<div class="ts-h">👥 Tu equipo<small>' + al + ' de ' + G.length + ' al día con las lecturas</small></div><div class="ts-eq">' + L.map(x => {
@@ -1594,7 +1598,7 @@ function renderInicio(){
     actToca(linea) + vfToca(linea) + polToca(linea) + guiaToca(linea) + linea('Universidad Steren del equipo', '<span id="uniDet">Avance de cada persona</span>', 'var(--muted)', '<button class="btn" id="uniVer">Ver</button>') + linea('📋 Proformas del equipo', '<span id="pfDet">Seguimiento de cada asesor</span>', 'var(--muted)', '<button class="btn" id="pfVer">Ver</button>') + '<details' + (primera ? ' open' : '') + '><summary>¿Cómo funciona?</summary><ol class="pasos">' +
       '<li>Cada persona lee los anuncios y confirma con su nombre.</li>' +
       '<li>En <b>Pendientes</b>, corrige lo que encontró el supervisor y envíalo con foto.</li>' +
-      '<li>En <b>Inventario</b>, haz el Muestreo Top 50 con el teléfono y registra las ventas futuras: lo que un cliente pide y no tenemos.</li>' +
+      '<li>En <b>Inventario</b>, haz el Muestreo Top 50 con el teléfono y anota en la lista de espera lo que un cliente pide y no tenemos.</li>' +
       '<li>En <b>Supervisión</b>, haz la autosupervisión una vez por semana y ve cómo te fue en cada supervisión.</li></ol></details></div></div>';
   $('#main').innerHTML = perfilHtml() + tsEquipo() + stockBtn(D.stock) + flashHtml() + garHtml() + h;   /* ts1 */   // gt1 stk1
   fdsMontar();   // fds1
@@ -2134,6 +2138,7 @@ function trfE04Dato(){
 }
 function trfE04Html(p){
   if (p.id !== 'E04' || !S.form || S.form.tipo !== 'Supervisión') return '';   // solo supervisores, no en la autosupervisión de la tienda
+  if (TV.d && trfE04Auto(p)) setTimeout(() => pintarPunto(p), 0);
   if (!TV.d) {
     if (!TV.cargando && !TV.error) trfE04Cargar(p);
     return '<div class="vbox"><div class="ttl">Transferencias en el ERP</div><div class="tiny muted">' + (TV.error ? esc(TV.error) : 'Cargando…') + '</div>' +
@@ -2144,15 +2149,30 @@ function trfE04Html(p){
   return '<div class="vbox' + (n ? ' mal' : '') + '"><div class="ttl">Transferencias en el ERP al ' + esc(d.corte) + '</div>' +
     (n ? (d.dif.length ? '<div class="tiny muted">Con diferencias</div>' + d.dif.map(fila).join('') : '') +
          (d.viejas.length ? '<div class="tiny muted" style="margin-top:4px">Abiertas de más de ' + d.umbral + ' días</div>' + d.viejas.map(fila).join('') : '') +
-         '<div class="tiny" style="margin-top:6px">Pide a la tienda el correo de gestión con la bodega o el otro local. 1 si lo muestra, 0 si no hay gestión.</div>'
-       : '<div>Ninguna con diferencias ni abierta de más de ' + d.umbral + ' días: corresponde 2.</div>') +
+         '<div class="tiny" style="margin-top:6px">' + (((S.form.items[p.id] || {}).auto || 'x') === (S.form.items[p.id] || {}).calif ? 'Calificado solo con el ERP. ' : '') + 'Si la tienda te muestra el correo de gestión con la bodega o el otro local, cambia a 1; si no hay gestión, queda en 0.</div>'
+       : '<div>Ninguna con diferencias ni abierta de más de ' + d.umbral + ' días: ' + (((S.form.items[p.id] || {}).auto || 'x') === (S.form.items[p.id] || {}).calif ? 'calificado 2 solo con el ERP.' : 'corresponde 2.') + '</div>') +
     (d.recientes ? '<div class="tiny muted" style="margin-top:4px">' + d.recientes + ' abierta' + (d.recientes > 1 ? 's' : '') + ' de ' + d.umbral + ' días o menos (normal)</div>' : '') +
     '<button class="link" data-tdato>Usar como dato de apoyo</button></div>';
 }
 async function trfE04Cargar(p){
   TV.cargando = true;
   try { TV.d = await api('apiTransfE04'); } catch (e) { TV.error = 'No se pudo leer el ERP: ' + e.message; }
-  TV.cargando = false; pintarPunto(p);
+  TV.cargando = false; trfE04Auto(p); pintarPunto(p);
+}
+/* e04a */ /* E04 se califica solo con el ERP si todavía no tiene nota; el supervisor puede cambiarla */
+function trfE04Auto(p){
+  const F = S.form, d = TV.d; if (!F || !d || F.tipo !== 'Supervisión') return false;
+  const x = F.items[p.id] = F.items[p.id] || {}; if (x.calif != null) return false;
+  const n = d.dif.length + d.viejas.length, lst = a => a.map(t => t.n).join(', ');
+  x.calif = n ? '0' : '2'; x.auto = x.calif; x.dato = trfE04Dato(); x.verDato = true; delete x.abierto;
+  anotarTiempo(F, p.sec);
+  if (n) {
+    x.obs = x.obs || 'Calificado con el ERP: ' + [d.dif.length ? 'con diferencias ' + lst(d.dif) : '', d.viejas.length ? 'abiertas de más de ' + d.umbral + ' días ' + lst(d.viejas) : ''].filter(Boolean).join('; ') + '. Si la tienda muestra el correo de gestión, cambia a 1.';
+    x.accion = x.accion || 'Gestionar con la bodega o el otro local las transferencias ' + lst(d.dif.concat(d.viejas)) + ' hasta dejarlas arregladas, con correo de gestión.';
+    x.fechaCompromiso = x.fechaCompromiso || sumarDias(S.data.hoy, S.data.diasCompromiso);
+    x.responsable = x.responsable || F.gerente || ''; x.prioridad = 'Alta';
+  }
+  guardarBorrador(); actualizarFooter(); return true;
 }
 function puntoHtml(p){
   const it = S.form.items[p.id] || {}, F = S.form;
@@ -2439,7 +2459,7 @@ window.__S = S;
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "header > nav", montarBuscar: "#temTop .marca", dondeBuscar: "afterend", placeholder: "¿Qué necesitas? Conteo, caja chica, garantía…",
   temas: [{"id": "inicio", "nombre": "Inicio", "vistas": ["inicio"]}, {"id": "trabajo", "nombre": "Mi trabajo", "vistas": ["pend", "sup", "inv"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["pol", "gui"]}],
-  items: [{"t": "Hoy", "v": "inicio", "sub": "Inicio · anuncios, actividades y venta del mes", "kw": "inicio anuncios actividades caja chica avisos"}, {"t": "Venta del mes (Flash de Ventas)", "v": "inicio", "sub": "Inicio", "kw": "ventas venta presupuesto meta flash cumplimiento"}, {"t": "Pendientes", "v": "pend", "sub": "Mi trabajo", "kw": "tareas hallazgos correcciones corregir vencidos"}, {"t": "Supervisión", "v": "sup", "sub": "Mi trabajo · autosupervisión e historial", "kw": "supervisar autosupervision visita checklist historial puntaje"}, {"t": "Inventario", "v": "inv", "sub": "Mi trabajo · conteo de la semana", "kw": "conteo muestreo top 50 stock existencias diferencias"}, {"t": "Ventas futuras", "v": "inv", "sub": "Mi trabajo › Inventario · lo que pide un cliente", "kw": "cliente pedido registrar venta futura sin stock"}, {"t": "Políticas", "v": "pol", "sub": "Cómo trabajamos · leer y responder la prueba", "kw": "normas reglas lineamientos prueba preguntas leer"}, {"t": "Manuales y guías", "v": "gui", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer"}],
+  items: [{"t": "Hoy", "v": "inicio", "sub": "Inicio · anuncios, actividades y venta del mes", "kw": "inicio anuncios actividades caja chica avisos"}, {"t": "Venta del mes (Flash de Ventas)", "v": "inicio", "sub": "Inicio", "kw": "ventas venta presupuesto meta flash cumplimiento"}, {"t": "Pendientes", "v": "pend", "sub": "Mi trabajo", "kw": "tareas hallazgos correcciones corregir vencidos"}, {"t": "Supervisión", "v": "sup", "sub": "Mi trabajo · autosupervisión e historial", "kw": "supervisar autosupervision visita checklist historial puntaje"}, {"t": "Inventario", "v": "inv", "sub": "Mi trabajo · conteo de la semana", "kw": "conteo muestreo top 50 stock existencias diferencias"}, {"t": "Lista de espera", "v": "inv", "sub": "Mi trabajo › Inventario · lo que pide un cliente", "kw": "cliente pedido registrar venta futura lista de espera sin stock"}, {"t": "Políticas", "v": "pol", "sub": "Cómo trabajamos · leer y responder la prueba", "kw": "normas reglas lineamientos prueba preguntas leer"}, {"t": "Manuales y guías", "v": "gui", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer"}],
   extra: function(){
     const D = window.TEM_DATA && TEM_DATA(); if (!D) return [];
     const out = [];
@@ -2824,5 +2844,6 @@ window.ppLectura = async function(el, filas, op){
 })();
 </script>
 
+<!-- le1 --><script>/* le1 */</script>
 </body>
 </html>

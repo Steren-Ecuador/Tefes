@@ -1,4 +1,4 @@
-window.STOCK_FECHA="2026-11-07";
+window.STOCK_FECHA="2026-11-09";
 window.CATALOGO=[
 {
 "codigo": "GMB-3000",
@@ -211,8 +211,8 @@ window.CATALOGO=[
 "st": [
 2,
 2,
+0,
 1,
-2,
 2,
 1,
 2,
@@ -291,10 +291,10 @@ window.CATALOGO=[
 1,
 2,
 2,
+0,
+2,
+2,
 1,
-2,
-2,
-2,
 1
 ]
 },
@@ -506,7 +506,7 @@ window.CATALOGO=[
 2,
 2,
 2,
-2,
+1,
 2,
 2,
 2,
@@ -527,7 +527,7 @@ window.CATALOGO=[
 "st": [
 2,
 2,
-2,
+1,
 2,
 2,
 2,
@@ -555,7 +555,7 @@ window.CATALOGO=[
 "st": [
 2,
 2,
-2,
+1,
 2,
 2,
 2,
@@ -588,7 +588,7 @@ window.CATALOGO=[
 "st": [
 2,
 2,
-1,
+0,
 2,
 2,
 2,
@@ -720,10 +720,10 @@ window.CATALOGO=[
 "st": [
 2,
 2,
+1,
 2,
 2,
-2,
-2,
+1,
 2,
 2,
 2,
@@ -788,7 +788,7 @@ window.CATALOGO=[
 2,
 2,
 2,
-1,
+0,
 1
 ]
 },
@@ -1044,7 +1044,7 @@ window.CATALOGO=[
 2,
 2,
 1,
-2,
+1,
 2,
 2,
 2,
@@ -1079,7 +1079,7 @@ window.CATALOGO=[
 2,
 1,
 2,
-2,
+1,
 2,
 1
 ]
@@ -1104,7 +1104,7 @@ window.CATALOGO=[
 "img": "img/AIR-290.webp",
 "st": [
 2,
-2,
+1,
 0,
 2,
 2,
@@ -1169,8 +1169,8 @@ window.CATALOGO=[
 ],
 "img": "img/AIR-265.webp",
 "st": [
-2,
 1,
+2,
 0,
 2,
 2,
@@ -1321,8 +1321,8 @@ window.CATALOGO=[
 "img": "img/INSECTRONIC.webp",
 "st": [
 2,
-0,
-2,
+1,
+1,
 2,
 1,
 2,
@@ -1418,11 +1418,11 @@ window.CATALOGO=[
 2,
 2,
 0,
-2,
-2,
 1,
 1,
-2,
+0,
+0,
+0,
 2,
 0
 ]
@@ -1505,7 +1505,7 @@ window.CATALOGO=[
 "img": "img/REPELTRONIC.webp",
 "st": [
 2,
-2,
+1,
 1,
 2,
 2,
@@ -1538,12 +1538,12 @@ window.CATALOGO=[
 2,
 1,
 2,
-1,
+0,
 0,
 1,
 1,
 1,
-2
+1
 ]
 },
 {
@@ -1563,7 +1563,7 @@ window.CATALOGO=[
 2,
 1,
 2,
-1,
+0,
 2,
 1,
 0,
@@ -1693,7 +1693,7 @@ window.CATALOGO=[
 "img": "img/SHOME-100.webp",
 "st": [
 2,
-1,
+2,
 1,
 2,
 2,
@@ -1724,7 +1724,6 @@ window.CATALOGO=[
 "img": "img/PT-510.webp",
 "st": [
 2,
-1,
 2,
 2,
 2,
@@ -1732,7 +1731,8 @@ window.CATALOGO=[
 2,
 2,
 2,
-2
+2,
+0
 ]
 },
 {
@@ -1937,7 +1937,7 @@ window.CATALOGO=[
 1,
 1,
 2,
-2,
+1,
 1,
 1
 ]
@@ -2104,7 +2104,7 @@ window.CATALOGO=[
 ],
 "img": "img/AUD-570.webp",
 "st": [
-2,
+1,
 2,
 1,
 2,
@@ -2207,7 +2207,7 @@ window.CATALOGO=[
 0,
 0,
 2,
-0,
+1,
 0,
 0,
 0
@@ -2259,7 +2259,7 @@ window.CATALOGO=[
 "img": "img/COM-031.webp",
 "st": [
 2,
-1,
+2,
 2,
 2,
 2,
@@ -2298,7 +2298,7 @@ window.CATALOGO=[
 0,
 0,
 2,
-1,
+0,
 0,
 0
 ]
@@ -2389,7 +2389,7 @@ window.CATALOGO=[
 2,
 2,
 2,
-2
+1
 ]
 },
 {
@@ -2617,7 +2617,7 @@ window.CATALOGO=[
 "st": [
 2,
 2,
-2,
+1,
 2,
 2,
 2,
@@ -2649,7 +2649,7 @@ window.CATALOGO=[
 "st": [
 2,
 2,
-2,
+1,
 2,
 2,
 1,
@@ -2989,7 +2989,7 @@ window.CATALOGO=[
 "st": [
 2,
 2,
-0,
+2,
 2,
 2,
 2,
@@ -3029,7 +3029,7 @@ window.CATALOGO=[
 2,
 2,
 2,
-1
+0
 ]
 },
 {
@@ -3055,7 +3055,7 @@ window.CATALOGO=[
 2,
 2,
 2,
-1,
+0,
 2,
 2,
 2,
@@ -3117,7 +3117,7 @@ window.CATALOGO=[
 2,
 2,
 2,
-2,
+1,
 2,
 2
 ]
@@ -3209,7 +3209,7 @@ window.CATALOGO=[
 2,
 1,
 2,
-1,
+0,
 2,
 2,
 2,
@@ -3590,9 +3590,9 @@ window.CATALOGO=[
 2,
 2,
 2,
+1,
 2,
-2,
-2,
+1,
 2,
 2,
 2
@@ -3621,7 +3621,7 @@ window.CATALOGO=[
 2,
 2,
 1,
-1,
+0,
 1,
 2,
 1
@@ -3650,7 +3650,7 @@ window.CATALOGO=[
 2,
 2,
 2,
-2,
+1,
 2,
 1,
 2,

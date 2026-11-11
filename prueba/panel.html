@@ -1076,7 +1076,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
     <span class="status small" id="status">Cargando…</span><span id="yo"></span><a class="btn" id="inventario" href="./?invp=__PTOKEN__" target="_top" style="display:none;text-decoration:none">Inventario</a><button class="btn" id="refresh">Actualizar</button>
   </div>
   <nav class="tabs" id="tabs" aria-label="Secciones del panel">
-    <button data-v="hoy">Hoy</button>
+    <button data-v="hoy">Inicio</button>
     <button data-v="calendario" title="Las visitas de todos a las tiendas, mes a mes">Calendario</button>
     <button data-v="anuncios" title="Anuncios a las tiendas y quién los leyó">Anuncios</button>
     <button data-v="flash" title="Venta del día y del mes contra presupuesto, desde el ERP">Flash de Ventas</button>
@@ -1086,6 +1086,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
     <button data-v="politicas">Políticas<span class="n" id="nPol"></span></button>
     <button data-v="clientes" title="El número son los reclamos abiertos">Clientes<span class="n bad" id="nRec"></span></button>
     <button data-v="guias">Manuales y guías</button>
+    <button data-v="universidad">Universidad</button>
     <button data-v="contactos">Contactos</button>
   </nav>
 </div></header>
@@ -1107,7 +1108,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   <div class="view" data-view="hoy">
     <div id="datoDia"></div>
     <div class="bx-wrap">
-        <div class="sec-h"><h2>Esperan validación <span class="bx-n" id="bxN"></span></h2><span class="hint">La tienda dice que ya lo resolvió. Toca uno para revisarlo.</span></div>
+        <div class="sec-h"><h2>Esperan tu validación <span class="bx-n" id="bxN"></span></h2><span class="hint">La tienda dice que ya lo resolvió. Toca uno para revisarlo.</span></div>
         <div class="panel flush bx" id="validar"><div class="skeleton">Cargando…</div></div>
     </div>
     <div class="hl-sec"><!-- hl1 -->
@@ -1195,15 +1196,18 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   </div>
 
   <div class="view" data-view="clientes" hidden>
-    <div id="vfBody"><div class="skeleton">Cargando ventas futuras…</div></div>
+    <div id="vfBody"><div class="skeleton">Cargando lista de espera…</div></div>
     <div id="recBody" style="margin-top:26px"><div class="skeleton">Cargando reclamos…</div></div>
-    <div id="pfBody" style="margin-top:26px"></div>
+    <div id="pfBody" style="margin-top:26px"><div class="skeleton">Cargando proformas…</div></div>
   </div>
 
   <div class="view" data-view="guias" hidden>
     <div id="guiBody"><div class="skeleton">Cargando manuales y guías…</div></div>
-    <section class="panel" id="universidad" hidden>
-      <div class="panel-h"><h2>Universidad Steren<span class="cfil"></span></h2><span class="small faint">Tabla de tiendas: gana quien tiene más cursos aprobados; si empatan, más cursos en la semana y luego mejor %. Toca una tienda para ver a su equipo.</span></div>
+  </div>
+
+  <div class="view" data-view="universidad" hidden>   <!-- ut1 -->
+    <section class="panel" id="universidad">
+      <div class="panel-h"><h2>Universidad Steren<span class="cfil"></span></h2><span class="small faint">Tabla de tiendas: gana quien tiene más cursos de carrera; si empatan, los microcursos (como el gol diferencia), luego la semana y el %. Toca una tienda para ver a su equipo.</span></div>
       <div id="uniBody"></div>
     </section>
   </div>
@@ -1524,8 +1528,9 @@ function hlPintar(filas, todas){
 }
 /* mn1: sub-opciones del menú por temas (Diego 8-nov): una vista muestra solo la parte elegida */
 (function(){
-  const MN_T = {"hoy": [["hoy", "", "Hoy"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "", "Flash de ventas"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "extra", "Inventario EXTRA"], ["inventario", "stock", "Consultar stock"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "vf", "Venta futura"], ["clientes", "rec", "Reclamos"]]};
+  const MN_T = {"hoy": [["hoy", "val", "Esperan tu validación"], ["hoy", "sup", "Posiciones de supervisión"], ["hoy", "ven", "Ventas vs presupuesto"], ["hoy", "act", "Actividades del mes"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "fl", "Flash de ventas"], ["flash", "fd", "Explorar ventas"], ["flash", "gar", "Garantías extendidas"], ["flash", "pp", "Presupuesto por persona"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "stock", "Consultar stock"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "pf", "Proformas"], ["clientes", "vf", "Lista de espera"]]};
   window.MN_SUB = window.MN_SUB || {};
+  window.MN_T_REF = MN_T;   // mp3
   const subsDe = v => { const r = []; Object.keys(MN_T).forEach(t => MN_T[t].forEach(x => { if (x[0] === v && x[1]) r.push(x); })); return r; };
   const vistaEl = v => document.querySelector('.view[data-view="' + v + '"]');
   const CT_K = {tel: 'Teléfonos de las tiendas', wa: 'WhatsApp de las tiendas', mail: 'Correos de las tiendas', hor: 'Horarios de atención al público'};
@@ -1551,18 +1556,48 @@ function hlPintar(filas, todas){
         if (!k) return; e.classList.add(k); if (e.nextElementSibling && !e.nextElementSibling.classList.contains('eyebrow')) e.nextElementSibling.classList.add(k); });
     }
   }
-  function ctLista(el, k){
+  function ctLista(el, k){   /* ct3: contactos en tarjetas */
     if (!CT_K[k]) return;
-    let w = el.querySelector(':scope > .mn-ctw'); if (!w) { w = document.createElement('section'); w.className = 'panel mn-ctw'; const c = el.querySelector(':scope > .mn-chips'); c ? c.after(w) : el.prepend(w); }
+    let w = el.querySelector(':scope > .mn-ctw'); if (!w) { w = document.createElement('section'); w.className = 'mn-ctw'; const c = el.querySelector(':scope > .mn-chips'); c ? c.after(w) : el.prepend(w); }
+    w.classList.remove('panel');
     const L = (typeof contactos === 'function' ? contactos() : (st.contactos || [])).filter(c => enCiudad(c.tienda));
     const cd = c => c.ciudad || CIUDAD[c.tienda] || 'Sin ciudad', nom = c => (typeof WA_VIS !== 'undefined' && WA_VIS[c.tienda]) || c.tienda;
-    const val = c => k === 'tel' ? (c.tel ? '<a href="tel:+' + telIntl(c.tel) + '">' + esc(c.tel) + '</a>' : '') :
-      k === 'wa' ? (c.wa ? '<a href="https://wa.me/' + telIntl(c.wa) + '" target="_blank" rel="noopener">' + esc(c.wa) + '</a>' : '') :
-      k === 'mail' ? (c.correo ? '<a href="mailto:' + esc(c.correo) + '">' + esc(c.correo) + '</a>' : '') : esc(c.horario || '');
+    const GER = typeof waGerentes === 'function' ? (() => { try { return waGerentes() || {}; } catch (e) { return {}; } })() : {};
+    const gcel = c => c.gerCel || (GER[c.tienda] || {}).cel || '';
+    const ini = n => String(n).replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9 ]/g, ' ').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase();
+    const IC = {tel: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2', wa: 'M3 21l1.6-4.8A8.5 8.5 0 1 1 8 19.6zM9 8.5c0 3.5 3 6.5 6.5 6.5l1-1.6-2-1-1 1a5 5 0 0 1-3-3l1-1-1-2z', mail: 'M3 6h18v12H3zM3 7l9 6 9-6', hor: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2', map: 'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5'};
+    const ico = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + d + '"/></svg>';
+    const DI = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'], nd = t => String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().slice(0, 3);
+    function horas(h){   // "Lun–Sáb 10:00–21:00 · Dom 10:00–20:00" → {0:[600,1200],...}
+      const r = {}; String(h || '').split('·').forEach(seg => {
+        const m = seg.match(/(\d{1,2})[:h](\d{2})\s*(?:[–-]|a)\s*(\d{1,2})[:h](\d{2})/); if (!m) return;
+        const ab = +m[1] * 60 + +m[2], ci = +m[3] * 60 + +m[4], txt = seg.slice(0, m.index).trim();
+        let dias = [];
+        if (/todos/i.test(txt) || !txt) dias = [0, 1, 2, 3, 4, 5, 6];
+        else { const d = txt.split(/\s*[–-]\s*|\s+a\s+/).map(nd).map(x => DI.indexOf(x)).filter(x => x >= 0);
+          if (d.length === 2) { for (let i = d[0]; ; i = (i + 1) % 7) { dias.push(i); if (i === d[1] || dias.length > 7) break; } } else dias = d; }
+        dias.forEach(x => { if (!r[x]) r[x] = [ab, ci]; }); });
+      return r; }
+    const hhmm = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+    const ahora = new Date(), hoyD = ahora.getDay(), min = ahora.getHours() * 60 + ahora.getMinutes();
+    function accion(c){
+      if (k === 'tel') return c.tel ? '<a class="ct3-go" data-ct="Llamar" href="tel:+' + telIntl(c.tel) + '">' + ico(IC.tel) + '<span><small>Teléfono de la tienda</small><b>' + esc(c.tel) + '</b></span><em>Llamar</em></a>' +
+        (gcel(c) ? '<a class="ct3-sub" data-ct="Llamar gerente" href="tel:+' + telIntl(gcel(c)) + '">' + ico(IC.tel) + 'Celular del gerente · ' + esc(gcel(c)) + '</a>' : '') : '';
+      if (k === 'wa') return c.wa ? '<a class="ct3-go wa" data-ct="WhatsApp" href="https://wa.me/' + telIntl(c.wa) + '" target="_blank" rel="noopener">' + ico(IC.wa) + '<span><small>WhatsApp de la tienda</small><b>' + esc(c.wa) + '</b></span><em>Escribir</em></a>' : '';
+      if (k === 'mail') return c.correo ? '<a class="ct3-go" data-ct="Correo" href="mailto:' + esc(c.correo) + '">' + ico(IC.mail) + '<span><small>Correo de la tienda</small><b>' + esc(c.correo) + '</b></span><em>Escribir</em></a>' : '';
+      const H = horas(c.horario), t = H[hoyD];
+      const est = !t ? '' : min >= t[0] && min < t[1] ? '<span class="ct3-est ok">Abierto ahora · cierra ' + hhmm(t[1]) + '</span>' : min < t[0] ? '<span class="ct3-est no">Cerrado · abre ' + hhmm(t[0]) + '</span>' : '<span class="ct3-est no">Cerrado ahora</span>';
+      const sem = [1, 2, 3, 4, 5, 6, 0].map(d => '<span class="' + (d === hoyD ? 'hoy' : '') + '"><i>' + ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'][d] + '</i>' + (H[d] ? hhmm(H[d][0]) + '<br>' + hhmm(H[d][1]) : '—') + '</span>').join('');
+      return (c.horario ? '<div class="ct3-hor">' + est + (Object.keys(H).length ? '<div class="ct3-sem">' + sem + '</div>' : '<div>' + esc(c.horario) + '</div>') + '</div>' : '') +
+        '<a class="ct3-sub" data-ct="Cómo llegar" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent('Steren ' + (c.ubic || c.tienda + ', ' + cd(c))) + '">' + ico(IC.map) + (c.ubic ? esc(c.ubic) : 'Cómo llegar') + '</a>';
+    }
     const cds = [...new Set(L.map(cd))].sort((a, b) => a.localeCompare(b));
-    w.innerHTML = '<div class="panel-h"><h2>' + CT_K[k] + '</h2><span class="small faint">' + L.length + ' tiendas</span></div>' + (!L.length ? '<div class="empty">Todavía no hay contactos cargados.</div>' :
-      cds.map(c => '<div class="mn-cc">' + esc(c) + '</div>' + L.filter(x => cd(x) === c).sort((a, b) => nom(a).localeCompare(nom(b))).map(x => { const v = val(x);
-        return '<div class="mn-ctr"><b>' + esc(nom(x)) + '</b><span>' + (v || '<span class="faint">Falta</span>') + '</span></div>'; }).join('')).join(''));
+    const tarj = x => { const a = accion(x);
+      return '<div class="ct3-card"><div class="ct3-top"><span class="ct3-av c-' + (nd(cd(x)) === 'gua' ? 'g' : 'q') + '">' + esc(ini(nom(x))) + '</span><span class="ct3-nm"><b>' + esc(nom(x)) + '</b>' + (x.enc ? '<small>Encargado: ' + esc(x.enc) + '</small>' : '') + '</span></div>' +
+        (a || '<div class="ct3-falta">Falta este dato</div>') + '</div>'; };
+    w.innerHTML = '<div class="ct3-h"><span class="ct3-hi">' + ico(IC[k]) + '</span><div><h2>' + CT_K[k] + '</h2><span class="small faint">' + L.length + ' tiendas · toca para ' + ({tel: 'llamar', wa: 'abrir WhatsApp', mail: 'escribir', hor: 'ver cómo llegar'})[k] + '</span></div></div>' +
+      (!L.length ? '<div class="empty">Todavía no hay contactos cargados.</div>' :
+      cds.map(c => '<div class="ct3-city">' + esc(c) + '<span>' + L.filter(x => cd(x) === c).length + '</span></div><div class="ct3-grid">' + L.filter(x => cd(x) === c).sort((a, b) => nom(a).localeCompare(nom(b))).map(tarj).join('') + '</div>').join(''));
   }
   function asesores(){
     if (typeof regLimpio !== 'function') return;
@@ -1596,6 +1631,7 @@ function hlPintar(filas, todas){
     if (CT_K[MN_SUB[v]]) ctLista(el, MN_SUB[v]);
     if (v === 'equipo' && MN_SUB[v] === 'ase') asesores();
     if (v === 'inventario' && MN_SUB[v] === 'stock') mrcStock(el);   // mrc1
+    if (v === 'hoy' && MN_SUB[v] === 'ven' && typeof M !== 'undefined' && M.ok) requestAnimationFrame(() => mDraw());   // in1
   }
   window.mnAplicar = aplicar;
   window.mnSubBar = (sub, tOn, on, btn) => {
@@ -1715,28 +1751,65 @@ function render(){
 
 /* ---------- actividades del mes de las tiendas (actividades-mes, vía apiActividadesPanel; solo lectura) ---------- */
 /* uni1: informe de actividad en Universidad Steren (pestaña privada "Universidad asesores", se lee cada mañana) */
-/* us1: ranking de tiendas tipo tabla de fútbol (cursos aprobados > última semana > % aprobados); tocar una tienda abre su equipo */
+/* us1+uc1: ranking de tiendas tipo tabla de fútbol: puntos = cursos de carrera; micro = gol diferencia; luego semana y %. Tocar una tienda abre su equipo */
+/* ut1: Universidad como tema con 4 opciones (Tabla, Goleadores, Carreras, Alertas) */
 function uniInformeHtml(U, todas, filtro){
   if (!todas) return uniInformeHtml0(U, todas, filtro);
+  const tabla = uniTablaHtml(U, todas, filtro), F = (U && U.filas || []).filter(x => !filtro || filtro(x));
+  if (!U || !U.fecha || !F.length) return tabla;
+  const ca = x => x.carr != null ? x.carr : x.ok, mi = x => x.mic != null ? x.mic : 0, se = x => x.semC !== undefined ? x.semC : x.semana;
+  const CAR = ['Onboarding', 'Fundamentos', 'Gestión Op.', 'Productos'], cc = (x, i) => Number((x.car || [])[i]) || 0;
+  const G = {}; F.forEach(x => { const k = x.t || 'Sin tienda'; (G[k] = G[k] || {t: k, c: 0, P: []}); G[k].c += ca(x); G[k].P.push(x); });
+  const T = Object.values(G).sort((a, b) => b.c - a.c || a.t.localeCompare(b.t));
+  const tot = F.reduce((a, x) => a + ca(x), 0), sm = F.reduce((a, x) => a + (se(x) || 0), 0), rj = F.filter(x => x.estado === 'rojo').length;
+  const kpis = '<div class="ut-k"><div><b>' + tot + '</b><span>cursos de carrera</span></div><div><b>' + (sm ? '+' + sm : '0') + '</b><span>en la semana</span></div><div><b class="r">' + rj + '</b><span>en alerta</span></div></div>';
+  const L = F.slice().sort((a, b) => ca(b) - ca(a) || mi(b) - mi(a)).slice(0, 15), S = F.filter(x => se(x)).sort((a, b) => se(b) - se(a)).slice(0, 5);
+  window.UT_F = F;
+  const gol = '<div class="ut-h">Más cursos de carrera</div><table class="us no-mv"><colgroup><col class="c1"><col><col class="c3"><col class="c6"><col class="c5"></colgroup><thead><tr><th class="p">#</th><th class="l">Persona</th><th>Carrera</th><th>Micro</th><th>Cert.</th></tr></thead><tbody>' +
+    L.map((x, i) => '<tr class="ut-pe" data-utp="' + F.indexOf(x) + '"><td class="p"><span class="us-n' + (i < 3 ? ' g' + (i + 1) : '') + '">' + (i + 1) + '</span></td><td class="l">' + esc(x.n) + '<span class="us-r">' + esc(x.t || '') + '</span></td><td class="k">' + ca(x) + '</td><td class="m">' + mi(x) + '</td><td>' + (x.cert != null ? x.cert : '—') + '</td></tr>').join('') + '</tbody></table>' +
+    '<div class="ut-h">Figuras de la semana</div>' + (S.length ? S.map(x => '<div class="ut-al"><span>' + esc(x.n) + '<span class="us-r">' + esc(x.t || '') + '</span></span><b class="ok">+' + se(x) + ' de carrera</b></div>').join('') : '<div class="us-ley">Nadie aprobó cursos de carrera esta semana.</div>') +
+    '<div class="us-ley">Toca a una persona para ver su ficha.</div><div class="ut-fi"></div>';
+  const lleno = i => F.filter(x => cc(x, i) >= 100).length, barra = (n, v, t) => '<div class="ut-cr"><span>' + n + '</span><div class="ut-b"><i style="width:' + Math.round(v) + '%"></i></div><b>' + t + '</b></div>';
+  const car = '<div class="ut-h">Personas con la carrera completa</div>' + CAR.map((n, i) => barra(n, lleno(i) / F.length * 100, lleno(i) + '/' + F.length)).join('') +
+    '<div class="ut-h">Por tienda</div><table class="us no-mv"><colgroup><col><col class="c5"><col class="c5"><col class="c5"><col class="c5"></colgroup><thead><tr><th class="l">Tienda</th><th>Onb.</th><th>Fund.</th><th>Gest.</th><th>Prod.</th></tr></thead><tbody>' +
+    T.map(g => '<tr><td class="l"><b>' + esc(g.t) + '</b><span class="us-r">' + g.P.length + (g.P.length === 1 ? ' persona' : ' personas') + '</span></td>' + [0, 1, 2, 3].map(i => { const k = g.P.filter(x => cc(x, i) >= 100).length; return '<td' + (k < g.P.length ? ' class="bad"' : '') + '>' + k + '/' + g.P.length + '</td>'; }).join('') + '</tr>').join('') +
+    '</tbody></table><div class="us-ley">En rojo: falta alguien por terminar esa carrera. Las 4 carreras al 100 % son parte del punto C01 de la supervisión.</div>';
+  const por = x => x.dias > 14 ? (x.visita ? 'hace ' + x.dias + ' días sin entrar' : 'nunca entró') : x.estado === 'rojo' ? x.faltan + ' pendientes y ningún curso en la semana' : x.dias > 7 ? 'hace ' + x.dias + ' días sin entrar' : x.faltan + ' cursos pendientes';
+  const fA = x => '<div class="ut-al"><span>' + esc(x.n) + '<span class="us-r">' + esc(x.t || '') + ' · ' + por(x) + '</span></span><span class="ut-pill ' + (x.estado === 'rojo' ? 'r' : 'a') + '">' + (x.estado === 'rojo' ? 'Alerta' : 'Atención') + '</span></div>';
+  const R = F.filter(x => x.estado === 'rojo').sort((a, b) => b.dias - a.dias), A = F.filter(x => x.estado === 'naranja').sort((a, b) => b.dias - a.dias);
+  const al = '<div class="ut-h">🚨 En alerta (' + R.length + ')</div>' + (R.length ? R.map(fA).join('') : '<div class="us-ley">Nadie en alerta. 🎉</div>') + (A.length ? '<div class="ut-h">⚠️ En atención (' + A.length + ')</div>' + A.map(fA).join('') : '') +
+    '<div class="us-ley">Alerta: más de 14 días sin entrar, o pendientes sin ningún curso aprobado en la semana. Atención: 8 a 14 días sin entrar o más de 10 pendientes.</div>';
+  return '<div class="ut-p ut-tabla">' + kpis + tabla + '</div><div class="ut-p ut-gol">' + gol + '</div><div class="ut-p ut-car">' + car + '</div><div class="ut-p ut-al0">' + al + '</div>';
+}
+document.addEventListener('click', e => { const r = e.target.closest && e.target.closest('tr.ut-pe'); if (!r || !window.UT_F) return;
+  const x = UT_F[+r.dataset.utp], w = r.closest('.ut-gol').querySelector('.ut-fi'); if (!x || !w) return;
+  const ca = x.carr != null ? x.carr : x.ok, CAR = ['Onboarding', 'Fundamentos', 'Gestión Op.', 'Productos'];
+  const li = (a, b) => '<div class="ut-al"><span>' + a + '</span><b>' + b + '</b></div>';
+  w.innerHTML = '<div class="ut-h">' + esc(x.n) + ' · ' + esc(x.t || '') + '</div>' + (x.car ? CAR.map((n, i) => { const v = Number(x.car[i]) || 0; return '<div class="ut-cr"><span>' + n + '</span><div class="ut-b"><i style="width:' + v + '%"></i></div><b>' + v + '%</b></div>'; }).join('') : '') +
+    li('Cursos de carrera', ca) + li('Microcursos', x.mic != null ? x.mic : 0) + (x.cert != null ? li('Certificados', x.cert) : '') + (x.pts != null ? li('Puntos', x.pts) : '') + li('Último ingreso', x.visita ? 'hace ' + x.dias + ' d' : 'nunca') +
+    (x.det ? '<div class="us-ley">En curso: ' + esc(String(x.det).split(';').slice(0, 3).join(' · ')) + '</div>' : '');
+  w.scrollIntoView({behavior: 'smooth', block: 'nearest'}); });
+function uniTablaHtml(U, todas, filtro){
   const fd = i => new Date(i + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'short'});
   const F = (U && U.filas || []).filter(x => !filtro || filtro(x));
   if (!U || !U.fecha || !F.length) return '<div class="uni-s">Todavía no hay datos de la Universidad para mostrar.</div>';
+  const ca = x => x.carr != null ? x.carr : x.ok, mi = x => x.mic != null ? x.mic : 0, se = x => x.semC !== undefined ? x.semC : x.semana;
   const G = {};
-  F.forEach(x => { const k = x.t || 'Sin tienda', g = G[k] || (G[k] = {t: k, ok: 0, asig: 0, sem: null, P: []}); g.ok += x.ok; g.asig += x.asig; if (x.semana != null) g.sem = (g.sem || 0) + x.semana; g.P.push(x); });
-  const pc = (a, b) => b ? a / b : 0, T = Object.values(G).sort((a, b) => b.ok - a.ok || (b.sem || 0) - (a.sem || 0) || pc(b.ok, b.asig) - pc(a.ok, a.asig) || a.t.localeCompare(b.t));
+  F.forEach(x => { const k = x.t || 'Sin tienda', g = G[k] || (G[k] = {t: k, c: 0, m: 0, ok: 0, asig: 0, sem: null, P: []}); g.c += ca(x); g.m += mi(x); g.ok += x.ok; g.asig += x.asig; if (se(x) != null) g.sem = (g.sem || 0) + se(x); g.P.push(x); });
+  const pc = (a, b) => b ? a / b : 0, T = Object.values(G).sort((a, b) => b.c - a.c || b.m - a.m || (b.sem || 0) - (a.sem || 0) || pc(b.ok, b.asig) - pc(a.ok, a.asig) || a.t.localeCompare(b.t));
   const n = e => F.filter(x => x.estado === e).length, emo = e => e === 'rojo' ? '🚨' : e === 'naranja' ? '⚠️' : '';
   const sem = v => v == null ? '—' : v ? '+' + v : '0', pct = (a, b) => Math.round(pc(a, b) * 100) + '%';
-  const filaP = (x, k) => '<tr class="us-p" data-us="' + k + '" hidden><td class="p">' + emo(x.estado) + '</td><td class="l">' + esc(x.n) + '<span class="us-r">' + (x.visita ? 'entró hace ' + x.dias + ' d' : 'nunca entró') + '</span></td><td class="k">' + x.ok + '</td><td' + (x.semana ? ' class="up"' : '') + '>' + sem(x.semana) + '</td><td>' + pct(x.ok, x.asig) + '</td></tr>';
+  const filaP = (x, k) => '<tr class="us-p" data-us="' + k + '" hidden><td class="p">' + emo(x.estado) + '</td><td class="l">' + esc(x.n) + '<span class="us-r">' + (x.visita ? 'entró hace ' + x.dias + ' d' : 'nunca entró') + '</span></td><td class="k">' + ca(x) + '</td><td class="m">' + mi(x) + '</td><td' + (se(x) ? ' class="up"' : '') + '>' + sem(se(x)) + '</td><td>' + pct(x.ok, x.asig) + '</td></tr>';
   return '<div class="uni-s">Actualizado al <b>' + fd(U.fecha) + '</b> · ' + F.length + ' personas en ' + T.length + ' tiendas</div>' +
     '<div class="uni-res">' + (n('rojo') ? '<span class="uni-e r">' + n('rojo') + ' en alerta</span>' : '') + (n('naranja') ? '<span class="uni-e a">' + n('naranja') + ' en atención</span>' : '') + '<span class="uni-e o">' + n('ok') + ' al día</span></div>' +
-    '<div class="us-w"><table class="us no-mv"><colgroup><col class="c1"><col><col class="c3"><col class="c4"><col class="c5"></colgroup><thead><tr><th class="p">#</th><th class="l">Tienda</th><th>Cursos</th><th>Semana</th><th>%</th></tr></thead><tbody>' +
+    '<div class="us-w"><table class="us no-mv"><colgroup><col class="c1"><col><col class="c3"><col class="c6"><col class="c4"><col class="c5"></colgroup><thead><tr><th class="p">#</th><th class="l">Tienda</th><th>Carrera</th><th>Micro</th><th>Sem.</th><th>%</th></tr></thead><tbody>' +
     T.map((g, i) => { const k = 'u' + i, al = g.P.filter(x => x.estado === 'rojo').length;
       return '<tr class="us-t' + (i >= T.length - 2 && T.length > 4 ? ' us-z' : '') + '" data-ust="' + k + '"><td class="p"><span class="us-n' + (i < 3 ? ' g' + (i + 1) : '') + '">' + (i + 1) + '</span></td>' +
         '<td class="l"><b>' + esc(g.t) + '</b><span class="us-c">▶</span>' + (al ? ' <span title="en alerta">🚨' + (al > 1 ? al : '') + '</span>' : '') + '</td>' +
-        '<td class="k">' + g.ok + '</td><td' + (g.sem ? ' class="up"' : '') + '>' + sem(g.sem) + '</td><td>' + pct(g.ok, g.asig) + '</td></tr>' +
-        g.P.slice().sort((a, b) => b.ok - a.ok || (b.semana || 0) - (a.semana || 0)).map(x => filaP(x, k)).join('');
+        '<td class="k">' + g.c + '</td><td class="m">' + g.m + '</td><td' + (g.sem ? ' class="up"' : '') + '>' + sem(g.sem) + '</td><td>' + pct(g.ok, g.asig) + '</td></tr>' +
+        g.P.slice().sort((a, b) => ca(b) - ca(a) || mi(b) - mi(a) || (se(b) || 0) - (se(a) || 0)).map(x => filaP(x, k)).join('');
     }).join('') + '</tbody></table></div>' +
-    '<div class="us-ley">Cursos: aprobados en total por el equipo. Semana: aprobados en los últimos 7 días. %: aprobados sobre asignados. Toca una tienda para ver a su equipo. 🚨 más de 14 días sin entrar o ningún curso en la semana teniendo pendientes; ⚠️ de 8 a 14 días sin entrar o más de 10 pendientes.</div>';
+    '<div class="us-ley">Carrera: cursos de las carreras aprobados por el equipo (son los puntos). Micro: microcursos sueltos de producto; desempatan, como el gol diferencia. Sem.: cursos de carrera aprobados en los últimos 7 días. %: aprobados sobre asignados. Toca una tienda para ver a su equipo. 🚨 más de 14 días sin entrar o ningún curso en la semana teniendo pendientes; ⚠️ de 8 a 14 días sin entrar o más de 10 pendientes.</div>';
 }
 document.addEventListener('click', e => { const r = e.target.closest && e.target.closest('tr.us-t'); if (!r) return;
   const on = !r.classList.contains('on'); r.classList.toggle('on', on);
@@ -1809,9 +1882,14 @@ function renderAvisos(){
   if (!L.length) { el.innerHTML = '<div class="empty">No hay avisos vigentes' + (st.ciudad ? ' en ' + esc(st.ciudad) : '') + '.</div>'; return; }
   el.innerHTML = L.map(a => {
     const tot = a.lecturas.reduce((s, l) => s + l.total, 0), ley = a.lecturas.reduce((s, l) => s + l.leyeron, 0);
-    const faltan = a.lecturas.filter(l => l.leyeron < l.total).map(l => esc(l.tienda) + ' ' + l.leyeron + '/' + l.total);
-    return `<div class="av-item"><h3>${esc(a.titulo)}</h3>${/^🔒/.test(a.efecto || '') ? veloHtml(a, st.d && st.d.hoy || new Date().toLocaleDateString('en-CA', {timeZone: 'America/Guayaquil'})) : ''}${a.texto ? `<p>${esc(a.texto)}</p>` : ''}
-      <div class="small faint">Del ${fd(a.desde)} al ${fd(a.hasta)} · ${a.lecturas.length === 1 ? esc(a.lecturas[0].tienda) : a.lecturas.length + ' tiendas'} · leyeron ${ley} de ${tot}${faltan.length ? ' · faltan en ' + faltan.join(', ') : ''}</div></div>`;
+    const c = tot && ley >= tot ? 'good' : ley ? 'warn' : 'bad', fal = [].concat(...a.lecturas.map(l => l.faltan || []));   // an2
+    const chips = a.lecturas.map(l => `<span class="${l.total && l.leyeron >= l.total ? 'ok' : l.leyeron ? 'med' : 'cero'}">${esc(l.tienda)} ${l.leyeron}/${l.total}</span>`).join('');
+    const filas = a.lecturas.map(l => `<span class="store">${esc(l.tienda)}</span><span class="${l.total && l.leyeron >= l.total ? 'ok' : ''}">${l.leyeron} de ${l.total}</span><span class="faint">${(l.faltan || []).length ? 'Falta: ' + l.faltan.map(esc).join(', ') : l.total && l.leyeron >= l.total ? '✓ Todos leyeron' : l.total ? 'Faltan ' + (l.total - l.leyeron) : 'Sin personal registrado'}</span>`).join('');
+    return `<details class="an2"><summary><div class="an2-cab"><div><b>${esc(a.titulo)}</b><div class="small faint">Del ${fd(a.desde)} al ${fd(a.hasta)} · ${a.lecturas.length === 1 ? esc(a.lecturas[0].tienda) : a.lecturas.length + ' tiendas'}</div></div>
+      <span style="white-space:nowrap"><span class="pill p-${c}">${ley} de ${tot} leyeron</span><span class="an2-v">Detalle</span></span></div>
+      <div class="an2-ch">${chips}</div>${fal.length ? `<div class="an2-f">Faltan ${fal.length}: ${fal.map(esc).join(', ')}</div>` : ''}</summary>
+      <div class="an2-d">${/^🔒/.test(a.efecto || '') ? veloHtml(a, st.d && st.d.hoy || new Date().toLocaleDateString('en-CA', {timeZone: 'America/Guayaquil'})) : ''}${a.texto ? `<p>${esc(a.texto)}</p>` : ''}
+      <div class="an-st an2-st">${filas}</div></div></details>`;
   }).join('');
 }
 
@@ -2475,7 +2553,7 @@ window.fdsAbrir = function(){
 };
 
 /* ---------- pestañas ---------- */
-const VISTAS = ['hoy','calendario','anuncios','flash','pendientes','supervision','inventario','vivo','politicas','clientes','guias','contactos'];
+const VISTAS = ['hoy','calendario','anuncios','flash','pendientes','supervision','inventario','vivo','politicas','clientes','guias','universidad','contactos'];
 function ir(v){
   if (v === 'vivo') v = 'inventario';   // En vivo está arriba de Inventario
   if (v === 'avisos') v = 'anuncios';   // an1: los anuncios tienen su propia opción de menú
@@ -2768,7 +2846,10 @@ const getRange = rango => api('apiInvLeer', st.yo.nombre, rango);
 const setRange = (rango, valores) => api('apiInvEscribir', st.yo.nombre, rango, valores);
 const errorCopy = e => (e && e.message) || String(e);
 const ivPuede = () => !!st.yo && st.yo.permiso === 'Seguimiento';
-const nombreCorto = s => { const p = String(s || '').trim().split(/\s+/).filter(Boolean); if (!p.length) return ''; const t = w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); return p.length >= 3 ? t(p[2]) + ' ' + t(p[0]) : p.map(t).join(' '); };
+const nombreCortoBase = s => { const p = String(s || '').trim().split(/\s+/).filter(Boolean); if (!p.length) return ''; const t = w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); return p.length >= 3 ? t(p[2]) + ' ' + t(p[0]) : p.map(t).join(' '); };
+const ncNorm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+/* ma2: alias en todas las apps (pestaña Alias de CLAVES) */
+const nombreCorto = s => { const b = nombreCortoBase(s); return (b && (window.NC_ALIAS || {})[ncNorm(b)]) || b; };
 async function invAbrir(tienda, sem, filtro){
   if (!st.yo) { toast('Identifícate para ver el detalle del inventario.'); login(); return; }
   if (!/^todas$/i.test(String(st.yo.tiendas || '').trim()) && lista(st.yo.tiendas).indexOf(tienda) < 0) { toast(tienda + ' no está asignada a ti.'); return; }
@@ -2784,21 +2865,28 @@ async function invAbrir(tienda, sem, filtro){
 const IV_VEND = 'Vendido antes del conteo';
 const IV_DEC = ['Cuadra, fue error de conteo', IV_VEND, 'Ajustar en el sistema', 'Faltante a cargo del personal', 'Sobrante cargar a la tienda', 'Pendiente para el próximo inventario', 'Sigue en revisión'];
 const ivDecN = d => d === 'Faltante a cargo de la tienda' ? 'Faltante a cargo del personal' : d;   // nombre anterior de la decisión
-/* pt2: un producto no queda pendiente más de 4 semanas (Diego 2026-10-31) */
+/* pt2 → pt4: un producto no queda pendiente en más de 3 inventarios (Diego 2026-11-10) */
 const IV_PEND = 'Pendiente para el próximo inventario';
+const IV_ANUL = 'Revisión anulada';   /* rb1 */
 function ivPendTope(o){
   const ui = st.ivUI, n = s => Number(String(s).slice(0, 4)) * 53 + Number(String(s).slice(6)) || 0, porSem = {};
   ((st.mue && st.mue.co) || []).slice(1).forEach(r => { if (r[2] === ui.tienda && sinApo(r[3]) === o.cod && r[1] < ui.sem) porSem[r[1]] = r[10]; });
-  let primera = '';
-  Object.keys(porSem).sort().reverse().every(s => porSem[s] === IV_PEND ? (primera = s, true) : false);
-  return !!primera && n(ui.sem) - n(primera) >= 4;
+  /* pt4 */ let k = 0;
+  Object.keys(porSem).sort().reverse().every(s => porSem[s] === IV_PEND ? (k++, true) : false);
+  return k >= 3;
+}
+function ivPendVeces(o){   /* pt4: en cuántos inventarios seguidos ya estuvo pendiente (sin contar el actual) */
+  const ui = st.ivUI, porSem = {};
+  ((st.mue && st.mue.co) || []).slice(1).forEach(r => { if (r[2] === ui.tienda && sinApo(r[3]) === o.cod && r[1] < ui.sem) porSem[r[1]] = r[10]; });
+  let k = 0; Object.keys(porSem).sort().reverse().every(s => porSem[s] === IV_PEND ? (k++, true) : false); return k;
 }
 const sinApo = v => String(v == null ? '' : v).replace(/^'/, '');
 /* material de exhibición (góndolas, charolas, porta precios): no es mercadería, no se muestra ni se descuenta */
 const ivExhib = r => /^ARQ\//i.test(String(r[5] || '').trim()) || /^E-/i.test(sinApo(r[3]).trim());
 /* última revisión por código (la más reciente manda) */
 function invCorr(sem, tienda){
-  const m = {}; ((st.mue && st.mue.co) || []).slice(1).forEach(r => { if (r[1] === sem && r[2] === tienda && r[3]) m[sinApo(r[3])] = r; }); return m;
+  const m = {}; ((st.mue && st.mue.co) || []).slice(1).forEach(r => { if (r[1] === sem && r[2] === tienda && r[3]) m[sinApo(r[3])] = r; });
+  Object.keys(m).forEach(k => { if (m[k][10] === IV_ANUL) delete m[k]; });   /* rb1 */ return m;
 }
 const ivN = v => { const n = num(v); return n == null ? null : n; };
 const ivSig = n => n == null ? '–' : (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toLocaleString('es-EC');
@@ -3189,13 +3277,13 @@ function invForm(o){
       <span class="small faint" id="ivRecTxt">Déjalo vacío si no recontaste.</span></div>
     <div class="r-lbl">Decisión</div>
     <div class="an-chips" id="ivDec">${IV_DEC.filter(d => !['Ajustar en el sistema', 'Sigue en revisión'].includes(d) && !(d === IV_PEND && ivPendTope(o)) || cr[10] === d).map(d => `<button type="button" class="chip${ivDecN(cr[10]) === d ? ' on' : ''}" data-d="${esc(d)}">${esc(d)}</button>`).join('')}</div>
-    ${ivPendTope(o) ? '<p class="small faint" style="margin:4px 0 0">Ya lleva 4 semanas pendiente: hay que decidir.</p>' : ''}
+    ${ivPendTope(o) ? '<p class="small faint" style="margin:4px 0 0">Ya estuvo pendiente en 3 inventarios: hay que decidir.</p>' : '<p class="small faint" style="margin:4px 0 0">Pendiente: no se descuenta en este inventario y va al conteo de la próxima semana' + (ivPendVeces(o) ? ' (ya estuvo pendiente en ' + ivPendVeces(o) + (ivPendVeces(o) === 1 ? ' inventario' : ' inventarios') + '; máximo 3)' : ' (máximo 3 inventarios)') + '.</p>'}
     <div class="fila" id="ivVendBox" ${cr[10] === IV_VEND ? '' : 'hidden'}><label class="r-lbl" for="ivVend">Unidades vendidas antes del conteo</label>
       <input type="number" id="ivVend" inputmode="numeric" min="1" step="1" value="${esc(cr[10] === IV_VEND && num(cr[8]) != null && o.dif != null ? num(cr[8]) - o.dif : o.dif < 0 ? -o.dif : 1)}">
       <span class="small faint">El archivo del sistema todavía las tenía; no son faltante.</span></div>
     <textarea id="ivCom" placeholder="Comentario: qué encontraste, con quién lo revisaste">${esc(cr[11] || '')}</textarea>
     <p class="r-falta" id="ivFalta" hidden></p>
-    <div class="actions" style="margin:0"><button class="btn primary" id="ivGuardar">Guardar revisión</button><button class="btn" id="ivCancel">Cancelar</button></div>
+    <div class="actions" style="margin:0"><button class="btn primary" id="ivGuardar">Guardar revisión</button><button class="btn" id="ivCancel">Cancelar</button>${o.cr ? '<button class="btn" id="ivBorrar" style="margin-left:auto;color:#b91c1c">Borrar revisión</button>' : ''}</div>
   </div>`;
 }
 function invFormEventos(o){
@@ -3213,6 +3301,18 @@ function invFormEventos(o){
   rec.oninput = () => ver(true); ver(); marcar();
   $('#ivDec').querySelectorAll('.chip').forEach(c => c.onclick = () => { dec = c.dataset.d; marcar(); });
   $('#ivCancel').onclick = () => { ui.abierto = null; invPintar(); };
+  const bb = $('#ivBorrar');   /* rb1 */
+  if (bb) bb.onclick = async () => {
+    if (!confirm('¿Borrar tu revisión de ' + o.cod + '? El producto vuelve a quedar sin revisar.')) return;
+    bb.disabled = true; bb.textContent = 'Borrando…';
+    const fila = [stamp(), ui.sem, ui.tienda, "'" + o.cod, safe(o.desc), o.teo, o.contado == null ? '' : o.contado, '', '', '', IV_ANUL, 'Revisión borrada', 'Diego'];
+    try {
+      const co = await getRange('MueCorrecciones!A1:M', true, CLAVES), n = Math.max(co.length, 1) + 1;
+      await setRange('MueCorrecciones!A' + n + ':M' + n, [fila], CLAVES);
+      const local = fila.slice(); local[3] = o.cod; st.mue.co = (co.length ? co : [['Fecha']]).concat([local]);
+      ui.abierto = null; toast('Revisión borrada'); invPintar(); renderInventario();
+    } catch (e) { bb.disabled = false; bb.textContent = 'Borrar revisión'; const f = $('#ivFalta'); f.textContent = errorCopy(e); f.hidden = false; }
+  };
   $('#ivGuardar').onclick = async () => {
     const v = rec.value.trim(), com = $('#ivCom').value.trim(), falta = $('#ivFalta');
     const vend = dec === IV_VEND ? $('#ivVend').value.trim() : '';
@@ -3402,8 +3502,8 @@ async function polInfPdf(btn){
 const VF_PILL = {'Esperando': 'p-na', 'Llegó': 'p-good', 'Avisado': 'p-acc', 'Compró': 'p-good', 'No compró': 'p-bad', 'Cancelado': 'p-bad'};
 function renderVF(){
   const el = $('#vfBody'); if (!el || !st.d) return;
-  if (st.vf === undefined) { el.innerHTML = '<div class="skeleton">Cargando ventas futuras…</div>'; return; }
-  if (!st.vf) { el.innerHTML = '<section class="panel"><h2>Ventas futuras</h2><div class="empty">No se pudieron leer las ventas futuras. Pulsa Actualizar.</div></section>'; return; }
+  if (st.vf === undefined) { el.innerHTML = '<div class="skeleton">Cargando lista de espera…</div>'; return; }
+  if (!st.vf) { el.innerHTML = '<section class="panel"><h2>Lista de espera</h2><div class="empty">No se pudo leer la lista de espera. Pulsa Actualizar.</div></section>'; return; }
   const L = st.vf.slice(1).map(r => ({id: String(r[0] || '').trim(), fecha: iso(r[1]), tienda: String(r[3] || ''), asesor: String(r[4] || ''),
     cod: String(r[5] || ''), prod: String(r[6] || ''), cant: num(r[7]) || 1, cli: String(r[8] || ''), cel: String(r[9] || ''), contacto: String(r[11] || ''),
     obs: String(r[12] || ''), estado: String(r[14] || 'Esperando'), llego: iso(r[15]), aviso: iso(r[16]), cierre: iso(r[19]), nota: String(r[20] || ''), cedis: iso(r[21])}))
@@ -3411,7 +3511,7 @@ function renderVF(){
   const ABV = ['Esperando', 'Llegó', 'Avisado'], ab = L.filter(x => ABV.includes(x.estado));
   const fd = f => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f); return m ? (+m[3]) + '/' + (+m[2]) : f; };
   const dd = f => f ? Math.round((new Date(hoyISO() + 'T12:00') - new Date(f + 'T12:00')) / 864e5) : '';
-  if (!L.length) { el.innerHTML = '<section class="panel"><h2>Ventas futuras</h2><div class="empty">Todavía no hay registros. Las tiendas los hacen en Inventario → Registrar venta futura.</div></section>'; return; }
+  if (!L.length) { el.innerHTML = '<section class="panel"><h2>Lista de espera</h2><div class="empty">Todavía no hay registros. Las tiendas los hacen en Inventario → Lista de espera.</div></section>'; return; }
   const porCod = {};
   ab.forEach(x => { const p = porCod[x.cod] = porCod[x.cod] || {cod: x.cod, prod: x.prod, cli: 0, u: 0, t: new Set(), lle: 0, cedis: false};
     p.cli++; p.u += x.cant; p.t.add(x.tienda); if (x.estado !== 'Esperando') p.lle++; if (x.cedis && x.estado === 'Esperando') p.cedis = true; });
@@ -3423,7 +3523,7 @@ function renderVF(){
   const tiendas = [...new Set(L.map(x => x.tienda))].sort();
   const chip = (k, t) => `<button class="chip${fE === k ? ' on' : ''}" data-vfe="${k}">${t}</button>`;
   const vendidos = L.filter(x => x.estado === 'Compró').length, cerr = L.filter(x => ['Compró', 'No compró'].includes(x.estado)).length;
-  el.innerHTML = `<div class="sec-h"><h2>Ventas futuras<span class="cfil"></span></h2></div>
+  el.innerHTML = `<div class="sec-h"><h2>Lista de espera<span class="cfil"></span></h2></div>
     <div class="kpis">
       <div class="kpi acc"><b>${ab.filter(x => x.estado === 'Esperando').length}</b><span>clientes esperando</span></div>
       <div class="kpi ${ab.some(x => x.estado === 'Llegó') ? 'warn' : ''}"><b>${ab.filter(x => x.estado === 'Llegó').length}</b><span>llegó, por avisar</span></div>
@@ -3458,7 +3558,7 @@ function renderReclamos(){
     tipo: String(r[3] || '').trim(), origen: String(r[4] || '').trim(), prod: String(r[5] || '').trim(), cli: String(r[6] || '').trim(), nov: String(r[7] || '').trim(),
     acc: String(r[8] || '').trim(), abierto: !/^cerrad/i.test(String(r[9] || '').trim()), cierre: iso(r[10]) || String(r[10] || '').trim()})).filter(x => enCiudad(x.tienda) || x.tienda === 'Por definir');
   const ab = L.filter(x => x.abierto).length;
-  $('#nRec').textContent = ab || '';
+  $('#nRec').textContent = '';   /* cl1: sin reclamos */
   const fd = f => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f); return m ? (+m[3]) + '/' + (+m[2]) : f; };
   if (!L.length) { el.innerHTML = '<section class="panel"><h2>Reclamos de clientes</h2><div class="empty">Todavía no hay reclamos registrados.</div></section>'; return; }
   const fE = st.recE || 'todos', fT = st.recT || '';
@@ -3642,15 +3742,16 @@ pintarYo();
     reclamos: 'M3 4h2l2.5 11h11L21 7H6.5M9 20h.01M18 20h.01', equipo: 'M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6M21 19v-1a4 4 0 0 0-3-3.8M16 4.2a3 3 0 0 1 0 5.6',
     enlaces: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
     mas: 'M5 12h.01M12 12h.01M19 12h.01'};
-  const CORTO = {calendario: 'Calendario', hoy: 'Hoy', flash: 'Flash', pendientes: 'Pendientes', supervision: 'Supervisar', inventario: 'Inventario', politicas: 'Políticas', guias: 'Manuales', contactos: 'Contactos', reclamos: 'Clientes', equipo: 'Equipo', enlaces: 'Ajustes'};
+  const CORTO = {calendario: 'Calendario', hoy: 'Inicio', flash: 'Flash', pendientes: 'Pendientes', supervision: 'Supervisar', inventario: 'Inventario', politicas: 'Políticas', guias: 'Manuales', contactos: 'Contactos', reclamos: 'Clientes', equipo: 'Equipo', enlaces: 'Ajustes'};
   const ORDEN = ['hoy', 'pendientes', 'supervision', 'inventario', 'flash'];
   const ico = d => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + (d || P.mas) + '"/></svg>';
   const nombre = b => CORTO[b.dataset.v] || b.textContent.trim();
   const num = b => { const n = b.querySelector('.n'); return n ? '<span class="' + n.className + '">' + n.textContent + '</span>' : ''; };
   let firma = '';
   /* mbt1: la barra usa los temas del menú de la computadora (window.TEM.temas) */
-  const T_ABAJO = ['hoy', 'supervision', 'ventas', 'inventarios'];
-  const T_ICO = {hoy: P.hoy, supervision: P.supervision, anuncios: P.anuncios, ventas: P.flash, inventarios: P.inventario, politicas: P.politicas, uso: P.equipo, contactos: P.contactos, clientes: P.reclamos, sistema: P.enlaces};
+  const T_ABAJO = ['hoy', 'supervision', 'ventas', 'universidad'];   // ut1
+  window.T_ABAJO_REF = T_ABAJO;   // mp5
+  const T_ICO = {universidad: 'M22 10 12 5 2 10l10 5 10-5zM6 12v5c3 2 9 2 12 0v-5', hoy: P.hoy, supervision: P.supervision, anuncios: P.anuncios, ventas: P.flash, inventarios: P.inventario, politicas: P.politicas, uso: P.equipo, contactos: P.contactos, clientes: P.reclamos, sistema: P.enlaces};
   const T_CORTO = {supervision: 'Supervisión', inventarios: 'Mercadería', uso: 'Uso app'};
   const ultimaT = {};
   const nums = vb => { let bad = 0, neu = 0; vb.forEach(b => b.querySelectorAll('.n').forEach(n => { const k = parseInt(n.textContent, 10); if (k > 0 && !n.hidden) { if (n.classList.contains('bad')) bad += k; else neu += k; } })); return bad ? '<span class="n bad">' + bad + '</span>' : neu ? '<span class="n">' + neu + '</span>' : ''; };
@@ -4014,8 +4115,8 @@ button.cal-fila:hover{background:var(--surface-2)}
 <script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "¿Qué buscas? Inventario, Scala, política…",
-  temas: [{"id": "hoy", "nombre": "Hoy", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash"]}, {"id": "inventarios", "nombre": "Mercadería", "vistas": ["inventario"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["contactos"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["clientes"]}],
-  items: [{"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Hoy", "v": "hoy", "sub": "Resumen, mapa y validar", "kw": "inicio resumen mapa validar actividades caja chica"}, {"t": "Anuncios a tiendas", "v": "anuncios", "sub": "Anuncios", "kw": "anuncios avisos comunicados publicar aviso semana leyeron lectura confirmar"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Clientes", "v": "clientes", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Supervisión", "v": "supervision", "sub": "Tiendas · hacer o revisar una supervisión", "kw": "supervisar visita checklist nueva supervision puntaje hoja"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Contactos de tiendas", "v": "contactos", "sub": "Contactos · por ciudad, con encargado y celular del gerente", "kw": "telefono whatsapp correo llamar personas gerente tienda encargado celular ciudad contactos"}],
+  temas: [{"id": "hoy", "nombre": "Inicio", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash"]}, {"id": "universidad", "nombre": "Universidad", "vistas": ["universidad"]}, {"id": "inventarios", "nombre": "Mercadería", "vistas": ["inventario"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["contactos"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["clientes"]}],
+  items: [{"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Inicio", "v": "hoy", "sub": "Validar, supervisión, ventas y actividades", "kw": "inicio resumen mapa validar actividades caja chica"}, {"t": "Anuncios a tiendas", "v": "anuncios", "sub": "Anuncios", "kw": "anuncios avisos comunicados publicar aviso semana leyeron lectura confirmar"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Clientes", "v": "clientes", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Supervisión", "v": "supervision", "sub": "Tiendas · hacer o revisar una supervisión", "kw": "supervisar visita checklist nueva supervision puntaje hoja"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Contactos de tiendas", "v": "contactos", "sub": "Contactos · por ciudad, con encargado y celular del gerente", "kw": "telefono whatsapp correo llamar personas gerente tienda encargado celular ciudad contactos"}],
   extra: function(){
     const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
     (S.d.tiendas || []).filter(t => t.activa).forEach(t => out.push({grupo: 'Tiendas', t: t.nombre, sub: 'Pendientes de ' + t.nombre, kw: 'tienda local', v: 'pendientes',
@@ -4601,5 +4702,112 @@ table.us.hl .hl-pc{display:inline-block;min-width:44px;text-align:center;padding
 #stockBtn{display:none!important}
 .bar #nuevaSup{display:none!important}
 </style>
+<style>
+/* ct3: contactos en tarjetas */
+.mn-ctw .ct3-h{display:flex;align-items:center;gap:12px;margin:2px 0 6px}
+.mn-ctw .ct3-h h2{margin:0;font-size:22px}
+.ct3-hi{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:#0078be;color:#fff;flex:none}.ct3-hi svg{width:24px;height:24px}
+.ct3-city{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-2);margin:18px 0 8px}
+.ct3-city span{background:var(--surface-2,#e9eef3);border-radius:10px;padding:0 8px;font-size:11px;line-height:18px;letter-spacing:0}
+.ct3-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.ct3-card{background:var(--surface,#fff);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.ct3-top{display:flex;align-items:center;gap:12px}
+.ct3-av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:15px;color:#fff;flex:none}
+.ct3-av.c-q{background:linear-gradient(135deg,#0078be,#2bb3e6)}.ct3-av.c-g{background:linear-gradient(135deg,#0f9b8e,#3ccf9a)}
+.ct3-nm{display:flex;flex-direction:column;min-width:0}.ct3-nm b{font-size:16px}.ct3-nm small{color:var(--fg-3);font-size:12.5px}
+.ct3-go{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;background:var(--surface-2,#eef3f8);color:var(--fg);text-decoration:none;border:1px solid transparent}
+.ct3-go:hover{border-color:#0078be}
+.ct3-go svg{width:22px;height:22px;color:#0078be;flex:none}
+.ct3-go span{display:flex;flex-direction:column;min-width:0;flex:1}.ct3-go small{font-size:11.5px;color:var(--fg-3)}.ct3-go b{font-size:15.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ct3-go em{font-style:normal;font-weight:700;font-size:13px;background:#0078be;color:#fff;border-radius:999px;padding:6px 12px;flex:none}
+.ct3-go.wa svg{color:#1faa53}.ct3-go.wa em{background:#25d366}.ct3-go.wa:hover{border-color:#25d366}
+.ct3-sub{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--fg-2);text-decoration:none;line-height:1.35}
+.ct3-sub svg{width:16px;height:16px;flex:none;margin-top:1px;color:var(--fg-3)}.ct3-sub:hover{color:#0078be}
+.ct3-hor{display:flex;flex-direction:column;gap:8px}
+.ct3-est{align-self:flex-start;font-size:12.5px;font-weight:700;border-radius:999px;padding:4px 10px}
+.ct3-est.ok{background:#dff5e7;color:#157a3b}.ct3-est.no{background:#fde7e4;color:#b3261e}
+.ct3-sem{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.ct3-sem span{display:flex;flex-direction:column;align-items:center;font-size:10.5px;padding:5px 0;border-radius:8px;background:var(--surface-2,#eef3f8);color:var(--fg-2);line-height:1.3;text-align:center;min-width:0;font-variant-numeric:tabular-nums}
+.ct3-sem span i{font-style:normal;font-weight:700;font-size:11px;color:var(--fg)}
+.ct3-sem span.hoy{background:#0078be;color:#fff}.ct3-sem span.hoy i{color:#fff}
+.ct3-falta{font-size:13px;color:var(--bad,#b3261e)}
+@media(max-width:700px){.ct3-grid{grid-template-columns:minmax(0,1fr)}.ct3-sem{gap:3px}.ct3-sem span{font-size:10px}}
+</style>
+<style>/* uc1 */table.us col.c3{width:54px}table.us col.c6{width:44px}table.us col.c4{width:46px}table.us col.c5{width:42px}table.us td.m{opacity:.7}</style>
+<style>/* ul1 */.view[data-sub="man"] #universidad{display:none!important}.view[data-sub="uni"] #guiBody{display:none!important}</style>
+<style>/* ut1 */
+.view[data-view="universidad"] .ut-p{display:none}
+.view[data-view="universidad"][data-sub="tabla"] .ut-tabla,.view[data-view="universidad"][data-sub="gol"] .ut-gol,.view[data-view="universidad"][data-sub="car"] .ut-car,.view[data-view="universidad"][data-sub="al"] .ut-al0{display:block}
+.view[data-view="universidad"]:not([data-sub]) .ut-tabla{display:block}
+.ut-k{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 10px}.ut-k div{border:1px solid var(--line,rgba(127,127,127,.25));border-radius:12px;padding:8px;text-align:center}
+.ut-k b{display:block;font-size:20px;font-variant-numeric:tabular-nums}.ut-k b.r{color:#e5534b}.ut-k span{font-size:11.5px;opacity:.65}
+.ut-h{font-weight:700;font-size:14px;margin:12px 0 6px}
+.ut-al{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line,rgba(127,127,127,.18));font-size:14px}
+.ut-al .us-r{display:block;font-size:11.5px;opacity:.6}.ut-al b.ok{color:#2da44e}
+.ut-pill{flex:none;padding:1px 8px;border-radius:999px;font-size:11.5px;font-weight:600}.ut-pill.r{background:rgba(229,83,75,.15);color:#e5534b}.ut-pill.a{background:rgba(212,145,0,.16);color:#c98a00}
+.ut-cr{display:grid;grid-template-columns:96px 1fr 46px;gap:8px;align-items:center;font-size:13.5px;padding:4px 0}.ut-cr b{text-align:right}
+.ut-b{height:8px;border-radius:5px;background:rgba(127,127,127,.18);overflow:hidden}.ut-b i{display:block;height:100%;background:#2da44e}
+table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe td.l .us-r{display:block;font-size:11.5px;opacity:.6}
+</style>
+<script>/* ma2: alias — el panel pide el mapa al servidor una vez y vuelve a pintar */
+(function(){
+  let n = 0;
+  const ir = () => {
+    if (typeof api !== 'function' || typeof st === 'undefined' || !st.d) { if (n++ < 60) setTimeout(ir, 1000); return; }
+    api('apiAliasNombres').then(m => { if (m && typeof m === 'object') { window.NC_ALIAS = m; if (typeof render === 'function') try { render(); } catch (e) {} } }).catch(() => {});
+  };
+  setTimeout(ir, 1500);
+})();</script>
+<style>/* cl1 */.view[data-view="clientes"] #recBody{display:none!important}.view[data-view="clientes"][data-sub="pf"] #vfBody,.view[data-view="clientes"][data-sub="vf"] #pfBody{display:none!important}</style>
+<script>/* mp3: menús por perfil */
+(function(){
+  const K = {'hoy|val': 'inicio/validacion', 'hoy|sup': 'inicio/supervision', 'hoy|ven': 'inicio/ventas', 'hoy|act': 'inicio/actividades', 'supervision|': 'supervision/nueva', 'pendientes|': 'supervision/pendientes', 'calendario|': 'supervision/calendario',
+    'anuncios|': 'anuncios/leer', 'flash|fl': 'ventas/flash', 'flash|fd': 'ventas/explorar', 'flash|gar': 'ventas/garantias', 'flash|pp': 'ventas/presupuesto', 'inventario|top': 'mercaderia/top', 'inventario|extra': 'mercaderia/extra', 'inventario|stock': 'mercaderia/stock',
+    'universidad|tabla': 'universidad/tabla', 'universidad|gol': 'universidad/gol', 'universidad|car': 'universidad/car', 'universidad|al': 'universidad/al',
+    'politicas|leer': 'politicas/politicas', 'guias|': 'politicas/guias', 'politicas|rep': 'politicas/reporte',
+    'contactos|tel': 'contactos/tel', 'contactos|wa': 'contactos/wa', 'contactos|mail': 'contactos/mail', 'contactos|hor': 'contactos/hor',
+    'clientes|pf': 'clientes/pf', 'clientes|vf': 'clientes/vf'};
+  let quien = '', pedido = false;
+  function ordenar(cfg){   // mp5: orden de temas y sub-opciones del perfil (lo que no está en la hoja va al final)
+    const O = Array.isArray(cfg && cfg.orden) ? cfg.orden : []; if (!O.length) return;
+    const pos = {}; O.forEach((k, i) => { if (!(k in pos)) pos[k] = i; });
+    const M = window.MN_T_REF, TT = window.TEM && window.TEM.temas; if (!M) return;
+    const P = x => { const k = K[x[0] + '|' + x[1]]; return k && k in pos ? pos[k] : 1e9; }, rk = {};
+    Object.keys(M).forEach(t => { const L = M[t].map((x, i) => [x, i]).sort((a, b) => P(a[0]) - P(b[0]) || a[1] - b[1]).map(z => z[0]); M[t].length = 0; L.forEach(x => M[t].push(x)); rk[t] = L.length ? Math.min(...L.map(P)) : 1e9; });
+    if (Array.isArray(TT)) { const L = TT.map((t, i) => [t, i]).sort((a, b) => (t => t in rk ? rk[t] : 1e9)(a[0].id) - (t => t in rk ? rk[t] : 1e9)(b[0].id) || a[1] - b[1]).map(z => z[0]); TT.length = 0; L.forEach(t => TT.push(t)); }
+  }
+  function abajo(){   // mp5: barra del celular = los 4 primeros temas visibles
+    const A = window.T_ABAJO_REF, TT = window.TEM && window.TEM.temas, tabs = document.getElementById('tabs'); if (!A || !Array.isArray(TT) || !tabs || !(window.MPF_CFG && (MPF_CFG.orden || []).length)) return;
+    const vis = TT.filter(t => t.vistas.some(v => { const b = tabs.querySelector('button[data-v="' + v + '"]'); return b && !b.hidden && b.style.display !== 'none'; })).map(t => t.id).slice(0, 4);
+    if (vis.length) { A.length = 0; vis.forEach(x => A.push(x)); }
+  }
+  function aplicar(cfg){
+    window.MPF_CFG = cfg;
+    ordenar(cfg);
+    if (!cfg || cfg.todo || !Array.isArray(cfg.claves)) { abajo(); const t = document.getElementById('tabs'); if (t) t.dataset.mn = String(Date.now()); return; }
+    const A = new Set(cfg.claves), M = window.MN_T_REF;   // in1
+    if (A.has('hoy/hoy')) ['validacion', 'supervision', 'ventas', 'actividades'].forEach(x => A.add('inicio/' + x));
+    const tabs = document.getElementById('tabs'); if (!M || !tabs) return;
+    const vivas = {}, todas = {};
+    Object.keys(M).forEach(t => { const keep = M[t].filter(x => { const k = K[x[0] + '|' + x[1]]; todas[x[0]] = 1; const ok = !k || A.has(k); if (ok) vivas[x[0]] = 1; return ok; }); M[t].length = 0; keep.forEach(x => M[t].push(x)); });
+    Object.keys(todas).forEach(v => { if (!vivas[v]) { const b = tabs.querySelector('button[data-v="' + v + '"]'); if (b) { b.dataset.mpf = '1'; b.hidden = true; } } });
+    new MutationObserver(() => tabs.querySelectorAll('button[data-mpf]').forEach(b => { if (!b.hidden) b.hidden = true; })).observe(tabs, {subtree: true, attributes: true, attributeFilter: ['hidden', 'style']});
+    const on = tabs.querySelector('button[data-v].on');
+    if (on && on.hidden) { const p = [...tabs.querySelectorAll('button[data-v]')].find(b => !b.hidden && b.style.display !== 'none'); if (p) p.click(); }
+    abajo(); tabs.dataset.mn = String(Date.now());
+  }
+  setInterval(() => {
+    const y = window.cvCtx && cvCtx.yo && cvCtx.yo(); if (!y || !y.nombre || pedido && quien === y.nombre) return;
+    if (pedido && quien && quien !== y.nombre) { location.reload(); return; }   // otra persona en el mismo equipo
+    quien = y.nombre; pedido = true;
+    cvCtx.api('apiMenusPerfil', y.nombre).then(aplicar).catch(() => {});
+  }, 700);
+})();
+</script>
+<style>/* in1 */.view[data-view="hoy"][data-sub][data-sub="val"]>:not(#datoDia):not(.bx-wrap):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="sup"]>:not(#datoDia):not(.hl-sec:has(#hlSup)):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="ven"]>:not(#datoDia):not(.hl-sec:has(#hlVen)):not(.bx-mapa):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="act"]>:not(#datoDia):not(#actividades):not(.mn-chips){display:none!important}.view[data-view="hoy"][data-sub][data-sub="act"] #actividades{display:block!important}.view[data-view="hoy"][data-sub][data-sub="act"] #acBody:empty::before{content:"No hay actividades este mes.";color:var(--muted,#888);font-size:14px}</style>
+<style>/* vs1 */.view[data-view="flash"][data-sub="fl"]>#fdBody,.view[data-view="flash"][data-sub="fl"]>#garBody,.view[data-view="flash"][data-sub="fl"]>#ppBody,.view[data-view="flash"][data-sub="fd"]>:not(#fdBody):not(.mn-chips),.view[data-view="flash"][data-sub="gar"]>:not(#garBody):not(.mn-chips),.view[data-view="flash"][data-sub="pp"]>:not(#ppBody):not(.mn-chips){display:none!important}.view[data-view="flash"][data-sub="gar"]>#garBody:empty::before,.view[data-view="flash"][data-sub="pp"]>#ppBody:empty::before{content:"Cargando…";color:var(--muted,#888);font-size:14px}</style>
+<style>/* mx1 */#tabs button[data-v="perchas"]{display:none!important}</style>
+<style>/* an2 */.an2{border-bottom:1px solid var(--line);padding:2px 0}.an2:last-child{border-bottom:0}.an2>summary{list-style:none;cursor:pointer;padding:10px 2px;display:block}.an2>summary::-webkit-details-marker{display:none}.an2>summary:hover{background:var(--surface-2,#f6f7f9)}.an2-cab{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.an2-cab b{font-size:15px}.an2-ch{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}.an2-ch span{font-size:12px;border-radius:999px;padding:2px 8px;background:var(--surface-2,#f1f3f5);white-space:nowrap}.an2-ch .ok{background:#e3f4ea;color:#1e7b45}.an2-ch .med{background:#fdf1dc;color:#9a6200}.an2-ch .cero{background:#fde4e2;color:#b3261e}.an2-f{font-size:12.5px;color:var(--muted,#6b7280);margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.an2-v{font-size:12px;color:var(--accent,#0b5394);font-weight:600;margin-left:6px;white-space:nowrap}.an2[open] .an2-v::after{content:" ▲"}.an2:not([open]) .an2-v::after{content:" ▼"}.an2.an-it{display:block;padding:2px 0;gap:0}.an2.an-it>summary{color:inherit;font-weight:400;font-size:inherit}.an2-d{padding:0 2px 12px}.an2-d p,.an2-d .an-txt{margin:0 0 8px;white-space:pre-line}.an2-st{display:grid;grid-template-columns:minmax(90px,140px) 64px minmax(0,1fr);gap:5px 10px;font-size:13px}.an2-st .ok{color:var(--good,#1e7b45);font-weight:600}</style>
+<!-- le1 --><script>/* le1 */</script>
 </body>
 </html>

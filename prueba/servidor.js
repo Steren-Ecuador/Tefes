@@ -305,6 +305,8 @@
     panelOk(p); var pe = F('Personal'), lp = F('Lecturas de políticas');
     return {pe: [['Nombre completo', 'Tienda', 'Departamento', 'Ciudad', 'Cargo', 'Ingreso', 'Estado']].concat(pe), lp: [['Fecha', 'Hora', 'Política', 'Tienda', 'Persona', 'Cargo', 'Correctas', 'Resultado']].concat(lp)};
   };
+  API.apiAliasNombres = function () { return {}; };
+  API.apiMenusPerfil = function () { var c = ''; try { c = localStorage.getItem('mpfPrueba') || ''; } catch (e) {} var o = []; try { o = JSON.parse(localStorage.getItem('mpfOrden') || '[]'); } catch (e) {} return c ? {perfil: 'Prueba', todo: false, claves: JSON.parse(c), orden: o} : {perfil: '', todo: true, orden: o}; };   // mp5: orden con mpfOrden   // mp3: en la prueba ve todo salvo que se fije mpfPrueba   // ma2: alias de nombres; en la prueba no hay alias
   API.apiUniPanel = function (p) { panelOk(p); return {fecha: '', total: 0, filas: []}; };   // Universidad Steren: en la prueba no hay lecturas de cursos
   API.apiUniTienda = function (tok) {   // c01u: datos de ejemplo, uno sin cuenta, uno con carreras a medias y uno sin entrar hace 20 días
     var t = tiendaDe(tok), g = gente(t), hoy = DB.isoDe(new Date());
@@ -375,7 +377,7 @@
     return F('Anuncios').map(function (r) { return {id: S(r[0]), desde: S(r[1]), hasta: S(r[2]) || DB.sumar(S(r[1]), 6), tiendas: S(r[3]) || 'Todas', titulo: S(r[4]), texto: S(r[5]), activo: S(r[6]) || 'Sí', efecto: S(r[7]), cuenta: S(r[8])}; })
       .filter(function (a) { return a.id && a.desde <= hoy && a.hasta >= hoy && !/^no$/i.test(a.activo); })
       .map(function (a) { return {id: a.id, titulo: a.titulo, texto: a.texto, desde: a.desde, hasta: a.hasta, efecto: a.efecto, cuenta: a.cuenta, lecturas: para(a.tiendas).map(function (t) {
-        var g = gente(t).map(function (z) { return z.nombre; }); return {tienda: t, total: g.length, leyeron: g.filter(function (n) { return leido[a.id + '|' + t + '|' + n]; }).length}; })}; });
+        var g = gente(t).map(function (z) { return z.nombre; }); return {tienda: t, total: g.length, leyeron: g.filter(function (n) { return leido[a.id + '|' + t + '|' + n]; }).length, faltan: g.filter(function (n) { return !leido[a.id + '|' + t + '|' + n]; })}; })}; });   // an2: faltan con nombres
   };
   API.apiContactosPanel = function (p) {
     panelOk(p);
