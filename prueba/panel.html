@@ -2867,6 +2867,7 @@ const IV_DEC = ['Cuadra, fue error de conteo', IV_VEND, 'Ajustar en el sistema',
 const ivDecN = d => d === 'Faltante a cargo de la tienda' ? 'Faltante a cargo del personal' : d;   // nombre anterior de la decisión
 /* pt2 → pt4: un producto no queda pendiente en más de 3 inventarios (Diego 2026-11-10) */
 const IV_PEND = 'Pendiente para el próximo inventario';
+const IV_ANUL = 'Revisión anulada';   /* rb1 */
 function ivPendTope(o){
   const ui = st.ivUI, n = s => Number(String(s).slice(0, 4)) * 53 + Number(String(s).slice(6)) || 0, porSem = {};
   ((st.mue && st.mue.co) || []).slice(1).forEach(r => { if (r[2] === ui.tienda && sinApo(r[3]) === o.cod && r[1] < ui.sem) porSem[r[1]] = r[10]; });
@@ -2884,7 +2885,8 @@ const sinApo = v => String(v == null ? '' : v).replace(/^'/, '');
 const ivExhib = r => /^ARQ\//i.test(String(r[5] || '').trim()) || /^E-/i.test(sinApo(r[3]).trim());
 /* última revisión por código (la más reciente manda) */
 function invCorr(sem, tienda){
-  const m = {}; ((st.mue && st.mue.co) || []).slice(1).forEach(r => { if (r[1] === sem && r[2] === tienda && r[3]) m[sinApo(r[3])] = r; }); return m;
+  const m = {}; ((st.mue && st.mue.co) || []).slice(1).forEach(r => { if (r[1] === sem && r[2] === tienda && r[3]) m[sinApo(r[3])] = r; });
+  Object.keys(m).forEach(k => { if (m[k][10] === IV_ANUL) delete m[k]; });   /* rb1 */ return m;
 }
 const ivN = v => { const n = num(v); return n == null ? null : n; };
 const ivSig = n => n == null ? '–' : (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toLocaleString('es-EC');
@@ -3281,7 +3283,7 @@ function invForm(o){
       <span class="small faint">El archivo del sistema todavía las tenía; no son faltante.</span></div>
     <textarea id="ivCom" placeholder="Comentario: qué encontraste, con quién lo revisaste">${esc(cr[11] || '')}</textarea>
     <p class="r-falta" id="ivFalta" hidden></p>
-    <div class="actions" style="margin:0"><button class="btn primary" id="ivGuardar">Guardar revisión</button><button class="btn" id="ivCancel">Cancelar</button></div>
+    <div class="actions" style="margin:0"><button class="btn primary" id="ivGuardar">Guardar revisión</button><button class="btn" id="ivCancel">Cancelar</button>${o.cr ? '<button class="btn" id="ivBorrar" style="margin-left:auto;color:#b91c1c">Borrar revisión</button>' : ''}</div>
   </div>`;
 }
 function invFormEventos(o){
@@ -3299,6 +3301,18 @@ function invFormEventos(o){
   rec.oninput = () => ver(true); ver(); marcar();
   $('#ivDec').querySelectorAll('.chip').forEach(c => c.onclick = () => { dec = c.dataset.d; marcar(); });
   $('#ivCancel').onclick = () => { ui.abierto = null; invPintar(); };
+  const bb = $('#ivBorrar');   /* rb1 */
+  if (bb) bb.onclick = async () => {
+    if (!confirm('¿Borrar tu revisión de ' + o.cod + '? El producto vuelve a quedar sin revisar.')) return;
+    bb.disabled = true; bb.textContent = 'Borrando…';
+    const fila = [stamp(), ui.sem, ui.tienda, "'" + o.cod, safe(o.desc), o.teo, o.contado == null ? '' : o.contado, '', '', '', IV_ANUL, 'Revisión borrada', 'Diego'];
+    try {
+      const co = await getRange('MueCorrecciones!A1:M', true, CLAVES), n = Math.max(co.length, 1) + 1;
+      await setRange('MueCorrecciones!A' + n + ':M' + n, [fila], CLAVES);
+      const local = fila.slice(); local[3] = o.cod; st.mue.co = (co.length ? co : [['Fecha']]).concat([local]);
+      ui.abierto = null; toast('Revisión borrada'); invPintar(); renderInventario();
+    } catch (e) { bb.disabled = false; bb.textContent = 'Borrar revisión'; const f = $('#ivFalta'); f.textContent = errorCopy(e); f.hidden = false; }
+  };
   $('#ivGuardar').onclick = async () => {
     const v = rec.value.trim(), com = $('#ivCom').value.trim(), falta = $('#ivFalta');
     const vend = dec === IV_VEND ? $('#ivVend').value.trim() : '';
