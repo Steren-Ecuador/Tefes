@@ -913,7 +913,7 @@ function arrancar(){
     document.querySelector('header').style.visibility = '';
     registrarIngreso('Asesor: ' + yo);
     if (!window.__ca1) { window.__ca1 = 1; const s = Math.round((Date.now() - t0) / 100) / 10;   /* ca1 */
-      llamar('apiRegistroTienda', TOKEN, SES, DISP, [{ev: 'Carga asesor', det: 'datos ' + String(s).replace('.', ',') + ' s · ' + DISP, seg: s, t: Date.now(), n: 2}]).catch(() => {}); }
+      llamar('apiRegistroTienda', TOKEN, SES, DISP, [{ev: 'Carga', det: 'asesor · datos ' + String(s).replace('.', ',') + ' s · ' + DISP, seg: s, t: Date.now(), n: 2}]).catch(() => {}); }
     KEY = 'tefes_asesor_v1_' + slug(yo); cargarE(); aplicar(d);
     if (!SUELDO.pct) aviso('Tu esquema de comisión aún no está cargado: pídele a tu gerente que lo revise.');
     else if (!d.yo.diario || !d.yo.diario.length) aviso('Aún no hay ventas tuyas este mes en el sistema (se actualiza cada mañana).');
