@@ -181,6 +181,7 @@ document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>ver(b.dataset.f));
  if(location.hash)history.replaceState(null,'',location.pathname);
  try{if(!k)throw 0;A=(await dec(k,ENC)).AV;armar()}catch(e){document.getElementById('feed').innerHTML='<div class="msg">Abre esta página con el enlace que te enviaron por WhatsApp.</div>';return}
  if(a&&m&&/^[a-z0-9-]+$/.test(m)){try{await carga('mi-'+m+'.enc.js');miArea((await dec(a,window.ENC)).MI)}catch(e){}}
+ if(m==='cc'&&a)carga('proformas-cc.js').then(()=>PFCC.init(a,APP)).catch(()=>{});   /* pf4 */
  registra(k,m);
 })();
 </script></body></html>
