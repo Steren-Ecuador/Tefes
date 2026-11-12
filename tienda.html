@@ -2190,6 +2190,32 @@ function polVisitaWire(p, el){
     const bt = $('#pt-' + p.id) && $('#pt-' + p.id).querySelector('[data-c="' + c + '"]'); if (bt) bt.click();
   });
 }
+/* ic1 */ /* ---------- punto D04: % IDC del último reporte de Super Coach ---------- */
+const IDC_REGLA = '2: 90 % o más · 1: 80 a 89,9 % · 0: bajo 80 %';
+function idcCalif(n){ return n >= 90 ? '2' : n >= 80 ? '1' : '0'; }
+function idcValor(it){ const m = String((it && it.dato) || '').match(/IDC Super Coach[^:]*: ([\d.,]+) %/); return m ? parseFloat(m[1].replace(',', '.')) : null; }
+function idcD04Html(p){
+  if (p.id !== 'D04') return '';
+  const it = S.form.items[p.id] || {}, v = idcValor(it), hay = v != null && !isNaN(v);
+  return '<div class="vbox' + (hay && v < 80 ? ' mal' : '') + '"><div class="ttl">Último reporte de Super Coach</div>' +
+    '<div>Escribe el % IDC de la tienda del último reporte semanal que llega de México. La app pone la nota sola.</div>' +
+    '<label class="f">% IDC de la tienda</label><input type="text" inputmode="decimal" data-idc placeholder="Ej. 92,5" value="' + (hay ? esc(String(v).replace('.', ',')) : '') + '">' +
+    '<div class="tiny' + (hay ? '' : ' muted') + '" style="margin-top:6px">' + (hay ? 'Corresponde ' + idcCalif(v) + '. ' : '') + esc(IDC_REGLA) + '</div></div>';
+}
+function idcD04Wire(p, el){
+  if (p.id !== 'D04') return;
+  const inp = el.querySelector('[data-idc]'); if (!inp) return;
+  inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); };
+  inp.onchange = () => {
+    const t = String(inp.value).trim(); if (!t) return;
+    const n = parseFloat(t.replace('%', '').replace(',', '.'));
+    if (isNaN(n) || n < 0 || n > 100) { toast('Escribe el porcentaje entre 0 y 100.'); return; }
+    const x = S.form.items[p.id] = S.form.items[p.id] || {};
+    x.dato = 'IDC Super Coach (último reporte de México): ' + String(n).replace('.', ',') + ' %'; x.verDato = true;
+    guardarBorrador(); pintarPunto(p);
+    const bt = $('#pt-' + p.id) && $('#pt-' + p.id).querySelector('[data-c="' + idcCalif(n) + '"]'); if (bt) bt.click();
+  };
+}
 /* ---------- punto E04: transferencias de la tienda en el ERP (TransferenciasE04.gs) ---------- */
 const TV = {d: null, cargando: false, error: ''};
 function trfE04Dato(){
@@ -2255,7 +2281,7 @@ function puntoHtml(p){
   return '<div class="card punto ' + g + '">' + '<div class="tk-sec">' + esc(p.sec + ') ' + sec6) + ' · ' + n6 + ' de ' + ptsF().length + '</div>' +
     '<div><span class="pid">' + esc(p.id) + '</span>' + esc(p.texto) + '</div>' +
     '<div class="tools"><button class="link" data-guia>Ver criterio</button>' + (!verObs ? '<button class="link" data-ver="verObs">+ Observación</button>' : '') + (!verDato ? '<button class="link" data-ver="verDato">+ Dato</button>' : '') + (it.calif === '2' || it.calif === 'N/A' ? '<button class="link" data-cerrar>Listo ▲</button>' : '') + '</div>' +
-    '<div class="guia">' + esc(p.criterio) + '</div>' + ventasHtml(p) + polVisitaHtml(p) + trfE04Html(p) +
+    '<div class="guia">' + esc(p.criterio) + '</div>' + ventasHtml(p) + polVisitaHtml(p) + idcD04Html(p) + trfE04Html(p) +
     '<div class="cal">' + [['2','c2','Cumple'],['1','c1','Parcial'],['0','c0','Incumple'],['N/A','cna','No aplica']].map(([v,c,l]) => '<button class="' + c + ' ' + (it.calif===v?'on':'') + '" data-c="' + v + '">' + v + '<small>' + l + '</small></button>').join('') + '</div>' +
     (verObs ? '<label class="f">Observación' + (pend ? ' (qué se encontró)' : '') + '</label><textarea data-i="obs" rows="2" placeholder="Qué se encontró">' + esc(it.obs||'') + '</textarea>' : '') +
     (verDato ? '<label class="f">Dato de apoyo' + (p.datoReq ? ' *' : '') + '</label><input type="text" data-i="dato" placeholder="' + (p.datoReq ? 'Obligatorio' : 'Opcional') + '" value="' + esc(it.dato||'') + '">' : '') +
@@ -2284,6 +2310,7 @@ function bindPunto(p, cont){
   if (el.hasAttribute('data-abrir')) { el.onclick = () => { it().abierto = true; pintarPunto(p); }; return; }
   el.querySelector('[data-guia]').onclick = () => el.classList.toggle('showg');
   polVisitaWire(p, el);
+  idcD04Wire(p, el);
   const td = el.querySelector('[data-tdato]'); if (td) td.onclick = () => { it().dato = trfE04Dato(); it().verDato = true; guardarBorrador(); pintarPunto(p); actualizarFooter(); };
   const tr = el.querySelector('[data-tretry]'); if (tr) tr.onclick = () => { TV.error = ''; pintarPunto(p); };
   const vd = el.querySelector('[data-vdato]'); if (vd) vd.onclick = () => { const d = ventasDato(p); it().dato = d.dato; it().verDato = true; guardarBorrador(); pintarPunto(p); actualizarFooter(); };
