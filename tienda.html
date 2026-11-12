@@ -430,7 +430,8 @@ nav .ic,nav .lbl-m,#bLeer,.perfil,.leer-seg,.tk-sec{display:none}
   .pf-hist span:last-child{white-space:nowrap}
   .leer-seg{display:flex;margin-bottom:12px}
   .grid2>div,.grid3>div{min-width:0} .grid3 input{min-width:0;width:100%}
-  html.tk{scroll-snap-type:y mandatory}
+  html.tk{scroll-snap-type:y proximity}   /* sc1 */
+  .grid2 input{min-width:0;width:100%;max-width:100%;box-sizing:border-box} .grid2 input[type=date]{-webkit-appearance:none;appearance:none;min-height:44px}
   html.tk .sec-h,html.tk .secbar{display:none}
   html.tk .punto-w,html.tk .tk-snap{scroll-snap-align:start;scroll-margin-top:calc(var(--hh,60px) + 8px)}
   html.tk .punto-w{min-height:calc(100svh - var(--hh,60px) - 150px - env(safe-area-inset-bottom));display:flex;padding-bottom:12px}
