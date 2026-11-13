@@ -904,7 +904,11 @@ function arrancar(){
   if (!TOKEN) { cargando('Enlace no válido. Pide a tu gerente el enlace de tu tienda.'); return; }
   const apeDe = n => slug(n).replace(/-+$/, '').split('-').pop();   /* de2: el enlace puede tener el nombre anterior (alias) */
   if (DE && leerYo() && slug(leerYo()) !== DE && apeDe(leerYo()) !== apeDe(DE)) guardarYo('');   /* de1 */
-  const yo = leerYo(); cargando('Cargando tu panel…'); const t0 = Date.now();   /* ca1 */
+  const yo = leerYo(); const t0 = Date.now();   /* ca1 */
+  const CK = 'tefes_asesor_datos_' + TOKEN + '_' + slug(yo); let previo = null;   /* ac3 */
+  try { const c = JSON.parse(localStorage.getItem(CK) || 'null'); if (yo && c && c.d && c.d.yo && c.d.yo.nombre === yo && Date.now() - c.t < 2 * 864e5) previo = c; } catch (e) {}
+  if (previo) { try { pintarAs(previo.d, yo); } catch (e) { previo = null; } }
+  if (!previo) cargando('Cargando tu panel…');
   llamar('apiAsesor', TOKEN, yo).then(d => { try {   /* de1 */
     ALIAS = d.alias || {};
     // enlace personal del correo (&de=nombre): entra directo sin elegir de la lista
@@ -913,7 +917,14 @@ function arrancar(){
     document.querySelector('header').style.visibility = '';
     registrarIngreso('Asesor: ' + yo);
     if (!window.__ca1) { window.__ca1 = 1; const s = Math.round((Date.now() - t0) / 100) / 10;   /* ca1 */
-      llamar('apiRegistroTienda', TOKEN, SES, DISP, [{ev: 'Carga', det: 'asesor · datos ' + String(s).replace('.', ',') + ' s · ' + DISP, seg: s, t: Date.now(), n: 2}]).catch(() => {}); }
+      llamar('apiRegistroTienda', TOKEN, SES, DISP, [{ev: 'Carga', det: 'asesor · datos ' + String(s).replace('.', ',') + ' s · ' + DISP + (previo ? ' · con datos guardados' : ''), seg: s, t: Date.now(), n: 2}]).catch(() => {}); }
+    try { localStorage.setItem(CK, JSON.stringify({t: Date.now(), d: d})); } catch (e) {}   /* ac3 */
+    if (!previo || JSON.stringify(previo.d) !== JSON.stringify(d)) { const y = window.scrollY; pintarAs(d, yo); if (previo) window.scrollTo(0, y); }
+    llamar('apiVFLista', TOKEN).then(L => { E.futuras = (L || []).filter(x => x.asesor === YO.nombre).map(vfLocal); render(); }, () => {});
+  } catch (e) { guardarYo(''); try { localStorage.removeItem(CK); } catch (e2) {} cargando('No se pudo abrir tu panel (' + (e && e.message || e) + '). Vuelve a abrir tu enlace; si sigue, avísale a tu gerente.'); } }, e => { if (!previo) cargando(e.message); });   /* de1 */
+}
+/* ac3: pinta el panel con los datos d (de la última visita o recién llegados); lo de una sola vez va con __ac3 */
+function pintarAs(d, yo){
     KEY = 'tefes_asesor_v1_' + slug(yo); cargarE(); aplicar(d);
     if (!SUELDO.pct) aviso('Tu esquema de comisión aún no está cargado: pídele a tu gerente que lo revise.');
     else if (!d.yo.diario || !d.yo.diario.length) aviso('Aún no hay ventas tuyas este mes en el sistema (se actualiza cada mañana).');
@@ -922,10 +933,9 @@ function arrancar(){
     $('#main').insertAdjacentHTML('afterbegin', stockBtn(d.stock));   // stk1
     pintarCab(); $('#miAv').style.cursor = 'pointer'; $('#miAv').onclick = () => bienvenida(true); $('#miSub').textContent = YO.cargo + ' · Steren ' + TIENDA.nombre;
     render();
+    if (window.__ac3) return; window.__ac3 = 1;   /* ac3: bienvenida y salto a sección solo la primera vez */
     if (!E.perfil || !E.perfil.foto) bienvenida(); else setTimeout(pfFestejarSolas, 400);   /* pf2 */
     const v = Q.get('v'); if (v && SECCIONES.some(x => x[0] === v)) setTimeout(() => ir(v), 50);
-    llamar('apiVFLista', TOKEN).then(L => { E.futuras = (L || []).filter(x => x.asesor === YO.nombre).map(vfLocal); render(); }, () => {});
-  } catch (e) { guardarYo(''); cargando('No se pudo abrir tu panel (' + (e && e.message || e) + '). Vuelve a abrir tu enlace; si sigue, avísale a tu gerente.'); } }, e => cargando(e.message));   /* de1 */
 }
 arrancar();
 })();
