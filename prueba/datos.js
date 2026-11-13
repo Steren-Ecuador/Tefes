@@ -100,7 +100,7 @@
     ['C07', 'C', 'Venta de garantía extendida gestionada activamente.', 'Si es 0 o 1'], ['C08', 'C', 'Venta de producto de impulso gestionada activamente.', 'Opcional'],
     ['C09', 'C', 'Servicio de instalaciones ofrecido donde aplique.', 'Opcional'],
     ['D01', 'D', 'Gerente, subgerente y asesores con buena presentación y credencial.', 'Si es 0 o 1'], ['D02', 'D', 'Horarios revisados y cobertura adecuada de apertura y cierre.', 'Si es 0 o 1'],
-    ['D03', 'D', 'Super Coach configurado y operativo.', 'Si es 0 o 1'], ['D04', 'D', 'Modelo IDC ejecutado en tiempo real.', 'Opcional'],
+    ['D03', 'D', 'Super Coach conectado y operativo.', 'Si es 0 o 1'], ['D04', 'D', 'Modelo IDC aplicado según el último reporte de Super Coach.', 'Opcional'],
     ['D05', 'D', 'Sistema de Servicio Técnico instalado y operativo.', 'Si es 0 o 1'], ['D06', 'D', 'El equipo conoce las políticas vigentes.', 'Opcional'],
     ['E01', 'E', 'Nivel de stock adecuado, sin excesos críticos ni quiebres relevantes.', 'Si es 0 o 1'], ['E02', 'E', 'Caja chica y caja general correctamente controladas.', 'Si es 0 o 1'],
     ['E03', 'E', 'Caja, formas de pago, timbrado y lector de tarjetas funcionando.', 'Si es 0 o 1'], ['E04', 'E', 'Transferencias de mercadería al día, sin pendientes de más de una semana.', 'Si es 0 o 1'],
