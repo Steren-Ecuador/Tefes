@@ -2184,6 +2184,9 @@ function trfE04Html(p){
 async function trfE04Cargar(p){
   TV.cargando = true;
   try { TV.d = await api('apiTransfE04'); } catch (e) { TV.error = 'No se pudo leer el ERP: ' + e.message; }
+  if (TV.d) { /* e04d */ const desde = new Date(2026, 9, 1), f = t => { const m = String(t || '').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); return m ? new Date(+m[3], +m[2] - 1, +m[1]) : null; };
+    const ok = x => { const d = f(x.fecha); return !d || d >= desde; };
+    TV.d.dif = (TV.d.dif || []).filter(ok); TV.d.viejas = (TV.d.viejas || []).filter(ok); }
   TV.cargando = false; trfE04Auto(p); pintarPunto(p);
 }
 /* e04a */ /* E04 se califica solo con el ERP si todavía no tiene nota; el supervisor puede cambiarla */
