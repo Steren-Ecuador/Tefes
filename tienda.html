@@ -4,6 +4,9 @@
 <head>
 <base target="_top">
 <meta charset="utf-8">
+<!-- pwa1 --><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icono-192.png"><link rel="apple-touch-icon" href="icono-180.png">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Steren"><meta name="apple-mobile-web-app-status-bar-style" content="default">
+<script>if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));</script>
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
 <script>
