@@ -1249,7 +1249,7 @@ function fpgHtml(){
   else if (!L.length) h += '<p class="tiny muted" style="margin:8px 2px 0">Registra aquí la factura del POS con su forma de pago, el n.º de pedido o comprobante y el valor con IVA (por ejemplo, lo pagado con Shopping Dólares).</p>';
   else {
     const V = FPGS.todos ? L : L.slice(0, 8);
-    h += '<div class="card" style="margin-top:10px">' + V.map(x => '<div class="vf-it"' + (x.estado === 'Anulada' ? ' style="opacity:.55"' : '') + '><div class="vf-h"><b>Fact. ' + esc(x.factura) + ' · ' + fpgUsd(x.valor) + '</b><span class="tag ' + (x.estado === 'Anulada' ? 'vf-no">Anulada' : 'vf-esp">' + esc(x.forma)) + '</span></div>' +
+    h += '<div class="card" style="margin-top:10px">' + V.map(x => '<div class="vf-it"' + (x.estado === 'Anulada' ? ' style="opacity:.55"' : '') + '><div class="vf-h"><b>Fact. ' + esc(x.factura) + ' · ' + fpgUsd(x.valor) + '</b><span class="tag ' + (x.estado === 'Anulada' ? 'vf-no">Anulada' : 'vf-esp">' + esc(x.forma + (x.otra ? ': ' + x.otra : ''))) + '</span></div>' +
       (x.cliente ? '<div class="small">' + esc(x.cliente) + (x.valorFac ? ' · factura de ' + fpgUsd(x.valorFac) : '') + '</div>' : '') + '<div class="tiny muted" style="word-break:break-word">Pedido/comprobante ' + esc(x.pedido) + ' · registró ' + esc(x.registroVer || x.registro) + ' el ' + fechaCorta(x.fecha) + (x.hora ? ' · ' + esc(x.hora) : '') + (x.foto ? ' · <a href="' + esc(x.foto) + '" target="_blank" rel="noopener">ver foto</a>' : '') + '</div>' +
       (x.entregado ? '<div class="tiny" style="color:var(--ok)">Entregado con recibo ' + esc(x.recibo) + ' el ' + fechaCorta(x.entregado) + '</div>' : '') +
       (x.estado === 'Anulada' ? '<div class="tiny" style="color:var(--bad)">Anulada por ' + esc(x.anulo) + ': ' + esc(x.motivoAnula) + '</div>' : '') +
@@ -1281,11 +1281,12 @@ function fpgAnular(id){
   };
 }
 function fpgFormulario(){
-  const F = FPGS.formas.length ? FPGS.formas : ['Tarjeta de crédito', 'Tarjeta de débito', 'Transferencia', 'Steren Card', 'Shopping Dólares', 'Crédito directo', 'Cheque', 'Efectivo', 'Otra'];
+  const F = FPGS.formas.length ? FPGS.formas : ['deUna', 'Transferencias', 'Otra'];
   openModal('<h3>Forma de pago de una factura</h3>' +
     '<p class="small muted" style="margin:0">Si la factura se pagó con dos formas, registra cada una por separado.</p>' +
     '<label class="f">N° de factura</label><input type="text" id="fpgFac" inputmode="numeric" autocomplete="off" placeholder="005-001-000004800">' +
     '<label class="f">Forma de pago</label><select id="fpgForma"><option value="">Elige la forma de pago</option>' + F.map(m => '<option>' + esc(m) + '</option>').join('') + '</select>' +
+    '<div id="fpgOtraW" style="display:none"><label class="f">¿Cuál otra forma de pago?</label><input type="text" id="fpgOtra" maxlength="100" autocomplete="off" placeholder="Ej.: tarjeta de crédito"></div>' +
     '<label class="f">N° de pedido o comprobante</label><textarea id="fpgPed" maxlength="1500" rows="2" placeholder="N° de pedido, voucher o los números de los Shopping Dólares"></textarea>' +
     '<div class="grid2"><div><label class="f">Valor pagado con esta forma (con IVA)</label><input type="number" id="fpgVal" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></div>' +
     '<div><label class="f">Total de la factura (opcional)</label><input type="number" id="fpgTot" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></div></div>' +
@@ -1294,9 +1295,10 @@ function fpgFormulario(){
     '<label class="f">Foto de la factura o de los vales (opcional)</label><input type="file" id="fpgFoto" accept="image/*">' +
     '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="fpgNo">Cancelar</button><button class="btn primary grow" id="fpgSi">Guardar</button></div>');
   $('#fpgNo').onclick = closeModal;
+  $('#fpgForma').onchange = () => { $('#fpgOtraW').style.display = $('#fpgForma').value === 'Otra' ? '' : 'none'; };
   $('#fpgSi').onclick = async () => {
-    const d = {factura: $('#fpgFac').value.trim(), forma: $('#fpgForma').value, pedido: $('#fpgPed').value.trim(), valor: $('#fpgVal').value, valorFac: $('#fpgTot').value, cliente: $('#fpgCli').value.trim(), registro: $('#fpgQuien').value.trim(), desde: 'Tienda'};
-    const falta = (d.factura.match(/\d/g) || []).length < 3 ? 'Escribe el número de factura.' : !d.forma ? 'Elige la forma de pago.' : !d.pedido ? 'Escribe el número de pedido o comprobante.' :
+    const d = {factura: $('#fpgFac').value.trim(), forma: $('#fpgForma').value, otra: $('#fpgOtra').value.trim(), pedido: $('#fpgPed').value.trim(), valor: $('#fpgVal').value, valorFac: $('#fpgTot').value, cliente: $('#fpgCli').value.trim(), registro: $('#fpgQuien').value.trim(), desde: 'Tienda'};
+    const falta = (d.factura.match(/\d/g) || []).length < 3 ? 'Escribe el número de factura.' : !d.forma ? 'Elige la forma de pago.' : d.forma === 'Otra' && d.otra.length < 3 ? 'Escribe cuál es la otra forma de pago.' : !d.pedido ? 'Escribe el número de pedido o comprobante.' :
       !(Number(d.valor) > 0) ? 'Pon el valor pagado con esta forma.' : Number(d.valorFac) > 0 && Number(d.valorFac) < Number(d.valor) ? 'El total de la factura no puede ser menor que lo pagado con esta forma.' : !d.registro ? 'Elige tu nombre.' : '';
     if (falta) { toast(falta, 3500); return; }
     const b = $('#fpgSi'); b.disabled = true;

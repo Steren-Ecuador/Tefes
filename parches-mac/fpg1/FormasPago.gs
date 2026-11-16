@@ -5,6 +5,7 @@
  * (modelo: Condado/Shopping Dollars CONDADO/REgistro_transacciones_shopping_dolar y Mall Sol/Mobi Sol).
  * El perfil Financiero (y el administrador) ven todas las tiendas en el panel (Ventas › Formas de pago), filtran, exportan
  * y marcan la entrega al centro comercial con su N° de recibo.
+ * fpg2: formas deUna, Transferencias, Shopping Dólares - Condado (solo Condado), MobiSol - Mall del Sol (solo Mall del Sol) y Otra (con detalle obligatorio, col T).
  * Datos: pestaña 'Formas de pago' de la Base (se crea sola). Una fila por factura y forma; la misma factura + forma dos veces se rechaza.
  *
  * TRAZABILIDAD (Diego: "es información contable"): nada se borra. Un error se ANULA con motivo (la fila queda, marcada Anulada).
@@ -16,9 +17,11 @@ const FPG = {
   HOJA: 'Formas de pago',
   BIT: 'Formas de pago bitácora',
   CAB: ['ID', 'Fecha registro', 'Hora', 'Tienda', 'Registró', 'Desde', 'N° factura', 'Forma de pago', 'N° de pedido', 'Valor con IVA',
-    'Cliente', 'Valor de la factura', 'Foto', 'Entregado', 'N° recibo', 'Marcó entrega', 'Estado', 'Anuló', 'Motivo anulación'],
+    'Cliente', 'Valor de la factura', 'Foto', 'Entregado', 'N° recibo', 'Marcó entrega', 'Estado', 'Anuló', 'Motivo anulación', 'Detalle otra'],
   BIT_CAB: ['Fecha', 'Hora', 'Acción', 'ID', 'Tienda', 'Quién', 'Desde', 'Detalle', 'Huella fila', 'Huella'],
-  FORMAS: ['Tarjeta de crédito', 'Tarjeta de débito', 'Transferencia', 'Steren Card', 'Shopping Dólares', 'Crédito directo', 'Cheque', 'Efectivo', 'Otra'],
+  // fpg2 (Diego 16-nov): lista definitiva. Shopping Dólares solo Condado y MobiSol solo Mall del Sol; 'Otra' exige detalle.
+  FORMAS: ['deUna', 'Transferencias', 'Shopping Dólares - Condado', 'MobiSol - Mall del Sol', 'Otra'],
+  SOLO: {'Shopping Dólares - Condado': /condado/i, 'MobiSol - Mall del Sol': /\bsol\b/i},
   DIAS_TIENDA: 60,
   CLAVE_MENU: 'ventas/formaspago'
 };
@@ -52,8 +55,10 @@ function fpgObj_(r) {
   return {id: r[0], fecha: fpgIso_(r[1]), hora: r[2], tienda: r[3], registro: r[4], registroVer: nombreCorto_(r[4]) || r[4], desde: r[5],
     factura: String(r[6] || '').replace(/^'/, ''), forma: r[7], pedido: String(r[8] || '').replace(/^'/, ''), valor: fpgNum_(r[9]),
     cliente: r[10] || '', valorFac: fpgNum_(r[11]), foto: r[12] || '', entregado: fpgIso_(r[13]), recibo: String(r[14] || '').replace(/^'/, ''), marco: r[15] || '',
-    estado: r[16] || 'Vigente', anulo: r[17] || '', motivoAnula: r[18] || ''};
+    estado: r[16] || 'Vigente', anulo: r[17] || '', motivoAnula: r[18] || '', otra: r[19] || ''};
 }
+/** Formas que puede usar una tienda (las de centro comercial solo en su tienda) */
+function fpgFormasDe_(tienda) { return FPG.FORMAS.filter(f => !FPG.SOLO[f] || FPG.SOLO[f].test(tienda)); }
 
 /* ---------- bitácora ---------- */
 function fpgSha_(s) {
@@ -63,7 +68,7 @@ function fpgSha_(s) {
 /** Huella del contenido de una fila de datos (lo que importa contablemente) */
 function fpgHuellaFila_(o) {
   return fpgSha_([o.id, o.tienda, o.registro, o.factura, o.forma, o.pedido, Number(o.valor || 0).toFixed(2), o.cliente, Number(o.valorFac || 0).toFixed(2),
-    o.foto, o.entregado, o.recibo, o.estado, o.motivoAnula].join('|')).slice(0, 16);
+    o.foto, o.entregado, o.recibo, o.estado, o.motivoAnula].concat(o.otra ? [o.otra] : []).join('|')).slice(0, 16);
 }
 function fpgBitHoja_() {
   const ss = ss_();
@@ -99,7 +104,7 @@ function fpgIntegridad_(filas) {
   return {ok: !rotas.length && !cambiadas.length, lineas: B.length, rotas: rotas.slice(0, 20), cambiadas: cambiadas.slice(0, 50)};
 }
 function fpgDetalle_(o) {
-  return 'Fact. ' + o.factura + ' · ' + o.forma + ' · $' + Number(o.valor || 0).toFixed(2) + ' · pedido/comprobante ' + String(o.pedido).slice(0, 300) +
+  return 'Fact. ' + o.factura + ' · ' + o.forma + (o.otra ? ' (' + o.otra + ')' : '') + ' · $' + Number(o.valor || 0).toFixed(2) + ' · pedido/comprobante ' + String(o.pedido).slice(0, 300) +
     (o.cliente ? ' · cliente ' + o.cliente : '') + (o.valorFac ? ' · total fact. $' + Number(o.valorFac).toFixed(2) : '') + (o.foto ? ' · con foto' : '');
 }
 
@@ -107,7 +112,7 @@ function fpgDetalle_(o) {
 /** Los registros de su tienda de los últimos 60 días, el más nuevo primero (el asesor filtra los suyos en pantalla) */
 function apiFPGLista(token) {
   const tienda = exigirTienda_(token).nombre, lim = sumarDiasIso_(hoy_(), -FPG.DIAS_TIENDA);
-  return {formas: FPG.FORMAS, hoy: hoy_(), lista: fpgFilas_().map(fpgObj_).filter(x => x.tienda === tienda && x.fecha >= lim)
+  return {formas: fpgFormasDe_(tienda), hoy: hoy_(), lista: fpgFilas_().map(fpgObj_).filter(x => x.tienda === tienda && x.fecha >= lim)
     .sort((a, b) => (b.fecha + b.hora).localeCompare(a.fecha + a.hora))};
 }
 
@@ -118,11 +123,14 @@ function apiFPGRegistrar(token, d) {
   const registro = txt(d.registro, 80), desde = d.desde === 'Asesor' ? 'Asesor' : 'Tienda';
   const factura = String(d.factura == null ? '' : d.factura).trim().replace(/\s+/g, '').slice(0, 30);
   const forma = txt(d.forma, 40), pedido = txt(d.pedido, 1500), valor = Math.round(fpgNum_(d.valor) * 100) / 100;
+  const otra = forma === 'Otra' ? txt(d.otra, 100) : '';
   const cliente = txt(d.cliente, 100), valorFac = Math.round(fpgNum_(d.valorFac) * 100) / 100;
   if (!registro) throw new Error('Elige tu nombre.');
   asPersonaValida_(tienda, registro);
   if ((factura.match(/\d/g) || []).length < 3 || !/^[\d-]+$/.test(factura)) throw new Error('Revisa el número de factura (ej.: 005-001-000004800).');
   if (FPG.FORMAS.indexOf(forma) < 0) throw new Error('Elige la forma de pago.');
+  if (fpgFormasDe_(tienda).indexOf(forma) < 0) throw new Error(forma + ' no se usa en ' + tienda + '.');
+  if (forma === 'Otra' && otra.length < 3) throw new Error('Escribe cuál es la otra forma de pago.');
   if (!pedido) throw new Error('Escribe el número de pedido o comprobante.');
   if (!(valor > 0)) throw new Error('Pon el valor con IVA.');
   if (valor > 100000) throw new Error('Revisa el valor: parece demasiado alto.');
@@ -132,11 +140,11 @@ function apiFPGRegistrar(token, d) {
   try {
     const sh = fpgHoja_(), L = fpgFilas_();
     const solo = f => String(f || '').replace(/^'/, '').replace(/\D/g, '');
-    if (L.some(r => r[3] === tienda && solo(r[6]) === solo(factura) && r[7] === forma && r[16] !== 'Anulada'))
-      throw new Error('Esa factura ya tiene registrada la forma de pago ' + forma + '.');
+    if (L.some(r => r[3] === tienda && solo(r[6]) === solo(factura) && r[7] === forma && (forma !== 'Otra' || String(r[19] || '').toLowerCase() === otra.toLowerCase()) && r[16] !== 'Anulada'))
+      throw new Error('Esa factura ya tiene registrada la forma de pago ' + forma + (otra ? ' (' + otra + ')' : '') + '.');
     const id = 'FP' + ('0000' + (Math.max(0, ...L.map(r => Number(String(r[0]).replace(/\D/g, '')) || 0)) + 1)).slice(-5);
     const fila = [id, hoy_(), Utilities.formatDate(new Date(), TZ, 'HH:mm'), tienda, registro, desde, "'" + factura, forma, "'" + pedido, valor,
-      cliente, valorFac || '', foto, '', '', '', 'Vigente', '', ''];
+      cliente, valorFac || '', foto, '', '', '', 'Vigente', '', '', otra];
     sh.appendRow(fila);
     const o = fpgObj_(sh.getRange(sh.getLastRow(), 1, 1, FPG.CAB.length).getDisplayValues()[0]);   // tal como quedó en la hoja (para la huella)
     fpgLog_('Registro', o, registro, desde, fpgDetalle_(o));
