@@ -357,9 +357,10 @@ function chipContacto(p){ const d = dif(p.contacto);
 const wa = (cel, txt) => 'https://wa.me/593' + String(cel).replace(/\D/g, '').replace(/^0/, '') + '?text=' + encodeURIComponent(txt);
 function porContactar(){ return E.proformas.filter(p => p.estado === 'Abierta' && (p.fuera || pfEspera(p) || dif(p.contacto) <= 0)).length + E.futuras.filter(v => v.estado === 'Llegó').length; }
 function renderCli(){
-  const seg = '<div class="seg">' + [['pro', 'Proformas'], ['vf', 'Lista de espera']].map(([k, l]) => '<button data-sc="' + k + '" class="' + (k === segCli ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
+  const seg = '<div class="seg">' + [['pro', 'Proformas'], ['vf', 'Lista de espera'], ['fp', 'Pagos']].map(([k, l]) => '<button data-sc="' + k + '" class="' + (k === segCli ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
   let h = seg;
-  if (segCli === 'pro'){   /* pf2 */
+  if (segCli === 'fp') h += fpgAsesorHtml();   /* fpg1 */
+  else if (segCli === 'pro'){   /* pf2 */
     const ab = E.proformas.filter(p => p.estado === 'Abierta').sort((a, b) => (pfUrge(b) - pfUrge(a)) || (a.contacto < b.contacto ? -1 : 1)), ce = E.proformas.filter(p => p.estado !== 'Abierta');
     const hoyL = ab.filter(pfUrge), monto = ab.reduce((a, p) => a + p.monto, 0), J = PFJ || {mes: {n: 0}, racha: 0, cierres: 0};
     h += '<div class="card pf-hero"><div class="tiny" style="opacity:.85;font-weight:800;letter-spacing:.04em">TUS PROFORMAS · HOY</div>' +
@@ -391,6 +392,8 @@ function renderCli(){
   document.querySelectorAll('[data-vn]').forEach(b => b.onclick = () => vfCambio(b.dataset.vn, 'No compró', 'Anotado.'));
   if ($('#nPro')) $('#nPro').onclick = formProforma;
   if ($('#nVf')) $('#nVf').onclick = formFutura;
+  if ($('#nFp')) $('#nFp').onclick = formPago;   /* fpg1 */
+  document.querySelectorAll('[data-fpan]').forEach(b => b.onclick = () => anularPago(b.dataset.fpan));
 }
 const ocupado = q => { const b = $(q); if (b){ b.disabled = true; b.dataset.t = b.textContent; b.textContent = 'Guardando…'; } };
 const libre = q => { const b = $(q); if (b){ b.disabled = false; b.textContent = b.dataset.t || 'Guardar'; } };
@@ -530,6 +533,57 @@ function formProforma(){
     const falta = d.cliente.length < 3 ? 'Escribe el nombre del cliente.' : !/^0\d{9}$/.test(d.cel.replace(/\D/g, '')) ? 'El celular debe tener 10 dígitos.' : !d.productos ? 'Escribe los productos.' : !d.contacto ? 'Elige la fecha de contacto.' : !$('#cons').checked ? 'Marca que el cliente aceptó que lo contactemos.' : '';
     if (falta) return toast(falta);
     ocupado('#ok'); llamar('apiPFRegistrar', TOKEN, Object.assign(d, {asesor: YO.nombre, acepta: true})).then(p => { E.proformas.push(p); cerrar(); toast('Proforma guardada. Te recordamos el día del contacto.'); render(); }, e => { libre('#ok'); toast(e.message); });
+  };
+}
+/* fpg1: formas de pago de facturas del POS (Diego 2026-11-16) */
+const FPG = {lista: null, formas: [], cargando: false, error: ''};
+function fpgCargarA(){
+  if (FPG.cargando) return; FPG.cargando = true; FPG.error = '';
+  llamar('apiFPGLista', TOKEN).then(r => { FPG.lista = (r && r.lista) || []; FPG.formas = (r && r.formas) || []; FPG.hoy = r && r.hoy; }, e => { FPG.error = e.message; })
+    .then(() => { FPG.cargando = false; if (vista === 'cli' && segCli === 'fp') renderCli(); });
+}
+function fpgAsesorHtml(){
+  if (FPG.lista === null && !FPG.error) fpgCargarA();
+  const mios = (FPG.lista || []).filter(x => x.registro === YO.nombre), hoyI = FPG.hoy || iso(HOY), hoyL = mios.filter(x => x.fecha === hoyI && x.estado !== 'Anulada');
+  let h = '<button class="btn pri block" id="nFp" style="margin-bottom:12px">+ Registrar forma de pago</button>';
+  if (FPG.error) return h + '<div class="card vacio">' + esc(FPG.error) + '</div>';
+  if (FPG.lista === null) return h + '<div class="card vacio">Cargando…</div>';
+  if (hoyL.length) h += '<div class="card"><div class="tiny muted">HOY</div><b>' + hoyL.length + (hoyL.length === 1 ? ' factura' : ' facturas') + ' · ' + usd2(hoyL.reduce((a, x) => a + x.valor, 0)) + '</b></div>';
+  h += mios.length ? mios.slice(0, 30).map(x => '<div class="card"' + (x.estado === 'Anulada' ? ' style="opacity:.55"' : '') + '><div class="fila"><b>Fact. ' + esc(x.factura) + '</b><span class="chip' + (x.estado === 'Anulada' ? ' rojo">Anulada' : '">' + esc(x.forma + (x.otra ? ': ' + x.otra : '') + (x.banco ? ' · ' + x.banco : ''))) + '</span></div>' +
+    '<div class="small" style="margin-top:4px">' + usd2(x.valor) + (x.cliente ? ' · ' + esc(x.cliente) : '') + '</div><div class="tiny muted" style="word-break:break-word">' + esc(x.pedido) + '</div>' + (x.entregado ? '<div class="tiny" style="color:var(--ok)">Entregado · recibo ' + esc(x.recibo) + '</div>' : '') + (x.estado === 'Anulada' ? '<div class="tiny" style="color:var(--bad)">' + esc(x.motivoAnula) + '</div>' : '') + (x.estado !== 'Anulada' && !x.entregado && x.fecha === hoyI ? '<button class="btn" data-fpan="' + esc(x.id) + '" style="margin-top:6px;font-size:13px">Anular (me equivoqué)</button>' : '') + '<div class="tiny muted">' + fCorta(new Date(x.fecha + 'T12:00:00')) + (x.hora ? ' · ' + esc(x.hora) : '') + '</div></div>').join('')
+    : '<div class="card vacio">Registra aquí cada factura del POS con su forma de pago, el n.º de pedido o comprobante y el valor con IVA.</div>';
+  return h;
+}
+function fpgFoto(f){ return new Promise((ok, ko) => { const img = new Image(), u = URL.createObjectURL(f); img.onload = () => { const k = Math.min(1, 1600 / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); ok(c.toDataURL('image/jpeg', 0.8)); }; img.onerror = () => ko(new Error('No pude leer la foto.')); img.src = u; }); }
+function anularPago(id){
+  abrir('<h3>Anular registro</h3><p class="small muted" style="margin:0 0 4px">No se borra: queda anulado, con tu nombre y el motivo.</p><label class="f">Motivo</label><textarea class="i" id="aM" maxlength="300" placeholder="Ej.: puse mal el valor"></textarea>' +
+    '<div class="dos" style="margin-top:14px"><button class="btn" id="cx">Cancelar</button><button class="btn pri" id="ok">Anular</button></div>');
+  $('#cx').onclick = cerrar;
+  $('#ok').onclick = () => { const m = $('#aM').value.trim(); if (m.length < 5) return toast('Escribe el motivo.');
+    ocupado('#ok'); llamar('apiFPGAnularTienda', TOKEN, id, YO.nombre, m).then(r => { const i = FPG.lista.findIndex(x => x.id === id); if (i >= 0) FPG.lista[i] = r; cerrar(); toast('Anulado.'); renderCli(); }, e => { libre('#ok'); toast(e.message); }); };
+}
+const FPG_PED = {'deUna': 'Referencia deUna', 'Transferencias': 'N° de documento de la transferencia', 'Tipti': 'N° de pedido Tipti (7 dígitos)', 'Shopping Dólares - Condado': 'Números de los Shopping Dólares', 'MobiSol - Mall del Sol': 'Números de los vales MobiSol', 'Otra': 'N° de comprobante'};   // fpg4
+function formPago(){
+  const F = FPG.formas.length ? FPG.formas : ['deUna', 'Transferencias', 'Tipti', 'Otra'];
+  abrir('<h3>Forma de pago</h3><p class="small muted" style="margin:0 0 4px">Si la factura se pagó con dos formas, registra cada una por separado.</p>' +
+    '<label class="f">N° de factura</label><input class="i" id="pF" inputmode="numeric" autocomplete="off" placeholder="005-001-000004800">' +
+    '<label class="f">Forma de pago</label><select class="i" id="pP"><option value="">Elige la forma de pago</option>' + F.map(x => '<option>' + esc(x) + '</option>').join('') + '</select>' +
+    '<div id="pOW" style="display:none"><label class="f">¿Cuál otra forma de pago?</label><input class="i" id="pO" maxlength="100" autocomplete="off" placeholder="Ej.: tarjeta de crédito"></div>' +
+    '<div id="pBW" style="display:none"><label class="f">Banco</label><input class="i" id="pB" list="fpgBancos" maxlength="40" autocomplete="off" placeholder="Ej.: Pichincha"><datalist id="fpgBancos"><option>Pichincha</option><option>Pacífico</option><option>Guayaquil</option><option>Produbanco</option><option>Bolivariano</option><option>Internacional</option><option>Austro</option><option>Machala</option></datalist></div>' +
+    '<label class="f" id="pNL">N° de pedido o comprobante</label><textarea class="i" id="pN" maxlength="1500" rows="2" placeholder="Pedido, voucher o números de Shopping Dólares"></textarea>' +
+    '<div class="dos"><div><label class="f">Pagado con esta forma</label><input class="i" id="pV" inputmode="decimal" placeholder="0,00"></div><div><label class="f">Total factura (opcional)</label><input class="i" id="pT" inputmode="decimal" placeholder="0,00"></div></div>' +
+    '<label class="f">Cliente (opcional)</label><input class="i" id="pC" maxlength="100" autocomplete="off">' +
+    '<label class="f">Foto de la factura o de los vales (opcional)</label><input class="i" type="file" id="pFo" accept="image/*">' +
+    '<div class="dos" style="margin-top:14px"><button class="btn" id="cx">Cancelar</button><button class="btn pri" id="ok">Guardar</button></div>');
+  $('#cx').onclick = cerrar;
+  $('#pP').onchange = () => { const v = $('#pP').value; $('#pOW').style.display = v === 'Otra' ? '' : 'none'; $('#pBW').style.display = v === 'Transferencias' ? '' : 'none'; $('#pNL').textContent = FPG_PED[v] || 'N° de pedido o comprobante'; };
+  $('#ok').onclick = () => {
+    const d = {factura: $('#pF').value.trim(), forma: $('#pP').value, otra: $('#pO').value.trim(), banco: $('#pB').value.trim(), pedido: $('#pN').value.trim(), valor: Number($('#pV').value.replace(',', '.')) || 0, valorFac: Number($('#pT').value.replace(',', '.')) || 0, cliente: $('#pC').value.trim(), registro: YO.nombre, desde: 'Asesor'};
+    const falta = (d.factura.match(/\d/g) || []).length < 3 ? 'Escribe el número de factura.' : !d.forma ? 'Elige la forma de pago.' : d.forma === 'Otra' && d.otra.length < 3 ? 'Escribe cuál es la otra forma de pago.' : d.forma === 'Transferencias' && d.banco.length < 3 ? 'Escribe el banco de la transferencia.' : !d.pedido ? 'Escribe el ' + (FPG_PED[d.forma] || 'número de pedido o comprobante') + '.' : d.forma === 'Tipti' && d.pedido.replace(/\D/g, '').length !== 7 ? 'El pedido Tipti tiene 7 dígitos.' : !(d.valor > 0) ? 'Pon el valor pagado con esta forma.' : d.valorFac && d.valorFac < d.valor ? 'El total de la factura no puede ser menor que lo pagado.' : '';
+    if (falta) return toast(falta);
+    ocupado('#ok'); const fo = $('#pFo').files && $('#pFo').files[0];
+    (fo ? fpgFoto(fo).then(u => llamar('apiSubirFoto', TOKEN, u, 'pago_' + d.factura.replace(/\D/g, ''))).then(r => { d.foto = r.url; }) : Promise.resolve())
+      .then(() => llamar('apiFPGRegistrar', TOKEN, d)).then(r => { (FPG.lista = FPG.lista || []).unshift(r); cerrar(); toast('¡Registrada! 🙌'); renderCli(); }, e => { libre('#ok'); toast(e.message); });
   };
 }
 let CAT = null;
