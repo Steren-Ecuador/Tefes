@@ -335,16 +335,16 @@
   };
   API.apiAutoconsumoPanel = function (p) { panelOk(p); return acTab().slice(1); };
   /* fpg1: formas de pago de facturas del POS */
-  var FPG_FORMAS = ['Tarjeta de crédito', 'Tarjeta de débito', 'Transferencia', 'Steren Card', 'Crédito directo', 'Cheque', 'Efectivo', 'Otra'];
-  function fpTab() { try { return DB.hoja('Formas de pago'); } catch (e) {} DB.escribir('Formas de pago!A1:J1', [['ID', 'Fecha registro', 'Hora', 'Tienda', 'Registró', 'Desde', 'N° factura', 'Forma de pago', 'N° de pedido', 'Valor con IVA']]); return DB.hoja('Formas de pago'); }
-  function fpObj(r) { return {id: r[0], fecha: S(r[1]), hora: S(r[2]), tienda: r[3], registro: r[4], registroVer: r[4], desde: r[5], factura: S(r[6]), forma: r[7], pedido: S(r[8]), valor: N(r[9]) || 0}; }
+  var FPG_FORMAS = ['Tarjeta de crédito', 'Tarjeta de débito', 'Transferencia', 'Steren Card', 'Shopping Dólares', 'Crédito directo', 'Cheque', 'Efectivo', 'Otra'];
+  function fpTab() { try { return DB.hoja('Formas de pago'); } catch (e) {} DB.escribir('Formas de pago!A1:L1', [['ID', 'Fecha registro', 'Hora', 'Tienda', 'Registró', 'Desde', 'N° factura', 'Forma de pago', 'N° de pedido', 'Valor con IVA', 'Cliente', 'Valor de la factura']]); return DB.hoja('Formas de pago'); }
+  function fpObj(r) { return {id: r[0], fecha: S(r[1]), hora: S(r[2]), tienda: r[3], registro: r[4], registroVer: r[4], desde: r[5], factura: S(r[6]), forma: r[7], pedido: S(r[8]), valor: N(r[9]) || 0, cliente: S(r[10]), valorFac: N(r[11]) || 0}; }
   var fpOrden = function (a, b) { return (b.fecha + b.hora).localeCompare(a.fecha + a.hora); };
   API.apiFPGLista = function (tok) { var t = tiendaDe(tok); return {formas: FPG_FORMAS, lista: fpTab().slice(1).map(fpObj).filter(function (x) { return x.tienda === t; }).sort(fpOrden)}; };
   API.apiFPGRegistrar = function (tok, d) {
     var t = tiendaDe(tok), dd = new Date(), L = fpTab(), sol = function (x) { return S(x).replace(/\D/g, ''); };
     if (FPG_FORMAS.indexOf(d.forma) < 0) throw new Error('Elige la forma de pago.');
     if (L.slice(1).some(function (r) { return r[3] === t && sol(r[6]) === sol(d.factura) && r[7] === d.forma; })) throw new Error('Esa factura ya tiene registrada la forma de pago ' + d.forma + '.');
-    var fila = ['FP' + String(10000 + L.length), DB.isoDe(dd), DB.hm(dd), t, d.registro, d.desde === 'Asesor' ? 'Asesor' : 'Tienda', d.factura, d.forma, d.pedido, String(d.valor)];
+    var fila = ['FP' + String(10000 + L.length), DB.isoDe(dd), DB.hm(dd), t, d.registro, d.desde === 'Asesor' ? 'Asesor' : 'Tienda', d.factura, d.forma, d.pedido, String(d.valor), d.cliente || '', d.valorFac ? String(d.valorFac) : ''];
     DB.agregar('Formas de pago', fila); return fpObj(fila);
   };
   API.apiFPGPanel = function (p) { panelOk(p); return {formas: FPG_FORMAS, lista: fpTab().slice(1).map(fpObj).sort(fpOrden)}; };

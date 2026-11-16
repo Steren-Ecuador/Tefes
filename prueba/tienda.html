@@ -1184,11 +1184,11 @@ function fpgHtml(){
   h += '<button class="btn block" id="fpgNuevo">+ Registrar forma de pago de una factura</button>';
   if (FPGS.error) h += '<div class="card small" style="margin-top:10px">' + esc(FPGS.error) + ' <button class="link" id="fpgRe">Reintentar</button></div>';
   else if (FPGS.lista === null) h += '<div class="card muted small" style="margin-top:10px"><span class="spin"></span> Cargando…</div>';
-  else if (!L.length) h += '<p class="tiny muted" style="margin:8px 2px 0">Registra aquí la factura del POS con su forma de pago, el número de pedido y el valor con IVA.</p>';
+  else if (!L.length) h += '<p class="tiny muted" style="margin:8px 2px 0">Registra aquí la factura del POS con su forma de pago, el n.º de pedido o comprobante y el valor con IVA (por ejemplo, lo pagado con Shopping Dólares).</p>';
   else {
     const V = FPGS.todos ? L : L.slice(0, 8);
     h += '<div class="card" style="margin-top:10px">' + V.map(x => '<div class="vf-it"><div class="vf-h"><b>Fact. ' + esc(x.factura) + ' · ' + fpgUsd(x.valor) + '</b><span class="tag vf-esp">' + esc(x.forma) + '</span></div>' +
-      '<div class="tiny muted">Pedido ' + esc(x.pedido) + ' · registró ' + esc(x.registroVer || x.registro) + ' el ' + fechaCorta(x.fecha) + (x.hora ? ' · ' + esc(x.hora) : '') + '</div></div>').join('') +
+      (x.cliente ? '<div class="small">' + esc(x.cliente) + (x.valorFac ? ' · factura de ' + fpgUsd(x.valorFac) : '') + '</div>' : '') + '<div class="tiny muted" style="word-break:break-word">Pedido/comprobante ' + esc(x.pedido) + ' · registró ' + esc(x.registroVer || x.registro) + ' el ' + fechaCorta(x.fecha) + (x.hora ? ' · ' + esc(x.hora) : '') + '</div></div>').join('') +
       (L.length > V.length ? '<button class="link" id="fpgTodos" style="margin-top:6px">Ver los ' + L.length + ' de los últimos 60 días</button>' : '') + '</div>';
   }
   return h;
@@ -1199,20 +1199,22 @@ function fpgEnlazar(){
   const t = $('#fpgTodos'); if (t) t.onclick = () => { FPGS.todos = true; renderInv(); };
 }
 function fpgFormulario(){
-  const F = FPGS.formas.length ? FPGS.formas : ['Tarjeta de crédito', 'Tarjeta de débito', 'Transferencia', 'Steren Card', 'Crédito directo', 'Cheque', 'Efectivo', 'Otra'];
+  const F = FPGS.formas.length ? FPGS.formas : ['Tarjeta de crédito', 'Tarjeta de débito', 'Transferencia', 'Steren Card', 'Shopping Dólares', 'Crédito directo', 'Cheque', 'Efectivo', 'Otra'];
   openModal('<h3>Forma de pago de una factura</h3>' +
     '<p class="small muted" style="margin:0">Si la factura se pagó con dos formas, registra cada una por separado.</p>' +
     '<label class="f">N° de factura</label><input type="text" id="fpgFac" inputmode="numeric" autocomplete="off" placeholder="005-001-000004800">' +
     '<label class="f">Forma de pago</label><select id="fpgForma"><option value="">Elige la forma de pago</option>' + F.map(m => '<option>' + esc(m) + '</option>').join('') + '</select>' +
-    '<div class="grid2"><div><label class="f">N° de pedido</label><input type="text" id="fpgPed" maxlength="40" autocomplete="off" placeholder="N° de pedido"></div>' +
-    '<div><label class="f">Valor con IVA</label><input type="number" id="fpgVal" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></div></div>' +
+    '<label class="f">N° de pedido o comprobante</label><textarea id="fpgPed" maxlength="1500" rows="2" placeholder="N° de pedido, voucher o los números de los Shopping Dólares"></textarea>' +
+    '<div class="grid2"><div><label class="f">Valor pagado con esta forma (con IVA)</label><input type="number" id="fpgVal" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></div>' +
+    '<div><label class="f">Total de la factura (opcional)</label><input type="number" id="fpgTot" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></div></div>' +
+    '<label class="f">Cliente (opcional)</label><input type="text" id="fpgCli" maxlength="100" autocomplete="off" placeholder="Nombre del cliente">' +
     '<label class="f">¿Quién registra?</label>' + vfQuien('fpgQuien') +
     '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="fpgNo">Cancelar</button><button class="btn primary grow" id="fpgSi">Guardar</button></div>');
   $('#fpgNo').onclick = closeModal;
   $('#fpgSi').onclick = async () => {
-    const d = {factura: $('#fpgFac').value.trim(), forma: $('#fpgForma').value, pedido: $('#fpgPed').value.trim(), valor: $('#fpgVal').value, registro: $('#fpgQuien').value.trim(), desde: 'Tienda'};
-    const falta = (d.factura.match(/\d/g) || []).length < 3 ? 'Escribe el número de factura.' : !d.forma ? 'Elige la forma de pago.' : !d.pedido ? 'Escribe el número de pedido.' :
-      !(Number(d.valor) > 0) ? 'Pon el valor con IVA.' : !d.registro ? 'Elige tu nombre.' : '';
+    const d = {factura: $('#fpgFac').value.trim(), forma: $('#fpgForma').value, pedido: $('#fpgPed').value.trim(), valor: $('#fpgVal').value, valorFac: $('#fpgTot').value, cliente: $('#fpgCli').value.trim(), registro: $('#fpgQuien').value.trim(), desde: 'Tienda'};
+    const falta = (d.factura.match(/\d/g) || []).length < 3 ? 'Escribe el número de factura.' : !d.forma ? 'Elige la forma de pago.' : !d.pedido ? 'Escribe el número de pedido o comprobante.' :
+      !(Number(d.valor) > 0) ? 'Pon el valor pagado con esta forma.' : Number(d.valorFac) > 0 && Number(d.valorFac) < Number(d.valor) ? 'El total de la factura no puede ser menor que lo pagado con esta forma.' : !d.registro ? 'Elige tu nombre.' : '';
     if (falta) { toast(falta, 3500); return; }
     const b = $('#fpgSi'); b.disabled = true; b.textContent = 'Guardando…';
     try {

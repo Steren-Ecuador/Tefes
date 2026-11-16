@@ -1225,7 +1225,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   </div>
   <div class="view" data-view="formaspago" hidden>   <!-- fpg1 -->
     <section class="panel" id="formaspago">
-      <div class="panel-h"><h2>Formas de pago</h2><span class="small faint">Lo que registran asesores y gerentes por cada factura del POS: forma de pago, n.º de pedido y valor con IVA.</span></div>
+      <div class="panel-h"><h2>Formas de pago</h2><span class="small faint">Lo que registran asesores y gerentes por cada factura del POS: forma de pago, n.º de pedido o comprobante (p. ej. Shopping Dólares) y valor con IVA.</span></div>
       <div id="fpgBody"><div class="skeleton">Cargando formas de pago…</div></div>
     </section>
   </div>
@@ -4863,13 +4863,13 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
   function filtrar(){
     const L = (F.d && F.d.lista) || [], f = F.f, q = f.q.trim().toLowerCase().replace(/\s+/g, '');
     return L.filter(x => (!f.t || x.tienda === f.t) && (!f.desde || x.fecha >= f.desde) && (!f.hasta || x.fecha <= f.hasta) && (!f.forma || x.forma === f.forma) &&
-      (!q || (x.factura + ' ' + x.pedido).toLowerCase().replace(/\s+/g, '').indexOf(q) >= 0));
+      (!q || (x.factura + ' ' + x.pedido + ' ' + (x.cliente || '')).toLowerCase().replace(/\s+/g, '').indexOf(q) >= 0));
   }
   function exportar(){
     const L = filtrar(); if (!L.length) { if (typeof toast === 'function') toast('No hay registros para exportar.'); return; }
     const c = v => { const s = String(v == null ? '' : v); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-    const filas = [['Fecha registro', 'Hora', 'Tienda', 'N° factura', 'Forma de pago', 'N° de pedido', 'Valor con IVA', 'Registró', 'Desde', 'ID']]
-      .concat(L.map(x => [x.fecha, x.hora, x.tienda, x.factura, x.forma, x.pedido, Number(x.valor || 0).toFixed(2).replace('.', ','), x.registroVer || x.registro, x.desde, x.id]));
+    const filas = [['Fecha registro', 'Hora', 'Tienda', 'N° factura', 'Forma de pago', 'N° de pedido o comprobante', 'Valor pagado con IVA', 'Cliente', 'Total factura', 'Registró', 'Desde', 'ID']]
+      .concat(L.map(x => [x.fecha, x.hora, x.tienda, x.factura, x.forma, x.pedido, Number(x.valor || 0).toFixed(2).replace('.', ','), x.cliente || '', x.valorFac ? Number(x.valorFac).toFixed(2).replace('.', ',') : '', x.registroVer || x.registro, x.desde, x.id]));
     const blob = new Blob(['﻿' + filas.map(r => r.map(c).join(';')).join('\r\n')], {type: 'text/csv;charset=utf-8'});
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
     a.download = 'Formas de pago ' + (F.f.t || 'todas las tiendas') + ' ' + (F.f.desde || 'inicio') + ' a ' + (F.f.hasta || hoyIso()) + '.csv';
@@ -4888,13 +4888,13 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
       '<label>Desde<input type="date" id="fpgD" value="' + e(f.desde) + '"></label>' +
       '<label>Hasta<input type="date" id="fpgH" value="' + e(f.hasta) + '"></label>' +
       '<label>Forma de pago<select id="fpgF">' + opt('', 'Todas', f.forma) + formas.map(x => opt(x, x, f.forma)).join('') + '</select></label>' +
-      '<label class="grow">Buscar factura o pedido<input type="search" id="fpgQ" value="' + e(f.q) + '" placeholder="Ej.: 4800"></label>' +
+      '<label class="grow">Buscar factura, pedido o cliente<input type="search" id="fpgQ" value="' + e(f.q) + '" placeholder="Ej.: 4800"></label>' +
       '<button class="btn" id="fpgX" title="Descarga lo filtrado; se abre en Excel">Exportar a Excel</button></div>';
     h += '<div class="fpg-k"><div><b>' + usd(tot) + '</b><span>' + L.length + (L.length === 1 ? ' registro' : ' registros') + '</span></div>' +
       Object.keys(por).sort((a, b) => por[b].v - por[a].v).map(k => '<div><b>' + usd(por[k].v) + '</b><span>' + e(k) + ' · ' + por[k].n + '</span></div>').join('') + '</div>';
     h += !L.length ? '<div class="empty">' + (todas.length ? 'No hay registros con estos filtros.' : 'Todavía no hay formas de pago registradas.') + '</div>' :
-      '<div class="fpg-wrap"><table class="fpg-t"><thead><tr><th>Fecha</th><th>Tienda</th><th>Factura</th><th>Forma de pago</th><th>N° de pedido</th><th class="v">Valor con IVA</th><th class="c-reg">Registró</th></tr></thead><tbody>' +
-      L.slice(0, 500).map(x => '<tr><td>' + fCorta(x.fecha) + '<small class="c-hora">' + e(x.hora) + '</small></td><td>' + e(x.tienda) + '</td><td>' + e(x.factura) + '</td><td>' + e(x.forma) + '</td><td>' + e(x.pedido) + '</td><td class="v">' + usd(x.valor) + '</td><td class="c-reg">' + e(x.registroVer || x.registro) + '<small>' + e(x.desde) + '</small></td></tr>').join('') +
+      '<div class="fpg-wrap"><table class="fpg-t"><thead><tr><th>Fecha</th><th>Tienda</th><th>Factura</th><th>Forma de pago</th><th>Pedido o comprobante</th><th class="v">Pagado (con IVA)</th><th class="c-reg">Registró</th></tr></thead><tbody>' +
+      L.slice(0, 500).map(x => '<tr><td>' + fCorta(x.fecha) + '<small class="c-hora">' + e(x.hora) + '</small></td><td>' + e(x.tienda) + '</td><td>' + e(x.factura) + (x.cliente ? '<small>' + e(x.cliente) + '</small>' : '') + '</td><td>' + e(x.forma) + '</td><td style="word-break:break-word;max-width:260px">' + e(x.pedido) + '</td><td class="v">' + usd(x.valor) + (x.valorFac ? '<small>de ' + usd(x.valorFac) + '</small>' : '') + '</td><td class="c-reg">' + e(x.registroVer || x.registro) + '<small>' + e(x.desde) + '</small></td></tr>').join('') +
       '</tbody></table></div>' + (L.length > 500 ? '<p class="small faint">Se muestran los 500 más recientes; la exportación lleva todos (' + L.length + ').</p>' : '');
     el.innerHTML = h;
     const on = (id, k, ev) => { const x = document.getElementById(id); if (x) x.addEventListener(ev || 'change', () => { F.f[k] = x.value; pintar(); if (ev === 'input') { const y = document.getElementById(id); if (y) { y.focus(); y.setSelectionRange(y.value.length, y.value.length); } } }); };
