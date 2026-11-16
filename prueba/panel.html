@@ -1083,6 +1083,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
     <button data-v="calendario" title="Las visitas de todos a las tiendas, mes a mes">Calendario</button>
     <button data-v="anuncios" title="Anuncios a las tiendas y quién los leyó">Anuncios</button>
     <button data-v="flash" title="Venta del día y del mes contra presupuesto, desde el ERP">Flash de Ventas</button>
+    <button data-v="formaspago" title="Formas de pago de las facturas del POS, registradas por las tiendas">Formas de pago</button>
     <button data-v="pendientes">Todos los pendientes<span class="n bad" id="nPend"></span></button>
     <button data-v="supervision">Nueva supervisión</button>
     <button data-v="inventario">Inventario<span class="n bad" id="nInv"></span></button>
@@ -1220,6 +1221,12 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
       <div class="panel-h"><h2>Contactos de tiendas<span class="cfil"></span></h2><span class="small faint">Toca para llamar, escribir por WhatsApp o enviar un correo a la tienda.</span></div>
       <div id="ctBody"><div class="skeleton">Cargando contactos…</div></div>
       <p class="small faint" style="margin:12px 0 0"><a href="#" id="carpeta" target="_blank" rel="noopener">Carpeta pública en Drive</a> con los informes y fotos de las supervisiones.</p>
+    </section>
+  </div>
+  <div class="view" data-view="formaspago" hidden>   <!-- fpg1 -->
+    <section class="panel" id="formaspago">
+      <div class="panel-h"><h2>Formas de pago</h2><span class="small faint">Lo que registran asesores y gerentes por cada factura del POS: forma de pago, n.º de pedido y valor con IVA.</span></div>
+      <div id="fpgBody"><div class="skeleton">Cargando formas de pago…</div></div>
     </section>
   </div>
   <div id="tipos" hidden></div><span id="byPointSub" hidden></span>
@@ -1531,7 +1538,7 @@ function hlPintar(filas, todas){
 }
 /* mn1: sub-opciones del menú por temas (Diego 8-nov): una vista muestra solo la parte elegida */
 (function(){
-  const MN_T = {"hoy": [["hoy", "val", "Esperan tu validación"], ["hoy", "sup", "Posiciones de supervisión"], ["hoy", "ven", "Ventas vs presupuesto"], ["hoy", "act", "Actividades del mes"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "fl", "Flash de ventas"], ["flash", "fd", "Explorar ventas"], ["flash", "gar", "Garantías extendidas"], ["flash", "pp", "Presupuesto por persona"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "stock", "Consultar stock"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "pf", "Proformas"], ["clientes", "vf", "Lista de espera"]]};
+  const MN_T = {"hoy": [["hoy", "val", "Esperan tu validación"], ["hoy", "sup", "Posiciones de supervisión"], ["hoy", "ven", "Ventas vs presupuesto"], ["hoy", "act", "Actividades del mes"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "fl", "Flash de ventas"], ["flash", "fd", "Explorar ventas"], ["flash", "gar", "Garantías extendidas"], ["flash", "pp", "Presupuesto por persona"], ["formaspago", "", "Formas de pago"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "stock", "Consultar stock"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "pf", "Proformas"], ["clientes", "vf", "Lista de espera"]]};
   window.MN_SUB = window.MN_SUB || {};
   window.MN_T_REF = MN_T;   // mp3
   const subsDe = v => { const r = []; Object.keys(MN_T).forEach(t => MN_T[t].forEach(x => { if (x[0] === v && x[1]) r.push(x); })); return r; };
@@ -2556,7 +2563,7 @@ window.fdsAbrir = function(){
 };
 
 /* ---------- pestañas ---------- */
-const VISTAS = ['hoy','calendario','anuncios','flash','pendientes','supervision','inventario','vivo','politicas','clientes','guias','universidad','contactos'];
+const VISTAS = ['hoy','calendario','anuncios','flash','pendientes','supervision','inventario','vivo','politicas','clientes','guias','universidad','contactos','formaspago'];   // fpg1
 function ir(v){
   if (v === 'vivo') v = 'inventario';   // En vivo está arriba de Inventario
   if (v === 'avisos') v = 'anuncios';   // an1: los anuncios tienen su propia opción de menú
@@ -4118,7 +4125,7 @@ button.cal-fila:hover{background:var(--surface-2)}
 <script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "¿Qué buscas? Inventario, Scala, política…",
-  temas: [{"id": "hoy", "nombre": "Inicio", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash"]}, {"id": "universidad", "nombre": "Universidad", "vistas": ["universidad"]}, {"id": "inventarios", "nombre": "Mercadería", "vistas": ["inventario"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["contactos"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["clientes"]}],
+  temas: [{"id": "hoy", "nombre": "Inicio", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "formaspago"]}, {"id": "universidad", "nombre": "Universidad", "vistas": ["universidad"]}, {"id": "inventarios", "nombre": "Mercadería", "vistas": ["inventario"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["contactos"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["clientes"]}],
   items: [{"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Inicio", "v": "hoy", "sub": "Validar, supervisión, ventas y actividades", "kw": "inicio resumen mapa validar actividades caja chica"}, {"t": "Anuncios a tiendas", "v": "anuncios", "sub": "Anuncios", "kw": "anuncios avisos comunicados publicar aviso semana leyeron lectura confirmar"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Clientes", "v": "clientes", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Supervisión", "v": "supervision", "sub": "Tiendas · hacer o revisar una supervisión", "kw": "supervisar visita checklist nueva supervision puntaje hoja"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Contactos de tiendas", "v": "contactos", "sub": "Contactos · por ciudad, con encargado y celular del gerente", "kw": "telefono whatsapp correo llamar personas gerente tienda encargado celular ciudad contactos"}],
   extra: function(){
     const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
@@ -4769,7 +4776,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     'universidad|tabla': 'universidad/tabla', 'universidad|gol': 'universidad/gol', 'universidad|car': 'universidad/car', 'universidad|al': 'universidad/al',
     'politicas|leer': 'politicas/politicas', 'guias|': 'politicas/guias', 'politicas|rep': 'politicas/reporte',
     'contactos|tel': 'contactos/tel', 'contactos|wa': 'contactos/wa', 'contactos|mail': 'contactos/mail', 'contactos|hor': 'contactos/hor',
-    'clientes|pf': 'clientes/pf', 'clientes|vf': 'clientes/vf'};
+    'clientes|pf': 'clientes/pf', 'clientes|vf': 'clientes/vf', 'formaspago|': 'ventas/formaspago'};
   let quien = '', pedido = false;
   function ordenar(cfg){   // mp5: orden de temas y sub-opciones del perfil (lo que no está en la hoja va al final)
     const O = Array.isArray(cfg && cfg.orden) ? cfg.orden : []; if (!O.length) return;
@@ -4820,6 +4827,87 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     if (t) { t.click(); setTimeout(() => { const s = document.querySelector('.tem-sub:not([hidden]) [data-v]'); if (s && !s.classList.contains('on')) s.click(); }, 80); }
     else { const b = document.querySelector('#tabs button[data-v], header nav button[data-v], nav button[data-v]'); if (b) b.click(); }
     window.scrollTo(0, 0); });
+})();
+</script>
+<style>/* fpg1 */
+.fpg-f{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:12px}
+.fpg-f label{display:flex;flex-direction:column;font-size:12px;color:var(--fg-3,#6b7280);gap:3px}
+.fpg-f select,.fpg-f input{font:inherit;font-size:14px;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface,#fff);color:inherit;min-width:0}
+.fpg-f .grow{flex:1;min-width:160px}
+.fpg-k{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:0 0 12px}
+.fpg-k div{border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.fpg-k b{display:block;font-size:18px;font-variant-numeric:tabular-nums}.fpg-k span{font-size:12px;opacity:.7}
+.fpg-t{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+.fpg-t th,.fpg-t td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.fpg-t th{font-size:12px;color:var(--fg-3,#6b7280);font-weight:600}.fpg-t td.v,.fpg-t th.v{text-align:right;white-space:nowrap}
+.fpg-t td small{display:block;opacity:.65;font-size:11.5px}
+.fpg-wrap{overflow-x:auto}
+@media(max-width:700px){.fpg-t .c-reg,.fpg-t .c-hora{display:none}}
+</style>
+<script>/* fpg1: Ventas › Formas de pago (Diego 16-nov) */
+(function(){
+  const F = {d: null, cargando: false, error: '', f: {t: '', desde: '', hasta: '', forma: '', q: ''}};
+  const e = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const usd = n => '$' + Number(n || 0).toLocaleString('es-EC', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const hoyIso = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+  const fCorta = i => i ? i.slice(8, 10) + '/' + i.slice(5, 7) + '/' + i.slice(0, 4) : '';
+  const C = () => window.cvCtx || null, quien = () => { const c = C(), y = c && c.yo(); return (y && y.nombre) || ''; };
+  function cargar(){
+    if (F.cargando || !C()) { if (!F.cargando) setTimeout(cargar, 800); return; }
+    if (!quien()) { setTimeout(cargar, 800); return; }
+    F.cargando = true; F.error = '';
+    C().api('apiFPGPanel', quien()).then(x => { F.d = x || {formas: [], lista: []}; })
+      .catch(err => { F.error = (err && err.message) || 'No se pudo cargar.'; })
+      .finally(() => { F.cargando = false; pintar(); });
+  }
+  function filtrar(){
+    const L = (F.d && F.d.lista) || [], f = F.f, q = f.q.trim().toLowerCase().replace(/\s+/g, '');
+    return L.filter(x => (!f.t || x.tienda === f.t) && (!f.desde || x.fecha >= f.desde) && (!f.hasta || x.fecha <= f.hasta) && (!f.forma || x.forma === f.forma) &&
+      (!q || (x.factura + ' ' + x.pedido).toLowerCase().replace(/\s+/g, '').indexOf(q) >= 0));
+  }
+  function exportar(){
+    const L = filtrar(); if (!L.length) { if (typeof toast === 'function') toast('No hay registros para exportar.'); return; }
+    const c = v => { const s = String(v == null ? '' : v); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    const filas = [['Fecha registro', 'Hora', 'Tienda', 'N° factura', 'Forma de pago', 'N° de pedido', 'Valor con IVA', 'Registró', 'Desde', 'ID']]
+      .concat(L.map(x => [x.fecha, x.hora, x.tienda, x.factura, x.forma, x.pedido, Number(x.valor || 0).toFixed(2).replace('.', ','), x.registroVer || x.registro, x.desde, x.id]));
+    const blob = new Blob(['﻿' + filas.map(r => r.map(c).join(';')).join('\r\n')], {type: 'text/csv;charset=utf-8'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'Formas de pago ' + (F.f.t || 'todas las tiendas') + ' ' + (F.f.desde || 'inicio') + ' a ' + (F.f.hasta || hoyIso()) + '.csv';
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  function pintar(){
+    const el = document.getElementById('fpgBody'); if (!el) return;
+    if (F.error) { el.innerHTML = '<div class="empty">' + e(F.error) + ' <button class="btn" id="fpgRe">Reintentar</button></div>'; document.getElementById('fpgRe').onclick = () => { F.error = ''; cargar(); pintar(); }; return; }
+    if (!F.d) { el.innerHTML = '<div class="skeleton">Cargando formas de pago…</div>'; return; }
+    const todas = F.d.lista || [], tiendas = [...new Set(todas.map(x => x.tienda))].sort(), formas = F.d.formas || [], f = F.f;
+    const L = filtrar(), tot = L.reduce((a, x) => a + (x.valor || 0), 0), por = {};
+    L.forEach(x => { por[x.forma] = por[x.forma] || {v: 0, n: 0}; por[x.forma].v += x.valor || 0; por[x.forma].n++; });
+    const opt = (v, txt, sel) => '<option value="' + e(v) + '"' + (v === sel ? ' selected' : '') + '>' + e(txt) + '</option>';
+    let h = '<div class="fpg-f">' +
+      '<label>Tienda<select id="fpgT">' + opt('', 'Todas', f.t) + tiendas.map(t => opt(t, t, f.t)).join('') + '</select></label>' +
+      '<label>Desde<input type="date" id="fpgD" value="' + e(f.desde) + '"></label>' +
+      '<label>Hasta<input type="date" id="fpgH" value="' + e(f.hasta) + '"></label>' +
+      '<label>Forma de pago<select id="fpgF">' + opt('', 'Todas', f.forma) + formas.map(x => opt(x, x, f.forma)).join('') + '</select></label>' +
+      '<label class="grow">Buscar factura o pedido<input type="search" id="fpgQ" value="' + e(f.q) + '" placeholder="Ej.: 4800"></label>' +
+      '<button class="btn" id="fpgX" title="Descarga lo filtrado; se abre en Excel">Exportar a Excel</button></div>';
+    h += '<div class="fpg-k"><div><b>' + usd(tot) + '</b><span>' + L.length + (L.length === 1 ? ' registro' : ' registros') + '</span></div>' +
+      Object.keys(por).sort((a, b) => por[b].v - por[a].v).map(k => '<div><b>' + usd(por[k].v) + '</b><span>' + e(k) + ' · ' + por[k].n + '</span></div>').join('') + '</div>';
+    h += !L.length ? '<div class="empty">' + (todas.length ? 'No hay registros con estos filtros.' : 'Todavía no hay formas de pago registradas.') + '</div>' :
+      '<div class="fpg-wrap"><table class="fpg-t"><thead><tr><th>Fecha</th><th>Tienda</th><th>Factura</th><th>Forma de pago</th><th>N° de pedido</th><th class="v">Valor con IVA</th><th class="c-reg">Registró</th></tr></thead><tbody>' +
+      L.slice(0, 500).map(x => '<tr><td>' + fCorta(x.fecha) + '<small class="c-hora">' + e(x.hora) + '</small></td><td>' + e(x.tienda) + '</td><td>' + e(x.factura) + '</td><td>' + e(x.forma) + '</td><td>' + e(x.pedido) + '</td><td class="v">' + usd(x.valor) + '</td><td class="c-reg">' + e(x.registroVer || x.registro) + '<small>' + e(x.desde) + '</small></td></tr>').join('') +
+      '</tbody></table></div>' + (L.length > 500 ? '<p class="small faint">Se muestran los 500 más recientes; la exportación lleva todos (' + L.length + ').</p>' : '');
+    el.innerHTML = h;
+    const on = (id, k, ev) => { const x = document.getElementById(id); if (x) x.addEventListener(ev || 'change', () => { F.f[k] = x.value; pintar(); if (ev === 'input') { const y = document.getElementById(id); if (y) { y.focus(); y.setSelectionRange(y.value.length, y.value.length); } } }); };
+    on('fpgT', 't'); on('fpgD', 'desde'); on('fpgH', 'hasta'); on('fpgF', 'forma'); on('fpgQ', 'q', 'input');
+    document.getElementById('fpgX').onclick = exportar;
+  }
+  const hoy = hoyIso(); F.f.desde = hoy.slice(0, 8) + '01'; F.f.hasta = hoy;
+  const v = document.querySelector('.view[data-view="formaspago"]');
+  if (v) {
+    const mira = () => { if (!v.hidden && !F.d && !F.cargando) { cargar(); pintar(); } };
+    new MutationObserver(mira).observe(v, {attributes: true, attributeFilter: ['hidden']}); mira();
+    const r = document.getElementById('refresh'); if (r) r.addEventListener('click', () => { if (!v.hidden) { F.d = null; cargar(); pintar(); } else F.d = null; });
+  }
 })();
 </script>
 </body>
