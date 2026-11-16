@@ -335,8 +335,8 @@
   };
   API.apiAutoconsumoPanel = function (p) { panelOk(p); return acTab().slice(1); };
   /* fpg1: formas de pago de facturas del POS (en la prueba la bitácora vive en memoria) */
-  var FPG_FORMAS = ['deUna', 'Transferencias', 'Shopping Dólares - Condado', 'MobiSol - Mall del Sol', 'Otra'], fpDe = function (t) { return FPG_FORMAS.filter(function (f) { return f.indexOf('Condado') > 0 ? /condado/i.test(t) : f.indexOf('MobiSol') === 0 ? /\bsol\b/i.test(t) : true; }); }, FPG_BIT = [];
-  var FPG_CAB = ['ID', 'Fecha registro', 'Hora', 'Tienda', 'Registró', 'Desde', 'N° factura', 'Forma de pago', 'N° de pedido', 'Valor con IVA', 'Cliente', 'Valor de la factura', 'Foto', 'Entregado', 'N° recibo', 'Marcó entrega', 'Estado', 'Anuló', 'Motivo anulación', 'Detalle otra'];
+  var FPG_FORMAS = ['deUna', 'Transferencias', 'Tipti', 'Shopping Dólares - Condado', 'MobiSol - Mall del Sol', 'Otra'], fpDe = function (t) { return FPG_FORMAS.filter(function (f) { return f.indexOf('Condado') > 0 ? /condado/i.test(t) : f.indexOf('MobiSol') === 0 ? /\bsol\b/i.test(t) : true; }); }, FPG_BIT = [];
+  var FPG_CAB = ['ID', 'Fecha registro', 'Hora', 'Tienda', 'Registró', 'Desde', 'N° factura', 'Forma de pago', 'N° de pedido', 'Valor con IVA', 'Cliente', 'Valor de la factura', 'Foto', 'Entregado', 'N° recibo', 'Marcó entrega', 'Estado', 'Anuló', 'Motivo anulación', 'Detalle otra', 'Banco'];
   /* fpg3: ejemplo con las 8 facturas de Condado del 24-oct (registro de Shopping Dólares que ya usaba la tienda; clientes de ejemplo) */
   var FPG_EJ = [['3607', 'Abigail', '4', '3.99', 'BILLECOND 28858-28859-28857-28860', '64', '17:05'], ['3616', 'Danny', '10', '21.99', 'BILLECOND35590 BILLECOND35589 BILLECOND35588 BILLECOND35587 BILLECOND35586 BILLECOND35585 BILLECOND35594 BILLECOND35593 BILLECOND35592 BILLECOND35591', '62', '17:40'],
     ['3620', 'Mauricio', '14', '36', 'BILLECOND35939 BILLECOND35940 BILLECOND35941 BILLECOND35942 BILLECOND35943 BILLECOND35944 BILLECOND35945 BILLECOND35946 BILLECOND35947 BILLECOND35948 BILLECOND35949 BILLECOND35950 BILLECOND35951 BILLECOND35952', '62', '18:12'],
@@ -346,7 +346,7 @@
     ['3641', 'Kevin', '12', '27.99', 'BILLECOND38012 BILLECOND38002 BILLECOND38003 BILLECOND38004 BILLECOND38005 BILLECOND38006 BILLECOND38007 BILLECOND38008 BILLECOND38009 BILLECOND38010 BILLECOND38011 BILLECOND38001', '252', '20:02'],
     ['3642', 'Danny', '6', '19.99', 'BILLECOND39713-BILLECOND39712-BILLECOND39711-BILLECOND39710-BILLECOND39709-BILLECOND39708', '253', '20:35']];
   function fpTab() { try { return DB.hoja('Formas de pago'); } catch (e) {}
-    DB.escribir('Formas de pago!A1:T1', [FPG_CAB]);
+    DB.escribir('Formas de pago!A1:U1', [FPG_CAB]);
     var ay = DB.isoDe(new Date(Date.now() - 864e5)), hy = DB.isoDe(new Date());   // fechas corridas a ayer para que salgan con el filtro del mes
     FPG_EJ.forEach(function (x, i) { var ent = i < 5, f = ['FP' + String(10001 + i), ay, x[6], 'Condado', x[1], 'Tienda', x[0], 'Shopping Dólares - Condado', x[4], x[2], 'Cliente de ejemplo ' + (i + 1), x[3], '', ent ? hy : '', ent ? x[5] : '', ent ? 'Financiero' : '', 'Vigente', '', '', ''];
       DB.agregar('Formas de pago', f); var o = fpObj(f);
@@ -354,16 +354,16 @@
       if (ent) FPG_BIT.unshift({fecha: hy, hora: '10:15', accion: 'Entrega', id: o.id, tienda: 'Condado', quien: 'Financiero', desde: 'Panel', detalle: 'Recibo ' + x[5]}); });
     FPG_BIT.sort(function (a, b) { return (b.fecha + b.hora).localeCompare(a.fecha + a.hora); });
     return DB.hoja('Formas de pago'); }
-  function fpObj(r) { return {id: r[0], fecha: S(r[1]), hora: S(r[2]), tienda: r[3], registro: r[4], registroVer: r[4], desde: r[5], factura: S(r[6]), forma: r[7], pedido: S(r[8]), valor: N(r[9]) || 0, cliente: S(r[10]), valorFac: N(r[11]) || 0, foto: S(r[12]), entregado: S(r[13]), recibo: S(r[14]), marco: S(r[15]), estado: S(r[16]) || 'Vigente', anulo: S(r[17]), motivoAnula: S(r[18]), otra: S(r[19])}; }
+  function fpObj(r) { return {id: r[0], fecha: S(r[1]), hora: S(r[2]), tienda: r[3], registro: r[4], registroVer: r[4], desde: r[5], factura: S(r[6]), forma: r[7], pedido: S(r[8]), valor: N(r[9]) || 0, cliente: S(r[10]), valorFac: N(r[11]) || 0, foto: S(r[12]), entregado: S(r[13]), recibo: S(r[14]), marco: S(r[15]), estado: S(r[16]) || 'Vigente', anulo: S(r[17]), motivoAnula: S(r[18]), otra: S(r[19]), banco: S(r[20])}; }
   var fpOrden = function (a, b) { return (b.fecha + b.hora).localeCompare(a.fecha + a.hora); };
   function fpLog(acc, o, q, desde, det) { var d = new Date(); FPG_BIT.unshift({fecha: DB.isoDe(d), hora: DB.hm(d), accion: acc, id: o ? o.id : '', tienda: o ? o.tienda : '', quien: String(q || '').split('#')[0], desde: desde, detalle: det || ''}); }
-  function fpPoner(i, f) { while (f.length < 20) f.push(''); DB.escribir('Formas de pago!A' + (i + 1) + ':T' + (i + 1), [f]); return fpObj(f); }
+  function fpPoner(i, f) { while (f.length < 21) f.push(''); DB.escribir('Formas de pago!A' + (i + 1) + ':U' + (i + 1), [f]); return fpObj(f); }
   API.apiFPGLista = function (tok) { var t = tiendaDe(tok); return {formas: fpDe(t), hoy: DB.isoDe(new Date()), lista: fpTab().slice(1).map(fpObj).filter(function (x) { return x.tienda === t; }).sort(fpOrden)}; };
   API.apiFPGRegistrar = function (tok, d) {
     var t = tiendaDe(tok), dd = new Date(), L = fpTab(), sol = function (x) { return S(x).replace(/\D/g, ''); };
-    if (fpDe(t).indexOf(d.forma) < 0) throw new Error('Elige la forma de pago.'); var otra = d.forma === 'Otra' ? S(d.otra).trim() : ''; if (d.forma === 'Otra' && otra.length < 3) throw new Error('Escribe cuál es la otra forma de pago.');
+    if (fpDe(t).indexOf(d.forma) < 0) throw new Error('Elige la forma de pago.'); var otra = d.forma === 'Otra' ? S(d.otra).trim() : ''; if (d.forma === 'Otra' && otra.length < 3) throw new Error('Escribe cuál es la otra forma de pago.'); var banco = d.forma === 'Transferencias' ? S(d.banco).trim() : ''; if (d.forma === 'Transferencias' && banco.length < 3) throw new Error('Escribe el banco de la transferencia.'); if (d.forma === 'Tipti' && S(d.pedido).replace(/\D/g, '').length !== 7) throw new Error('El pedido Tipti tiene 7 dígitos.');
     if (L.slice(1).some(function (r) { return r[3] === t && sol(r[6]) === sol(d.factura) && r[7] === d.forma && (d.forma !== 'Otra' || S(r[19]).toLowerCase() === otra.toLowerCase()) && r[16] !== 'Anulada'; })) throw new Error('Esa factura ya tiene registrada la forma de pago ' + d.forma + '.');
-    var fila = ['FP' + String(10000 + L.length), DB.isoDe(dd), DB.hm(dd), t, d.registro, d.desde === 'Asesor' ? 'Asesor' : 'Tienda', d.factura, d.forma, d.pedido, String(d.valor), d.cliente || '', d.valorFac ? String(d.valorFac) : '', d.foto || '', '', '', '', 'Vigente', '', '', otra];
+    var fila = ['FP' + String(10000 + L.length), DB.isoDe(dd), DB.hm(dd), t, d.registro, d.desde === 'Asesor' ? 'Asesor' : 'Tienda', d.factura, d.forma, d.pedido, String(d.valor), d.cliente || '', d.valorFac ? String(d.valorFac) : '', d.foto || '', '', '', '', 'Vigente', '', '', otra, banco];
     DB.agregar('Formas de pago', fila); var o = fpObj(fila); fpLog('Registro', o, d.registro, fila[5], 'Fact. ' + o.factura + ' · ' + o.forma + ' · $' + o.valor); return o;
   };
   function fpAnular(id, q, desde, mot) { var H = fpTab(), i = H.findIndex(function (r) { return r[0] === id; }); if (i < 1) throw new Error('No encontré el registro.');
