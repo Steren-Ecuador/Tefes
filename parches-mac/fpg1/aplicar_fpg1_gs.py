@@ -30,7 +30,12 @@ parchar('PortalApi.gs', [(
     "  apiAutoconsumoPanel: (a) => apiAutoconsumoPanel(...a),   // aco1\n"
     "  apiFPGLista: (a) => apiFPGLista(...a),   // fpg1 (FormasPago.gs)\n"
     "  apiFPGRegistrar: (a) => apiFPGRegistrar(...a),   // fpg1\n"
-    "  apiFPGPanel: (a) => apiFPGPanel(...a),   // fpg1\n")])
+    "  apiFPGPanel: (a) => apiFPGPanel(...a),   // fpg1\n"
+    "  apiFPGEntregar: (a) => apiFPGEntregar(...a),   // fpg1\n"
+    "  apiFPGAnularTienda: (a) => apiFPGAnularTienda(...a),   // fpg1\n"
+    "  apiFPGAnularPanel: (a) => apiFPGAnularPanel(...a),   // fpg1\n"
+    "  apiFPGBitacora: (a) => apiFPGBitacora(...a),   // fpg1\n"
+    "  apiFPGExporto: (a) => apiFPGExporto(...a),   // fpg1\n")])
 
 parchar('MenusPerfil.gs', [(
     "    if (/^admin/i.test(perfil) || !R.length) return {perfil: perfil, todo: true, orden: orden};",
