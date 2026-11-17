@@ -398,11 +398,11 @@ function fpgValidar_(d, tienda, filas, hoy, formas, extras) {
   const CUENTAS = ['Pichincha cte. 2100349639', 'Produbanco cte. 02006219957', 'Bolivariano cte. 5005110152'];
   let otra = '', banco = '', ref = txt(d.pedido, 1500), claves = [];
   const esVale = forma === 'Otra' && /shopping|mobisol|vale/i.test(String(d.otra || ''));
-  if (forma === 'deUna') { ref = ref.replace(/\s/g, ''); if (ref.length < 4) throw new Error('Escribe el comprobante de deUna.'); claves = ['DEUNA ' + ref.toUpperCase()]; }
+  if (forma === 'deUna') { ref = ref.replace(/\s/g, ''); if (/\D/.test(ref)) throw new Error('El comprobante de deUna lleva solo números.'); /* fpg12 */ if (ref.length < 4) throw new Error('Escribe el comprobante de deUna.'); claves = ['DEUNA ' + ref.toUpperCase()]; }
   else if (forma === 'Tipti') { ref = ref.replace(/\D/g, ''); if (ref.length < 4 || ref.length > 12) throw new Error('El pedido Tipti es solo números.'); claves = ['TIPTI ' + ref]; }
   else if (forma === 'Transferencias') {
     banco = txt(d.banco, 60); if (CUENTAS.indexOf(banco) < 0) throw new Error('Elige la cuenta de la empresa a la que llegó la transferencia.');
-    ref = ref.replace(/\s/g, ''); if (ref.length < 3) throw new Error('Escribe el comprobante de la transferencia.'); claves = ['TRANSF ' + banco.toUpperCase() + ' ' + ref.toUpperCase()];
+    ref = ref.replace(/\s/g, ''); if (/\D/.test(ref)) throw new Error('El comprobante de la transferencia lleva solo números.'); /* fpg12 */ if (ref.length < 3) throw new Error('Escribe el comprobante de la transferencia.'); claves = ['TRANSF ' + banco.toUpperCase() + ' ' + ref.toUpperCase()];
   } else if (forma === 'Otra') {
     otra = txt(d.otra, 100); if (otra.length < 3) throw new Error('Escribe el detalle: qué forma de pago es.');
     if (ref.length < 3) throw new Error('Escribe el número de comprobante o de los vales.');
