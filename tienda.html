@@ -1417,8 +1417,7 @@ function fpgWizard(o){
     const valor = lab => campoUsd(lab, ph) + '<div class="fw-err" id="fwValAv" style="margin-top:6px" hidden></div>' + (falta ? '<div class="fw-h"><button type="button" data-fw="todo" style="border:0;background:none;color:#0077c0;padding:0;font-size:13px;cursor:pointer">Usar lo que falta: ' + usd(falta) + '</button></div>' : '');
     if (f === 'deUna') h += valor('Valor pagado con deUna') + ref('Comprobante (solo números)', 'inputmode="numeric" maxlength="30"', 'Ej.: 123456789') + '<div class="fw-err" id="fwRefAv" style="margin-top:6px" hidden></div>';
     else if (f === 'Tipti') h += valor('Valor pagado con Tipti') + ref('N° de pedido', 'inputmode="numeric" maxlength="12"', 'Ej.: 1234567');
-    else if (f === 'Transferencias') h += '<div class="fw-aviso" style="background:#fff8e1;border:1px solid #f5c26b;color:#7a4b00;border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.4;margin:0 0 12px">⚠️ <b>Registrar aquí no valida la transferencia.</b> Antes de entregar la mercadería, confírmala con Financiero y guarda el respaldo (comprobante del banco).</div>' +   // fpg14
-      '<label>Cuenta de la empresa a la que transfirió el cliente ' + ob + '</label><div class="fw-ban">' + CUENTAS.map(b => '<button data-ban="' + esc(b) + '" class="' + (D.banco === b ? 'sel' : '') + '">' + esc(b) + '</button>').join('') + '</div>' +
+    else if (f === 'Transferencias') h += '<label>Cuenta de la empresa a la que transfirió el cliente ' + ob + '</label><div class="fw-ban">' + CUENTAS.map(b => '<button data-ban="' + esc(b) + '" class="' + (D.banco === b ? 'sel' : '') + '">' + esc(b) + '</button>').join('') + '</div>' +
       valor('Valor pagado') + ref('Comprobante de la transferencia (solo números)', 'inputmode="numeric" maxlength="30"', 'N° del comprobante') + '<div class="fw-err" id="fwRefAv" style="margin-top:6px" hidden></div>';
     else if (f === 'Otra') h += '<label>Detalle: ¿qué forma de pago es? ' + ob + '</label><div class="fw-ban" style="margin-bottom:6px">' + VALES_OTRA.map(b => '<button data-otra="' + esc(b) + '" class="' + (D.otra === b ? 'sel' : '') + '">' + esc(b) + '</button>').join('') + '</div>' +
       '<textarea id="fwOtra" rows="2" maxlength="100" placeholder="Ej.: Shopping Dólares Condado, MobiSol, tarjeta Diners…">' + esc(D.otra) + '</textarea>' +
@@ -1440,6 +1439,7 @@ function fpgWizard(o){
       '<div class="fw-h okk" id="fwCuoV">' + cuotaTxt() + '</div>';
     h += '<label>Foto ' + (fotoOblig() ? '(obligatoria) ' : '(opcional) ') + 'del ' + (esVale() ? 'vale y la factura' : 'comprobante') + '</label>' +
       '<div class="fw-foto">' + (D.fotoUrl ? '<img src="' + D.fotoUrl + '" alt="">' : '') + '<label class="fw-fbtn">📷 ' + (D.fotoUrl ? 'Cambiar foto' : 'Tomar o elegir foto') + '<input type="file" id="fwFoto" accept="image/*" hidden></label></div>';
+    if (f === 'Transferencias') h += '<div class="fw-h" style="margin-top:14px;color:#64748b;font-size:13px;line-height:1.4">ℹ️ La transferencia la valida Financiero antes de facturar, con su respaldo. Este registro no reemplaza esa validación.</div>';   // fpg15
     return h + nav('Revisar →');
   }
   function resumen(){
@@ -1464,7 +1464,7 @@ function fpgWizard(o){
         '<label>N° de factura ' + ob + '</label><div class="fw-fac"><input id="fwPto" inputmode="numeric" placeholder="005-001" value="' + esc(D.pto) + '" maxlength="7"><input id="fwSec" inputmode="numeric" placeholder="Número (ej. 4800)" value="' + esc(D.sec) + '" maxlength="9" autocomplete="off"></div>' +
         '<div class="fw-h" id="fwFacV">' + (facNorm() ? 'Factura <b>' + facNorm() + '</b>' : 'Punto de emisión y número') + '</div>' +
         '<div class="fw-dos"><div><label>Fecha de la factura ' + ob + '</label><input type="date" id="fwFecha" value="' + esc(D.fechaFac) + '" max="' + hoy + '" min="' + dias(hoy, -45) + '"' + (fijo ? ' disabled' : '') + '></div>' +
-        '<div><label>Total con IVA ' + ob + '</label><div class="fw-usd"><input id="fwTot" inputmode="decimal" placeholder="0,00" value="' + esc(D.valorFac) + '"' + (fijo ? ' disabled' : '') + '></div></div></div>' +
+        '<div><label>Valor total de la factura con IVA ' + ob + '</label><div class="fw-usd"><input id="fwTot" inputmode="decimal" placeholder="0,00" value="' + esc(D.valorFac) + '"' + (fijo ? ' disabled' : '') + '></div></div></div>' +
         (o.quienFijo ? '' : '<label>Vendedor (quién hizo la venta) ' + ob + '</label>' + (fijo && D.vend ? '<input value="' + esc(D.vend) + '" disabled>' : (o.quienHtml || '').replace(/id="[^"]*"/, 'id="fwVend"').replace('Elige tu nombre', 'Elige quién vendió').replace('Tu nombre y apellido', 'Nombre de quien vendió'))) +
         (pv.length ? '<div class="fw-ya">Esta factura ya tiene registrado: ' + pv.map(x => esc(nom(x.forma)) + ' ' + usd(x.valor)).join(', ') + '. ' + (ya() >= num(D.valorFac) - 0.004 ? '<b>Ya está completa</b>: no hay nada más que registrar.' : 'Falta por registrar <b>' + usd(Math.max(0, num(D.valorFac) - ya())) + '</b>.') + '</div>' : '') +
         nav('Siguiente →');
