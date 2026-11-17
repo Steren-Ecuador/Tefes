@@ -4913,6 +4913,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
 .fpg-an td{opacity:.55}.fpg-an td:nth-child(7){text-decoration:line-through}.fpg-x{color:#b3261e;font-weight:600}
 @media(max-width:700px){.fpg-t .c-reg,.fpg-t .c-hora{display:none}}
 </style>
+<style>/* fpg10 */.fpg-f{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end;margin-bottom:14px}.fpg-f label{flex:1 1 100px;max-width:150px}.fpg-f label.grow{flex:2 1 170px;max-width:none}.fpg-f select,.fpg-f input{height:36px;box-sizing:border-box;width:100%}.fpg-f #fpgX{height:36px;margin-left:auto;white-space:nowrap}.fpg-sum{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:0 0 10px;padding:10px 12px;border-radius:12px;background:var(--surface-2,#f4f6f8);font-size:14px}.fpg-sum b{font-size:18px;font-variant-numeric:tabular-nums}.fpg-sum .fpg-ch{display:inline-block;padding:2px 9px;border-radius:999px;background:var(--surface,#fff);border:1px solid var(--line);font-size:12.5px}.fpg-sum .fpg-ok8{margin-left:auto;font-size:12.5px;opacity:.75}.fpg-sum .fpg-ok8 button{border:0;background:none;color:var(--brand,#0077c0);cursor:pointer;font:inherit;padding:0;margin-left:4px;text-decoration:underline}</style>
 <script>/* fpg1: Ventas › Formas de pago (Diego 16-nov). Nada se borra: se anula con motivo. Todo queda en la bitácora. */
 (function(){
   const F = {d: null, cargando: false, error: '', f: {t: '', desde: '', hasta: '', forma: '', q: '', ent: '', est: 'Vigente'}, sel: {}, bit: null, verBit: false, qb: ''};
@@ -4960,7 +4961,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
   }
   function integridadHtml(){
     const I = F.d && F.d.integridad; if (!I) return '';
-    if (I.ok) return '<p class="small faint" style="margin:0 0 10px">🔒 Bitácora íntegra: ' + I.lineas + ' movimientos registrados, ninguno alterado. <button class="btn" id="fpgB" style="margin-left:6px">Ver bitácora</button></p>';
+    if (I.ok) return '';   // fpg10: la etiqueta "Bitácora íntegra" va en la línea de resumen
     return '<div class="fpg-bar" style="background:#fde4e2;color:#8a1c14"><b>⚠ Revisión de trazabilidad:</b><span>' +
       (I.rotas.length ? 'se editó o borró a mano la bitácora (fila ' + I.rotas.join(', ') + '). ' : '') +
       (I.cambiadas.length ? I.cambiadas.length + ' registro(s) cambiados fuera de la app: ' + I.cambiadas.slice(0, 10).map(e).join(', ') + '.' : '') +
@@ -5005,9 +5006,11 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
       '<input id="fpgRec" placeholder="N° de recibo"><button class="btn" id="fpgEnt">Marcar entregadas</button>' +
       '<span style="opacity:.5">|</span><input id="fpgMot" placeholder="Motivo para anular" style="width:200px"><button class="btn" id="fpgAn">Anular</button>' +
       '<button class="btn" id="fpgSelNo">Cancelar</button></div>';
-    h += '<div class="fpg-k"><div><b>' + usd(tot) + '</b><span>' + cuenta.length + (cuenta.length === 1 ? ' registro' : ' registros') + (f.est === 'Anulada' ? ' anulados' : '') + '</span></div>' +
-      (pend.length && f.est !== 'Anulada' ? '<div><b class="fpg-pend">' + usd(pend.reduce((a, x) => a + (x.valor || 0), 0)) + '</b><span>Por entregar · ' + pend.length + '</span></div>' : '') +
-      Object.keys(por).sort((a, b) => por[b].v - por[a].v).map(k => '<div><b>' + usd(por[k].v) + '</b><span>' + e(k) + ' · ' + por[k].n + '</span></div>').join('') + '</div>';
+    const pv10 = pend.reduce((a, x) => a + (x.valor || 0), 0), I10 = F.d && F.d.integridad, ks10 = Object.keys(por).sort((a, b) => por[b].v - por[a].v);   // fpg10: una sola línea
+    h += '<div class="fpg-sum"><span><b>' + usd(tot) + '</b> · ' + cuenta.length + (cuenta.length === 1 ? ' registro' : ' registros') + (f.est === 'Anulada' ? ' anulados' : '') + '</span>' +
+      (pend.length && f.est !== 'Anulada' ? '<span class="fpg-pend">' + (pend.length === cuenta.length ? 'Todo por entregar' : 'Por entregar ' + usd(pv10) + ' (' + pend.length + ')') + '</span>' : '') +
+      (ks10.length > 1 ? ks10.map(k => '<span class="fpg-ch">' + e(k === 'Transferencias' ? 'Transferencia' : k) + ' ' + usd(por[k].v) + '</span>').join('') : '') +
+      (I10 && I10.ok ? '<span class="fpg-ok8">🔒 Bitácora íntegra (' + I10.lineas + ')<button id="fpgB">ver</button></span>' : '') + '</div>';
     h += !L.length ? '<div class="empty">' + (todas.length ? 'No hay registros con estos filtros.' : 'Todavía no hay formas de pago registradas.') + '</div>' :
       '<div class="fpg-wrap"><table class="fpg-t"><thead><tr><th style="width:26px"></th><th>Fecha</th><th>Tienda</th><th>Factura</th><th>Forma de pago</th><th>' + (G8 === 'ot' ? 'N° NC, cuotas o inventario' : 'Pedido o comprobante') + '</th><th class="v">Pagado (con IVA)</th><th class="c-reg">Vendedor</th><th>Entrega</th></tr></thead><tbody>' +
       L.slice(0, 500).map(x => { const an = x.estado === 'Anulada';
