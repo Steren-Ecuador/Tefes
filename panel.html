@@ -1287,7 +1287,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   </div>
   <div class="view" data-view="formaspago" hidden>   <!-- fpg1 -->
     <section class="panel" id="formaspago">
-      <div class="panel-h"><h2>Formas de pago</h2><span class="small faint">Lo que registran asesores y gerentes por cada factura del POS: forma de pago, n.º de pedido o comprobante (p. ej. Shopping Dólares) y valor con IVA.</span></div>
+      <div class="panel-h"><h2>Formas de pago</h2><span class="small faint">Lo que registran asesores y gerentes por cada factura del POS: transferencias (deUna, Tipti, banco, otras) y otros (notas de crédito, préstamos a empleados y descuentos por inventarios).</span></div>
       <div id="fpgBody"><div class="skeleton">Cargando formas de pago…</div></div>
     </section>
   </div>
@@ -1600,7 +1600,7 @@ function hlPintar(filas, todas){
 }
 /* mn1: sub-opciones del menú por temas (Diego 8-nov): una vista muestra solo la parte elegida */
 (function(){
-  const MN_T = {"hoy": [["hoy", "val", "Esperan tu validación"], ["hoy", "sup", "Posiciones de supervisión"], ["hoy", "ven", "Ventas vs presupuesto"], ["hoy", "act", "Actividades del mes"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "fl", "Flash de ventas"], ["flash", "fd", "Explorar ventas"], ["flash", "gar", "Garantías extendidas"], ["flash", "pp", "Presupuesto por persona"], ["formaspago", "", "Formas de pago"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "stock", "Consultar stock"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "pf", "Proformas"], ["clientes", "vf", "Lista de espera"]]};
+  const MN_T = {"hoy": [["hoy", "val", "Esperan tu validación"], ["hoy", "sup", "Posiciones de supervisión"], ["hoy", "ven", "Ventas vs presupuesto"], ["hoy", "act", "Actividades del mes"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "fl", "Flash de ventas"], ["flash", "fd", "Explorar ventas"], ["flash", "gar", "Garantías extendidas"], ["flash", "pp", "Presupuesto por persona"]], "formaspago": [["formaspago", "tr", "Transferencias"], ["formaspago", "ot", "Otros"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "stock", "Consultar stock"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "pf", "Proformas"], ["clientes", "vf", "Lista de espera"]]};
   window.MN_SUB = window.MN_SUB || {};
   window.MN_T_REF = MN_T;   // mp3
   const subsDe = v => { const r = []; Object.keys(MN_T).forEach(t => MN_T[t].forEach(x => { if (x[0] === v && x[1]) r.push(x); })); return r; };
@@ -4187,7 +4187,7 @@ button.cal-fila:hover{background:var(--surface-2)}
 <script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "¿Qué buscas? Inventario, Scala, política…",
-  temas: [{"id": "hoy", "nombre": "Inicio", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash", "formaspago"]}, {"id": "universidad", "nombre": "Universidad", "vistas": ["universidad"]}, {"id": "inventarios", "nombre": "Mercadería", "vistas": ["inventario"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["contactos"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["clientes"]}],
+  temas: [{"id": "hoy", "nombre": "Inicio", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash"]}, {"id": "formaspago", "nombre": "Formas de pago", "vistas": ["formaspago"]}, {"id": "universidad", "nombre": "Universidad", "vistas": ["universidad"]}, {"id": "inventarios", "nombre": "Mercadería", "vistas": ["inventario"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["contactos"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["clientes"]}],
   items: [{"t": "Calendario de visitas", "v": "calendario", "sub": "Hoy · las visitas de todos", "kw": "visitas agenda agendar cronograma calendario mes semana outlook google gmail iphone viaje"}, {"t": "Inicio", "v": "hoy", "sub": "Validar, supervisión, ventas y actividades", "kw": "inicio resumen mapa validar actividades caja chica"}, {"t": "Anuncios a tiendas", "v": "anuncios", "sub": "Anuncios", "kw": "anuncios avisos comunicados publicar aviso semana leyeron lectura confirmar"}, {"t": "Flash de Ventas", "v": "flash", "sub": "Ventas", "kw": "ventas venta presupuesto meta cumplimiento erp dia mes flash"}, {"t": "Clientes", "v": "clientes", "sub": "Ventas · ventas futuras y reclamos", "kw": "ventas futuras reclamos cliente pedido"}, {"t": "Pendientes", "v": "pendientes", "sub": "Tiendas", "kw": "tareas hallazgos correcciones validar vencidos tablero"}, {"t": "Supervisión", "v": "supervision", "sub": "Tiendas · hacer o revisar una supervisión", "kw": "supervisar visita checklist nueva supervision puntaje hoja"}, {"t": "Inventario", "v": "inventario", "sub": "Tiendas · conteos y diferencias", "kw": "conteo muestreo top 50 stock existencias diferencias faltantes sobrantes ciclico"}, {"t": "Políticas", "v": "politicas", "sub": "Cómo trabajamos · con su prueba", "kw": "normas reglas lineamientos prueba preguntas lectura cumplimiento como trabajamos"}, {"t": "Manuales y guías", "v": "guias", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer como trabajamos"}, {"t": "Contactos de tiendas", "v": "contactos", "sub": "Contactos · por ciudad, con encargado y celular del gerente", "kw": "telefono whatsapp correo llamar personas gerente tienda encargado celular ciudad contactos"}],
   extra: function(){
     const out = [], S = typeof st !== 'undefined' ? st : (window.TEM_ST ? TEM_ST() : null); if (!S || !S.d) return out;
@@ -4385,6 +4385,24 @@ window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "af
 .fd-bar{height:8px;border-radius:0 4px 4px 0;background:var(--accent);min-width:2px}
 .fd-t td.bc{width:22%;min-width:70px}
 .fd-mas{margin-top:8px}
+/* fd5: mapa de calor de facturas */
+.fd-hmw{margin-top:14px}
+.fd-hmw>summary{cursor:pointer;font-weight:600;font-size:15px;padding:6px 0}
+.fd-hm{width:100%;border-collapse:separate;border-spacing:3px;table-layout:fixed;margin-top:6px}
+.fd-hm th{font-weight:600;font-size:12px;color:var(--fg-3);padding:2px;text-align:center}
+.fd-hm th.w{text-align:left;width:74px;font-weight:500;white-space:nowrap}
+.fd-hm td{height:30px;border-radius:5px;text-align:center;font-size:11px;font-variant-numeric:tabular-nums;padding:0;border:0;position:relative}
+.fd-hm td.fer{outline:2px solid #e8590c;outline-offset:-2px}
+.fd-hm td.fer b{position:absolute;top:1px;left:3px;font-size:8px;color:#e8590c;background:var(--surface,#fff);border-radius:3px;padding:0 2px;line-height:1.2}
+.fd-hm td.na{background:transparent;color:var(--fg-3)}
+.fd-hm tr.prom td{height:38px;font-weight:700;font-size:12px}
+.fd-hm tr.prom th{white-space:normal;line-height:1.15}
+.fd-hm tr.prom th small{color:var(--fg-3);font-weight:400;font-size:10px}
+.fd-hm tr.sep td,.fd-hm tr.sep th{height:8px;background:transparent}
+.fd-hml{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:var(--fg-3);font-size:12px;margin:10px 0 4px}
+.fd-hml .bar{flex:0 0 120px;height:10px;border-radius:5px}
+.fd-hml .fe{width:14px;height:14px;border-radius:3px;outline:2px solid #e8590c;outline-offset:-2px;display:inline-block}
+@media(max-width:480px){.fd-hm td{font-size:9.5px}.fd-hm th.w{width:56px;font-size:11px}}
 @media(max-width:620px){.fd-t .hide-sm{display:none}.fd-t .bc{display:none}.fd-kpis .kpi b{font-size:22px}.fd-t thead{display:none}.fd-t tbody{display:block}.fd-t tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 10px;padding:10px 12px;border-bottom:1px solid var(--line)}.fd-t td{display:block;border:0;padding:0;text-align:left!important;min-width:0}.fd-t td:first-child{grid-column:1/-1;font-size:15px}.fd-t td[data-l]::before{content:attr(data-l);display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--fg-3);font-weight:600}.fd-t td.empty{grid-column:1/-1;text-align:center!important}}
 /* pps1: presupuesto por persona, solo consulta */
 #ppBody{margin-top:30px}
@@ -4506,6 +4524,50 @@ function agrupa(R, dim){
   for (const x of R) { const k = x[dim]; const a = g[k] || (g[k] = {k, s: 0, u: 0, l: 0, n: new Set()}); a.s += x.s; a.u += x.u; a.l += x.l; a.n.add(x.f + '|' + x.loc + (dim === 'ven' || FD.f.ven ? '|' + x.ven : '')); }
   return Object.values(g);
 }
+// fd5: mapa de calor de facturas lun-dom (Diego 17-nov); feriados fuera del promedio
+const FER = {'2026-05-01': 'Día del Trabajo', '2026-05-25': 'Batalla de Pichincha', '2026-08-10': 'Primer Grito de Independencia', '2026-10-09': 'Independencia de Guayaquil', '2026-11-02': 'Día de Difuntos', '2026-11-03': 'Independencia de Cuenca', '2026-12-25': 'Navidad', '2027-01-01': 'Año Nuevo', '2027-02-08': 'Carnaval', '2027-02-09': 'Carnaval', '2027-03-26': 'Viernes Santo'};
+FD.hm = {met: 0, loc: null, abierto: false};
+function hmDatos(){
+  return FD.hmP || (FD.hmP = Promise.all(Object.keys(FD.idx.meses).map(m => mes(m))).then(L => {
+    const V = {};
+    L.forEach(D => { if (!D) return;
+      for (const k in D.fac) { const [f, l] = k.split('|'); if (CEDIS(l)) continue; const r = V[f] || (V[f] = {}); (r[l] || (r[l] = [0, 0]))[0] = D.fac[k]; }
+      D.R.forEach(x => { if (CEDIS(x.loc)) return; const r = V[x.f] || (V[x.f] = {}); (r[x.loc] || (r[x.loc] = [0, 0]))[1] += x.s; }); });
+    return V; }).catch(err => { FD.hmP = null; throw err; }));
+}
+async function fdMapa(){
+  const box = document.getElementById('fdMapa'); if (!box) return;
+  if (!FD.hmV) { box.innerHTML = '<div class="skeleton">Cargando todos los meses…</div>';
+    try { FD.hmV = await hmDatos(); } catch (err) { box.innerHTML = '<div class="empty">No se pudo leer el detalle (' + e(err.message) + ').</div>'; return; } }
+  const V = FD.hmV, h = FD.hm; if (h.loc === null) h.loc = FD.f.loc && !CEDIS(FD.f.loc) ? FD.f.loc : '';
+  const met = h.met, loc = h.loc, iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const dn = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'], ms3 = MESES.map(x => x.slice(0, 3));
+  const fmt = v => met ? (v >= 1000 ? '$' + (v / 1000).toFixed(v >= 10000 ? 0 : 1).replace('.', ',') + 'k' : '$' + Math.round(v)) : n0.format(Math.round(v));
+  const fondo = [document.body, document.documentElement].map(x => (getComputedStyle(x).backgroundColor.match(/[\d.]+/g) || []).map(Number)).find(c => c.length === 3 || (c.length === 4 && c[3] > 0));
+  const osc = fondo ? fondo[0] + fondo[1] + fondo[2] < 300 : matchMedia('(prefers-color-scheme: dark)').matches;
+  const col = t => `hsl(215 ${45 + t * 30}% ${osc ? 22 + t * 40 : 95 - t * 58}%)`, txt = t => osc ? (t > .55 ? '#0d1520' : '#dfe7f1') : (t > .55 ? '#fff' : '#1d2733');
+  const val = f => { const r = V[f]; if (!r) return null; if (loc) return r[loc] ? r[loc][met] : null; let s = 0, n = 0; for (const k in r) { s += r[k][met]; n++; } return n ? s : null; };
+  const fs = Object.keys(V).filter(f => loc ? V[f][loc] : true).sort();
+  const locs = LOCS.filter(x => !CEDIS(x[0]));
+  let html = `<div class="fd-ctl"><span class="seg"><button class="${met ? '' : 'on'}" data-hmm="0">Facturas</button><button class="${met ? 'on' : ''}" data-hmm="1">Venta neta</button></span>
+    <select id="fdHmLoc" aria-label="Tienda del mapa"><option value="">Todas las tiendas</option>${locs.map(x => `<option value="${x[0]}" ${loc === x[0] ? 'selected' : ''}>${e(x[1])}</option>`).join('')}</select></div>`;
+  if (!fs.length) { box.innerHTML = html + '<div class="empty">Sin datos.</div>'; } else {
+    const a = new Date(fs[0] + 'T12:00:00'), z = new Date(fs[fs.length - 1] + 'T12:00:00'), lun = new Date(a); lun.setDate(a.getDate() - (a.getDay() + 6) % 7);
+    const W = []; for (const w = new Date(lun); w <= z; w.setDate(w.getDate() + 7)) { const row = []; for (let i = 0; i < 7; i++) { const d = new Date(w); d.setDate(w.getDate() + i); const f = iso(d); row.push({f, v: d < a || d > z ? undefined : val(f)}); } W.push({w: new Date(w), row}); }
+    const all = W.flatMap(x => x.row.map(c => c.v)).filter(v => v != null && v > 0), mx = Math.max(...all), mn = Math.min(...all);
+    const sum = Array(7).fill(0), cnt = Array(7).fill(0); W.forEach(x => x.row.forEach((c, i) => { if (c.v != null && !FER[c.f] && (loc || c.f >= '2026-08-01')) { sum[i] += c.v; cnt[i]++; } }));
+    const avg = sum.map((s, i) => cnt[i] ? s / cnt[i] : null), av = avg.filter(v => v != null), am = Math.max(...av), an = Math.min(...av);
+    const cell = (v, lo, hi, tip, fer) => { if (v == null) return '<td class="na">·</td>'; const t = hi > lo ? Math.max(0, Math.min(1, (v - lo) / (hi - lo))) : .5; return `<td class="${fer ? 'fer' : ''}" style="background:${col(t)};color:${txt(t)}" title="${e(tip)}">${fer ? '<b>F</b>' : ''}${fmt(v)}</td>`; };
+    let t = '<tr><th class="w"></th>' + dn.map(x => `<th>${x}</th>`).join('') + '</tr>';
+    t += '<tr class="prom"><th class="w">' + (loc ? 'Promedio' : 'Promedio<br><small>desde 1 ago</small>') + '</th>' + avg.map((v, i) => cell(v, an, am, dn[i] + ': promedio ' + (v == null ? '–' : fmt(v)) + ' (' + cnt[i] + ' días, sin feriados)')).join('') + '</tr><tr class="sep"><th></th><td colspan="7"></td></tr>';
+    for (const x of W.slice().reverse()) t += `<tr><th class="w">${x.w.getDate()} ${ms3[x.w.getMonth()]}</th>` + x.row.map((c, i) => c.v === undefined ? '<td class="na"></td>' : cell(c.v, mn, mx, dn[i] + ' ' + +c.f.slice(8) + ' ' + ms3[+c.f.slice(5, 7) - 1] + ': ' + (c.v == null ? 'sin ventas' : fmt(c.v)) + (FER[c.f] ? ' · Feriado: ' + FER[c.f] : ''), FER[c.f])).join('') + '</tr>';
+    box.innerHTML = html + `<div class="scroll"><table class="fd-hm">${t}</table></div>
+      <div class="fd-hml"><span>menos</span><span class="bar" style="background:linear-gradient(90deg,${col(0)},${col(.5)},${col(1)})"></span><span>más</span><span class="fe"></span><span>feriado (no entra al promedio)</span></div>
+      <div class="hint">${met ? 'Venta neta sin IVA' : 'Facturas netas (facturas menos notas de crédito)'}, del ERP, solo tiendas. Cada fila es una semana de lunes a domingo, la más reciente arriba. ${loc ? 'El promedio usa todo el periodo de la tienda.' : 'El promedio de todas las tiendas va desde el 1 de agosto, cuando ya estaban abiertas las 10.'}</div>`;
+  }
+  box.querySelectorAll('[data-hmm]').forEach(b => b.onclick = () => { h.met = +b.dataset.hmm; fdMapa(); });
+  const s = box.querySelector('#fdHmLoc'); if (s) s.onchange = () => { h.loc = s.value; fdMapa(); };
+}
 async function fdPintar(){
   const el = document.getElementById('fdBody'); if (!el || !FD.idx) return;
   const f = FD.f, m = f.mes;
@@ -4572,7 +4634,8 @@ async function fdPintar(){
     <div class="sec-h" style="margin-top:16px"><span class="seg">${vseg}</span><span class="hint">${G.length} ${G.length === 1 ? 'fila' : 'filas'} · % sobre lo filtrado · variación contra los mismos días de la semana, 4 semanas antes</span></div>
     <div class="panel flush scroll"><table class="exec fd-t"><thead><tr><th>${DIM[ver]}</th><th class="num">Venta</th><th class="num hide-sm">%</th><th class="bc"></th><th class="num">${colN}</th>${uCol ? '' : '<th class="num">Art./fact.</th>'}<th class="num hide-sm">vs ant.</th></tr></thead><tbody>${filas || '<tr><td colspan="7" class="empty">Sin ventas con estos filtros.</td></tr>'}</tbody></table></div>
     ${lista.length > 25 ? `<button class="btn fd-mas" id="fdTodos">${FD.todos ? 'Ver solo los 25 primeros' : 'Ver las ' + lista.length}</button>` : ''}
-  </section>`;
+  </section>
+  <section class="panel fd-hmw"><details id="fdHm" ${FD.hm.abierto ? 'open' : ''}><summary>Mapa de calor: facturas por día de la semana (tiendas)</summary><div id="fdMapa"></div></details></section>`;
   el.querySelector('#fdMes').onchange = ev => { f.mes = ev.target.value; f.dia = ''; f.sem = ''; FD.todos = false; fdPintar(); };
   el.querySelector('#fdDia').onchange = ev => { const v = ev.target.value; if (/^s:/.test(v)) { f.sem = v.slice(2); f.dia = ''; } else { f.dia = v; f.sem = ''; } fdPintar(); };
   el.querySelectorAll('[data-fdc]').forEach(b => b.onclick = () => { f.canal = b.dataset.fdc; if (f.loc && (f.canal === 'B') !== CEDIS(f.loc) && f.canal !== 'X') f.loc = ''; fdPintar(); });
@@ -4581,6 +4644,7 @@ async function fdPintar(){
   el.querySelectorAll('[data-fdv]').forEach(b => b.onclick = () => { FD.ver = b.dataset.fdv; FD.todos = false; fdPintar(); });
   el.querySelectorAll('[data-fdk]').forEach(r => r.onclick = () => { f[ver] = r.dataset.fdk; let s = SIG[ver]; for (let i = 0; i < 4 && f[s]; i++) s = SIG[s]; FD.ver = s; FD.todos = false; fdPintar(); });
   const t = el.querySelector('#fdTodos'); if (t) t.onclick = () => { FD.todos = !FD.todos; fdPintar(); };
+  const hd = el.querySelector('#fdHm'); if (hd) { hd.ontoggle = () => { if (FD.hm.abierto !== hd.open) { FD.hm.abierto = hd.open; if (hd.open) fdMapa(); } }; if (hd.open) fdMapa(); }   // fd5
 }
 window.fdMes = mes; window.fdVenN = venN; window.fdListo = async () => { if (!FD.idx) await window.fdAbrir(); if (!FD.idx) throw new Error('no se pudo leer el detalle de ventas'); return FD; };
 
@@ -4838,7 +4902,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     'universidad|tabla': 'universidad/tabla', 'universidad|gol': 'universidad/gol', 'universidad|car': 'universidad/car', 'universidad|al': 'universidad/al',
     'politicas|leer': 'politicas/politicas', 'guias|': 'politicas/guias', 'politicas|rep': 'politicas/reporte',
     'contactos|tel': 'contactos/tel', 'contactos|wa': 'contactos/wa', 'contactos|mail': 'contactos/mail', 'contactos|hor': 'contactos/hor',
-    'clientes|pf': 'clientes/pf', 'clientes|vf': 'clientes/vf', 'formaspago|': 'ventas/formaspago'};
+    'clientes|pf': 'clientes/pf', 'clientes|vf': 'clientes/vf', 'formaspago|': 'ventas/formaspago', 'formaspago|tr': 'ventas/formaspago', 'formaspago|ot': 'ventas/formaspago'};
   let quien = '', pedido = false;
   function ordenar(cfg){   // mp5: orden de temas y sub-opciones del perfil (lo que no está en la hoja va al final)
     const O = Array.isArray(cfg && cfg.orden) ? cfg.orden : []; if (!O.length) return;
@@ -4866,6 +4930,8 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     new MutationObserver(() => tabs.querySelectorAll('button[data-mpf]').forEach(b => { if (!b.hidden) b.hidden = true; })).observe(tabs, {subtree: true, attributes: true, attributeFilter: ['hidden', 'style']});
     const on = tabs.querySelector('button[data-v].on');
     if (on && on.hidden) { const p = [...tabs.querySelectorAll('button[data-v]')].find(b => !b.hidden && b.style.display !== 'none'); if (p) p.click(); }
+    try { const T = ((window.TEM && TEM.temas) || []).find(t => t.id === 'ventas-fpg7-inactivo');   // fpg7: si de Ventas solo queda Formas de pago, el tema se llama así
+      if (T && vivas.formaspago && T.vistas.filter(v => vivas[v] || !todas[v]).length === 1) T.nombre = 'Formas de pago'; } catch (e) {}
     abajo(); tabs.dataset.mn = String(Date.now());
   }
   setInterval(() => {
@@ -4911,6 +4977,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
 .fpg-an td{opacity:.55}.fpg-an td:nth-child(7){text-decoration:line-through}.fpg-x{color:#b3261e;font-weight:600}
 @media(max-width:700px){.fpg-t .c-reg,.fpg-t .c-hora{display:none}}
 </style>
+<style>/* fpg10 */.fpg-f{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end;margin-bottom:14px}.fpg-f label{flex:1 1 100px;max-width:150px}.fpg-f label.grow{flex:2 1 170px;max-width:none}.fpg-f select,.fpg-f input{height:36px;box-sizing:border-box;width:100%}.fpg-f #fpgX{height:36px;margin-left:auto;white-space:nowrap}.fpg-sum{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:0 0 10px;padding:10px 12px;border-radius:12px;background:var(--surface-2,#f4f6f8);font-size:14px}.fpg-sum b{font-size:18px;font-variant-numeric:tabular-nums}.fpg-sum .fpg-ch{display:inline-block;padding:2px 9px;border-radius:999px;background:var(--surface,#fff);border:1px solid var(--line);font-size:12.5px}.fpg-sum .fpg-ok8{margin-left:auto;font-size:12.5px;opacity:.75}.fpg-sum .fpg-ok8 button{border:0;background:none;color:var(--brand,#0077c0);cursor:pointer;font:inherit;padding:0;margin-left:4px;text-decoration:underline}</style>
 <script>/* fpg1: Ventas › Formas de pago (Diego 16-nov). Nada se borra: se anula con motivo. Todo queda en la bitácora. */
 (function(){
   const F = {d: null, cargando: false, error: '', f: {t: '', desde: '', hasta: '', forma: '', q: '', ent: '', est: 'Vigente'}, sel: {}, bit: null, verBit: false, qb: ''};
@@ -4934,29 +5001,63 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
   }
   function filtrar(){
     const L = (F.d && F.d.lista) || [], f = F.f, q = f.q.trim().toLowerCase().replace(/\s+/g, '');
-    return L.filter(x => (!f.est || (x.estado || 'Vigente') === f.est) && (!f.t || x.tienda === f.t) && (!f.desde || x.fecha >= f.desde) && (!f.hasta || x.fecha <= f.hasta) &&
+    const vw = document.querySelector('.view[data-view="formaspago"]'), G = (vw && vw.dataset.sub) || 'tr';   // fpg8
+    const grp = x => ['Nota de crédito', 'Préstamo empleado', 'Descuento inventario'].indexOf(x.forma) >= 0 || (F.d.extras || []).some(e => e.n === x.forma && e.g === 'ot') ? 'ot' : 'tr';
+    return L.filter(x => grp(x) === G && (!f.est || (x.estado || 'Vigente') === f.est) && (!f.t || x.tienda === f.t) && (!f.desde || x.fecha >= f.desde) && (!f.hasta || x.fecha <= f.hasta) &&
       (!f.forma || x.forma === f.forma) && (!f.ent || (f.ent === 'si') === !!x.entregado) &&
       (!q || (x.factura + ' ' + x.pedido + ' ' + (x.cliente || '') + ' ' + (x.otra || '') + ' ' + (x.banco || '') + ' ' + x.id).toLowerCase().replace(/\s+/g, '').indexOf(q) >= 0));
   }
+  /* fpg17: Excel de verdad (.xlsx) sin librerías: zip sin compresión con una hoja; encabezado en negrita, números como números */
+  function xlsxBlob(hoja, filas){
+    const enc = new TextEncoder(), X = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '');
+    const col = i => { let s = ''; i++; while (i) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; };
+    const ancho = (filas[0] || []).map((_, j) => Math.min(60, Math.max(8, ...filas.map(r => String(r[j] == null ? '' : r[j]).length + 2))));
+    const celda = (v, ref, cab) => { const s = v == null ? '' : String(v);
+      if (!cab && /^\d{4}-\d{2}-\d{2}$/.test(s)) { const d = Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 864e5 + 25569; return '<c r="' + ref + '" s="3"><v>' + d + '</v></c>'; }
+      if (!cab && /^-?\d{1,12}([.,]\d{1,2})?$/.test(s) && !/^0\d/.test(s)) return '<c r="' + ref + '" s="2"><v>' + s.replace(',', '.') + '</v></c>';
+      return s === '' ? '' : '<c r="' + ref + '" t="inlineStr"' + (cab ? ' s="1"' : '') + '><is><t xml:space="preserve">' + X(s) + '</t></is></c>'; };
+    const hojaXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>' +
+      ancho.map((w, j) => '<col min="' + (j + 1) + '" max="' + (j + 1) + '" width="' + w + '" customWidth="1"/>').join('') + '</cols><sheetData>' +
+      filas.map((r, i) => '<row r="' + (i + 1) + '">' + r.map((v, j) => celda(v, col(j) + (i + 1), i === 0)).join('') + '</row>').join('') + '</sheetData>' +
+      (filas.length > 1 ? '<autoFilter ref="A1:' + col(Math.max(0, (filas[0] || []).length - 1)) + filas.length + '"/>' : '') + '</worksheet>';
+    const F = {
+      '[Content_Types].xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>',
+      '_rels/.rels': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+      'xl/workbook.xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="' + X(String(hoja || 'Hoja1').replace(/[\\\/?*\[\]:]/g, ' ').slice(0, 31)) + '" sheetId="1" r:id="rId1"/></sheets>' + (filas.length > 1 ? '<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">\'' + X(String(hoja || 'Hoja1').replace(/[\\\/?*\[\]:]/g, ' ').slice(0, 31)).replace(/'/g, "''") + '\'!$A$1:$' + col(Math.max(0, (filas[0] || []).length - 1)) + '$' + filas.length + '</definedName></definedNames>' : '') + '</workbook>',
+      'xl/_rels/workbook.xml.rels': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
+      'xl/styles.xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="2"><numFmt numFmtId="164" formatCode="#,##0.00"/><numFmt numFmtId="165" formatCode="dd/mm/yyyy"/></numFmts><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border/></borders><cellStyleXfs count="1"><xf/></cellStyleXfs><cellXfs count="4"><xf/><xf fontId="1" applyFont="1"/><xf numFmtId="164" applyNumberFormat="1"/><xf numFmtId="165" applyNumberFormat="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>',
+      'xl/worksheets/sheet1.xml': hojaXml};
+    const T = []; for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; T[n] = c >>> 0; }
+    const crc = b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = T[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+    const partes = [], central = []; let off = 0;
+    const u16 = n => [n & 255, (n >>> 8) & 255], u32 = n => [n & 255, (n >>> 8) & 255, (n >>> 16) & 255, (n >>> 24) & 255];
+    Object.keys(F).forEach(nom => { const nb = enc.encode(nom), d = enc.encode(F[nom]), c = crc(d);
+      const loc = new Uint8Array([0x50, 0x4b, 3, 4, ...u16(20), 0, 0, 0, 0, 0, 0, 0x21, 0, ...u32(c), ...u32(d.length), ...u32(d.length), ...u16(nb.length), 0, 0]);
+      partes.push(loc, nb, d);
+      central.push(new Uint8Array([0x50, 0x4b, 1, 2, ...u16(20), ...u16(20), 0, 0, 0, 0, 0, 0, 0x21, 0, ...u32(c), ...u32(d.length), ...u32(d.length), ...u16(nb.length), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...u32(off)]), nb);
+      off += loc.length + nb.length + d.length; });
+    const tamC = central.reduce((a, b) => a + b.length, 0);
+    const fin = new Uint8Array([0x50, 0x4b, 5, 6, 0, 0, 0, 0, ...u16(Object.keys(F).length), ...u16(Object.keys(F).length), ...u32(tamC), ...u32(off), 0, 0]);
+    return new Blob([...partes, ...central, fin], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  }
   function csv(nombre, filas){
-    const c = v => { const s = String(v == null ? '' : v); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-    const blob = new Blob(['﻿' + filas.map(r => r.map(c).join(';')).join('\r\n')], {type: 'text/csv;charset=utf-8'});
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre + '.csv';
-    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    const blob = xlsxBlob(nombre.slice(0, 31), filas), arch = nombre.replace(/[\\/:*?"<>|]/g, '-') + '.xlsx';   // fpg17
+    (async () => { try { const dl = await (window.claude && window.claude.use ? window.claude.use('downloads') : null); if (!dl) throw 0; await dl.save({filename: arch, data: blob}); }
+      catch (e) { if (e && e.code === 'declined') return; const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = arch; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); } })();
     C().api('apiFPGExporto', quien(), nombre + ' · ' + (filas.length - 1) + ' filas').catch(() => {});
   }
   const n2 = x => Number(x || 0).toFixed(2).replace('.', ',');
   function exportar(){
     const L = filtrar(); if (!L.length) { aviso('No hay registros para exportar.'); return; }
-    csv('Formas de pago ' + (F.f.t || 'todas las tiendas') + ' ' + (F.f.desde || 'inicio') + ' a ' + (F.f.hasta || hoyIso()),
-      [['ID', 'Fecha registro', 'Hora', 'Tienda', 'N° factura', 'Fecha factura', 'Forma de pago', 'Detalle otra', 'Banco', 'N° de pedido, documento o referencia', 'Valor pagado con IVA', 'Cliente', 'Total factura', 'Registró', 'Desde',
-        'Entregado', 'N° recibo', 'Marcó entrega', 'Estado', 'Anuló', 'Motivo anulación', 'Foto']]
-      .concat(L.map(x => [x.id, x.fecha, x.hora, x.tienda, x.factura, x.fechaFac || '', x.forma, x.otra || '', x.banco || '', x.pedido, n2(x.valor), x.cliente || '', x.valorFac ? n2(x.valorFac) : '', x.registroVer || x.registro, x.desde,
-        x.entregado || '', x.recibo || '', x.marco || '', x.estado || 'Vigente', x.anulo || '', x.motivoAnula || '', x.foto || ''])));
+    csv(({tr: 'Transferencias', ot: 'Otros'}[(document.querySelector('.view[data-view="formaspago"]') || {dataset: {}}).dataset.sub] || 'Formas de pago') + ' ' + (F.f.t || 'todas las tiendas') + ' ' + (F.f.desde || 'inicio') + ' a ' + (F.f.hasta || hoyIso()),
+      [['ID', 'Fecha registro', 'Hora', 'Tienda', 'N° factura', 'Fecha factura', 'Forma de pago', 'Detalle / motivo NC / empleado', 'Cuenta que recibió / factura devuelta (NC) / cuotas (inventario)', 'Comprobante, N° de pedido, N° NC, cuotas o inventario', 'Valor pagado con IVA', 'Cliente', 'Total factura', 'Vendedor', 'Registró', 'Desde',
+        'Estado', 'Anuló', 'Motivo anulación', 'Foto']]
+      .concat(L.map(x => [x.id, x.fecha, x.hora, x.tienda, x.factura, x.fechaFac || '', x.forma, x.otra || '', x.banco || '', x.pedido, n2(x.valor), x.cliente || '', x.valorFac ? n2(x.valorFac) : '', x.vendedorVer || x.vendedor || '', x.registroVer || x.registro, x.desde,
+        x.estado || 'Vigente', x.anulo || '', x.motivoAnula || '', x.foto || ''])));
   }
   function integridadHtml(){
     const I = F.d && F.d.integridad; if (!I) return '';
-    if (I.ok) return '<p class="small faint" style="margin:0 0 10px">🔒 Bitácora íntegra: ' + I.lineas + ' movimientos registrados, ninguno alterado. <button class="btn" id="fpgB" style="margin-left:6px">Ver bitácora</button></p>';
+    if (I.ok) return '';   // fpg10: la etiqueta "Bitácora íntegra" va en la línea de resumen
     return '<div class="fpg-bar" style="background:#fde4e2;color:#8a1c14"><b>⚠ Revisión de trazabilidad:</b><span>' +
       (I.rotas.length ? 'se editó o borró a mano la bitácora (fila ' + I.rotas.join(', ') + '). ' : '') +
       (I.cambiadas.length ? I.cambiadas.length + ' registro(s) cambiados fuera de la app: ' + I.cambiadas.slice(0, 10).map(e).join(', ') + '.' : '') +
@@ -4981,7 +5082,9 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
       const x = document.getElementById('fpgBX'); if (x) x.onclick = () => csv('Bitácora formas de pago ' + hoyIso(), [['Fecha', 'Hora', 'Acción', 'ID', 'Tienda', 'Quién', 'Desde', 'Detalle']].concat(F.bit.map(b => [b.fecha, b.hora, b.accion, b.id, b.tienda, b.quien, b.desde, b.detalle])));
       return;
     }
-    const todas = F.d.lista || [], tiendas = [...new Set(todas.map(x => x.tienda))].sort(), formas = F.d.formas || [], f = F.f;
+    const todas = F.d.lista || [], tiendas = [...new Set(todas.map(x => x.tienda))].sort(), f = F.f, vw8 = document.querySelector('.view[data-view="formaspago"]'), G8 = (vw8 && vw8.dataset.sub) || 'tr';
+    const OT8 = ['Nota de crédito', 'Préstamo empleado', 'Descuento inventario'], EX8 = F.d.extras || [], formas = G8 === 'ot' ? OT8.concat(EX8.filter(x => x.g === 'ot').map(x => x.n)) : [...new Set(['deUna', 'Tipti', 'Transferencias', 'Otra'].concat(EX8.filter(x => x.g !== 'ot').map(x => x.n), todas.map(x => x.forma).filter(x => OT8.indexOf(x) < 0 && !EX8.some(e => e.n === x && e.g === 'ot'))))];   // fpg8
+    if (f.forma && formas.indexOf(f.forma) < 0) f.forma = '';
     const L = filtrar(), cuenta = f.est === 'Anulada' ? L : L.filter(x => x.estado !== 'Anulada'), tot = cuenta.reduce((a, x) => a + (x.valor || 0), 0), por = {};   // las anuladas no suman
     cuenta.forEach(x => { por[x.forma] = por[x.forma] || {v: 0, n: 0}; por[x.forma].v += x.valor || 0; por[x.forma].n++; });
     const opt = (v, txt, sel) => '<option value="' + e(v) + '"' + (v === sel ? ' selected' : '') + '>' + e(txt) + '</option>';
@@ -4990,23 +5093,22 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
       '<label>Desde<input type="date" id="fpgD" value="' + e(f.desde) + '"></label>' +
       '<label>Hasta<input type="date" id="fpgH" value="' + e(f.hasta) + '"></label>' +
       '<label>Forma de pago<select id="fpgF">' + opt('', 'Todas', f.forma) + formas.map(x => opt(x, x, f.forma)).join('') + '</select></label>' +
-      '<label>Entrega<select id="fpgE">' + opt('', 'Todas', f.ent) + opt('no', 'Por entregar', f.ent) + opt('si', 'Entregadas', f.ent) + '</select></label>' +
       '<label>Estado<select id="fpgS">' + opt('Vigente', 'Vigentes', f.est) + opt('Anulada', 'Anuladas', f.est) + opt('', 'Todas', f.est) + '</select></label>' +
       '<label class="grow">Buscar factura, pedido, cliente o ID<input type="search" id="fpgQ" value="' + e(f.q) + '" placeholder="Ej.: 4800"></label>' +
       '<button class="btn" id="fpgX" title="Descarga lo filtrado; se abre en Excel">Exportar a Excel</button></div>';
     const vig = L.filter(x => x.estado !== 'Anulada'), pend = vig.filter(x => !x.entregado), sel = Object.keys(F.sel).filter(k => F.sel[k] && vig.some(x => x.id === k));
     if (sel.length) h += '<div class="fpg-bar"><b>' + sel.length + (sel.length === 1 ? ' elegida' : ' elegidas') + '</b>' +
-      '<input id="fpgRec" placeholder="N° de recibo"><button class="btn" id="fpgEnt">Marcar entregadas</button>' +
-      '<span style="opacity:.5">|</span><input id="fpgMot" placeholder="Motivo para anular" style="width:200px"><button class="btn" id="fpgAn">Anular</button>' +
+      '<input id="fpgMot" placeholder="Motivo para anular" style="width:200px"><button class="btn" id="fpgAn">Anular</button>' +
       '<button class="btn" id="fpgSelNo">Cancelar</button></div>';
-    h += '<div class="fpg-k"><div><b>' + usd(tot) + '</b><span>' + cuenta.length + (cuenta.length === 1 ? ' registro' : ' registros') + (f.est === 'Anulada' ? ' anulados' : '') + '</span></div>' +
-      (pend.length && f.est !== 'Anulada' ? '<div><b class="fpg-pend">' + usd(pend.reduce((a, x) => a + (x.valor || 0), 0)) + '</b><span>Por entregar · ' + pend.length + '</span></div>' : '') +
-      Object.keys(por).sort((a, b) => por[b].v - por[a].v).map(k => '<div><b>' + usd(por[k].v) + '</b><span>' + e(k) + ' · ' + por[k].n + '</span></div>').join('') + '</div>';
+    const pv10 = pend.reduce((a, x) => a + (x.valor || 0), 0), I10 = F.d && F.d.integridad, ks10 = Object.keys(por).sort((a, b) => por[b].v - por[a].v);   // fpg10: una sola línea
+    h += '<div class="fpg-sum"><span><b>' + usd(tot) + '</b> · ' + cuenta.length + (cuenta.length === 1 ? ' registro' : ' registros') + (f.est === 'Anulada' ? ' anulados' : '') + '</span>' +
+      (ks10.length > 1 ? ks10.map(k => '<span class="fpg-ch">' + e(k === 'Transferencias' ? 'Transferencia' : k) + ' ' + usd(por[k].v) + '</span>').join('') : '') +
+      (I10 && I10.ok ? '<span class="fpg-ok8">🔒 Bitácora íntegra (' + I10.lineas + ')<button id="fpgB">ver</button></span>' : '') + '</div>';
     h += !L.length ? '<div class="empty">' + (todas.length ? 'No hay registros con estos filtros.' : 'Todavía no hay formas de pago registradas.') + '</div>' :
-      '<div class="fpg-wrap"><table class="fpg-t"><thead><tr><th style="width:26px"></th><th>Fecha</th><th>Tienda</th><th>Factura</th><th>Forma de pago</th><th>Pedido o comprobante</th><th class="v">Pagado (con IVA)</th><th class="c-reg">Registró</th><th>Entrega</th></tr></thead><tbody>' +
+      '<div class="fpg-wrap"><table class="fpg-t"><thead><tr><th style="width:26px"></th><th>Fecha</th><th>Tienda</th><th>Factura</th><th>Forma de pago</th><th>' + (G8 === 'ot' ? 'N° NC, cuotas o inventario' : 'Pedido o comprobante') + '</th><th class="v">Pagado (con IVA)</th><th class="c-reg">Vendedor</th><th>Estado</th></tr></thead><tbody>' +
       L.slice(0, 500).map(x => { const an = x.estado === 'Anulada';
-        return '<tr' + (an ? ' class="fpg-an"' : '') + '><td>' + (an ? '' : '<input type="checkbox" data-fps="' + e(x.id) + '"' + (F.sel[x.id] ? ' checked' : '') + ' title="Elegir para marcar la entrega o anular">') + '</td><td>' + fCorta(x.fecha) + '<small class="c-hora">' + e(x.hora) + ' · ' + e(x.id) + '</small></td><td>' + e(x.tienda) + '</td><td>' + e(x.factura) + (x.fechaFac ? '<small>del ' + fCorta(x.fechaFac) + '</small>' : '') + (x.cliente ? '<small>' + e(x.cliente) + '</small>' : '') + '</td><td>' + e(x.forma) + (x.otra ? '<small>' + e(x.otra) + '</small>' : '') + (x.banco ? '<small>' + e(x.banco) + '</small>' : '') + '</td><td style="word-break:break-word;max-width:260px">' + e(x.pedido) + '</td><td class="v">' + usd(x.valor) + (x.valorFac ? '<small>de ' + usd(x.valorFac) + '</small>' : '') + '</td><td class="c-reg">' + e(x.registroVer || x.registro) + '<small>' + e(x.desde) + '</small></td><td>' +
-          (an ? '<span class="fpg-x">Anulada</span><small>' + e(x.anulo) + ': ' + e(x.motivoAnula) + '</small>' : x.entregado ? '<span class="fpg-ok">Recibo ' + e(x.recibo) + '</span><small>' + fCorta(x.entregado) + (x.marco ? ' · ' + e(x.marco) : '') + '</small>' : '<span class="fpg-pend">Por entregar</span>') +
+        return '<tr' + (an ? ' class="fpg-an"' : '') + '><td>' + (an ? '' : '<input type="checkbox" data-fps="' + e(x.id) + '"' + (F.sel[x.id] ? ' checked' : '') + ' title="Elegir para anular">') + '</td><td>' + fCorta(x.fecha) + '<small class="c-hora">' + e(x.hora) + ' · ' + e(x.id) + '</small></td><td>' + e(x.tienda) + '</td><td>' + e(x.factura) + (x.fechaFac ? '<small>del ' + fCorta(x.fechaFac) + '</small>' : '') + (x.cliente ? '<small>' + e(x.cliente) + '</small>' : '') + '</td><td>' + e(x.forma === 'Transferencias' ? 'Transferencia' : x.forma) + (x.forma === 'Préstamo empleado' || x.forma === 'Descuento inventario' ? '<small>' + e(x.otra) + '</small>' : x.forma === 'Nota de crédito' ? '<small>devuelta ' + e(x.banco) + '</small><small>' + e(x.otra) + '</small>' : (x.otra ? '<small>' + e(x.otra) + '</small>' : '') + (x.banco ? '<small>' + e(x.banco) + '</small>' : '')) + '</td><td style="word-break:break-word;max-width:260px">' + e(x.forma === 'Préstamo empleado' ? x.pedido + ' cuota(s) de ' + usd(Math.floor(x.valor * 100 / (Number(x.pedido) || 1)) / 100) + ' al mes' : x.forma === 'Descuento inventario' ? 'Inventario ' + x.pedido + ' · ' + x.banco + ' cuota(s) de ' + usd(Math.floor(x.valor * 100 / (Number(x.banco) || 1)) / 100) + ' al mes' : x.pedido) + '</td><td class="v">' + usd(x.valor) + (x.valorFac ? '<small>de ' + usd(x.valorFac) + '</small>' : '') + '</td><td class="c-reg">' + e(x.vendedorVer || x.vendedor || x.registroVer || x.registro) + (x.vendedor && x.vendedor !== x.registro ? '<small>registró ' + e(x.registroVer || x.registro) + '</small>' : '') + '<small>' + e(x.desde) + '</small></td><td>' +
+          (an ? '<span class="fpg-x">Anulada</span><small>' + e(x.anulo) + ': ' + e(x.motivoAnula) + '</small>' : '<span class="fpg-ok">Vigente</span>')   /* fpg16 */ +
           (x.foto ? '<small><a href="' + e(x.foto) + '" target="_blank" rel="noopener">ver foto</a></small>' : '') + '</td></tr>'; }).join('') +
       '</tbody></table></div>' + (L.length > 500 ? '<p class="small faint">Se muestran los 500 más recientes; la exportación lleva todos (' + L.length + ').</p>' : '');
     el.innerHTML = h;
@@ -5037,6 +5139,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
   if (v) {
     const mira = () => { if (!v.hidden && !F.d && !F.cargando) { cargar(); pintar(); } };
     new MutationObserver(mira).observe(v, {attributes: true, attributeFilter: ['hidden']}); mira();
+    new MutationObserver(() => { F.sel = {}; if (F.d) pintar(); }).observe(v, {attributes: true, attributeFilter: ['data-sub']});   // fpg8: cambia la opción del menú
     const r = document.getElementById('refresh'); if (r) r.addEventListener('click', () => { F.verBit = false; if (!v.hidden) { F.d = null; cargar(); pintar(); } else F.d = null; });
   }
 })();

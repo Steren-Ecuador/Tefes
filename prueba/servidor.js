@@ -335,8 +335,8 @@
   };
   API.apiAutoconsumoPanel = function (p) { panelOk(p); return acTab().slice(1); };
   /* fpg1: formas de pago de facturas del POS (en la prueba la bitácora vive en memoria) */
-  var FPG_FORMAS = ['deUna', 'Transferencias', 'Tipti', 'Shopping Dólares - Condado', 'MobiSol - Mall del Sol', 'Otra'], fpDe = function (t) { return FPG_FORMAS.filter(function (f) { return f.indexOf('Condado') > 0 ? /condado/i.test(t) : f.indexOf('MobiSol') === 0 ? /\bsol\b/i.test(t) : true; }); }, FPG_BIT = [];
-  var FPG_CAB = ['ID', 'Fecha registro', 'Hora', 'Tienda', 'Registró', 'Desde', 'N° factura', 'Forma de pago', 'N° de pedido', 'Valor con IVA', 'Cliente', 'Valor de la factura', 'Foto', 'Entregado', 'N° recibo', 'Marcó entrega', 'Estado', 'Anuló', 'Motivo anulación', 'Detalle otra', 'Banco', 'Fecha factura'];
+  var FPG_FORMAS = ['deUna', 'Tipti', 'Transferencias', 'Otra', 'Nota de crédito', 'Préstamo empleado', 'Descuento inventario'], fpDe = function (t) { return FPG_FORMAS.slice(); }, fpExtras = function () { try { return JSON.parse(localStorage.getItem('fpgExtrasPrueba') || '[]'); } catch (e) { return []; } }, fpNs = function (ex) { return ex.map(function (x) { return x.n; }); }, FPG_BIT = [];
+  var FPG_CAB = ['ID', 'Fecha registro', 'Hora', 'Tienda', 'Registró', 'Desde', 'N° factura', 'Forma de pago', 'N° de pedido', 'Valor con IVA', 'Cliente', 'Valor de la factura', 'Foto', 'Entregado', 'N° recibo', 'Marcó entrega', 'Estado', 'Anuló', 'Motivo anulación', 'Detalle otra', 'Banco', 'Fecha factura', 'Vendedor'];
   /* fpg3: ejemplo con las 8 facturas de Condado del 24-oct (registro de Shopping Dólares que ya usaba la tienda; clientes de ejemplo) */
   var FPG_EJ = [['3607', 'Abigail', '4', '3.99', 'BILLECOND 28858-28859-28857-28860', '64', '17:05'], ['3616', 'Danny', '10', '21.99', 'BILLECOND35590 BILLECOND35589 BILLECOND35588 BILLECOND35587 BILLECOND35586 BILLECOND35585 BILLECOND35594 BILLECOND35593 BILLECOND35592 BILLECOND35591', '62', '17:40'],
     ['3620', 'Mauricio', '14', '36', 'BILLECOND35939 BILLECOND35940 BILLECOND35941 BILLECOND35942 BILLECOND35943 BILLECOND35944 BILLECOND35945 BILLECOND35946 BILLECOND35947 BILLECOND35948 BILLECOND35949 BILLECOND35950 BILLECOND35951 BILLECOND35952', '62', '18:12'],
@@ -346,7 +346,7 @@
     ['3641', 'Kevin', '12', '27.99', 'BILLECOND38012 BILLECOND38002 BILLECOND38003 BILLECOND38004 BILLECOND38005 BILLECOND38006 BILLECOND38007 BILLECOND38008 BILLECOND38009 BILLECOND38010 BILLECOND38011 BILLECOND38001', '252', '20:02'],
     ['3642', 'Danny', '6', '19.99', 'BILLECOND39713-BILLECOND39712-BILLECOND39711-BILLECOND39710-BILLECOND39709-BILLECOND39708', '253', '20:35']];
   function fpTab() { try { return DB.hoja('Formas de pago'); } catch (e) {}
-    DB.escribir('Formas de pago!A1:V1', [FPG_CAB]);
+    DB.escribir('Formas de pago!A1:W1', [FPG_CAB]);
     var ay = DB.isoDe(new Date(Date.now() - 864e5)), hy = DB.isoDe(new Date());   // fechas corridas a ayer para que salgan con el filtro del mes
     FPG_EJ.forEach(function (x, i) { var ent = i < 5, f = ['FP' + String(10001 + i), ay, x[6], 'Condado', x[1], 'Tienda', '010-001-00000' + x[0], 'Shopping Dólares - Condado', x[4], x[2], 'Cliente de ejemplo ' + (i + 1), x[3], '', ent ? hy : '', ent ? x[5] : '', ent ? 'Financiero' : '', 'Vigente', '', '', '', '', ay];
       DB.agregar('Formas de pago', f); var o = fpObj(f);
@@ -354,16 +354,17 @@
       if (ent) FPG_BIT.unshift({fecha: hy, hora: '10:15', accion: 'Entrega', id: o.id, tienda: 'Condado', quien: 'Financiero', desde: 'Panel', detalle: 'Recibo ' + x[5]}); });
     FPG_BIT.sort(function (a, b) { return (b.fecha + b.hora).localeCompare(a.fecha + a.hora); });
     return DB.hoja('Formas de pago'); }
-  function fpObj(r) { return {id: r[0], fecha: S(r[1]), hora: S(r[2]), tienda: r[3], registro: r[4], registroVer: r[4], desde: r[5], factura: S(r[6]), forma: r[7], pedido: S(r[8]), valor: N(r[9]) || 0, cliente: S(r[10]), valorFac: N(r[11]) || 0, foto: S(r[12]), entregado: S(r[13]), recibo: S(r[14]), marco: S(r[15]), estado: S(r[16]) || 'Vigente', anulo: S(r[17]), motivoAnula: S(r[18]), otra: S(r[19]), banco: S(r[20]), fechaFac: S(r[21])}; }
+  function fpObj(r) { return {id: r[0], fecha: S(r[1]), hora: S(r[2]), tienda: r[3], registro: r[4], registroVer: r[4], desde: r[5], factura: S(r[6]), forma: r[7], pedido: S(r[8]), valor: N(r[9]) || 0, cliente: S(r[10]), valorFac: N(r[11]) || 0, foto: S(r[12]), entregado: S(r[13]), recibo: S(r[14]), marco: S(r[15]), estado: S(r[16]) || 'Vigente', anulo: S(r[17]), motivoAnula: S(r[18]), otra: S(r[19]), banco: S(r[20]), fechaFac: S(r[21]), vendedor: S(r[22]), vendedorVer: S(r[22])}; }
   var fpOrden = function (a, b) { return (b.fecha + b.hora).localeCompare(a.fecha + a.hora); };
   function fpLog(acc, o, q, desde, det) { var d = new Date(); FPG_BIT.unshift({fecha: DB.isoDe(d), hora: DB.hm(d), accion: acc, id: o ? o.id : '', tienda: o ? o.tienda : '', quien: String(q || '').split('#')[0], desde: desde, detalle: det || ''}); }
-  function fpPoner(i, f) { while (f.length < 22) f.push(''); DB.escribir('Formas de pago!A' + (i + 1) + ':V' + (i + 1), [f]); return fpObj(f); }
-  API.apiFPGLista = function (tok) { var t = tiendaDe(tok); return {formas: fpDe(t), hoy: DB.isoDe(new Date()), prefijo: t === 'Condado' ? '010-001' : '', lista: fpTab().slice(1).map(fpObj).filter(function (x) { return x.tienda === t; }).sort(fpOrden)}; };
+  function fpPoner(i, f) { while (f.length < 23) f.push(''); DB.escribir('Formas de pago!A' + (i + 1) + ':W' + (i + 1), [f]); return fpObj(f); }
+  API.apiFPGLista = function (tok) { var t = tiendaDe(tok); var ex = fpExtras(); return {formas: fpDe(t).concat(fpNs(ex)), extras: ex, hoy: DB.isoDe(new Date()), prefijo: t === 'Condado' ? '010-001' : '', lista: fpTab().slice(1).map(fpObj).filter(function (x) { return x.tienda === t; }).sort(fpOrden)}; };
   /* fpg5: misma validación contable que el servidor (copiada de FormasPago.gs) */
 /* fpg5: VALIDACIÓN CONTABLE de un registro (Diego 16-nov: "piénsalo como un contador"). Función pura: la usa el servidor y, copiada tal cual,
    el entorno de pruebas. d = lo que manda el asistente; filas = registros existentes (objetos); hoy = 'yyyy-MM-dd'; formas = las de la tienda.
    Devuelve los datos normalizados o lanza un Error con un mensaje claro para el usuario. */
-function fpgValidar_(d, tienda, filas, hoy, formas) {
+function fpgValidar_(d, tienda, filas, hoy, formas, extras) {
+  const EX = {}; (extras || []).forEach(x => { EX[x.n] = x; });   // fpg9: formas de reserva activas
   d = d || {};
   const txt = (v, n) => String(v == null ? '' : v).trim().replace(/^[=+\-@]+/, '').replace(/\s+/g, ' ').slice(0, n || 200);
   const num = x => { let s = String(x == null ? '' : x).replace(/[$\s]/g, ''); if (s.indexOf(',') >= 0) s = s.replace(/\./g, '').replace(',', '.'); const n = Number(s); return isNaN(n) ? 0 : Math.round(n * 100) / 100; };
@@ -380,45 +381,74 @@ function fpgValidar_(d, tienda, filas, hoy, formas) {
   /* 2. fecha y total de la factura */
   const fechaFac = /^\d{4}-\d{2}-\d{2}$/.test(String(d.fechaFac || '')) ? String(d.fechaFac) : '';
   if (!fechaFac) throw new Error('Pon la fecha de la factura.');
+  /* fpg6 (Diego 17-nov): quién hizo la venta; en el panel de la tienda puede registrar otra persona */
+  const vendedor = txt(d.vendedor, 80);
+  if (!vendedor) throw new Error('Elige el vendedor que hizo la venta.');
   if (fechaFac > hoy) throw new Error('La fecha de la factura no puede ser futura.');
   if (fechaFac < dias(hoy, -45)) throw new Error('La factura tiene más de 45 días. Pide a Financiero que la registre.');
   const valorFac = num(d.valorFac);
   if (!(valorFac > 0)) throw new Error('Pon el total de la factura con IVA.');
   if (valorFac > 100000) throw new Error('Revisa el total de la factura: parece demasiado alto.');
-  /* 3. forma de pago y sus datos */
+  /* 3. forma de pago y sus datos (fpg8) */
   const forma = txt(d.forma, 40);
   if ((formas || []).indexOf(forma) < 0) throw new Error('Elige una forma de pago de la lista.');
-  const otra = forma === 'Otra' ? txt(d.otra, 100) : '', banco = forma === 'Transferencias' ? txt(d.banco, 40) : '';
-  let ref = txt(d.pedido, 1500), claves = [];
-  if (forma === 'Otra' && otra.length < 3) throw new Error('Escribe cuál es la otra forma de pago.');
-  if (forma === 'Transferencias' && banco.length < 3) throw new Error('Elige el banco de la transferencia.');
-  if (forma === 'Tipti') { ref = ref.replace(/\D/g, ''); if (ref.length !== 7) throw new Error('El pedido Tipti tiene 7 dígitos.'); claves = ['TIPTI ' + ref]; }
-  else if (forma === 'deUna') { ref = ref.replace(/\s/g, ''); if (ref.length < 4) throw new Error('Escribe la referencia de deUna.'); claves = ['DEUNA ' + ref.toUpperCase()]; }
-  else if (forma === 'Transferencias') { ref = ref.replace(/\s/g, ''); if (ref.length < 3) throw new Error('Escribe el número de documento de la transferencia.'); claves = ['TRANSF ' + banco.toUpperCase() + ' ' + ref.toUpperCase()]; }
-  else if (VALES[forma]) {
-    const c = (ref.match(/\d{4,}/g) || []).map(x => String(Number(x)));
-    if (!c.length) throw new Error('Escribe los números de los vales.');
-    const rep = c.filter((x, i) => c.indexOf(x) !== i); if (rep.length) throw new Error('El vale ' + rep[0] + ' está repetido en la lista.');
-    claves = c.map(x => 'VALE ' + forma + ' ' + x);
-    ref = forma.indexOf('Shopping') === 0 ? c.map(x => 'BILLECOND' + x).join(' ') : c.join(' ');
-  } else { if (ref.length < 3) throw new Error('Escribe el número de comprobante.'); claves = []; }
-  /* 4. valor pagado con esta forma */
-  let valor = num(d.valor);
-  if (forma === 'Shopping Dólares - Condado') { const n = claves.length; if (valor && Math.abs(valor - n) > 0.004) throw new Error((n === 1 ? 'Es 1 vale de $1' : 'Son ' + n + ' vales de $1') + ': el valor pagado debe ser ' + usd(n) + '.'); valor = n; }
+  const sri = x => { const h = String(x == null ? '' : x).replace(/[^\d-]/g, ' ').trim().split(/[\s-]+/).filter(Boolean);
+    if (h.length === 3 && h[0].length <= 3 && h[1].length <= 3 && h[2].length <= 9 && Number(h[0]) && Number(h[2])) return ('00' + h[0]).slice(-3) + '-' + ('00' + h[1]).slice(-3) + '-' + ('00000000' + h[2]).slice(-9);
+    if (h.length === 1 && h[0].length === 15) return h[0].slice(0, 3) + '-' + h[0].slice(3, 6) + '-' + h[0].slice(6); return ''; };
+  const CUENTAS = ['Pichincha cte. 2100349639', 'Produbanco cte. 02006219957', 'Bolivariano cte. 5005110152'];
+  let otra = '', banco = '', ref = txt(d.pedido, 1500), claves = [];
+  const esVale = forma === 'Otra' && /shopping|mobisol|vale/i.test(String(d.otra || ''));
+  if (forma === 'deUna') { ref = ref.replace(/\s/g, ''); if (/\D/.test(ref)) throw new Error('El comprobante de deUna lleva solo números.'); /* fpg12 */ if (ref.length < 4) throw new Error('Escribe el comprobante de deUna.'); claves = ['DEUNA ' + ref.toUpperCase()]; }
+  else if (forma === 'Tipti') { ref = ref.replace(/\D/g, ''); if (ref.length < 4 || ref.length > 12) throw new Error('El pedido Tipti es solo números.'); claves = ['TIPTI ' + ref]; }
+  else if (forma === 'Transferencias') {
+    banco = txt(d.banco, 60); if (CUENTAS.indexOf(banco) < 0) throw new Error('Elige la cuenta de la empresa a la que llegó la transferencia.');
+    ref = ref.replace(/\s/g, ''); if (/\D/.test(ref)) throw new Error('El comprobante de la transferencia lleva solo números.'); /* fpg12 */ if (ref.length < 3) throw new Error('Escribe el comprobante de la transferencia.'); claves = ['TRANSF ' + banco.toUpperCase() + ' ' + ref.toUpperCase()];
+  } else if (forma === 'Otra') {
+    otra = txt(d.otra, 100); if (otra.length < 3) throw new Error('Escribe el detalle: qué forma de pago es.');
+    if (ref.length < 3) throw new Error('Escribe el número de comprobante o de los vales.');
+    if (esVale) { const c = (ref.match(/\d{4,}/g) || []).map(x => String(Number(x))); const rep = c.filter((x, i) => c.indexOf(x) !== i);
+      if (rep.length) throw new Error('El vale ' + rep[0] + ' está repetido en la lista.');
+      const fv = /mobisol/i.test(otra) ? 'MobiSol - Mall del Sol' : 'Shopping Dólares - Condado'; claves = c.map(x => 'VALE ' + fv + ' ' + x); }
+  } else if (forma === 'Nota de crédito') {
+    ref = sri(ref); if (!ref) throw new Error('Escribe el N° de la nota de crédito completo: 005-001-000000123.');
+    banco = sri(d.banco); if (!banco) throw new Error('Escribe el N° de la factura devuelta como sale en el PDF: 005-001-000004700.');   // col U = factura devuelta
+    if (banco === fac) throw new Error('La factura devuelta es otra, no esta.');
+    otra = txt(d.otra, 100);   // motivo opcional
+    claves = ['NC ' + ref];
+  } else if (forma === 'Descuento inventario') {
+    otra = txt(d.otra, 80); if (!otra) throw new Error('Elige el empleado al que se le descuenta.');
+    if (ref.length < 2) throw new Error('Escribe el N° de inventario.'); ref = ref.slice(0, 40);
+    banco = String(Number(String(d.banco || '').replace(/\D/g, '')) || ''); if (!(Number(banco) >= 1 && Number(banco) <= 6)) throw new Error('Elige el número de cuotas (máximo 6 meses).');   // col U = cuotas
+  } else if (forma === 'Préstamo empleado') {
+    otra = txt(d.otra, 80); if (!otra) throw new Error('Elige el empleado que compra.');
+    ref = String(Number(String(ref).replace(/\D/g, '')) || ''); if (!(Number(ref) >= 1 && Number(ref) <= 6)) throw new Error('Elige el número de cuotas (máximo 6 meses).');
+  } else if (EX[forma]) {   // fpg9: plantillas A, B, C, D
+    const P = EX[forma].p;
+    if (P === 'D') { otra = txt(d.otra, 80); if (!otra) throw new Error('Elige el empleado.');
+      ref = String(Number(String(ref).replace(/\D/g, '')) || ''); if (!(Number(ref) >= 1 && Number(ref) <= 6)) throw new Error('Elige el número de cuotas (máximo 6 meses).'); }
+    else { ref = P === 'B' ? ref.replace(/\D/g, '') : ref.replace(/\s/g, '');
+      if (P === 'B' ? ref.length < 3 || ref.length > 15 : ref.length < 3) throw new Error(P === 'B' ? 'Escribe el número (solo dígitos).' : 'Escribe el comprobante.');
+      claves = ['X ' + forma.toUpperCase() + ' ' + ref.toUpperCase()]; }
+  }
+  /* 4. valor pagado con esta forma: dólares con hasta 2 decimales */
+  if (typeof d.valor !== 'number' && !/^\$?\s*\d{1,6}([.,]\d{1,2})?$/.test(String(d.valor == null ? '' : d.valor).trim())) throw new Error('Escribe el valor en dólares, con punto o coma para los centavos.');
+  const valor = num(d.valor);
   if (!(valor > 0)) throw new Error('Pon el valor pagado con esta forma.');
-  if (valor > valorFac + (VALES[forma] ? 0.99 : 0) + 0.004) throw new Error('Lo pagado con esta forma (' + usd(valor) + ') es más que el total de la factura (' + usd(valorFac) + ').');
+  if (valor > valorFac + (esVale ? 0.99 : 0) + 0.004) throw new Error('Lo pagado con esta forma (' + usd(valor) + ') es más que el total de la factura (' + usd(valorFac) + ').');
   /* 5. respaldo */
   const foto = /^https:\/\/drive\.google\.com\//.test(String(d.foto || '')) ? String(d.foto) : '';
-  if (FOTO[forma] && !foto) throw new Error('Toma la foto del ' + (forma === 'Transferencias' ? 'comprobante de la transferencia' : 'vale y la factura') + '.');
+  if ((forma === 'Transferencias' || esVale || EX[forma] && EX[forma].p === 'C') && !foto) throw new Error('Toma la foto del ' + (forma === 'Transferencias' ? 'comprobante de la transferencia' : esVale ? 'vale y la factura' : 'comprobante') + '.');
   /* 6. cuadre con lo ya registrado de la misma factura (vigentes) */
   const vig = (filas || []).filter(x => (x.estado || 'Vigente') !== 'Anulada');
   const misma = vig.filter(x => x.tienda === tienda && String(x.factura).replace(/\D/g, '') === fac.replace(/\D/g, ''));
   misma.forEach(x => {
     if (x.valorFac && Math.abs(x.valorFac - valorFac) > 0.004) throw new Error('Esta factura ya está registrada con total ' + usd(x.valorFac) + '. Revisa el total o anula el registro anterior.');
     if (x.fechaFac && x.fechaFac !== fechaFac) throw new Error('Esta factura ya está registrada con fecha ' + x.fechaFac.split('-').reverse().join('/') + '. Revisa la fecha.');
+    if (x.vendedor && vendedor && x.vendedor !== vendedor) throw new Error('Esta factura ya está registrada con el vendedor ' + (x.vendedorVer || x.vendedor) + '. Revisa el vendedor.');
   });
   const suma = misma.reduce((a, x) => a + (Number(x.valor) || 0), 0);
-  const tol = VALES[forma] || misma.some(x => VALES[x.forma]) ? 0.994 : 0.004;   // los vales de $1 pueden pasar la factura por centavos
+  const vx = x => VALES[x.forma] || x.forma === 'Otra' && /shopping|mobisol|vale/i.test(String(x.otra || ''));
+  const tol = esVale || misma.some(vx) ? 0.994 : 0.004;   // los vales de $1 pueden pasar la factura por centavos   // los vales de $1 pueden pasar la factura por centavos
   if (suma + valor > valorFac + tol) throw new Error('Con este pago, las formas registradas de la factura suman ' + usd(suma + valor) + ' y la factura es de ' + usd(valorFac) + '.');
   /* 7. una referencia, pedido o vale no se usa dos veces (en ninguna factura ni tienda) */
   if (claves.length) {
@@ -430,22 +460,26 @@ function fpgValidar_(d, tienda, filas, hoy, formas) {
       else if (f === 'deUna') k = ['DEUNA ' + r.replace(/\s/g, '').toUpperCase()];
       else if (f === 'Transferencias') k = ['TRANSF ' + String(x.banco || '').toUpperCase() + ' ' + r.replace(/\s/g, '').toUpperCase()];
       else if (VALES[f]) k = (r.match(/\d{4,}/g) || []).map(y => 'VALE ' + f + ' ' + String(Number(y)));
+      else if (f === 'Otra' && vx(x)) k = (r.match(/\d{4,}/g) || []).map(y => 'VALE ' + (/mobisol/i.test(String(x.otra)) ? 'MobiSol - Mall del Sol' : 'Shopping Dólares - Condado') + ' ' + String(Number(y)));
+      else if (f === 'Nota de crédito') k = ['NC ' + r];
+      else if (EX[f] && EX[f].p !== 'D') k = ['X ' + f.toUpperCase() + ' ' + r.replace(/\s/g, '').toUpperCase()];
       k.forEach(y => { ya[y] = x; });
     });
     const choque = claves.find(k => ya[k]);
     if (choque) { const x = ya[choque];
-      throw new Error((VALES[forma] ? 'El vale ' + choque.split(' ').pop() : forma === 'Tipti' ? 'El pedido Tipti ' + ref : forma === 'deUna' ? 'La referencia deUna ' + ref : 'La transferencia ' + ref + ' de ' + banco) +
+      throw new Error((esVale ? 'El vale ' + choque.split(' ').pop() : forma === 'Tipti' ? 'El pedido Tipti ' + ref : forma === 'deUna' ? 'El comprobante deUna ' + ref : forma === 'Nota de crédito' ? 'La nota de crédito ' + ref : EX[forma] ? 'El comprobante ' + ref + ' de ' + forma : 'La transferencia ' + ref + ' a ' + banco) +
         ' ya se registró en la factura ' + x.factura + ' (' + x.tienda + ', ' + String(x.fecha || '').split('-').reverse().join('/') + ').'); }
   }
-  return {factura: fac, fechaFac: fechaFac, valorFac: valorFac, forma: forma, otra: otra, banco: banco, pedido: ref, valor: valor, foto: foto, cliente: txt(d.cliente, 100)};
+  return {factura: fac, fechaFac: fechaFac, valorFac: valorFac, forma: forma, otra: otra, banco: banco, pedido: ref, valor: valor, foto: foto, cliente: txt(d.cliente, 100), vendedor: vendedor};
 }
 
   API.apiFPGRegistrar = function (tok, d) {
     var t = tiendaDe(tok), dd = new Date(), L = fpTab();
     if (!d.registro) throw new Error('Elige tu nombre.'); if (d.confirmo !== true) throw new Error('Confirma que revisaste los datos.');
     if (/^data:/.test(S(d.foto))) d.foto = 'https://drive.google.com/prueba-foto';   // en la prueba la foto no se sube
-    var v = fpgValidar_(d, t, L.slice(1).map(fpObj), DB.isoDe(dd), fpDe(t));
-    var fila = ['FP' + String(10000 + L.length), DB.isoDe(dd), DB.hm(dd), t, d.registro, d.desde === 'Asesor' ? 'Asesor' : 'Tienda', v.factura, v.forma, v.pedido, String(v.valor), v.cliente, String(v.valorFac), v.foto, '', '', '', 'Vigente', '', '', v.otra, v.banco, v.fechaFac];
+    if (d.desde === 'Asesor') d.vendedor = d.registro;
+    var ex = fpExtras(), v = fpgValidar_(d, t, L.slice(1).map(fpObj), DB.isoDe(dd), fpDe(t).concat(fpNs(ex)), ex);
+    var fila = ['FP' + String(10000 + L.length), DB.isoDe(dd), DB.hm(dd), t, d.registro, d.desde === 'Asesor' ? 'Asesor' : 'Tienda', v.factura, v.forma, v.pedido, String(v.valor), v.cliente, String(v.valorFac), v.foto, '', '', '', 'Vigente', '', '', v.otra, v.banco, v.fechaFac, v.vendedor];
     DB.agregar('Formas de pago', fila); var o = fpObj(fila); fpLog('Registro', o, d.registro, fila[5], 'Fact. ' + o.factura + ' · ' + o.forma + ' · $' + o.valor); return o;
   };
   function fpAnular(id, q, desde, mot) { var H = fpTab(), i = H.findIndex(function (r) { return r[0] === id; }); if (i < 1) throw new Error('No encontré el registro.');
@@ -455,7 +489,7 @@ function fpgValidar_(d, tienda, filas, hoy, formas) {
   API.apiFPGEntregar = function (p, q, ids, rec) { panelOk(p); var H = fpTab(), out = [], hoy = DB.isoDe(new Date());
     H.forEach(function (r, i) { if (i && ids.indexOf(r[0]) >= 0) { var f = r.slice(); f[13] = rec ? hoy : ''; f[14] = rec || ''; f[15] = rec ? String(q).split('#')[0] : ''; var o = fpPoner(i, f); fpLog('Entrega', o, q, 'Panel', 'Recibo ' + rec); out.push(o); } });
     return out; };
-  API.apiFPGPanel = function (p, q) { panelOk(p); fpLog('Consulta', null, q, 'Panel', ''); return {formas: FPG_FORMAS, lista: fpTab().slice(1).map(fpObj).sort(fpOrden), integridad: {ok: true, lineas: FPG_BIT.length, rotas: [], cambiadas: []}}; };
+  API.apiFPGPanel = function (p, q) { panelOk(p); fpLog('Consulta', null, q, 'Panel', ''); var ex = fpExtras(); return {formas: FPG_FORMAS.concat(fpNs(ex)), extras: ex, lista: fpTab().slice(1).map(fpObj).sort(fpOrden), integridad: {ok: true, lineas: FPG_BIT.length, rotas: [], cambiadas: []}}; };
   API.apiFPGBitacora = function (p) { panelOk(p); return FPG_BIT.slice(); };
   API.apiFPGExporto = function (p, q, det) { panelOk(p); fpLog('Exportación', null, q, 'Panel', det); return true; };
   API.apiPPTienda = function (tok) { tiendaDe(tok); return []; };

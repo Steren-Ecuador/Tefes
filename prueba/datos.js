@@ -37,7 +37,8 @@
     ['Paula Andrade', 'Mall Sol, Urdesa, Samborondón', 'Seguimiento'],
     ['Martín Cevallos', 'Condado, Portal, Megakywi, Scala', 'Seguimiento'],
     ['Gabriela Toapanta', 'Mall Jardín, Tumbaco, Megamaxi', 'Seguimiento'],
-    ['Lucía Herrera', 'Todas', 'Lectura']];
+    ['Lucía Herrera', 'Todas', 'Lectura'],
+    ['Financiero de prueba', 'Todas', 'Lectura']];   // fpg: perfil Financiero (enlace ?perfil=financiero)
   var ADMIN = 'Administrador';
   var NOMBRES = ['Andrés', 'Carla', 'Daniela', 'Esteban', 'Fernanda', 'Gustavo', 'Isabel', 'Jorge', 'Karina', 'Luis', 'María', 'Nicolás', 'Olga', 'Pablo', 'Rosa',
     'Santiago', 'Tatiana', 'Víctor', 'Ximena', 'Bruno', 'Camila', 'Diana', 'Emilio', 'Fabiola', 'Hugo', 'Irene', 'Joaquín', 'Lorena', 'Mateo', 'Natalia', 'Óscar',
