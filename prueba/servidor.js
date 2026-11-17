@@ -336,7 +336,7 @@
   API.apiAutoconsumoPanel = function (p) { panelOk(p); return acTab().slice(1); };
   /* fpg1: formas de pago de facturas del POS (en la prueba la bitácora vive en memoria) */
   var FPG_FORMAS = ['deUna', 'Transferencias', 'Tipti', 'Shopping Dólares - Condado', 'MobiSol - Mall del Sol', 'Otra'], fpDe = function (t) { return FPG_FORMAS.filter(function (f) { return f.indexOf('Condado') > 0 ? /condado/i.test(t) : f.indexOf('MobiSol') === 0 ? /\bsol\b/i.test(t) : true; }); }, FPG_BIT = [];
-  var FPG_CAB = ['ID', 'Fecha registro', 'Hora', 'Tienda', 'Registró', 'Desde', 'N° factura', 'Forma de pago', 'N° de pedido', 'Valor con IVA', 'Cliente', 'Valor de la factura', 'Foto', 'Entregado', 'N° recibo', 'Marcó entrega', 'Estado', 'Anuló', 'Motivo anulación', 'Detalle otra', 'Banco', 'Fecha factura'];
+  var FPG_CAB = ['ID', 'Fecha registro', 'Hora', 'Tienda', 'Registró', 'Desde', 'N° factura', 'Forma de pago', 'N° de pedido', 'Valor con IVA', 'Cliente', 'Valor de la factura', 'Foto', 'Entregado', 'N° recibo', 'Marcó entrega', 'Estado', 'Anuló', 'Motivo anulación', 'Detalle otra', 'Banco', 'Fecha factura', 'Vendedor'];
   /* fpg3: ejemplo con las 8 facturas de Condado del 24-oct (registro de Shopping Dólares que ya usaba la tienda; clientes de ejemplo) */
   var FPG_EJ = [['3607', 'Abigail', '4', '3.99', 'BILLECOND 28858-28859-28857-28860', '64', '17:05'], ['3616', 'Danny', '10', '21.99', 'BILLECOND35590 BILLECOND35589 BILLECOND35588 BILLECOND35587 BILLECOND35586 BILLECOND35585 BILLECOND35594 BILLECOND35593 BILLECOND35592 BILLECOND35591', '62', '17:40'],
     ['3620', 'Mauricio', '14', '36', 'BILLECOND35939 BILLECOND35940 BILLECOND35941 BILLECOND35942 BILLECOND35943 BILLECOND35944 BILLECOND35945 BILLECOND35946 BILLECOND35947 BILLECOND35948 BILLECOND35949 BILLECOND35950 BILLECOND35951 BILLECOND35952', '62', '18:12'],
@@ -346,7 +346,7 @@
     ['3641', 'Kevin', '12', '27.99', 'BILLECOND38012 BILLECOND38002 BILLECOND38003 BILLECOND38004 BILLECOND38005 BILLECOND38006 BILLECOND38007 BILLECOND38008 BILLECOND38009 BILLECOND38010 BILLECOND38011 BILLECOND38001', '252', '20:02'],
     ['3642', 'Danny', '6', '19.99', 'BILLECOND39713-BILLECOND39712-BILLECOND39711-BILLECOND39710-BILLECOND39709-BILLECOND39708', '253', '20:35']];
   function fpTab() { try { return DB.hoja('Formas de pago'); } catch (e) {}
-    DB.escribir('Formas de pago!A1:V1', [FPG_CAB]);
+    DB.escribir('Formas de pago!A1:W1', [FPG_CAB]);
     var ay = DB.isoDe(new Date(Date.now() - 864e5)), hy = DB.isoDe(new Date());   // fechas corridas a ayer para que salgan con el filtro del mes
     FPG_EJ.forEach(function (x, i) { var ent = i < 5, f = ['FP' + String(10001 + i), ay, x[6], 'Condado', x[1], 'Tienda', '010-001-00000' + x[0], 'Shopping Dólares - Condado', x[4], x[2], 'Cliente de ejemplo ' + (i + 1), x[3], '', ent ? hy : '', ent ? x[5] : '', ent ? 'Financiero' : '', 'Vigente', '', '', '', '', ay];
       DB.agregar('Formas de pago', f); var o = fpObj(f);
@@ -354,10 +354,10 @@
       if (ent) FPG_BIT.unshift({fecha: hy, hora: '10:15', accion: 'Entrega', id: o.id, tienda: 'Condado', quien: 'Financiero', desde: 'Panel', detalle: 'Recibo ' + x[5]}); });
     FPG_BIT.sort(function (a, b) { return (b.fecha + b.hora).localeCompare(a.fecha + a.hora); });
     return DB.hoja('Formas de pago'); }
-  function fpObj(r) { return {id: r[0], fecha: S(r[1]), hora: S(r[2]), tienda: r[3], registro: r[4], registroVer: r[4], desde: r[5], factura: S(r[6]), forma: r[7], pedido: S(r[8]), valor: N(r[9]) || 0, cliente: S(r[10]), valorFac: N(r[11]) || 0, foto: S(r[12]), entregado: S(r[13]), recibo: S(r[14]), marco: S(r[15]), estado: S(r[16]) || 'Vigente', anulo: S(r[17]), motivoAnula: S(r[18]), otra: S(r[19]), banco: S(r[20]), fechaFac: S(r[21])}; }
+  function fpObj(r) { return {id: r[0], fecha: S(r[1]), hora: S(r[2]), tienda: r[3], registro: r[4], registroVer: r[4], desde: r[5], factura: S(r[6]), forma: r[7], pedido: S(r[8]), valor: N(r[9]) || 0, cliente: S(r[10]), valorFac: N(r[11]) || 0, foto: S(r[12]), entregado: S(r[13]), recibo: S(r[14]), marco: S(r[15]), estado: S(r[16]) || 'Vigente', anulo: S(r[17]), motivoAnula: S(r[18]), otra: S(r[19]), banco: S(r[20]), fechaFac: S(r[21]), vendedor: S(r[22]), vendedorVer: S(r[22])}; }
   var fpOrden = function (a, b) { return (b.fecha + b.hora).localeCompare(a.fecha + a.hora); };
   function fpLog(acc, o, q, desde, det) { var d = new Date(); FPG_BIT.unshift({fecha: DB.isoDe(d), hora: DB.hm(d), accion: acc, id: o ? o.id : '', tienda: o ? o.tienda : '', quien: String(q || '').split('#')[0], desde: desde, detalle: det || ''}); }
-  function fpPoner(i, f) { while (f.length < 22) f.push(''); DB.escribir('Formas de pago!A' + (i + 1) + ':V' + (i + 1), [f]); return fpObj(f); }
+  function fpPoner(i, f) { while (f.length < 23) f.push(''); DB.escribir('Formas de pago!A' + (i + 1) + ':W' + (i + 1), [f]); return fpObj(f); }
   API.apiFPGLista = function (tok) { var t = tiendaDe(tok); return {formas: fpDe(t), hoy: DB.isoDe(new Date()), prefijo: t === 'Condado' ? '010-001' : '', lista: fpTab().slice(1).map(fpObj).filter(function (x) { return x.tienda === t; }).sort(fpOrden)}; };
   /* fpg5: misma validación contable que el servidor (copiada de FormasPago.gs) */
 /* fpg5: VALIDACIÓN CONTABLE de un registro (Diego 16-nov: "piénsalo como un contador"). Función pura: la usa el servidor y, copiada tal cual,
@@ -380,6 +380,9 @@ function fpgValidar_(d, tienda, filas, hoy, formas) {
   /* 2. fecha y total de la factura */
   const fechaFac = /^\d{4}-\d{2}-\d{2}$/.test(String(d.fechaFac || '')) ? String(d.fechaFac) : '';
   if (!fechaFac) throw new Error('Pon la fecha de la factura.');
+  /* fpg6 (Diego 17-nov): quién hizo la venta; en el panel de la tienda puede registrar otra persona */
+  const vendedor = txt(d.vendedor, 80);
+  if (!vendedor) throw new Error('Elige el vendedor que hizo la venta.');
   if (fechaFac > hoy) throw new Error('La fecha de la factura no puede ser futura.');
   if (fechaFac < dias(hoy, -45)) throw new Error('La factura tiene más de 45 días. Pide a Financiero que la registre.');
   const valorFac = num(d.valorFac);
@@ -416,6 +419,7 @@ function fpgValidar_(d, tienda, filas, hoy, formas) {
   misma.forEach(x => {
     if (x.valorFac && Math.abs(x.valorFac - valorFac) > 0.004) throw new Error('Esta factura ya está registrada con total ' + usd(x.valorFac) + '. Revisa el total o anula el registro anterior.');
     if (x.fechaFac && x.fechaFac !== fechaFac) throw new Error('Esta factura ya está registrada con fecha ' + x.fechaFac.split('-').reverse().join('/') + '. Revisa la fecha.');
+    if (x.vendedor && vendedor && x.vendedor !== vendedor) throw new Error('Esta factura ya está registrada con el vendedor ' + (x.vendedorVer || x.vendedor) + '. Revisa el vendedor.');
   });
   const suma = misma.reduce((a, x) => a + (Number(x.valor) || 0), 0);
   const tol = VALES[forma] || misma.some(x => VALES[x.forma]) ? 0.994 : 0.004;   // los vales de $1 pueden pasar la factura por centavos
@@ -437,15 +441,16 @@ function fpgValidar_(d, tienda, filas, hoy, formas) {
       throw new Error((VALES[forma] ? 'El vale ' + choque.split(' ').pop() : forma === 'Tipti' ? 'El pedido Tipti ' + ref : forma === 'deUna' ? 'La referencia deUna ' + ref : 'La transferencia ' + ref + ' de ' + banco) +
         ' ya se registró en la factura ' + x.factura + ' (' + x.tienda + ', ' + String(x.fecha || '').split('-').reverse().join('/') + ').'); }
   }
-  return {factura: fac, fechaFac: fechaFac, valorFac: valorFac, forma: forma, otra: otra, banco: banco, pedido: ref, valor: valor, foto: foto, cliente: txt(d.cliente, 100)};
+  return {factura: fac, fechaFac: fechaFac, valorFac: valorFac, forma: forma, otra: otra, banco: banco, pedido: ref, valor: valor, foto: foto, cliente: txt(d.cliente, 100), vendedor: vendedor};
 }
 
   API.apiFPGRegistrar = function (tok, d) {
     var t = tiendaDe(tok), dd = new Date(), L = fpTab();
     if (!d.registro) throw new Error('Elige tu nombre.'); if (d.confirmo !== true) throw new Error('Confirma que revisaste los datos.');
     if (/^data:/.test(S(d.foto))) d.foto = 'https://drive.google.com/prueba-foto';   // en la prueba la foto no se sube
+    if (d.desde === 'Asesor') d.vendedor = d.registro;
     var v = fpgValidar_(d, t, L.slice(1).map(fpObj), DB.isoDe(dd), fpDe(t));
-    var fila = ['FP' + String(10000 + L.length), DB.isoDe(dd), DB.hm(dd), t, d.registro, d.desde === 'Asesor' ? 'Asesor' : 'Tienda', v.factura, v.forma, v.pedido, String(v.valor), v.cliente, String(v.valorFac), v.foto, '', '', '', 'Vigente', '', '', v.otra, v.banco, v.fechaFac];
+    var fila = ['FP' + String(10000 + L.length), DB.isoDe(dd), DB.hm(dd), t, d.registro, d.desde === 'Asesor' ? 'Asesor' : 'Tienda', v.factura, v.forma, v.pedido, String(v.valor), v.cliente, String(v.valorFac), v.foto, '', '', '', 'Vigente', '', '', v.otra, v.banco, v.fechaFac, v.vendedor];
     DB.agregar('Formas de pago', fila); var o = fpObj(fila); fpLog('Registro', o, d.registro, fila[5], 'Fact. ' + o.factura + ' · ' + o.forma + ' · $' + o.valor); return o;
   };
   function fpAnular(id, q, desde, mot) { var H = fpTab(), i = H.findIndex(function (r) { return r[0] === id; }); if (i < 1) throw new Error('No encontré el registro.');
