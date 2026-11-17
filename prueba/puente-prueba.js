@@ -5,6 +5,15 @@
   var DB = window.TEFES_PRUEBA, API = window.TEFES_SERVIDOR;
   var q = new URLSearchParams(location.search), esPanel = /panel\.html$/.test(location.pathname);
   if (esPanel && !q.get('p')) q.set('p', DB.token('__PANEL__'));
+  /* fpg (Diego 17-nov): ?perfil=financiero entra directo como Financiero, solo con Formas de pago, para enseñarles */
+  try {
+    if (esPanel && q.get('perfil') === 'financiero') {
+      localStorage.setItem('mpfPrueba', JSON.stringify(['ventas/formaspago'])); localStorage.setItem('supTefes', JSON.stringify({nombre: 'Financiero de prueba'}));
+      localStorage.setItem('tabSup', 'formaspago'); localStorage.setItem('pruebaFin', '1');
+    } else if (esPanel && localStorage.getItem('pruebaFin')) {
+      ['mpfPrueba', 'supTefes', 'tabSup', 'pruebaFin'].forEach(function (k) { localStorage.removeItem(k); });
+    }
+  } catch (e) {}
   if (!esPanel && !q.get('t')) q.set('t', DB.token(q.get('tienda') || '') || DB.token(DB.tiendas()[0]));
 
   function llamar(fn, args) {

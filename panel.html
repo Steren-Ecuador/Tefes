@@ -4866,6 +4866,8 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     new MutationObserver(() => tabs.querySelectorAll('button[data-mpf]').forEach(b => { if (!b.hidden) b.hidden = true; })).observe(tabs, {subtree: true, attributes: true, attributeFilter: ['hidden', 'style']});
     const on = tabs.querySelector('button[data-v].on');
     if (on && on.hidden) { const p = [...tabs.querySelectorAll('button[data-v]')].find(b => !b.hidden && b.style.display !== 'none'); if (p) p.click(); }
+    try { const T = ((window.TEM && TEM.temas) || []).find(t => t.id === 'ventas');   // fpg7: si de Ventas solo queda Formas de pago, el tema se llama así
+      if (T && vivas.formaspago && T.vistas.filter(v => vivas[v] || !todas[v]).length === 1) T.nombre = 'Formas de pago'; } catch (e) {}
     abajo(); tabs.dataset.mn = String(Date.now());
   }
   setInterval(() => {
