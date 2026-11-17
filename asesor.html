@@ -1002,7 +1002,7 @@ const VENDER = [['audio', '🎧 Audio y bocinas'], ['seguridad', '📹 Cámaras 
 const RECON = [['publico', '📣 Que lo vea todo el equipo'], ['privado', '🤫 En privado, me da pena']];
 let OB = null;
 function bienvenida(editar){
-  OB = Object.assign({paso: 0, foto: '', apodo: '', cumple: '', motivo: E.motivo || '', sueno: '', vender: [], recon: ''}, editar ? E.perfil || {} : {}, {paso: 0});
+  OB = Object.assign({paso: 0, foto: '', apodo: '', cumple: '', motivo: E.motivo || '', sueno: '', vender: [], recon: ''}, editar ? E.perfil || {} : {}, {paso: 0, ed: !!editar});   /* pa1 */
   pasoOB();
 }
 function pasoOB(){
@@ -1038,8 +1038,35 @@ function pasoOB(){
   if ($('#obAtras')) $('#obAtras').onclick = () => { if (st.leer) st.leer(); OB.paso--; pasoOB(); };
   $('#obSig').onclick = () => { if (st.leer) st.leer(); if (!st.ok()) return toast(st.falta || 'Completa este paso.');
     if (OB.paso < n - 1){ OB.paso++; return pasoOB(); }
-    E.perfil = {foto: OB.foto, apodo: OB.apodo, cumple: OB.cumple, sueno: OB.sueno, vender: OB.vender, recon: OB.recon}; E.motivo = OB.motivo; guardar();
+    E.perfil = {foto: OB.foto, apodo: OB.apodo, cumple: OB.cumple, sueno: OB.sueno, vender: OB.vender, recon: OB.recon}; E.motivo = OB.motivo; guardar(); paSubir(OB.ed ? 'edición' : 'bienvenida');   /* pa1 */
     el.remove(); pintarCab(); render(); toast('¡Listo, ' + (OB.apodo || nombreCorto(ver(YO.nombre))) + '! Bienvenido a tu panel 🎉'); };
+}
+/* pa1 */
+/* El perfil (foto, apodo, cumpleaños, motivo, sueño, qué le gusta vender, reconocimiento) se guarda en la hoja privada
+   "Perfil asesores". Si la hoja lo tiene, el teléfono lo usa y no vuelve a preguntar; si solo el teléfono lo tiene
+   (lo llenó antes de pa1), lo sube solo. La foto viaja reducida a 200 px. */
+function paChica(u){ return new Promise(ok => { if (!u) return ok(''); const i = new Image();
+  i.onload = () => { const c = document.createElement('canvas'), z = 200, m = Math.min(i.width, i.height); c.width = c.height = z;
+    c.getContext('2d').drawImage(i, (i.width - m) / 2, (i.height - m) / 2, m, m, 0, 0, z, z); ok(c.toDataURL('image/jpeg', 0.72)); };
+  i.onerror = () => ok(''); i.src = u; }); }
+function paSubir(origen){
+  if (!YO || !E.perfil) return Promise.resolve();
+  const p = Object.assign({}, E.perfil, {motivo: E.motivo || ''});
+  return paChica(p.foto).then(f => { p.foto = f; return llamar('apiPerfilGuardar', TOKEN, YO.nombre, p, origen, DISP); }).catch(() => {});
+}
+function paSync(){
+  const fin = () => { if (!E.perfil || !E.perfil.foto) bienvenida(); else setTimeout(pfFestejarSolas, 400); };
+  const yo = YO && YO.nombre; if (!yo) return fin();
+  llamar('apiPerfilAsesor', TOKEN, yo).then(s => {
+    if (!YO || YO.nombre !== yo) return;
+    if (s && (s.foto || s.apodo || s.motivo)) {
+      const fotoLocal = E.perfil && E.perfil.foto;
+      E.perfil = {foto: s.foto || fotoLocal || '', apodo: s.apodo || '', cumple: s.cumple || '', sueno: s.sueno || '', vender: s.vender || [], recon: s.recon || ''};
+      if (s.motivo) E.motivo = s.motivo;
+      guardar(); pintarCab(); render();
+    } else if (E.perfil && E.perfil.foto) paSubir('recuperado del teléfono');
+    fin();
+  }, fin);
 }
 function pintarCab(){
   const a = $('#miAv'); if (miFoto()){ a.textContent = ''; a.style.background = '#ddd url(' + miFoto() + ') center/cover'; } else { a.style.background = colorDe(YO.id); a.textContent = iniciales(ver(YO.nombre)); }
@@ -1210,7 +1237,7 @@ function pintarAs(d, yo){
     pintarCab(); $('#miAv').style.cursor = 'pointer'; $('#miAv').onclick = () => bienvenida(true); $('#miSub').textContent = YO.cargo + ' · Steren ' + TIENDA.nombre;
     render();
     if (window.__ac3) return; window.__ac3 = 1;   /* ac3: bienvenida y salto a sección solo la primera vez */
-    if (!E.perfil || !E.perfil.foto) bienvenida(); else setTimeout(pfFestejarSolas, 400);   /* pf2 */
+    paSync();   /* pa1 (antes: bienvenida si el teléfono no tenía perfil) · pf2 */
     const v = Q.get('v'); if (v && SECCIONES.some(x => x[0] === v)) setTimeout(() => ir(v), 50);
 }
 arrancar();
