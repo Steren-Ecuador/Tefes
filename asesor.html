@@ -563,7 +563,7 @@ function anularPago(id){
     ocupado('#ok'); llamar('apiFPGAnularTienda', TOKEN, id, YO.nombre, m).then(r => { const i = FPG.lista.findIndex(x => x.id === id); if (i >= 0) FPG.lista[i] = r; cerrar(); toast('Anulado.'); renderCli(); }, e => { libre('#ok'); toast(e.message); }); };
 }
 const FPG_PED = {'deUna': 'Referencia deUna', 'Transferencias': 'N° de documento de la transferencia', 'Tipti': 'N° de pedido Tipti (7 dígitos)', 'Shopping Dólares - Condado': 'Números de los Shopping Dólares', 'MobiSol - Mall del Sol': 'Números de los vales MobiSol', 'Otra': 'N° de comprobante'};   // fpg4
-/* fpg5 (Diego 16-nov): asistente de 4 pasos para registrar la forma de pago de una factura del POS.
+/* fpg5 (Diego 16-nov) + fpg6 (17-nov: vendedor): asistente de 4 pasos para registrar la forma de pago de una factura del POS.
    1 Factura · 2 Forma de pago · 3 Datos del pago · 4 Revisar y confirmar. No se puede saltar pasos: "Siguiente" se activa solo con todo bien.
    El servidor vuelve a validar todo (fpgValidar_). Uso: fpgWizard({api, subirFoto, formas, prefijo, hoy, lista, quienHtml, quienFijo, desde, alGuardar}) */
 function fpgWizard(o){
@@ -603,7 +603,7 @@ function fpgWizard(o){
   }
   const bg = document.createElement('div'); bg.className = 'fw-bg'; bg.innerHTML = '<div class="fw" role="dialog" aria-modal="true"></div>'; document.body.appendChild(bg);
   const box = bg.firstChild, $w = s => box.querySelector(s);
-  const D = {pto: localStorage.getItem('fpgPto') || o.prefijo || '', sec: '', fechaFac: hoy, valorFac: '', forma: '', otra: '', banco: '', pedido: '', valor: '', foto: '', fotoFile: null, fotoUrl: '', quien: o.quienFijo || '', confirmo: false};
+  const D = {pto: localStorage.getItem('fpgPto') || o.prefijo || '', sec: '', fechaFac: hoy, valorFac: '', forma: '', otra: '', banco: '', pedido: '', valor: '', foto: '', fotoFile: null, fotoUrl: '', quien: o.quienFijo || '', vend: o.quienFijo || '', confirmo: false};
   let paso = 1, guardando = false, err = '', fijo = null;
   const cerrar = () => { if (D.fotoUrl) URL.revokeObjectURL(D.fotoUrl); bg.remove(); };
   const facNorm = () => { const a = D.pto.replace(/[^\d-]/g, '').split('-').filter(Boolean), s = D.sec.replace(/\D/g, '');
@@ -620,7 +620,9 @@ function fpgWizard(o){
       if (!D.fechaFac || D.fechaFac > hoy) return 'La fecha de la factura no puede ser futura.';
       if (D.fechaFac < dias(hoy, -45)) return 'La factura tiene más de 45 días: pide a Financiero que la registre.';
       if (!(num(D.valorFac) > 0)) return 'Pon el total de la factura con IVA.';
+      if (!D.vend) return 'Elige el vendedor que hizo la venta.';
       const pv = previos()[0];
+      if (pv && pv.vendedor && D.vend && pv.vendedor !== D.vend) return 'Esta factura ya está registrada con el vendedor ' + (pv.vendedorVer || pv.vendedor) + '.';
       if (pv && pv.valorFac && Math.abs(pv.valorFac - num(D.valorFac)) > 0.004) return 'Esta factura ya está registrada con total ' + usd(pv.valorFac) + '.';
       if (pv && ya() >= num(D.valorFac) - 0.004) return 'Esta factura ya tiene registrado todo su valor (' + usd(ya()) + ').';
       return '';
@@ -658,6 +660,7 @@ function fpgWizard(o){
         '<div class="fw-h" id="fwFacV">' + (facNorm() ? 'Factura <b>' + facNorm() + '</b>' : 'Punto de emisión y número') + '</div>' +
         '<div class="fw-dos"><div><label>Fecha de la factura</label><input type="date" id="fwFecha" value="' + esc(D.fechaFac) + '" max="' + hoy + '" min="' + dias(hoy, -45) + '"' + (fijo ? ' disabled' : '') + '></div>' +
         '<div><label>Total de la factura (con IVA)</label><input id="fwTot" inputmode="decimal" placeholder="0,00" value="' + esc(D.valorFac) + '"' + (fijo ? ' disabled' : '') + '></div></div>' +
+        (o.quienFijo ? '' : '<label>Vendedor (quién hizo la venta)</label>' + (fijo && D.vend ? '<input value="' + esc(D.vend) + '" disabled>' : o.quienHtml.replace(/id="[^"]*"/, 'id="fwVend"').replace('Elige tu nombre', 'Elige quién vendió').replace('Tu nombre y apellido', 'Nombre de quien vendió'))) +
         (pv.length ? '<div class="fw-ya">Esta factura ya tiene registrado: ' + pv.map(x => esc(x.forma) + ' ' + usd(x.valor)).join(', ') + '. ' + (ya() >= num(D.valorFac) - 0.004 ? '<b>Ya está completa</b>: no hay nada más que registrar.' : 'Falta por registrar <b>' + usd(Math.max(0, num(D.valorFac) - ya())) + '</b>.') + '</div>' : '') +
         nav('Siguiente →');
     } else if (paso === 2) {
@@ -681,7 +684,7 @@ function fpgWizard(o){
     } else if (paso === 4) {
       const f = D.forma, fila = (a, b) => '<div><span>' + a + '</span><b>' + b + '</b></div>';
       h += '<h3>Revisa antes de guardar</h3><p class="fw-s">Compara con la factura y el comprobante. Después de guardar, solo se puede anular con motivo.</p><div class="fw-res">' +
-        fila('Factura', facNorm()) + fila('Fecha de la factura', fCorta(D.fechaFac)) + fila('Total de la factura', usd(num(D.valorFac))) + fila('Forma de pago', esc(f + (D.otra ? ': ' + D.otra : '') + (D.banco ? ' · ' + D.banco : ''))) +
+        fila('Factura', facNorm()) + fila('Fecha de la factura', fCorta(D.fechaFac)) + fila('Total de la factura', usd(num(D.valorFac))) + (o.quienFijo ? '' : fila('Vendedor', esc(D.vend))) + fila('Forma de pago', esc(f + (D.otra ? ': ' + D.otra : '') + (D.banco ? ' · ' + D.banco : ''))) +
         fila(etiquetaRef(f).replace(/ \(.*\)/, ''), esc(VALES[f] ? vales().c.length + ' vales: ' + vales().c.join(', ') : D.pedido)) + fila('Valor pagado', '<span style="color:#0f172a;font-size:18px">' + usd(valorPago()) + '</span>') +
         (ya() ? fila('Ya registrado antes', usd(ya())) : '') + fila('Queda sin registrar', usd(Math.max(0, num(D.valorFac) - ya() - valorPago()))) + fila('Foto', D.fotoFile || D.foto ? 'Sí ✓' : 'No') + '</div>' +
         (o.quienFijo ? '<label>Registra</label><input value="' + esc(o.quienFijo) + '" disabled>' : '<label>¿Quién registra?</label>' + o.quienHtml.replace(/id="[^"]*"/, 'id="fwQuien"')) +
@@ -700,7 +703,8 @@ function fpgWizard(o){
   function enlazar(){
     const on = (sel, k, f) => { const e = $w(sel); if (e) e.addEventListener('input', () => { D[k] = f ? f(e.value) : e.value; err = ''; refrescarNav(); extra(); }); };
     on('#fwPto', 'pto', v => v.replace(/[^\d-]/g, '')); on('#fwSec', 'sec', v => v.replace(/\D/g, '')); on('#fwFecha', 'fechaFac'); on('#fwTot', 'valorFac'); on('#fwOtra', 'otra'); on('#fwRef', 'pedido'); on('#fwVal', 'valor');
-    const sec = $w('#fwSec'); if (sec) sec.addEventListener('change', () => { const pv = previos()[0]; if (pv) { D.valorFac = String(pv.valorFac || ''); if (pv.fechaFac) D.fechaFac = pv.fechaFac; fijo = true; pintar(false); } else if (fijo) { fijo = null; pintar(false); } });
+    const sec = $w('#fwSec'); if (sec) sec.addEventListener('change', () => { const pv = previos()[0]; if (pv) { D.valorFac = String(pv.valorFac || ''); if (pv.fechaFac) D.fechaFac = pv.fechaFac; if (pv.vendedor && !o.quienFijo) D.vend = pv.vendedor; fijo = true; pintar(false); } else if (fijo) { fijo = null; pintar(false); } });
+    const vd = $w('#fwVend'); if (vd) { if (D.vend) vd.value = D.vend; const fv = () => { D.vend = vd.value.trim(); err = ''; refrescarNav(); }; vd.addEventListener('change', fv); vd.addEventListener('input', fv); }
     const q = $w('#fwQuien'); if (q) { if (D.quien) q.value = D.quien; q.addEventListener('change', () => { D.quien = q.value.trim(); refrescarNav(); }); q.addEventListener('input', () => { D.quien = q.value.trim(); refrescarNav(); }); }
     const ok = $w('#fwOk'); if (ok) ok.onchange = () => { D.confirmo = ok.checked; refrescarNav(); };
     const fo = $w('#fwFoto'); if (fo) fo.onchange = () => { const fl = fo.files && fo.files[0]; if (!fl) return; D.fotoFile = fl; if (D.fotoUrl) URL.revokeObjectURL(D.fotoUrl); D.fotoUrl = URL.createObjectURL(fl); pintar(false); };
@@ -719,16 +723,16 @@ function fpgWizard(o){
     if (a === 'otraForma' || a === 'nueva') {
       const keep = a === 'otraForma';
       Object.assign(D, {forma: '', otra: '', banco: '', pedido: '', valor: '', foto: '', fotoFile: null, confirmo: false}); if (D.fotoUrl) URL.revokeObjectURL(D.fotoUrl); D.fotoUrl = '';
-      if (!keep) { D.sec = ''; D.valorFac = ''; D.fechaFac = hoy; fijo = null; paso = 1; } else { fijo = true; paso = 2; }
+      if (!keep) { D.sec = ''; D.valorFac = ''; D.fechaFac = hoy; if (!o.quienFijo) D.vend = ''; fijo = null; paso = 1; } else { fijo = true; paso = 2; }
       return pintar();
     }
     if (a !== 'sig') return;
     const e = errPaso(paso); if (e) { err = e; return refrescarNav(); }
-    if (paso < 4) { paso = paso === 1 ? 2 : paso + 1; err = ''; return pintar(); }
+    if (paso < 4) { paso = paso === 1 ? 2 : paso + 1; if (paso === 4 && !D.quien) D.quien = D.vend; err = ''; return pintar(); }
     guardando = true; err = ''; refrescarNav();
     try {
       if (D.fotoFile && !D.foto) { const b = $w('[data-fw="sig"]'); if (b) b.textContent = 'Subiendo foto…'; D.foto = await o.subirFoto(D.fotoFile, 'pago_' + facNorm().replace(/\D/g, '')); if (o.subirOk) D.foto = o.subirOk(D.foto); }
-      const d = {factura: facNorm(), fechaFac: D.fechaFac, valorFac: num(D.valorFac), forma: D.forma, otra: D.otra.trim(), banco: D.banco, pedido: D.pedido.trim(), valor: valorPago(), foto: D.foto, registro: D.quien, desde: o.desde || 'Tienda', confirmo: true};
+      const d = {factura: facNorm(), fechaFac: D.fechaFac, valorFac: num(D.valorFac), forma: D.forma, otra: D.otra.trim(), banco: D.banco, pedido: D.pedido.trim(), valor: valorPago(), foto: D.foto, registro: D.quien, vendedor: D.vend, desde: o.desde || 'Tienda', confirmo: true};
       const r = await o.api(d);
       localStorage.setItem('fpgPto', D.pto.trim());
       (o.lista = o.lista || []).unshift(r); if (o.alGuardar) o.alGuardar(r);
