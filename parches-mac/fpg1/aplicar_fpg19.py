@@ -7,15 +7,16 @@ import sys
 
 ICO = [
     (".fw-ic.ic-deuna{background:linear-gradient(135deg,#5b21b6,#c026d3)}",
-     ".fw-ic.ic-deuna{background:#5b1f8f;color:#5fe3b4;border-radius:50%}"),
+     ".fw .fw-ic.ic-deuna{background:#5b1f8f;color:#5fe3b4;border-radius:50%}"),
     (".fw-ic.ic-tipti{background:linear-gradient(135deg,#f97316,#ea580c)}",
-     ".fw-ic.ic-tipti{background:#f7931e;border-radius:50%;font-family:Georgia,serif;font-style:italic;font-size:13px;letter-spacing:-.2px}"),
+     ".fw .fw-ic.ic-tipti{background:#f7931e;color:#fff;border-radius:50%;font-family:Georgia,serif;font-style:italic;font-size:13px;letter-spacing:-.2px}.fw h3 .fw-ic.ic-tipti{font-size:9px}"),
     ("'Tipti': ['ic-tipti', 't']", "'Tipti': ['ic-tipti', 'Tipti']"),
+    (".fw-ic.ic-deuna{background:#5b1f8f;color:#5fe3b4;border-radius:50%}" + ".fw-ic.ic-tipti{background:#f7931e;border-radius:50%;font-family:Georgia,serif;font-style:italic;font-size:13px;letter-spacing:-.2px}", ".fw .fw-ic.ic-deuna{background:#5b1f8f;color:#5fe3b4;border-radius:50%}" + ".fw .fw-ic.ic-tipti{background:#f7931e;color:#fff;border-radius:50%;font-family:Georgia,serif;font-style:italic;font-size:13px;letter-spacing:-.2px}.fw h3 .fw-ic.ic-tipti{font-size:9px}"),   # fpg19 v1 -> v2 (más específico que .fw h3 .fw-ic)
 ]
 
 for ruta in sys.argv[1:]:
     s = open(ruta, encoding='utf-8').read()
-    if 'fpg19' in s and 'deUna' not in s:
+    if 'fpg19' in s and 'deUna' not in s and '/* fpg19 */.fw-ic.ic-deuna' not in s:
         print(ruta, 'ya tenía fpg19'); continue
     n = s.count('deUna') + s.count('DeUna')
     s = s.replace('deUna', 'Deuna').replace('DeUna', 'Deuna')
@@ -26,6 +27,6 @@ for ruta in sys.argv[1:]:
     if ruta.endswith('.gs'):
         s = s.replace('/* fpg12 */', '/* fpg12 · fpg19 */', 1)
     elif hechos and '/* fpg19 */' not in s:
-        s = s.replace(".fw-ic.ic-deuna{", "/* fpg19 */.fw-ic.ic-deuna{", 1)
+        s = s.replace(".fw .fw-ic.ic-deuna{", "/* fpg19 */.fw .fw-ic.ic-deuna{", 1)
     open(ruta, 'w', encoding='utf-8').write(s)
     print(ruta, 'fpg19:', n, 'textos Deuna,', hechos, 'íconos')
