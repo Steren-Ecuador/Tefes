@@ -7574,7 +7574,7 @@ window.usoHora = function(view){
     const cambiadas = [];
     for (const o of lista) if (!ultima[o.id] || ultima[o.id] !== await huellaFila(o)) cambiadas.push(o.id);
     const integridad = B.length ? {ok: !rotas.length && !cambiadas.length, lineas: B.length, rotas: rotas.slice(0, 20), cambiadas: cambiadas.slice(0, 50)} : {ok: !lista.length, lineas: 0, rotas: [], cambiadas: lista.map(o => o.id).slice(0, 50)};
-    const formas = ['deUna', 'Transferencias', 'Tipti', 'Shopping Dólares - Condado', 'MobiSol - Mall del Sol', 'Otra'];
+    const formas = ['Deuna', 'Transferencias', 'Tipti', 'Shopping Dólares - Condado', 'MobiSol - Mall del Sol', 'Otra'];
     lista.forEach(o => { if (o.forma && formas.indexOf(o.forma) < 0) formas.push(o.forma); });
     return {formas, lista, integridad};
   }
@@ -7713,7 +7713,7 @@ window.usoHora = function(view){
       return;
     }
     const todas = F.d.lista || [], tiendas = [...new Set(todas.map(x => x.tienda))].sort(), f = F.f, vw8 = document.querySelector('.view[data-view="formaspago"]'), G8 = (vw8 && vw8.dataset.sub) || 'tr';
-    const OT8 = ['Nota de crédito', 'Préstamo empleado', 'Descuento inventario'], EX8 = F.d.extras || [], formas = G8 === 'ot' ? OT8.concat(EX8.filter(x => x.g === 'ot').map(x => x.n)) : [...new Set(['deUna', 'Tipti', 'Transferencias', 'Otra'].concat(EX8.filter(x => x.g !== 'ot').map(x => x.n), todas.map(x => x.forma).filter(x => OT8.indexOf(x) < 0 && !EX8.some(e => e.n === x && e.g === 'ot'))))];   // fpg8
+    const OT8 = ['Nota de crédito', 'Préstamo empleado', 'Descuento inventario'], EX8 = F.d.extras || [], formas = G8 === 'ot' ? OT8.concat(EX8.filter(x => x.g === 'ot').map(x => x.n)) : [...new Set(['Deuna', 'Tipti', 'Transferencias', 'Otra'].concat(EX8.filter(x => x.g !== 'ot').map(x => x.n), todas.map(x => x.forma).filter(x => OT8.indexOf(x) < 0 && !EX8.some(e => e.n === x && e.g === 'ot'))))];   // fpg8
     if (f.forma && formas.indexOf(f.forma) < 0) f.forma = '';
     const L = filtrar(), cuenta = f.est === 'Anulada' ? L : L.filter(x => x.estado !== 'Anulada'), tot = cuenta.reduce((a, x) => a + (x.valor || 0), 0), por = {};   // las anuladas no suman
     cuenta.forEach(x => { por[x.forma] = por[x.forma] || {v: 0, n: 0}; por[x.forma].v += x.valor || 0; por[x.forma].n++; });
