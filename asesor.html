@@ -562,9 +562,9 @@ function anularPago(id){
   $('#ok').onclick = () => { const m = $('#aM').value.trim(); if (m.length < 5) return toast('Escribe el motivo.');
     ocupado('#ok'); llamar('apiFPGAnularTienda', TOKEN, id, YO.nombre, m).then(r => { const i = FPG.lista.findIndex(x => x.id === id); if (i >= 0) FPG.lista[i] = r; cerrar(); toast('Anulado.'); renderCli(); }, e => { libre('#ok'); toast(e.message); }); };
 }
-const FPG_PED = {'deUna': 'Referencia deUna', 'Transferencias': 'N° de documento de la transferencia', 'Tipti': 'N° de pedido Tipti (7 dígitos)', 'Shopping Dólares - Condado': 'Números de los Shopping Dólares', 'MobiSol - Mall del Sol': 'Números de los vales MobiSol', 'Otra': 'N° de comprobante'};   // fpg4
+const FPG_PED = {'Deuna': 'Referencia Deuna', 'Transferencias': 'N° de documento de la transferencia', 'Tipti': 'N° de pedido Tipti (7 dígitos)', 'Shopping Dólares - Condado': 'Números de los Shopping Dólares', 'MobiSol - Mall del Sol': 'Números de los vales MobiSol', 'Otra': 'N° de comprobante'};   // fpg4
 /* fpg8 (Diego 17-nov): asistente para registrar cómo se pagó una factura del POS. Antes fpg5 (4 pasos) + fpg6 (vendedor).
-   Grupos del menú Formas de pago: 'tr' Transferencias (deUna, Tipti, Transferencia bancaria, Otra con detalle: Shopping Dólares, MobiSol…),
+   Grupos del menú Formas de pago: 'tr' Transferencias (Deuna, Tipti, Transferencia bancaria, Otra con detalle: Shopping Dólares, MobiSol…),
    'ot' Otros (Notas de crédito, Préstamos a empleados, Descuentos por inventarios); 'asesor' = Transferencias + Notas de crédito.
    Siempre: factura SRI (005-001-000004800), fecha y total con IVA de la factura, quién registra; fecha y hora del registro las pone el servidor.
    El servidor vuelve a validar todo (fpgValidar_). Uso: fpgWizard({api, subirFoto, formas, grupo, prefijo, hoy, lista, quienHtml, quienFijo, desde, alGuardar}) */
@@ -580,12 +580,12 @@ function fpgWizard(o){
     if (g.length === 1 && g[0].length === 15) return g[0].slice(0, 3) + '-' + g[0].slice(3, 6) + '-' + g[0].slice(6); return ''; };
   const hoy = o.hoy || new Date().toISOString().slice(0, 10);
   const BANCOS = ['Pichincha cte. 2100349639', 'Produbanco cte. 02006219957', 'Bolivariano cte. 5005110152'];   // fpg8: cuentas corrientes de Tefes S.A.S (Diego 17-nov)
-  const GRUPOS = {tr: ['deUna', 'Tipti', 'Transferencias', 'Otra'], ot: ['Nota de crédito', 'Préstamo empleado', 'Descuento inventario'], asesor: ['deUna', 'Tipti', 'Transferencias', 'Otra', 'Nota de crédito']};
+  const GRUPOS = {tr: ['Deuna', 'Tipti', 'Transferencias', 'Otra'], ot: ['Nota de crédito', 'Préstamo empleado', 'Descuento inventario'], asesor: ['Deuna', 'Tipti', 'Transferencias', 'Otra', 'Nota de crédito']};
   const NOM = {'Transferencias': 'Transferencia bancaria', 'Préstamo empleado': 'Préstamo a empleado', 'Descuento inventario': 'Descuento por inventario'}, nom = f => NOM[f] || f;
   const BANCO_SVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg>';
-  const ICO = {'deUna': ['ic-deuna', 'd!'], 'Tipti': ['ic-tipti', 't'], 'Transferencias': ['ic-banco', BANCO_SVG], 'Otra': ['ic-otra', '✎'], 'Nota de crédito': ['ic-nc', 'NC'], 'Préstamo empleado': ['ic-prest', '$'], 'Descuento inventario': ['ic-inv', '▤']};
+  const ICO = {'Deuna': ['ic-deuna', 'd!'], 'Tipti': ['ic-tipti', 'Tipti'], 'Transferencias': ['ic-banco', BANCO_SVG], 'Otra': ['ic-otra', '✎'], 'Nota de crédito': ['ic-nc', 'NC'], 'Préstamo empleado': ['ic-prest', '$'], 'Descuento inventario': ['ic-inv', '▤']};
   const ico = f => { const i = ICO[f] || ['ic-otra', esc(String(f).charAt(0).toUpperCase())]; return '<span class="fw-ic ' + i[0] + '">' + i[1] + '</span>'; };
-  const AYUDA = {'deUna': 'Pago con QR deUna. Pide el comprobante al cliente.', 'Tipti': 'Pedido hecho por Tipti. Copia el número de pedido.', 'Transferencias': 'Transferencia a la cuenta de la empresa. Verifica que llegó.',
+  const AYUDA = {'Deuna': 'Pago con QR Deuna. Pide el comprobante al cliente.', 'Tipti': 'Pedido hecho por Tipti. Copia el número de pedido.', 'Transferencias': 'Transferencia a la cuenta de la empresa. Verifica que llegó.',
     'Otra': 'Shopping Dólares, MobiSol u otra: escribe el detalle.', 'Nota de crédito': 'El cliente devolvió una factura y paga con la nota de crédito.', 'Préstamo empleado': 'Compra de un empleado que se descuenta en el rol.', 'Descuento inventario': 'Faltante de inventario que se cobra al personal.'};
   const VALES_OTRA = ['Shopping Dólares - Condado', 'MobiSol - Mall del Sol'], esVale = () => D.forma === 'Otra' && /shopping|mobisol|vale/i.test(D.otra);
   const fotoOblig = () => D.forma === 'Transferencias' || esVale() || (EXW[D.forma] && EXW[D.forma].p === 'C');
@@ -609,7 +609,7 @@ function fpgWizard(o){
       '.fw-res{border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;margin:6px 0 4px}.fw-res div{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;border-top:1px solid #f1f5f9;font-size:14.5px}' +
       '.fw-res div:first-child{border-top:0}.fw-res span{color:#64748b}.fw-res b{text-align:right;word-break:break-word;max-width:62%}.fw-ya{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px;font-size:13.5px;margin-top:10px}' +
       '.fw-err{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:10px;padding:10px;font-size:14px;margin-top:12px}.fw-chk{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14.5px;font-weight:400!important}' +
-      '.fw-chk input{width:22px;height:22px;flex:none;margin:0}.fw-fin{text-align:center;padding:10px 0}.fw-fin .big{font-size:46px}.fw-foto{display:flex;align-items:center;gap:10px}.fw-foto img{width:64px;height:64px;object-fit:cover;border-radius:8px}.fw label.fw-fbtn{display:inline-block;margin:0;padding:12px 16px;border:1.5px dashed #0077c0;border-radius:10px;color:#0077c0;font-size:15px;cursor:pointer}.fw-op .fw-ic{flex:none;width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;font-family:Arial,Helvetica,sans-serif;letter-spacing:-.5px}.fw-ic.ic-deuna{background:linear-gradient(135deg,#5b21b6,#c026d3)}.fw-ic.ic-tipti{background:linear-gradient(135deg,#f97316,#ea580c)}.fw-ic.ic-banco{background:#0f4c81}.fw-ic.ic-otra{background:#64748b}.fw-ic.ic-nc{background:#0e7490}.fw-ic.ic-prest{background:#15803d}.fw-ic.ic-inv{background:#b45309}.fw h3 .fw-ic{display:inline-flex;width:30px;height:30px;border-radius:8px;font-size:16px;vertical-align:-6px;margin-right:6px;color:#fff;align-items:center;justify-content:center;font-weight:800;font-family:Arial,Helvetica,sans-serif}.fw-usd{position:relative}.fw-usd:before{content:"$";position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:17px;color:#475569;font-weight:700}.fw-usd input{padding-left:28px}.fw-ob{color:#dc2626;font-weight:700}';
+      '.fw-chk input{width:22px;height:22px;flex:none;margin:0}.fw-fin{text-align:center;padding:10px 0}.fw-fin .big{font-size:46px}.fw-foto{display:flex;align-items:center;gap:10px}.fw-foto img{width:64px;height:64px;object-fit:cover;border-radius:8px}.fw label.fw-fbtn{display:inline-block;margin:0;padding:12px 16px;border:1.5px dashed #0077c0;border-radius:10px;color:#0077c0;font-size:15px;cursor:pointer}.fw-op .fw-ic{flex:none;width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;font-family:Arial,Helvetica,sans-serif;letter-spacing:-.5px}/* fpg19 */.fw-ic.ic-deuna{background:#5b1f8f;color:#5fe3b4;border-radius:50%}.fw-ic.ic-tipti{background:#f7931e;border-radius:50%;font-family:Georgia,serif;font-style:italic;font-size:13px;letter-spacing:-.2px}.fw-ic.ic-banco{background:#0f4c81}.fw-ic.ic-otra{background:#64748b}.fw-ic.ic-nc{background:#0e7490}.fw-ic.ic-prest{background:#15803d}.fw-ic.ic-inv{background:#b45309}.fw h3 .fw-ic{display:inline-flex;width:30px;height:30px;border-radius:8px;font-size:16px;vertical-align:-6px;margin-right:6px;color:#fff;align-items:center;justify-content:center;font-weight:800;font-family:Arial,Helvetica,sans-serif}.fw-usd{position:relative}.fw-usd:before{content:"$";position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:17px;color:#475569;font-weight:700}.fw-usd input{padding-left:28px}.fw-ob{color:#dc2626;font-weight:700}';
     document.head.appendChild(st);
   }
   const bg = document.createElement('div'); bg.className = 'fw-bg'; bg.innerHTML = '<div class="fw" role="dialog" aria-modal="true"></div>'; document.body.appendChild(bg);
@@ -634,7 +634,7 @@ function fpgWizard(o){
   const valorPago = () => num(D.valor);
   const ya = () => previos().reduce((a, x) => a + (Number(x.valor) || 0), 0);
   /* qué se pide de cada forma: [campo, etiqueta] (la etiqueta sale en el resumen y en el panel) */
-  const REF = {'deUna': 'Comprobante deUna', 'Tipti': 'N° de pedido Tipti', 'Transferencias': 'Comprobante', 'Otra': 'N° de comprobante o de los vales', 'Nota de crédito': 'N° de la nota de crédito', 'Préstamo empleado': 'N° de cuotas', 'Descuento inventario': 'N° de inventario'};
+  const REF = {'Deuna': 'Comprobante Deuna', 'Tipti': 'N° de pedido Tipti', 'Transferencias': 'Comprobante', 'Otra': 'N° de comprobante o de los vales', 'Nota de crédito': 'N° de la nota de crédito', 'Préstamo empleado': 'N° de cuotas', 'Descuento inventario': 'N° de inventario'};
   function errPaso(p){
     if (p === 1) {
       if (!/^\d{1,3}-\d{1,3}$/.test(D.pto.trim())) return 'Escribe el punto de emisión, como 005-001.';
@@ -652,7 +652,7 @@ function fpgWizard(o){
     if (p === 2) return D.forma ? '' : 'Elige la forma de pago.';
     if (p === 3) {
       const f = D.forma, ref = D.pedido.trim();
-      if (f === 'deUna') { if (/[^\d\s]/.test(ref)) return 'El comprobante de deUna lleva solo números.'; if (ref.replace(/\s/g, '').length < 4) return 'Escribe el comprobante de deUna.'; }   // fpg12
+      if (f === 'Deuna') { if (/[^\d\s]/.test(ref)) return 'El comprobante de Deuna lleva solo números.'; if (ref.replace(/\s/g, '').length < 4) return 'Escribe el comprobante de Deuna.'; }   // fpg12
       if (f === 'Tipti' && !/^\d{4,12}$/.test(ref)) return 'El pedido Tipti es solo números.';
       if (f === 'Transferencias') { if (!D.banco) return 'Elige la cuenta a la que llegó la transferencia.'; if (/[^\d\s]/.test(ref)) return 'El comprobante de la transferencia lleva solo números.'; if (ref.length < 3) return 'Escribe el comprobante de la transferencia.'; }
       if (f === 'Otra') { if (D.otra.trim().length < 3) return 'Escribe el detalle: qué forma de pago es.'; if (ref.length < 3) return 'Escribe el número de comprobante o de los vales.'; }
@@ -688,7 +688,7 @@ function fpgWizard(o){
     let h = '<h3>' + ico(f) + esc(nom(f)) + '</h3><p class="fw-s">Factura ' + facNorm() + ' · total ' + usd(num(D.valorFac)) + ' · falta registrar ' + usd(falta) + '</p>';
     const ref = (lab, attrs, phr) => '<label>' + lab + ' ' + ob + '</label><input id="fwRef" ' + attrs + ' autocomplete="off" placeholder="' + (phr || '') + '" value="' + esc(D.pedido) + '">';
     const valor = lab => campoUsd(lab, ph) + '<div class="fw-err" id="fwValAv" style="margin-top:6px" hidden></div>' + (falta ? '<div class="fw-h"><button type="button" data-fw="todo" style="border:0;background:none;color:#0077c0;padding:0;font-size:13px;cursor:pointer">Usar lo que falta: ' + usd(falta) + '</button></div>' : '');
-    if (f === 'deUna') h += valor('Valor pagado con deUna') + ref('Comprobante (solo números)', 'inputmode="numeric" maxlength="30"', 'Ej.: 123456789') + '<div class="fw-err" id="fwRefAv" style="margin-top:6px" hidden></div>';
+    if (f === 'Deuna') h += valor('Valor pagado con Deuna') + ref('Comprobante (solo números)', 'inputmode="numeric" maxlength="30"', 'Ej.: 123456789') + '<div class="fw-err" id="fwRefAv" style="margin-top:6px" hidden></div>';
     else if (f === 'Tipti') h += valor('Valor pagado con Tipti') + ref('N° de pedido', 'inputmode="numeric" maxlength="12"', 'Ej.: 1234567');
     else if (f === 'Transferencias') h += '<label>Cuenta de la empresa a la que transfirió el cliente ' + ob + '</label><div class="fw-ban">' + CUENTAS.map(b => '<button data-ban="' + esc(b) + '" class="' + (D.banco === b ? 'sel' : '') + '">' + esc(b) + '</button>').join('') + '</div>' +
       valor('Valor pagado') + ref('Comprobante de la transferencia (solo números)', 'inputmode="numeric" maxlength="30"', 'N° del comprobante') + '<div class="fw-err" id="fwRefAv" style="margin-top:6px" hidden></div>';
@@ -920,14 +920,14 @@ const LECTURAS = [
     txt: 'El WhatsApp de la tienda es para consultas, cotizaciones y llamadas de clientes. Está prohibido enviar publicidad o mensajes masivos: ya se suspendieron dos cuentas por spam. Puedes publicar en estados, y mandar contenido comercial solo si el cliente lo pide.',
     qs: [{q: '¿Se pueden mandar promociones a todos los contactos?', o: ['Sí, una vez por semana', 'No, está prohibido', 'Solo en Black Month'], ok: 1},
          {q: '¿Cuándo puedes mandar contenido comercial a un cliente?', o: ['Cuando él lo pide', 'Siempre', 'Nunca'], ok: 0}]},
-  {id: 'G1', tipo: 'Guía', ic: '💳', t: 'Black Month DeUna', d: 'Cashback del 15 al 30 de noviembre: paso a paso en caja.', min: 4},
+  {id: 'G1', tipo: 'Guía', ic: '💳', t: 'Black Month Deuna', d: 'Cashback del 15 al 30 de noviembre: paso a paso en caja.', min: 4},
   {id: 'G2', tipo: 'Guía', ic: '🤝', t: 'Atención al cliente', d: 'Saludo, demostración y cierre de la venta.', min: 5}
 ];
 const PREGUNTAS = [
   {q: '¿Cuánto cuesta la garantía extendida?', o: ['5% del precio', '10% del precio', '$5 fijos'], ok: 1, x: 'Es el 10% del precio del producto y suma un año de garantía.'},
   {q: '¿Desde qué precio se puede ofrecer garantía extendida en productos Steren?', o: ['Desde $19,99', 'Desde $49,99', 'En todos'], ok: 1, x: 'En productos Steren de más de $49,99, solo al momento de la compra.'},
   {q: 'Un cliente pide un producto que no hay. ¿Qué haces?', o: ['Le digo que no hay', 'Lo anoto en la lista de espera', 'Le pido que vuelva otro día'], ok: 1, x: 'Lo anotas en Clientes › Lista de espera y te avisamos cuando llegue.'},
-  {q: '¿Cuándo se paga el cashback de DeUna en Black Month?', o: ['Del 15 al 30 de noviembre', 'Todo noviembre', 'Solo el Black Friday'], ok: 0, x: 'La promoción va del 15 al 30 de noviembre.'}
+  {q: '¿Cuándo se paga el cashback de Deuna en Black Month?', o: ['Del 15 al 30 de noviembre', 'Todo noviembre', 'Solo el Black Friday'], ok: 0, x: 'La promoción va del 15 al 30 de noviembre.'}
 ];
 function renderApr(){
   const pend = LECTURAS.filter(l => !E.leidos[l.id]), leidas = LECTURAS.length - pend.length;

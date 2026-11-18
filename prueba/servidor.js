@@ -335,7 +335,7 @@
   };
   API.apiAutoconsumoPanel = function (p) { panelOk(p); return acTab().slice(1); };
   /* fpg1: formas de pago de facturas del POS (en la prueba la bitácora vive en memoria) */
-  var FPG_FORMAS = ['deUna', 'Tipti', 'Transferencias', 'Otra', 'Nota de crédito', 'Préstamo empleado', 'Descuento inventario'], fpDe = function (t) { return FPG_FORMAS.slice(); }, fpExtras = function () { try { return JSON.parse(localStorage.getItem('fpgExtrasPrueba') || '[]'); } catch (e) { return []; } }, fpNs = function (ex) { return ex.map(function (x) { return x.n; }); }, FPG_BIT = [];
+  var FPG_FORMAS = ['Deuna', 'Tipti', 'Transferencias', 'Otra', 'Nota de crédito', 'Préstamo empleado', 'Descuento inventario'], fpDe = function (t) { return FPG_FORMAS.slice(); }, fpExtras = function () { try { return JSON.parse(localStorage.getItem('fpgExtrasPrueba') || '[]'); } catch (e) { return []; } }, fpNs = function (ex) { return ex.map(function (x) { return x.n; }); }, FPG_BIT = [];
   var FPG_CAB = ['ID', 'Fecha registro', 'Hora', 'Tienda', 'Registró', 'Desde', 'N° factura', 'Forma de pago', 'N° de pedido', 'Valor con IVA', 'Cliente', 'Valor de la factura', 'Foto', 'Entregado', 'N° recibo', 'Marcó entrega', 'Estado', 'Anuló', 'Motivo anulación', 'Detalle otra', 'Banco', 'Fecha factura', 'Vendedor'];
   /* fpg3: ejemplo con las 8 facturas de Condado del 24-oct (registro de Shopping Dólares que ya usaba la tienda; clientes de ejemplo) */
   var FPG_EJ = [['3607', 'Abigail', '4', '3.99', 'BILLECOND 28858-28859-28857-28860', '64', '17:05'], ['3616', 'Danny', '10', '21.99', 'BILLECOND35590 BILLECOND35589 BILLECOND35588 BILLECOND35587 BILLECOND35586 BILLECOND35585 BILLECOND35594 BILLECOND35593 BILLECOND35592 BILLECOND35591', '62', '17:40'],
@@ -398,7 +398,7 @@ function fpgValidar_(d, tienda, filas, hoy, formas, extras) {
   const CUENTAS = ['Pichincha cte. 2100349639', 'Produbanco cte. 02006219957', 'Bolivariano cte. 5005110152'];
   let otra = '', banco = '', ref = txt(d.pedido, 1500), claves = [];
   const esVale = forma === 'Otra' && /shopping|mobisol|vale/i.test(String(d.otra || ''));
-  if (forma === 'deUna') { ref = ref.replace(/\s/g, ''); if (/\D/.test(ref)) throw new Error('El comprobante de deUna lleva solo números.'); /* fpg12 */ if (ref.length < 4) throw new Error('Escribe el comprobante de deUna.'); claves = ['DEUNA ' + ref.toUpperCase()]; }
+  if (forma === 'Deuna') { ref = ref.replace(/\s/g, ''); if (/\D/.test(ref)) throw new Error('El comprobante de Deuna lleva solo números.'); /* fpg12 */ if (ref.length < 4) throw new Error('Escribe el comprobante de Deuna.'); claves = ['DEUNA ' + ref.toUpperCase()]; }
   else if (forma === 'Tipti') { ref = ref.replace(/\D/g, ''); if (ref.length < 4 || ref.length > 12) throw new Error('El pedido Tipti es solo números.'); claves = ['TIPTI ' + ref]; }
   else if (forma === 'Transferencias') {
     banco = txt(d.banco, 60); if (CUENTAS.indexOf(banco) < 0) throw new Error('Elige la cuenta de la empresa a la que llegó la transferencia.');
@@ -457,7 +457,7 @@ function fpgValidar_(d, tienda, filas, hoy, formas, extras) {
       const f = x.forma, r = String(x.pedido || '');
       let k = [];
       if (f === 'Tipti') k = ['TIPTI ' + r.replace(/\D/g, '')];
-      else if (f === 'deUna') k = ['DEUNA ' + r.replace(/\s/g, '').toUpperCase()];
+      else if (f === 'Deuna') k = ['DEUNA ' + r.replace(/\s/g, '').toUpperCase()];
       else if (f === 'Transferencias') k = ['TRANSF ' + String(x.banco || '').toUpperCase() + ' ' + r.replace(/\s/g, '').toUpperCase()];
       else if (VALES[f]) k = (r.match(/\d{4,}/g) || []).map(y => 'VALE ' + f + ' ' + String(Number(y)));
       else if (f === 'Otra' && vx(x)) k = (r.match(/\d{4,}/g) || []).map(y => 'VALE ' + (/mobisol/i.test(String(x.otra)) ? 'MobiSol - Mall del Sol' : 'Shopping Dólares - Condado') + ' ' + String(Number(y)));
@@ -467,7 +467,7 @@ function fpgValidar_(d, tienda, filas, hoy, formas, extras) {
     });
     const choque = claves.find(k => ya[k]);
     if (choque) { const x = ya[choque];
-      throw new Error((esVale ? 'El vale ' + choque.split(' ').pop() : forma === 'Tipti' ? 'El pedido Tipti ' + ref : forma === 'deUna' ? 'El comprobante deUna ' + ref : forma === 'Nota de crédito' ? 'La nota de crédito ' + ref : EX[forma] ? 'El comprobante ' + ref + ' de ' + forma : 'La transferencia ' + ref + ' a ' + banco) +
+      throw new Error((esVale ? 'El vale ' + choque.split(' ').pop() : forma === 'Tipti' ? 'El pedido Tipti ' + ref : forma === 'Deuna' ? 'El comprobante Deuna ' + ref : forma === 'Nota de crédito' ? 'La nota de crédito ' + ref : EX[forma] ? 'El comprobante ' + ref + ' de ' + forma : 'La transferencia ' + ref + ' a ' + banco) +
         ' ya se registró en la factura ' + x.factura + ' (' + x.tienda + ', ' + String(x.fecha || '').split('-').reverse().join('/') + ').'); }
   }
   return {factura: fac, fechaFac: fechaFac, valorFac: valorFac, forma: forma, otra: otra, banco: banco, pedido: ref, valor: valor, foto: foto, cliente: txt(d.cliente, 100), vendedor: vendedor};

@@ -199,7 +199,7 @@ const anillo = (pct, color) => 'conic-gradient(' + color + ' ' + Math.min(pct, 1
 
 /* ================= INICIO (muro) ================= */
 const ANUNCIOS = [
-  {id: 'A1', de: 'Gerencia TEFES', titulo: 'Black Month DeUna: del 15 al 30 de noviembre', txt: 'Cashback para clientes que paguen con DeUna. Esta semana repasamos la guía en tienda.', fecha: sumar(HOY, -1)},
+  {id: 'A1', de: 'Gerencia TEFES', titulo: 'Black Month Deuna: del 15 al 30 de noviembre', txt: 'Cashback para clientes que paguen con Deuna. Esta semana repasamos la guía en tienda.', fecha: sumar(HOY, -1)},
   {id: 'A2', de: 'Gerencia TEFES', titulo: 'Campaña de la semana: audio portátil', txt: 'Exhibir bocinas y audífonos en la entrada y ofrecer la garantía extendida en cada venta.', fecha: sumar(HOY, -4)}
 ];
 function rankOrden(k){ return EQUIPO.slice().sort((a, b) => k === 'gar' ? b.gar - a.gar : (k === 'pct' ? b.mes / b.meta - a.mes / a.meta : b.mes - a.mes)); }
@@ -470,14 +470,14 @@ const LECTURAS = [
     txt: 'El WhatsApp de la tienda es para consultas, cotizaciones y llamadas de clientes. Está prohibido enviar publicidad o mensajes masivos: ya se suspendieron dos cuentas por spam. Puedes publicar en estados, y mandar contenido comercial solo si el cliente lo pide.',
     qs: [{q: '¿Se pueden mandar promociones a todos los contactos?', o: ['Sí, una vez por semana', 'No, está prohibido', 'Solo en Black Month'], ok: 1},
          {q: '¿Cuándo puedes mandar contenido comercial a un cliente?', o: ['Cuando él lo pide', 'Siempre', 'Nunca'], ok: 0}]},
-  {id: 'G1', tipo: 'Guía', ic: '💳', t: 'Black Month DeUna', d: 'Cashback del 15 al 30 de noviembre: paso a paso en caja.', min: 4},
+  {id: 'G1', tipo: 'Guía', ic: '💳', t: 'Black Month Deuna', d: 'Cashback del 15 al 30 de noviembre: paso a paso en caja.', min: 4},
   {id: 'G2', tipo: 'Guía', ic: '🤝', t: 'Atención al cliente', d: 'Saludo, demostración y cierre de la venta.', min: 5}
 ];
 const PREGUNTAS = [
   {q: '¿Cuánto cuesta la garantía extendida?', o: ['5% del precio', '10% del precio', '$5 fijos'], ok: 1, x: 'Es el 10% del precio del producto y suma un año de garantía.'},
   {q: '¿Desde qué precio se puede ofrecer garantía extendida en productos Steren?', o: ['Desde $19,99', 'Desde $49,99', 'En todos'], ok: 1, x: 'En productos Steren de más de $49,99, solo al momento de la compra.'},
   {q: 'Un cliente pide un producto que no hay. ¿Qué haces?', o: ['Le digo que no hay', 'Lo registro como venta futura', 'Le pido que vuelva otro día'], ok: 1, x: 'Lo registras en Clientes › Ventas futuras y te avisamos cuando llegue.'},
-  {q: '¿Cuándo se paga el cashback de DeUna en Black Month?', o: ['Del 15 al 30 de noviembre', 'Todo noviembre', 'Solo el Black Friday'], ok: 0, x: 'La promoción va del 15 al 30 de noviembre.'}
+  {q: '¿Cuándo se paga el cashback de Deuna en Black Month?', o: ['Del 15 al 30 de noviembre', 'Todo noviembre', 'Solo el Black Friday'], ok: 0, x: 'La promoción va del 15 al 30 de noviembre.'}
 ];
 function renderApr(){
   const pend = LECTURAS.filter(l => !E.leidos[l.id]), leidas = LECTURAS.length - pend.length;
