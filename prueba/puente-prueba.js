@@ -8,7 +8,7 @@
   /* fpg (Diego 17-nov): ?perfil=financiero entra directo como Financiero, solo con Formas de pago, para enseñarles */
   try {
     if (esPanel && q.get('perfil') === 'financiero') {
-      localStorage.setItem('mpfPrueba', JSON.stringify(['ventas/formaspago'])); localStorage.setItem('supTefes', JSON.stringify({nombre: 'Financiero de prueba'}));
+      localStorage.setItem('mpfPrueba', JSON.stringify(['ventas/formaspago', 'politicas/politicas', 'politicas/guias'])); localStorage.setItem('supTefes', JSON.stringify({nombre: 'Financiero de prueba'}));
       localStorage.setItem('tabSup', 'formaspago'); localStorage.setItem('pruebaFin', '1');
     } else if (esPanel && localStorage.getItem('pruebaFin')) {
       ['mpfPrueba', 'supTefes', 'tabSup', 'pruebaFin'].forEach(function (k) { localStorage.removeItem(k); });
