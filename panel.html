@@ -1500,7 +1500,7 @@ function irAdmin(url){
   try { window.open(url, '_top'); } catch (e) {}
 }
 function login(){
-  if (/github\.io$/.test(location.hostname)) {   // sp3: el nombre sale del código, nadie elige otro
+  if (/github\.io$/.test(location.hostname) && !/\/prueba\//.test(location.pathname)) {   // sp3b: en /prueba/ no hay entrar.html   // sp3: el nombre sale del código, nadie elige otro
     $('#drawer').innerHTML = `<div class="drawer-bg login-bg"><div class="login" role="dialog" aria-label="Entrar">
       <h2>Entra con tu código</h2><p class="small muted" style="margin:0">El panel te reconoce por el código que te llega a tu correo.</p>
       <div class="actions"><a class="btn primary" href="entrar.html" target="_top">Entrar con mi código</a></div></div></div>`;
