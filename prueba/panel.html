@@ -4958,13 +4958,13 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     const enc = new TextEncoder(), X = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '');
     const col = i => { let s = ''; i++; while (i) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; };
     const ancho = (filas[0] || []).map((_, j) => Math.min(60, Math.max(8, ...filas.map(r => String(r[j] == null ? '' : r[j]).length + 2))));
-    const celda = (v, ref, cab) => { const s = v == null ? '' : String(v);
+    const numCol = (filas[0] || []).map(h => /valor|total|pagado|monto|iva/i.test(String(h))), celda = (v, ref, cab, j) => { const s = v == null ? '' : String(v);   /* fpg20 */
       if (!cab && /^\d{4}-\d{2}-\d{2}$/.test(s)) { const d = Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 864e5 + 25569; return '<c r="' + ref + '" s="3"><v>' + d + '</v></c>'; }
-      if (!cab && /^-?\d{1,12}([.,]\d{1,2})?$/.test(s) && !/^0\d/.test(s)) return '<c r="' + ref + '" s="2"><v>' + s.replace(',', '.') + '</v></c>';
+      if (!cab && numCol[j] && /^-?\d{1,12}([.,]\d{1,2})?$/.test(s) && !/^0\d/.test(s)) return '<c r="' + ref + '" s="2"><v>' + s.replace(',', '.') + '</v></c>';
       return s === '' ? '' : '<c r="' + ref + '" t="inlineStr"' + (cab ? ' s="1"' : '') + '><is><t xml:space="preserve">' + X(s) + '</t></is></c>'; };
     const hojaXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>' +
       ancho.map((w, j) => '<col min="' + (j + 1) + '" max="' + (j + 1) + '" width="' + w + '" customWidth="1"/>').join('') + '</cols><sheetData>' +
-      filas.map((r, i) => '<row r="' + (i + 1) + '">' + r.map((v, j) => celda(v, col(j) + (i + 1), i === 0)).join('') + '</row>').join('') + '</sheetData>' +
+      filas.map((r, i) => '<row r="' + (i + 1) + '">' + r.map((v, j) => celda(v, col(j) + (i + 1), i === 0, j)).join('') + '</row>').join('') + '</sheetData>' +
       (filas.length > 1 ? '<autoFilter ref="A1:' + col(Math.max(0, (filas[0] || []).length - 1)) + filas.length + '"/>' : '') + '</worksheet>';
     const F = {
       '[Content_Types].xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>',
