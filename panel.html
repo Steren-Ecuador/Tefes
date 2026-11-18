@@ -1287,7 +1287,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   </div>
   <div class="view" data-view="formaspago" hidden>   <!-- fpg1 -->
     <section class="panel" id="formaspago">
-      <div class="panel-h"><h2>Formas de pago</h2><span class="small faint">Lo que registran asesores y gerentes por cada factura del POS: transferencias (deUna, Tipti, banco, otras) y otros (notas de crédito, préstamos a empleados y descuentos por inventarios).</span></div>
+      <div class="panel-h"><h2>Formas de pago</h2><span class="small faint">Lo que registran asesores y gerentes por cada factura del POS: transferencias (Deuna, Tipti, banco, otras) y otros (notas de crédito, préstamos a empleados y descuentos por inventarios).</span></div>
       <div id="fpgBody"><div class="skeleton">Cargando formas de pago…</div></div>
     </section>
   </div>
@@ -1500,7 +1500,7 @@ function irAdmin(url){
   try { window.open(url, '_top'); } catch (e) {}
 }
 function login(){
-  if (/github\.io$/.test(location.hostname)) {   // sp3: el nombre sale del código, nadie elige otro
+  if (/github\.io$/.test(location.hostname) && !/\/prueba\//.test(location.pathname)) {   // sp3b: en /prueba/ no hay entrar.html   // sp3: el nombre sale del código, nadie elige otro
     $('#drawer').innerHTML = `<div class="drawer-bg login-bg"><div class="login" role="dialog" aria-label="Entrar">
       <h2>Entra con tu código</h2><p class="small muted" style="margin:0">El panel te reconoce por el código que te llega a tu correo.</p>
       <div class="actions"><a class="btn primary" href="entrar.html" target="_top">Entrar con mi código</a></div></div></div>`;
@@ -5083,7 +5083,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
       return;
     }
     const todas = F.d.lista || [], tiendas = [...new Set(todas.map(x => x.tienda))].sort(), f = F.f, vw8 = document.querySelector('.view[data-view="formaspago"]'), G8 = (vw8 && vw8.dataset.sub) || 'tr';
-    const OT8 = ['Nota de crédito', 'Préstamo empleado', 'Descuento inventario'], EX8 = F.d.extras || [], formas = G8 === 'ot' ? OT8.concat(EX8.filter(x => x.g === 'ot').map(x => x.n)) : [...new Set(['deUna', 'Tipti', 'Transferencias', 'Otra'].concat(EX8.filter(x => x.g !== 'ot').map(x => x.n), todas.map(x => x.forma).filter(x => OT8.indexOf(x) < 0 && !EX8.some(e => e.n === x && e.g === 'ot'))))];   // fpg8
+    const OT8 = ['Nota de crédito', 'Préstamo empleado', 'Descuento inventario'], EX8 = F.d.extras || [], formas = G8 === 'ot' ? OT8.concat(EX8.filter(x => x.g === 'ot').map(x => x.n)) : [...new Set(['Deuna', 'Tipti', 'Transferencias', 'Otra'].concat(EX8.filter(x => x.g !== 'ot').map(x => x.n), todas.map(x => x.forma).filter(x => OT8.indexOf(x) < 0 && !EX8.some(e => e.n === x && e.g === 'ot'))))];   // fpg8
     if (f.forma && formas.indexOf(f.forma) < 0) f.forma = '';
     const L = filtrar(), cuenta = f.est === 'Anulada' ? L : L.filter(x => x.estado !== 'Anulada'), tot = cuenta.reduce((a, x) => a + (x.valor || 0), 0), por = {};   // las anuladas no suman
     cuenta.forEach(x => { por[x.forma] = por[x.forma] || {v: 0, n: 0}; por[x.forma].v += x.valor || 0; por[x.forma].n++; });
