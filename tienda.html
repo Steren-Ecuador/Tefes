@@ -1348,6 +1348,7 @@ function fpgWizard(o){
   Object.keys(EXW).forEach(n => { AYUDA[n] = PLA[EXW[n].p] || ''; });
   const gExtra = g => (o.extras || []).filter(x => g === 'asesor' ? x.p !== 'D' : x.g === g).map(x => x.n);
   const FORMAS = (GRUPOS[o.grupo || 'tr'] || GRUPOS.tr).concat(gExtra(o.grupo || 'tr')).filter(f => permitidas.indexOf(f) >= 0);
+  const FPG_APAGADAS = {'Préstamo empleado': 1, 'Descuento inventario': 1};   // fpg18: se ven transparentes, aún no se usan
   const solo = FORMAS.length === 1;
   const CUENTAS = o.cuentas && o.cuentas.length ? o.cuentas : BANCOS;   // fpg8: cuentas de la empresa (Diego las define)
   const TIT = {tr: 'Registrar pago con transferencia', ot: 'Registrar otra forma de pago', asesor: 'Registrar forma de pago'}[o.grupo || 'tr'] || 'Registrar forma de pago';
@@ -1470,7 +1471,7 @@ function fpgWizard(o){
         nav('Siguiente →');
     } else if (paso === 2) {
       h += '<h3>¿Con qué pagó?</h3><p class="fw-s">Factura ' + facNorm() + ' · total ' + usd(num(D.valorFac)) + (ya() ? ' · ya registrado ' + usd(ya()) : '') + '. Si pagó con dos formas, registras una y luego la otra.</p>' +
-        FORMAS.map(f => '<button class="fw-op' + (D.forma === f ? ' sel' : '') + '" data-forma="' + esc(f) + '">' + ico(f) + '<div><b>' + esc(nom(f)) + '</b><small>' + esc(AYUDA[f] || '') + '</small></div></button>').join('') +
+        FORMAS.map(f => FPG_APAGADAS[f] ? '<button class="fw-op" disabled style="opacity:.4;cursor:not-allowed" title="Próximamente">' + ico(f) + '<div><b>' + esc(nom(f)) + ' <span style="font-size:11px;font-weight:600;color:#64748b;border:1px solid #cbd5e1;border-radius:999px;padding:1px 7px;margin-left:4px">Próximamente</span></b><small>' + esc(AYUDA[f] || '') + '</small></div></button>' : '<button class="fw-op' + (D.forma === f ? ' sel' : '') + '" data-forma="' + esc(f) + '">' + ico(f) + '<div><b>' + esc(nom(f)) + '</b><small>' + esc(AYUDA[f] || '') + '</small></div></button>').join('') +
         '<div class="fw-nav"><button class="fw-atras" data-fw="atras">← Atrás</button></div>';
     } else if (paso === 3) h += datosHtml();
     else if (paso === 4) {
