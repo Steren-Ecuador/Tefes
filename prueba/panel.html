@@ -4842,7 +4842,9 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     'politicas|leer': 'politicas/politicas', 'guias|': 'politicas/guias', 'politicas|rep': 'politicas/reporte',
     'contactos|tel': 'contactos/tel', 'contactos|wa': 'contactos/wa', 'contactos|mail': 'contactos/mail', 'contactos|hor': 'contactos/hor',
     'clientes|pf': 'clientes/pf', 'clientes|vf': 'clientes/vf', 'formaspago|': 'ventas/formaspago', 'formaspago|tr': 'ventas/formaspago', 'formaspago|ot': 'ventas/formaspago'};
-  let quien = '', pedido = false;
+  let quien = '', pedido = false, previo = null;   // mpf2
+  const H = document.documentElement; H.classList.add('mpf-espera');
+  const listo = () => H.classList.remove('mpf-espera');
   function ordenar(cfg){   // mp5: orden de temas y sub-opciones del perfil (lo que no está en la hoja va al final)
     const O = Array.isArray(cfg && cfg.orden) ? cfg.orden : []; if (!O.length) return;
     const pos = {}; O.forEach((k, i) => { if (!(k in pos)) pos[k] = i; });
@@ -4856,10 +4858,13 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     const vis = TT.filter(t => t.vistas.some(v => { const b = tabs.querySelector('button[data-v="' + v + '"]'); return b && !b.hidden && b.style.display !== 'none'; })).map(t => t.id).slice(0, 4);
     if (vis.length) { A.length = 0; vis.forEach(x => A.push(x)); }
   }
-  function aplicar(cfg){
+  function aplicar(cfg, deMemoria){
+    if (!deMemoria) { try { localStorage.setItem('mpfCfg', JSON.stringify({n: quien, c: cfg})); } catch (e) {}   // mpf2
+      if (previo) { if (JSON.stringify(previo) !== JSON.stringify(cfg)) location.reload(); return; } }
+    else previo = cfg;
     window.MPF_CFG = cfg;
     ordenar(cfg);
-    if (!cfg || cfg.todo || !Array.isArray(cfg.claves)) { abajo(); const t = document.getElementById('tabs'); if (t) t.dataset.mn = String(Date.now()); return; }
+    if (!cfg || cfg.todo || !Array.isArray(cfg.claves)) { abajo(); const t = document.getElementById('tabs'); if (t) t.dataset.mn = String(Date.now()); listo(); return; }
     const A = new Set(cfg.claves), M = window.MN_T_REF;   // in1
     if (A.has('hoy/hoy')) ['validacion', 'supervision', 'ventas', 'actividades'].forEach(x => A.add('inicio/' + x));
     const tabs = document.getElementById('tabs'); if (!M || !tabs) return;
@@ -4871,16 +4876,18 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     if (on && on.hidden) { const p = [...tabs.querySelectorAll('button[data-v]')].find(b => !b.hidden && b.style.display !== 'none'); if (p) p.click(); }
     try { const T = ((window.TEM && TEM.temas) || []).find(t => t.id === 'ventas-fpg7-inactivo');   // fpg7: si de Ventas solo queda Formas de pago, el tema se llama así
       if (T && vivas.formaspago && T.vistas.filter(v => vivas[v] || !todas[v]).length === 1) T.nombre = 'Formas de pago'; } catch (e) {}
-    abajo(); tabs.dataset.mn = String(Date.now());
+    abajo(); tabs.dataset.mn = String(Date.now()); listo();
   }
   setInterval(() => {
-    const y = window.cvCtx && cvCtx.yo && cvCtx.yo(); if (!y || !y.nombre || pedido && quien === y.nombre) return;
+    const y = window.cvCtx && cvCtx.yo && cvCtx.yo(); if (!y || !y.nombre || !window.MN_T_REF || pedido && quien === y.nombre) return;
     if (pedido && quien && quien !== y.nombre) { location.reload(); return; }   // otra persona en el mismo equipo
     quien = y.nombre; pedido = true;
-    cvCtx.api('apiMenusPerfil', y.nombre).then(aplicar).catch(() => {});
+    if (!previo) try { const c = JSON.parse(localStorage.getItem('mpfCfg') || 'null'); if (c && c.n === quien && c.c) aplicar(c.c, true); } catch (e) {}   // mpf2: al instante con lo recordado
+    cvCtx.api('apiMenusPerfil', y.nombre).then(c => aplicar(c)).catch(() => { setTimeout(() => { pedido = false; quien = ''; }, 4000); });   // mpf2: si falla, reintenta (no muestra todo)
   }, 700);
 })();
 </script>
+<style>/* mpf2 */html.mpf-espera body>*:not(header):not(#drawer):not(script):not(style),html.mpf-espera #tabs,html.mpf-espera .tem-nav,html.mpf-espera .tem-sub,html.mpf-espera .tem-buscar{visibility:hidden!important}html.mpf-espera body::after{content:"Cargando tu menú…";position:fixed;left:0;right:0;top:40%;text-align:center;font-size:15px;color:#64748b}</style>
 <style>/* in1 */.view[data-view="hoy"][data-sub][data-sub="val"]>:not(#datoDia):not(.bx-wrap):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="sup"]>:not(#datoDia):not(.hl-sec:has(#hlSup)):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="ven"]>:not(#datoDia):not(.hl-sec:has(#hlVen)):not(.bx-mapa):not(.mn-chips),.view[data-view="hoy"][data-sub][data-sub="act"]>:not(#datoDia):not(#actividades):not(.mn-chips){display:none!important}.view[data-view="hoy"][data-sub][data-sub="act"] #actividades{display:block!important}.view[data-view="hoy"][data-sub][data-sub="act"] #acBody:empty::before{content:"No hay actividades este mes.";color:var(--muted,#888);font-size:14px}</style>
 <style>/* vs1 */.view[data-view="flash"][data-sub="fl"]>#fdBody,.view[data-view="flash"][data-sub="fl"]>#garBody,.view[data-view="flash"][data-sub="fl"]>#ppBody,.view[data-view="flash"][data-sub="fd"]>:not(#fdBody):not(.mn-chips),.view[data-view="flash"][data-sub="gar"]>:not(#garBody):not(.mn-chips),.view[data-view="flash"][data-sub="pp"]>:not(#ppBody):not(.mn-chips){display:none!important}.view[data-view="flash"][data-sub="gar"]>#garBody:empty::before,.view[data-view="flash"][data-sub="pp"]>#ppBody:empty::before{content:"Cargando…";color:var(--muted,#888);font-size:14px}</style>
 <style>/* mx1 */#tabs button[data-v="perchas"]{display:none!important}</style>
@@ -4951,13 +4958,13 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     const enc = new TextEncoder(), X = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '');
     const col = i => { let s = ''; i++; while (i) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; };
     const ancho = (filas[0] || []).map((_, j) => Math.min(60, Math.max(8, ...filas.map(r => String(r[j] == null ? '' : r[j]).length + 2))));
-    const celda = (v, ref, cab) => { const s = v == null ? '' : String(v);
+    const numCol = (filas[0] || []).map(h => /valor|total|pagado|monto|iva/i.test(String(h))), celda = (v, ref, cab, j) => { const s = v == null ? '' : String(v);   /* fpg20 */
       if (!cab && /^\d{4}-\d{2}-\d{2}$/.test(s)) { const d = Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / 864e5 + 25569; return '<c r="' + ref + '" s="3"><v>' + d + '</v></c>'; }
-      if (!cab && /^-?\d{1,12}([.,]\d{1,2})?$/.test(s) && !/^0\d/.test(s)) return '<c r="' + ref + '" s="2"><v>' + s.replace(',', '.') + '</v></c>';
+      if (!cab && numCol[j] && /^-?\d{1,12}([.,]\d{1,2})?$/.test(s) && !/^0\d/.test(s)) return '<c r="' + ref + '" s="2"><v>' + s.replace(',', '.') + '</v></c>';
       return s === '' ? '' : '<c r="' + ref + '" t="inlineStr"' + (cab ? ' s="1"' : '') + '><is><t xml:space="preserve">' + X(s) + '</t></is></c>'; };
     const hojaXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>' +
       ancho.map((w, j) => '<col min="' + (j + 1) + '" max="' + (j + 1) + '" width="' + w + '" customWidth="1"/>').join('') + '</cols><sheetData>' +
-      filas.map((r, i) => '<row r="' + (i + 1) + '">' + r.map((v, j) => celda(v, col(j) + (i + 1), i === 0)).join('') + '</row>').join('') + '</sheetData>' +
+      filas.map((r, i) => '<row r="' + (i + 1) + '">' + r.map((v, j) => celda(v, col(j) + (i + 1), i === 0, j)).join('') + '</row>').join('') + '</sheetData>' +
       (filas.length > 1 ? '<autoFilter ref="A1:' + col(Math.max(0, (filas[0] || []).length - 1)) + filas.length + '"/>' : '') + '</worksheet>';
     const F = {
       '[Content_Types].xml': '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>',
