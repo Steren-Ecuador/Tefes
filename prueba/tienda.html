@@ -483,6 +483,7 @@ input[type=tel],input[type=email]{width:100%;border:1px solid var(--line);border
 /* tem1: temas arriba y buscador (2026-10-25) */
 .tem-nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
 .tem-nav::-webkit-scrollbar{display:none}
+@media (min-width:760px){.tem-nav{flex-wrap:wrap;overflow:visible}html .tem-nav button{padding:10px 9px 12px;font-size:14px}}   /* nav2 */
 .tem-nav button{flex:none;border:0;background:none;color:var(--tem-2);padding:10px 16px 12px;font:inherit;font-weight:600;font-size:15px;border-bottom:3px solid transparent;white-space:nowrap;cursor:pointer}
 .tem-nav button:hover{color:var(--tem-ink)}
 .tem-nav button.on{color:var(--tem-ink);border-bottom-color:var(--tem-ink);font-weight:700}
