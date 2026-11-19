@@ -2936,7 +2936,7 @@ async function invAbrir(tienda, sem, filtro){
 }
 /* ---------- detalle de inventario de una tienda: producto por producto y revisión de Diego (hoja privada MueCorrecciones) ---------- */
 const IV_VEND = 'Vendido antes del conteo';
-const IV_DEC = ['Cuadra, fue error de conteo', IV_VEND, 'Ajustar en el sistema', 'Faltante a cargo del personal', 'Sobrante cargar a la tienda', 'Pendiente para el próximo inventario', 'Sigue en revisión'];
+const IV_DEC = ['Cuadra, fue error de conteo', IV_VEND, 'Ajustar en el sistema', 'Faltante a cargo del personal', 'Sobrante cargar a la tienda', 'Sistema tiene error en stock', 'Pendiente para el próximo inventario', 'Sigue en revisión'];   /* es1 */
 const ivDecN = d => d === 'Faltante a cargo de la tienda' ? 'Faltante a cargo del personal' : d;   // nombre anterior de la decisión
 /* pt2 → pt4: un producto no queda pendiente en más de 3 inventarios (Diego 2026-11-10) */
 const IV_PEND = 'Pendiente para el próximo inventario';
@@ -3134,7 +3134,7 @@ function infHTML(f){
 
 const INF_TAB = "'Informes de inventario'";
 const INF_ENC = ['ID', 'Fecha', 'Hora', 'Semana', 'Tienda', 'Tipo', 'Elaboró', 'Líder', 'Personal', 'Faltante PVP', 'Sobrante PVP', 'A descontar', 'Reparto', 'Estado', 'Observaciones', 'Datos'];
-const INF_NO_DESC = ['Ajustar en el sistema', 'Sigue en revisión', 'Cuadra, fue error de conteo', 'Pendiente para el próximo inventario'];   // el pendiente entra solo en la lista del próximo Top 50
+const INF_NO_DESC = ['Sistema tiene error en stock', 'Ajustar en el sistema', 'Sigue en revisión', 'Cuadra, fue error de conteo', 'Pendiente para el próximo inventario'];   // el pendiente entra solo en la lista del próximo Top 50
 const INF_TOL = 10;
 const ivMon = n => '$' + Math.abs(Number(n) || 0).toLocaleString('es-EC', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 const infFilas = () => ((st.mue && st.mue.inf) || []).slice(1).filter(r => r[0]);
@@ -3262,7 +3262,7 @@ function infNuevo(){
     <div id="infItems">${items.length ? items.map((x, i) => `<label class="if-it"><input type="checkbox" data-i="${i}" ${x.des ? 'checked' : ''} ${x.dif > 0 ? 'disabled' : ''}>
       <span><b>${esc(x.cod)}</b> <span class="small faint">${esc(x.desc)}</span><br><span class="small faint">${esc(x.dec || '')}</span></span>
       <span class="v"><b class="${x.dif < 0 ? 'bad-t' : ''}">${ivSig(x.dif)}</b><br><span class="small">${ivDin(x.tot)}</span></span></label>`).join('') : '<div class="empty">Sin diferencias: el informe saldrá en cero.</div>'}</div>
-    <p class="small faint" style="margin:0">Marcado = se descuenta al personal. Los sobrantes se cargan a la tienda y no reducen el faltante.</p>
+    ${(() => { const e = items.filter(x => x.dec === 'Sistema tiene error en stock'); return e.length ? `<div class="banner">Para ajustar el stock en el ERP (no se descuentan): ${e.map(x => esc(x.cod) + ' ' + ivSig(x.dif)).join(' · ')}</div>` : ''; })()}<p class="small faint" style="margin:0">Marcado = se descuenta al personal. Los sobrantes se cargan a la tienda y no reducen el faltante.</p>
     <div class="lbl">Personal que firma</div>
     <div id="infGente">${gente.map((p, i) => `<label class="if-per"><input type="checkbox" data-p="${i}" checked><span>${esc(p.n)}<br><span class="small faint">${esc(p.c)}</span></span><span class="v small" id="infV${i}"></span></label>`).join('') || '<div class="empty">No hay personal activo de esta tienda en la Base.</div>'}</div>
     <div class="iv-fil"><label class="small" style="display:flex;flex-direction:column;gap:3px">Líder de la tienda<select id="infLider">${gente.map(p => `<option${p.n === lid ? ' selected' : ''}>${esc(p.n)}</option>`).join('')}</select></label>
