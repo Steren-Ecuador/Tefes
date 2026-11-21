@@ -3875,8 +3875,9 @@ const cbMes = s => { const m = /^(\d{4})-(\d{2})/.exec(String(s || '')); return 
 async function cbLeer(fresh){
   if (st.cbLeyendo || (!fresh && st.cbT && Date.now() - st.cbT < 120000)) return;
   st.cbLeyendo = true;
-  try { const [a, d, s] = await Promise.all([getRange(CB_TAB + '!A1:L', true, CLAVES), getRange(CBD_TAB + '!A1:O', true, CLAVES).catch(() => st.cbd || []), getRange(SG_TAB + '!A1:H', true, CLAVES).catch(() => st.sg || [])]); st.cb = a; st.cbd = d; st.sg = s; } catch (e) { if (!st.cb) st.cb = null; }
-  st.cbLeyendo = false; st.cbT = Date.now(); cbPintar(); if (document.querySelector('.iv2-sems')) renderInventario();
+  try { const [a, d, s] = await Promise.all([getRange(CB_TAB + '!A1:L', true, CLAVES), (async () => { for (let k = 0; ; k++) { try { const v = await getRange1(CBD_TAB + '!A1:O', true, CLAVES); st.cbdOk = true; return v; } catch (e) { if (k >= 2) { st.cbdOk = false; return st.cbd || []; } await new Promise(o => setTimeout(o, [2000, 6000][k])); } } })() /* cbd1 */, getRange(SG_TAB + '!A1:H', true, CLAVES).catch(() => st.sg || [])]); st.cb = a; st.cbd = d; st.sg = s; } catch (e) { if (!st.cb) st.cb = null; }
+  st.cbLeyendo = false; st.cbT = Date.now(); if (st.cbdOk === false && !st.cbdReint) { st.cbdReint = setTimeout(() => { st.cbdReint = 0; cbLeer(true); }, 20000); }   /* cbd1 */
+  cbPintar(); if (document.querySelector('.iv2-sems')) renderInventario();
 }
 function cbFilas(){ return ((st.cb || []).slice(1)).map((r, i) => ({n: i + 2, org: r[0] || '', fecha: r[1] || '', t: r[2] || '', per: r[3] || '', cargo: r[4] || '', v: cbNum(r[5]),
   cu: Math.round(cbNum(r[6])), des: Math.round(cbNum(r[7])), ini: r[8] || '', est: r[9] || 'Por firmar', nota: r[10] || ''})).filter(x => x.org && x.per); }
@@ -4092,6 +4093,7 @@ function iv3Tomas(){
     if (i <= 1) { plazo = dia(0); falta = i ? 'Publicar la lista para la tienda' : 'Subir los archivos para armar la lista'; quien = 'Diego'; }
     else if (i === 2) { plazo = dia(2); falta = cont ? 'Terminar el conteo y enviarlo' : 'Empezar a contar'; quien = 'Tienda'; }
     else if (i === 3) { plazo = dia(4); falta = 'Revisar, ajustar y hacer el informe'; quien = 'Diego o Marco'; }
+    else if (i === 4 && !st.cbdOk && !x.manual) { plazo = ''; falta = 'Revisando la factura y el acta en la hoja…'; quien = 'Tienda'; }   /* cbd1 */
     else if (i === 4) { plazo = fInf ? iv3Habiles(fInf, 3) : ''; falta = 'Falta ' + [!x.fOk && 'la factura', !x.aOk && 'el acta firmada'].filter(Boolean).join(' y '); quien = 'Tienda'; }
     else if (i === 5) { plazo = fInf ? iv3Corte(iv3Habiles(fInf, 3)) : ''; falta = [!rhOk && 'Entregar a RRHH', !fisOk && 'archivar el físico en la carpeta'].filter(Boolean).join(' y ').replace(/^a/, 'A'); quien = 'Diego'; }
     const atraso = plazo && i < 6 ? dias(plazo, hoy) : 0;
