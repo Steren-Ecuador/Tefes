@@ -553,6 +553,22 @@ input[type=tel],input[type=email]{width:100%;border:1px solid var(--line);border
 .stock-btn small{display:block;font-size:13px;opacity:.92;margin-top:2px;color:#fff}
 .stock-btn .sb-fl{margin-left:auto;font-size:22px;opacity:.85}
 </style>
+<style>/* fpg21 */.fpg-aviso{background:#fdecec;color:#b3261e;border-radius:12px;padding:11px 13px;font-size:14.5px;margin:12px 2px;cursor:pointer}
+.fpg-bx{background:#fff;border:1px solid var(--line,#e3e7ee);border-radius:14px;overflow:hidden;margin:0 0 12px}
+.fpg-bh{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;font-weight:700;font-size:15px}
+.fpg-bh span{color:#fff;border-radius:999px;font-size:12px;padding:1px 8px}
+.fpg-reg .fpg-bh{background:#fdecec;color:#b3261e}.fpg-reg .fpg-bh span{background:#d32f2f}
+.fpg-rev .fpg-bh{background:#fff4e0;color:#8a5300}.fpg-rev .fpg-bh span{background:#e08a00}
+.fpg-it{padding:11px 14px;border-top:1px solid #eef0f4;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px}
+.fpg-it small{display:block;color:var(--muted,#6b7280);font-size:12.5px;margin-top:2px}.fpg-v{white-space:nowrap}
+.fpg-it .btn{grid-column:1/-1;margin-top:6px}.fpg-dif{grid-column:1/-1;font-size:13.5px;background:#fff8ec;border-radius:8px;padding:7px 9px;margin-top:4px}
+.fpg-dif s{color:#9ca3af}.fpg-cor{background:#e08a00!important;color:#fff!important;border:0}
+.fr-ch{display:flex;flex-wrap:wrap;gap:6px}.fr-ch button{border:1.5px solid #cbd5e1;background:#fff;border-radius:999px;padding:9px 14px;font-size:14.5px;cursor:pointer;color:#0f172a}
+.fr-ch button.on{background:#0077c0;border-color:#0077c0;color:#fff}.fr-pos{color:#16a34a;font-weight:600}
+.fr-foto{display:block;text-align:center;cursor:pointer}.fr-dos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:420px){.fr-dos{grid-template-columns:1fr}}.fr-err{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:10px;padding:9px;font-size:14px;margin-top:12px}
+.fr-in{width:100%;box-sizing:border-box;font-size:16px;padding:11px 12px;border:1.5px solid #cbd5e1;border-radius:10px;background:#fff;color:#0f172a}
+</style>
 </head>
 <body>
 <script>
@@ -734,7 +750,7 @@ function ipdfBajar(blob, nombre){
   <div class="top" id="temTop"><div class="marca"><span class="logo" id="logo"><img src="data:image/png;base64,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" alt="Steren"></span><div style="min-width:0"><h1 id="hTienda"></h1><span class="sub">Steren</span></div></div><span id="reloj"></span></div>
   <nav>
     <button data-v="inicio" class="on"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Hoy<span class="dot" id="bIni" hidden></span></button>
-    <button data-v="pago"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18v12H3zM3 10h18M7 15h4"/></svg>Formas de pago</button>
+    <button data-v="pago"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18v12H3zM3 10h18M7 15h4"/></svg>Formas de pago <span class="badge" id="bPago" hidden></span></button>
     <button data-v="pend"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>Pendientes <span class="badge" id="bPend">·</span></button>
     <button data-v="inv"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"/></svg>Inventario</button>
     <button data-v="pol"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h7v14H4zM13 5h7v14h-7z"/></svg><span class="lbl-d">Políticas</span><span class="lbl-m">Cómo trabajamos</span><span class="dot" id="bPol" hidden></span><span class="dot" id="bLeer" hidden></span></button>
@@ -962,7 +978,7 @@ function render(){
   else if(S.vista === 'pago') renderPago();
   else if(S.vista === 'inv') renderInv();
   else renderSup();
-  setHH();
+  setHH(); fpgMarca();   // fpg21
 }
 
 /* ---------- lo que ha pasado: línea de tiempo, de lo más antiguo a lo más reciente ---------- */
@@ -1183,14 +1199,15 @@ const fpgRefTxt = x => x.forma === 'Nota de crédito' ? 'NC ' + x.pedido + (x.ba
 const fpgUsd = n => '$' + Number(n || 0).toFixed(2).replace('.', ',');
 function fpgCargar(){
   if (FPGS.cargando) return; FPGS.cargando = true; FPGS.error = '';
-  api('apiFPGLista').then(r => { FPGS.lista = (r && r.lista) || []; FPGS.formas = (r && r.formas) || []; FPGS.prefijo = (r && r.prefijo) || ''; FPGS.extras = (r && r.extras) || []; FPGS.hoy = r && r.hoy; }).catch(e => { FPGS.error = e.message || 'No se pudo cargar.'; })
-    .finally(() => { FPGS.cargando = false; if (S.vista === 'pago') renderPago(); });
+  api('apiFPGLista').then(r => { FPGS.lista = (r && r.lista) || []; FPGS.pos = (r && r.pos) || null; FPGS.formas = (r && r.formas) || []; FPGS.prefijo = (r && r.prefijo) || ''; FPGS.extras = (r && r.extras) || []; FPGS.hoy = r && r.hoy; }).catch(e => { FPGS.error = e.message || 'No se pudo cargar.'; })
+    .finally(() => { FPGS.cargando = false; if (S.vista === 'pago') renderPago(); fpgMarca(); });   // fpg21
 }
 function fpgHtml(){   // fpg8: Transferencias | Notas de crédito | Préstamos empleados
   if (FPGS.lista === null && !FPGS.error) fpgCargar();
   const G = FPGS.grupo || 'tr', L = (FPGS.lista || []).filter(x => fpgGrupo(x) === G), hoy = S.data.hoy || new Date().toISOString().slice(0, 10), deHoy = L.filter(x => x.fecha === hoy && x.estado !== 'Anulada');
   let h = '<div class="sec-t" style="margin-top:16px"><h3>Formas de pago</h3><span class="tiny muted">' + (deHoy.length ? deHoy.length + ' hoy · ' + fpgUsd(deHoy.reduce((a, x) => a + x.valor, 0)) : '') + '</span></div>';
   h += '<div class="seg fpg-seg" style="margin-bottom:10px">' + FPG_GRUPOS.map(([k, l]) => '<button data-fpgg="' + k + '" class="' + (k === G ? 'on' : '') + '" style="flex:1">' + l + '</button>').join('') + '</div>';
+  h += fpgPosHtml();   // fpg21
   h += '<button class="btn block" id="fpgNuevo">' + ({tr: '+ Registrar pago con Deuna, Tipti, transferencia u otra', ot: '+ Registrar nota de crédito, préstamo o descuento por inventario'})[G] + '</button>';
   if (FPGS.error) h += '<div class="card small" style="margin-top:10px">' + esc(FPGS.error) + ' <button class="link" id="fpgRe">Reintentar</button></div>';
   else if (FPGS.lista === null) h += '<div class="card muted small" style="margin-top:10px"><span class="spin"></span> Cargando…</div>';
@@ -1207,6 +1224,7 @@ function fpgHtml(){   // fpg8: Transferencias | Notas de crédito | Préstamos e
   return h;
 }
 function fpgEnlazar(){
+  fpgPosEnlazar();   // fpg21
   const n = $('#fpgNuevo'); if (n) n.onclick = fpgFormulario;
   document.querySelectorAll('[data-fpgg]').forEach(b => b.onclick = () => { FPGS.grupo = b.dataset.fpgg; FPGS.todos = false; renderPago(); });   // fpg8
   const re = $('#fpgRe'); if (re) re.onclick = () => { FPGS.error = ''; FPGS.lista = null; renderPago(); };
@@ -1479,6 +1497,120 @@ function fpgWizard(o){
       (o.lista = o.lista || []).unshift(r); if (o.alGuardar) o.alGuardar(r);
       D.res = r; D.resta = Math.max(0, num(D.valorFac) - ya()); guardando = false; paso = 5; pintar();
     } catch (x) { guardando = false; err = (x && x.message) || 'No se pudo guardar. Revisa tu internet.'; pintar(); }
+  }
+  pintar();
+}
+/* fpg21 (Diego 20-nov noche): CRUCE CON EL POS. Cada hora la VM sube a CLAVES las transferencias (TE) y notas de crédito (NC) del POS.
+   Aquí la tienda ve "Por registrar" (lo que el POS cobró y nadie registró, con datos ya llenos) y "Por revisar" (registros que no cuadran),
+   un número rojo en Formas de pago y un aviso en Hoy. Registrar un pendiente es una sola pantalla. */
+const fpgFac = s => { const p = (localStorage.getItem('fpgPto') || FPGS.prefijo || '').trim(); return /^\d{3}-\d{3}$/.test(p) ? p + '-' + ('00000000' + s).slice(-9) : 'N° ' + s; };
+const fpgDel = f => { const d = fpgDia(f); return (d === 'hoy' || d === 'ayer' ? 'de ' : 'del ') + d; };
+const fpgDia = f => { const h = FPGS.hoy || (S.data && S.data.hoy) || ''; if (f === h) return 'hoy'; const t = new Date(h + 'T12:00:00Z'); t.setUTCDate(t.getUTCDate() - 1); return f === t.toISOString().slice(0, 10) ? 'ayer' : String(f).split('-').reverse().slice(0, 2).join('/'); };
+function fpgCuentaPos(){ const P = FPGS.pos; return P ? (P.pend || []).length + (P.rev || []).length : 0; }
+function fpgMarca(){
+  if (FPGS.lista === null && !FPGS.cargando && !FPGS.error && S.data) fpgCargar();
+  const n = fpgCuentaPos(), b = document.getElementById('bPago');
+  if (b) { b.textContent = n; b.hidden = !n; }
+  if (S.vista !== 'inicio' || !n) return;
+  const m = document.getElementById('main'); if (!m || m.querySelector('#fpgAviso')) return;
+  const P = FPGS.pos, a = (P.pend || []).length, r = (P.rev || []).length;
+  const d = document.createElement('div'); d.id = 'fpgAviso'; d.className = 'fpg-aviso'; d.setAttribute('role', 'button');
+  d.innerHTML = '💳 ' + (a ? 'Tienes <b>' + a + (a === 1 ? ' pago' : ' pagos') + ' por registrar</b>' : '') + (a && r ? ' y ' : '') + (r ? '<b>' + r + ' por revisar</b>' : '') + ' en Formas de pago. <u>Ver</u>';
+  d.onclick = () => irA('pago');
+  const ref = m.querySelector('.ts-h'); if (ref) ref.insertAdjacentElement('beforebegin', d); else m.insertAdjacentElement('afterbegin', d);
+}
+function fpgPosHtml(){
+  const P = FPGS.pos; if (!P) return '';
+  const pend = P.pend || [], rev = P.rev || [];
+  let h = '';
+  if (pend.length) h += '<div class="fpg-bx fpg-reg"><div class="fpg-bh">Por registrar <span>' + pend.length + '</span></div>' + pend.map((p, i) =>
+    '<div class="fpg-it"><div><b>Factura ' + esc(fpgFac(p.sec)) + '</b><small>' + (p.tipo === 'NC' ? 'Pagada con nota de crédito' : 'Transferencia' + (p.ref ? ' · comprobante ' + esc(p.ref) : '')) + ' · ' + fpgDia(p.fecha) +
+    (p.total > p.valor + 0.009 ? ' · factura de ' + fpgUsd(p.total) : '') + '</small></div><b class="fpg-v">' + fpgUsd(p.valor) + '</b><button class="btn primary" data-fpgp="' + i + '">' + (p.tipo === 'NC' ? 'Registrar NC' : 'Registrar') + '</button></div>').join('') + '</div>';
+  if (rev.length) h += '<div class="fpg-bx fpg-rev"><div class="fpg-bh">Por revisar <span>' + rev.length + '</span></div>' + rev.map((r, i) => { const x = r.x;
+    const txt = r.tipo === 'valor' ? 'Registraste ' + fpgUsd(r.suma) + ', pero en el POS ' + (r.pos.tipo === 'NC' ? 'la nota de crédito' : 'la transferencia') + ' de esta factura es de <b>' + fpgUsd(r.pos.valor) + '</b>. Si te equivocaste, anúlalo y regístralo de nuevo.'
+      : r.sug ? 'Pusiste la factura <s>' + esc(x.factura) + '</s>, pero en el POS ' + (r.sug.tipo === 'NC' ? 'la nota de crédito' : 'el pago') + ' de ' + fpgUsd(r.sug.valor) + ' ' + fpgDel(r.sug.fecha) + ' es la <b>' + esc(String(x.factura).slice(0, 8) + ('00000000' + r.sug.sec).slice(-9)) + '</b>.'
+      : 'No encuentro la factura <b>' + esc(x.factura) + '</b> en el POS ' + fpgDel(x.fechaFac || x.fecha) + '. Revisa el número' + (x.fecha === (FPGS.hoy || '') ? ': si está mal, anúlalo y regístralo de nuevo.' : ' y avisa a Financiero.');
+    return '<div class="fpg-it"><div><b>' + esc([x.id, fpgNom(x.forma), x.vendedorVer || x.registroVer].filter(Boolean).join(' · ')) + '</b><small>Registrado ' + fpgDia(x.fecha) + ' ' + esc(x.hora || '') + '</small></div><b class="fpg-v">' + fpgUsd(x.valor) + '</b>' +
+      '<div class="fpg-dif">' + txt + '</div>' + (r.tipo === 'factura' && r.sug ? '<button class="btn fpg-cor" data-fpgc="' + i + '">Corregir a ' + r.sug.sec + '</button>' : '') + '</div>'; }).join('') + '</div>';
+  return h;
+}
+function fpgPosEnlazar(){
+  document.querySelectorAll('[data-fpgp]').forEach(b => b.onclick = () => fpgRapido(FPGS.pos.pend[+b.dataset.fpgp]));
+  document.querySelectorAll('[data-fpgc]').forEach(b => b.onclick = () => fpgCorregir(FPGS.pos.rev[+b.dataset.fpgc]));
+}
+function fpgCorregir(r){
+  const x = r.x, nueva = String(x.factura).slice(0, 8) + ('00000000' + r.sug.sec).slice(-9);
+  openModal('<h3>Corregir la factura</h3><p class="small" style="margin:0 0 8px">' + esc(x.id) + ' · ' + esc(fpgNom(x.forma)) + ' ' + fpgUsd(x.valor) + '<br>De <s>' + esc(x.factura) + '</s> a <b>' + esc(nueva) + '</b>, que es la que tiene el POS por ese valor.</p>' +
+    '<p class="tiny muted" style="margin:0">Queda en la bitácora con tu nombre y la hora.</p><label class="f">¿Quién corrige?</label>' + vfQuien('fpgCQuien') +
+    '<div class="row" style="margin-top:14px"><button class="btn ghost grow" id="fpgCNo">Cancelar</button><button class="btn primary grow" id="fpgCSi">Corregir</button></div>');
+  $('#fpgCNo').onclick = closeModal;
+  $('#fpgCSi').onclick = async () => {
+    const per = $('#fpgCQuien').value.trim(); if (!per) return toast('Elige tu nombre.');
+    const b = $('#fpgCSi'); b.disabled = true; b.textContent = 'Corrigiendo…';
+    try { await api('apiFPGCorregirTienda', x.id, per, r.sug.sec); if (window.REG) REG.ev('Forma de pago', 'Corrección ' + x.id); closeModal(); toast('Listo, corregido a ' + nueva + '.'); FPGS.lista = null; fpgCargar(); }
+    catch (e) { b.disabled = false; b.textContent = 'Corregir'; toast((e && e.message) || 'No se pudo corregir.', 4000); }
+  };
+}
+/* Registro rápido de un pendiente del POS: todo en una pantalla. Factura, fecha, valor y total vienen del POS. */
+function fpgRapido(p){
+  if (!p) return;
+  const NC = p.tipo === 'NC', CUENTAS = ['Pichincha cte. 2100349639', 'Produbanco cte. 02006219957', 'Bolivariano cte. 5005110152'];
+  const FORMAS = NC ? ['Nota de crédito'] : ['Deuna', 'Tipti', 'Transferencias', 'Otra'].filter(f => (FPGS.formas || []).indexOf(f) >= 0);
+  const NOMB = {'Transferencias': 'Banco', 'Nota de crédito': 'Nota de crédito'};
+  const D = {pto: (localStorage.getItem('fpgPto') || FPGS.prefijo || '').trim(), forma: NC ? 'Nota de crédito' : (p.banco === '17' && FORMAS.indexOf('Deuna') >= 0 ? 'Deuna' : ''), pedido: NC ? '' : (p.ref || ''), banco: '', otra: '', vend: '', quien: '', file: null, url: ''};
+  const total = p.total > 0 ? p.total : p.valor;
+  const fac = () => /^\d{3}-\d{3}$/.test(D.pto) ? D.pto + '-' + ('00000000' + p.sec).slice(-9) : '';
+  const sel = (id, ph) => vfQuien(id).replace('Elige tu nombre', ph);
+  function pintar(){
+    const f = D.forma;
+    let h = '<h3 style="margin:0 0 2px">' + (NC ? 'Registrar nota de crédito' : 'Registrar transferencia') + '</h3><p class="small muted" style="margin:0 0 10px">Del POS: factura ' + (fac() ? '<b>' + esc(fac()) + '</b>' : 'N° ' + p.sec) + ' · ' + fpgDia(p.fecha) + ' · ' + (NC ? 'NC' : 'transferencia') + ' de <b>' + fpgUsd(p.valor) + '</b>' + (total > p.valor + 0.009 ? ' (factura de ' + fpgUsd(total) + ')' : '') + '</p>';
+    if (!fac()) h += '<label class="f">Punto de emisión de tu tienda (como sale en la factura)</label><input class="fr-in" id="frPto" inputmode="numeric" placeholder="005-001" maxlength="7" value="' + esc(D.pto) + '">';
+    if (!NC) h += '<label class="f">¿Con qué pagó?</label><div class="fr-ch">' + FORMAS.map(x => '<button type="button" data-frf="' + esc(x) + '" class="' + (x === f ? 'on' : '') + '">' + esc(NOMB[x] || x) + '</button>').join('') + '</div>';
+    if (f === 'Transferencias') h += '<label class="f">Cuenta de la empresa que recibió</label><div class="fr-ch">' + CUENTAS.map(c => '<button type="button" data-frb="' + esc(c) + '" class="' + (c === D.banco ? 'on' : '') + '">' + esc(c) + '</button>').join('') + '</div>';
+    if (f === 'Otra') h += '<label class="f">¿Qué forma de pago es?</label><input class="fr-in" id="frOtra" maxlength="100" placeholder="Ej.: Shopping Dólares Condado" value="' + esc(D.otra) + '">';
+    if (f === 'Nota de crédito') h += '<label class="f">N° de la nota de crédito</label><input class="fr-in" id="frRef" maxlength="17" placeholder="' + esc((D.pto || '005-001') + '-001400123') + '" value="' + esc(D.pedido) + '">' +
+      '<label class="f">N° de la factura devuelta</label><input class="fr-in" id="frBan" maxlength="17" placeholder="' + esc((D.pto || '005-001') + '-000004700') + '" value="' + esc(D.banco) + '">' +
+      '<label class="f">Motivo (opcional)</label><input class="fr-in" id="frOtra" maxlength="100" placeholder="Ej.: cambio por otro producto" value="' + esc(D.otra) + '">';
+    else if (f) h += '<label class="f">' + ({Deuna: 'Comprobante Deuna', Tipti: 'N° de pedido Tipti', Transferencias: 'Comprobante de la transferencia', Otra: 'N° de comprobante o de los vales'})[f] + (p.ref && D.pedido === p.ref ? ' <span class="fr-pos">· del POS</span>' : '') + '</label><input class="fr-in" id="frRef" inputmode="' + (f === 'Otra' ? 'text' : 'numeric') + '" maxlength="30" value="' + esc(D.pedido) + '">';
+    if (f) h += '<label class="f">Foto del comprobante ' + (f === 'Transferencias' ? '(obligatoria)' : '(opcional)') + '</label><label class="btn ghost fr-foto">📷 ' + (D.file ? 'Foto lista ✓ (cambiar)' : 'Tomar o elegir foto') + '<input type="file" id="frFoto" accept="image/*" hidden></label>';
+    h += '<div class="fr-dos"><div><label class="f">¿Quién vendió?</label>' + sel('frVend', 'Elige quién vendió') + '</div><div><label class="f">¿Quién registra?</label>' + sel('frQuien', 'Elige tu nombre') + '</div></div>' +
+      '<div class="fr-err" id="frErr" hidden></div><div class="row" style="margin-top:14px"><button class="btn ghost grow" id="frNo">Cancelar</button><button class="btn primary grow" id="frSi">Guardar</button></div>';
+    openModal(h);
+    const on = (id, k, fx) => { const e = $(id); if (e) e.oninput = () => { D[k] = fx ? fx(e.value) : e.value; }; };
+    on('#frPto', 'pto', v => v.replace(/[^\d-]/g, '')); on('#frRef', 'pedido'); on('#frBan', 'banco'); on('#frOtra', 'otra');
+    const pt = $('#frPto'); if (pt) pt.onchange = () => { if (fac()) pintar(); };
+    ['frVend', 'frQuien'].forEach(id => { const e = $('#' + id), k = id === 'frVend' ? 'vend' : 'quien'; if (!e) return; if (D[k]) e.value = D[k];
+      e.onchange = e.oninput = () => { D[k] = e.value.trim(); if (k === 'vend' && !D.quien) { D.quien = D.vend; const q = $('#frQuien'); if (q) q.value = D.quien; } }; });
+    document.querySelectorAll('[data-frf]').forEach(b => b.onclick = () => { if (D.forma !== b.dataset.frf) { D.forma = b.dataset.frf; D.banco = ''; D.otra = ''; D.pedido = D.forma === 'Tipti' ? '' : (p.ref || ''); } pintar(); });
+    document.querySelectorAll('[data-frb]').forEach(b => b.onclick = () => { D.banco = b.dataset.frb; pintar(); });
+    const fo = $('#frFoto'); if (fo) fo.onchange = () => { D.file = fo.files && fo.files[0] || null; pintar(); };
+    $('#frNo').onclick = closeModal;
+    $('#frSi').onclick = guardar;
+  }
+  const error = t => { const e = $('#frErr'); if (e) { e.textContent = '⚠️ ' + t; e.hidden = false; } };
+  async function guardar(){
+    const f = D.forma;
+    if (!fac()) return error('Escribe el punto de emisión de tu tienda, como 005-001.');
+    if (!f) return error('Elige con qué pagó.');
+    if (f === 'Transferencias' && !D.banco) return error('Elige la cuenta que recibió la transferencia.');
+    if (f === 'Transferencias' && !D.file) return error('Toma la foto del comprobante.');
+    if (f === 'Otra' && D.otra.trim().length < 3) return error('Escribe qué forma de pago es.');
+    if (!String(D.pedido).trim()) return error(f === 'Nota de crédito' ? 'Escribe el N° de la nota de crédito.' : 'Escribe el comprobante.');
+    if (!D.vend) return error('Elige quién vendió.');
+    if (!D.quien) return error('Elige quién registra.');
+    const b = $('#frSi'); b.disabled = true;
+    try {
+      let foto = '';
+      if (D.file) { b.textContent = 'Subiendo foto…'; const r = await api('apiSubirFoto', await reducirFoto(D.file, 'Pago ' + p.sec), 'pago_' + fac().replace(/\D/g, '')); foto = (r && r.url) || r; }
+      b.textContent = 'Guardando…';
+      const r = await api('apiFPGRegistrar', {factura: fac(), fechaFac: p.fecha, valorFac: total, forma: f, otra: D.otra.trim(), banco: D.banco.trim(), pedido: String(D.pedido).trim(), valor: p.valor, foto: foto,
+        registro: D.quien, vendedor: D.vend, desde: 'Tienda', confirmo: true});
+      localStorage.setItem('fpgPto', D.pto);
+      if (window.REG) REG.ev('Forma de pago', r.id + ' · ' + r.factura + ' · desde POS');
+      closeModal(); toast('✅ Registrado ' + r.id + ' · ' + fpgNom(r.forma) + ' ' + fpgUsd(r.valor));
+      FPGS.lista = [r].concat(FPGS.lista || []); if (FPGS.pos) FPGS.pos.pend = (FPGS.pos.pend || []).filter(y => y !== p);
+      fpgMarca(); if (S.vista === 'pago') renderPago();
+    } catch (e) { b.disabled = false; b.textContent = 'Guardar'; error((e && e.message) || 'No se pudo guardar. Revisa tu internet.'); }
   }
   pintar();
 }
