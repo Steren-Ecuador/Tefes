@@ -1,0 +1,8 @@
+<style>/* nb6: barra de abajo del celular en una sola fila, con Hoy primero y Formas de pago segundo (Diego 21-nov) */
+@media(max-width:700px){
+  header nav{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+  nav button[data-v=inicio]{order:1} nav button[data-v=pago]{order:2} nav button[data-v=pend]{order:3}
+  nav button[data-v=pago]{white-space:normal;line-height:1.1;text-align:center;font-size:10.5px}
+  nav button[data-v=sup]{order:4} nav button[data-v=inv]{order:5} nav button[data-v=pol]{order:6}
+}
+</style>
