@@ -5295,5 +5295,14 @@ window.bx2Pend = function(base, hoy, E, chips, bind, C){
   const m = $('#bx4Mas'); if (m) m.onclick = () => { st.bxMax = max + 50; renderPend(); };
 };
 </script>
+<script>/* bx6: todo pendiente se abre en pantalla completa, también al volver a abrirse después de escribir un comentario (Diego 20-nov) */
+(function(){
+  const dw = document.getElementById('drawer'); if (!dw) return;
+  const ver = () => { const d = dw.querySelector('.drawer[aria-label^="Pendiente "]'); if (!d) return;
+    document.body.classList.add('bx4-lee');
+    const x = d.querySelector('.d-x'); if (x && x.textContent !== '←') { x.textContent = '←'; x.title = 'Volver a la bandeja'; x.setAttribute('aria-label', 'Volver a la bandeja'); } };
+  new MutationObserver(ver).observe(dw, {childList: true});
+})();
+</script>
 </body>
 </html>
