@@ -2770,7 +2770,10 @@ async function escribirSeguro(idx, r, s, btn){
     try { return await setRange(rango, fila); }
     catch (e) {
       const pasajero = ['server_unavailable', 'upstream_error', 'rate_limited', 'timeout'].includes(e && e.code) || (e && e.retryable);
-      if (!pasajero || i >= 3) throw e;
+      if (!pasajero) throw e;
+      if (i >= 3) { if (btn) btn.textContent = 'Revisando si quedó guardado…'; await new Promise(ok => setTimeout(ok, 10000));   /* gs4 */
+        try { const v = await getRange1(`Pendientes!V${idx + 1}`, true); if (v[0] && String(v[0][0]) === s) return; } catch (_) {}
+        throw e; }
       if (btn) btn.textContent = 'Google tardó, revisando…';
       await new Promise(ok => setTimeout(ok, [1500, 4000, 8000][i]));
       try { const v = await getRange(`Pendientes!V${idx + 1}`, true); if (v[0] && String(v[0][0]) === s) return; } catch (_) {}
