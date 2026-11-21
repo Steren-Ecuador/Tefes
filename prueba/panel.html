@@ -5091,6 +5091,148 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
   }
 })();
 </script>
+<style>/* fpg22: pendientes del POS por tienda en el panel */
+.p22{border:1px solid var(--line);border-radius:12px;padding:12px;margin:0 0 14px;background:var(--surface,#fff)}
+.p22-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin:0 0 10px}.p22-h b{font-size:15px}.p22-h span{font-size:12.5px;color:var(--fg-3,#6b7280)}
+.p22-ch{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin:0 0 10px;scrollbar-width:thin}
+.p22-ch button{flex:none;font:inherit;font-size:13.5px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface,#fff);color:inherit;cursor:pointer;white-space:nowrap}
+.p22-ch button.on{background:var(--accent,#0b4f8a);border-color:transparent;color:var(--accent-ink,#fff);font-weight:600}
+.p22-ch i{font-style:normal;display:inline-block;min-width:20px;padding:0 6px;margin-left:6px;border-radius:999px;background:#d93025;color:#fff;font-size:12px;font-weight:700;text-align:center}
+.p22-ch i.ok{background:#1e7b45}.p22-ch i.rv{background:#a86300}
+.p22-bx{border-radius:10px;overflow:hidden;border:1px solid var(--line);margin:0 0 10px}
+.p22-bh{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;font-weight:700;font-size:14px}
+.p22-reg .p22-bh{background:#fdecec;color:#b3261e}.p22-rev .p22-bh{background:#fdf0db;color:#8a5300}
+.p22-it{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:8px 12px;border-top:1px solid var(--line);font-size:13.5px}
+.p22-it small{display:block;color:var(--fg-3,#6b7280);font-size:12px}.p22-v{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+.p22-it .btn{padding:6px 12px;font-size:13px}
+.p22-ok{padding:14px;text-align:center;color:#1e7b45;font-weight:600}
+.p22-m{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 10px}
+.p22-c{background:var(--surface,#fff);color:var(--fg,#15202b);border-radius:14px;width:min(520px,100%);padding:16px 16px 14px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.p22-c h3{margin:0 0 4px;font-size:17px}.p22-c .sub{font-size:13px;color:var(--fg-3,#6b7280);margin:0 0 12px}
+.p22-c label{display:block;font-size:12.5px;color:var(--fg-3,#6b7280);margin:10px 0 4px}
+.p22-c input,.p22-c select{width:100%;box-sizing:border-box;font:inherit;font-size:15px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface,#fff);color:inherit}
+.p22-fx{display:flex;flex-wrap:wrap;gap:6px}.p22-fx button{font:inherit;font-size:14px;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--surface,#fff);color:inherit;cursor:pointer}
+.p22-fx button.on{background:var(--accent,#0b4f8a);color:var(--accent-ink,#fff);border-color:transparent;font-weight:600}
+.p22-g{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.p22-err{color:#b3261e;font-size:13.5px;min-height:18px;margin:10px 0 0}
+.p22-bt{display:flex;gap:8px;margin-top:12px}.p22-bt .btn{flex:1;padding:10px}
+.p22-res{background:var(--surface-2,#eef3f8);border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.5}
+@media(max-width:560px){.p22-it{grid-template-columns:minmax(0,1fr) auto}.p22-it .btn{grid-column:1 / 3;width:100%}}
+</style>
+<script>/* fpg22 (Diego 21-nov): arriba de Formas de pago, las tiendas con pagos del POS sin registrar o que no cuadran.
+   El administrador elige la tienda, registra con los datos del POS ya puestos o corrige la factura con la sugerencia del POS. */
+(function(){
+  const P = {d: null, t: '', cargando: false, error: ''};
+  const e = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const usd = n => '$' + Number(n || 0).toLocaleString('es-EC', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const fC = i => i ? i.slice(8, 10) + '/' + i.slice(5, 7) : '';
+  const C = () => window.cvCtx || null, quien = () => { const c = C(), y = c && c.yo(); return (y && y.nombre) || ''; };
+  const aviso = m => { if (typeof toast === 'function') toast(m, 4000); };
+  const CUENTAS = ['Pichincha cte. 2100349639', 'Produbanco cte. 02006219957', 'Bolivariano cte. 5005110152'];
+  const tAct = () => (P.d && P.d.tiendas || []).find(x => x.tienda === P.t);
+  const fac = (T, sec) => /^\d{3}-\d{3}$/.test(T.prefijo || '') ? T.prefijo + '-' + ('00000000' + sec).slice(-9) : '';
+  function cargar(){
+    if (P.cargando) return;
+    if (!C() || !quien()) { setTimeout(cargar, 800); return; }
+    P.cargando = true; P.error = '';
+    C().api('apiFPGPanelPos', quien()).then(x => { P.d = x; const T = x.tiendas || []; if (!T.some(y => y.tienda === P.t)) P.t = (T[0] || {}).tienda || ''; })
+      .catch(err => { P.error = (err && err.message) || 'No se pudo cargar el cuadre con el POS.'; })
+      .finally(() => { P.cargando = false; pintar(); });
+  }
+  function caja(){
+    let c = document.getElementById('fpgPos');
+    if (!c) { const b = document.getElementById('fpgBody'); if (!b) return null; c = document.createElement('div'); c.id = 'fpgPos'; b.parentNode.insertBefore(c, b); }
+    return c;
+  }
+  function pintar(){
+    const el = caja(); if (!el) return;
+    if (P.error) { el.innerHTML = '<div class="p22"><span class="small faint">' + e(P.error) + '</span> <button class="btn" id="p22Re">Reintentar</button></div>'; document.getElementById('p22Re').onclick = cargar; return; }
+    if (!P.d) { el.innerHTML = '<div class="p22"><span class="small faint">Cruzando con el POS…</span></div>'; return; }
+    const T = P.d.tiendas || [], tot = T.reduce((a, x) => a + x.pend.length, 0), totv = T.reduce((a, x) => a + x.pend.reduce((b, p) => b + p.valor, 0), 0), rv = T.reduce((a, x) => a + x.rev.length, 0);
+    let h = '<div class="p22"><div class="p22-h"><b>Cuadre con el POS</b><span>' + (tot ? tot + ' por registrar (' + usd(totv) + ')' : 'Nada por registrar') + (rv ? ' · ' + rv + ' por revisar' : '') + ' · desde el ' + fC(P.d.desde) + '</span></div>';
+    if (!tot && !rv) { el.innerHTML = h + '<div class="p22-ok">✓ Todas las tiendas al día con el POS</div></div>'; return; }
+    h += '<div class="p22-ch">' + T.map(x => { const n = x.pend.length, r = x.rev.length;
+      return '<button data-p22t="' + e(x.tienda) + '"' + (x.tienda === P.t ? ' class="on"' : '') + '>' + e(x.tienda) + (n ? '<i>' + n + '</i>' : '') + (r ? '<i class="rv">' + r + '</i>' : '') + (!n && !r ? '<i class="ok">✓</i>' : '') + '</button>'; }).join('') + '</div>';
+    const A = tAct();
+    if (A) {
+      const adm = P.d.admin;
+      if (A.pend.length) h += '<div class="p22-bx p22-reg"><div class="p22-bh">Por registrar en ' + e(A.tienda) + '<span>' + A.pend.length + ' · ' + usd(A.pend.reduce((a, p) => a + p.valor, 0)) + '</span></div>' +
+        A.pend.map((p, i) => '<div class="p22-it"><div><b>Factura ' + e(fac(A, p.sec) || 'N° ' + p.sec) + '</b><small>' + fC(p.fecha) + ' · ' + (p.tipo === 'NC' ? 'Nota de crédito' : 'Transferencia' + (p.banco === '17' ? ' (Deuna)' : '') + (p.ref ? ' · comprobante ' + e(p.ref) : '')) +
+          (p.total > p.valor + 0.009 ? ' · factura de ' + usd(p.total) : '') + '</small></div><span class="p22-v">' + usd(p.valor) + '</span>' + (adm ? '<button class="btn primary" data-p22r="' + i + '">Registrar</button>' : '<span></span>') + '</div>').join('') + '</div>';
+      if (A.rev.length) h += '<div class="p22-bx p22-rev"><div class="p22-bh">Por revisar en ' + e(A.tienda) + '<span>' + A.rev.length + '</span></div>' +
+        A.rev.map((r, i) => { const x = r.x;
+          const txt = r.tipo === 'valor' ? 'Registraron ' + usd(r.suma) + ' y el POS tiene ' + usd(r.pos.valor) + ' en esta factura.' :
+            'La factura no está en el POS de ese día.' + (r.sug ? ' El POS tiene ' + (r.sug.tipo === 'NC' ? 'una NC' : 'una transferencia') + ' de ' + usd(r.sug.valor) + ' en la ' + e(String(x.factura).slice(0, 8) + ('00000000' + r.sug.sec).slice(-9)) + '.' : '');
+          return '<div class="p22-it"><div><b>' + e(x.id) + ' · Factura ' + e(x.factura) + '</b><small>' + e(x.forma) + ' · ' + fC(x.fechaFac || x.fecha) + ' · ' + e(x.registroVer || x.registro || '') + '<br>' + txt + '</small></div><span class="p22-v">' + usd(x.valor) + '</span>' +
+            (adm && r.sug ? '<button class="btn" data-p22c="' + i + '">Corregir</button>' : '<span></span>') + '</div>'; }).join('') + '</div>';
+      if (!A.pend.length && !A.rev.length) h += '<div class="p22-ok">✓ ' + e(A.tienda) + ' está al día con el POS</div>';
+    }
+    el.innerHTML = h + '</div>';
+    el.querySelectorAll('[data-p22t]').forEach(b => b.onclick = () => { P.t = b.dataset.p22t; pintar(); });
+    el.querySelectorAll('[data-p22r]').forEach(b => b.onclick = () => registrar(tAct(), tAct().pend[+b.dataset.p22r]));
+    el.querySelectorAll('[data-p22c]').forEach(b => b.onclick = () => corregir(tAct(), tAct().rev[+b.dataset.p22c]));
+  }
+  function modal(html){ const m = document.createElement('div'); m.className = 'p22-m'; m.innerHTML = '<div class="p22-c">' + html + '</div>'; document.body.appendChild(m);
+    m.addEventListener('click', ev => { if (ev.target === m) m.remove(); }); return m; }
+  function reducir(file){ return new Promise((ok, mal) => { const r = new FileReader(); r.onerror = mal; r.onload = () => { const im = new Image(); im.onerror = mal; im.onload = () => {
+    const k = Math.min(1, 1600 / Math.max(im.width, im.height)), cv = document.createElement('canvas'); cv.width = Math.round(im.width * k); cv.height = Math.round(im.height * k);
+    cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height); ok(cv.toDataURL('image/jpeg', 0.82)); }; im.src = r.result; }; r.readAsDataURL(file); }); }
+  function registrar(A, p){
+    const nc = p.tipo === 'NC', F0 = nc ? 'Nota de crédito' : p.banco === '17' ? 'Deuna' : '';
+    const formas = ['Deuna', 'Tipti', 'Transferencias'].filter(f => (P.d.formas || []).indexOf(f) >= 0 || f !== 'Tipti');
+    const m = modal('<h3>Registrar ' + (nc ? 'nota de crédito' : 'pago') + ' · ' + e(A.tienda) + '</h3><p class="sub">Datos del POS ya puestos. Queda en la bitácora a tu nombre.</p>' +
+      '<div class="p22-g"><div><label>N° de factura</label><input id="p22Fac" value="' + e(fac(A, p.sec)) + '" placeholder="' + e('00X-001-' + ('00000000' + p.sec).slice(-9)) + '"></div>' +
+      '<div><label>Fecha de la factura</label><input type="date" id="p22Fe" value="' + e(p.fecha) + '"></div>' +
+      '<div><label>Total de la factura</label><input id="p22Tot" inputmode="decimal" value="' + e(Number(p.total > 0 ? p.total : p.valor).toFixed(2)) + '"></div>' +
+      '<div><label>Pagado con ' + (nc ? 'la NC' : 'esta forma') + '</label><input id="p22Val" inputmode="decimal" value="' + e(Number(p.valor).toFixed(2)) + '"></div></div>' +
+      (nc ? '<label>N° de la nota de crédito</label><input id="p22Ref" placeholder="011-001-001400100"><label>Factura devuelta</label><input id="p22Dev" placeholder="011-001-000005700"><label>Motivo (opcional)</label><input id="p22Mot">' :
+        '<label>Forma de pago</label><div class="p22-fx" id="p22Fx">' + formas.map(f => '<button data-f="' + e(f) + '"' + (f === F0 ? ' class="on"' : '') + '>' + e(f === 'Transferencias' ? 'Transferencia bancaria' : f) + '</button>').join('') + '</div>' +
+        '<div id="p22Cta" hidden><label>Cuenta que recibió</label><select id="p22Ban"><option value="">Elige la cuenta</option>' + CUENTAS.map(c => '<option>' + e(c) + '</option>').join('') + '</select></div>' +
+        '<label id="p22RefL">Comprobante</label><input id="p22Ref" inputmode="numeric" value="' + e(p.ref || '') + '">') +
+      '<label>Vendedor</label><select id="p22Ven"><option value="">Elige quién vendió</option>' + (A.gente || []).map(n => '<option>' + e(n) + '</option>').join('') + '</select>' +
+      '<label>Foto del comprobante (opcional)</label><input type="file" id="p22Foto" accept="image/*">' +
+      '<div class="p22-err" id="p22Err"></div><div class="p22-bt"><button class="btn" id="p22No">Cancelar</button><button class="btn primary" id="p22Si">Guardar</button></div>');
+    const $ = id => m.querySelector('#' + id); let forma = F0;
+    const fx = () => { m.querySelectorAll('#p22Fx button').forEach(b => b.classList.toggle('on', b.dataset.f === forma)); const c = $('p22Cta'); if (c) c.hidden = forma !== 'Transferencias';
+      const l = $('p22RefL'); if (l) l.textContent = forma === 'Tipti' ? 'N° de pedido Tipti' : 'Comprobante'; };
+    m.querySelectorAll('#p22Fx button').forEach(b => b.onclick = () => { forma = b.dataset.f; fx(); }); fx();
+    $('p22No').onclick = () => m.remove();
+    $('p22Si').onclick = async () => {
+      const err = t => { $('p22Err').textContent = t; }, b = $('p22Si');
+      if (!nc && !forma) return err('Elige la forma de pago.');
+      if (!$('p22Ven').value) return err('Elige el vendedor.');
+      const d = {factura: $('p22Fac').value, fechaFac: $('p22Fe').value, valorFac: $('p22Tot').value, valor: $('p22Val').value, forma: nc ? 'Nota de crédito' : forma,
+        pedido: $('p22Ref').value, vendedor: $('p22Ven').value, confirmo: true};
+      if (nc) { d.banco = $('p22Dev').value; d.otra = $('p22Mot').value; } else if (forma === 'Transferencias') d.banco = $('p22Ban').value;
+      b.disabled = true; b.textContent = 'Guardando…'; err('');
+      try {
+        const f = $('p22Foto').files[0];
+        if (f) { b.textContent = 'Subiendo foto…'; const r = await C().api('apiFPGFotoPanel', quien(), A.tienda, await reducir(f), 'Pago ' + String(d.factura).replace(/\D/g, '')); d.foto = (r && r.url) || ''; b.textContent = 'Guardando…'; }
+        const o = await C().api('apiFPGRegistrarPanel', quien(), A.tienda, d);
+        m.remove(); aviso('✅ Registrado ' + o.id + ' · ' + A.tienda + ' · ' + usd(o.valor)); A.pend = A.pend.filter(y => y !== p); pintar(); cargar();
+      } catch (x) { b.disabled = false; b.textContent = 'Guardar'; err((x && x.message) || 'No se pudo guardar.'); }
+    };
+  }
+  function corregir(A, r){
+    const x = r.x, nueva = String(x.factura).slice(0, 8) + ('00000000' + r.sug.sec).slice(-9);
+    const m = modal('<h3>Corregir factura · ' + e(A.tienda) + '</h3><p class="sub">Se cambia solo el N° de factura y queda "Corrección" en la bitácora a tu nombre.</p>' +
+      '<div class="p22-res">' + e(x.id) + ' · ' + e(x.forma) + ' · ' + usd(x.valor) + '<br>Registrada en la <b>' + e(x.factura) + '</b>, que no está en el POS.<br>El POS tiene ' + usd(r.sug.valor) + ' en la <b>' + e(nueva) + '</b>' + (r.sug.ref ? ' (comprobante ' + e(r.sug.ref) + ')' : '') + '.</div>' +
+      '<div class="p22-err" id="p22Err"></div><div class="p22-bt"><button class="btn" id="p22No">Cancelar</button><button class="btn primary" id="p22Si">Cambiar a ' + e(nueva.slice(-9).replace(/^0+/, '')) + '</button></div>');
+    m.querySelector('#p22No').onclick = () => m.remove();
+    m.querySelector('#p22Si').onclick = async ev => { const b = ev.target; b.disabled = true; b.textContent = 'Guardando…';
+      try { await C().api('apiFPGCorregirPanel', quien(), x.id, r.sug.sec); m.remove(); aviso('✅ ' + x.id + ' corregido a la ' + nueva); A.rev = A.rev.filter(y => y !== r); pintar(); cargar(); }
+      catch (y) { b.disabled = false; b.textContent = 'Cambiar'; m.querySelector('#p22Err').textContent = (y && y.message) || 'No se pudo corregir.'; } };
+  }
+  window.fpg22 = {P: P, pintar: pintar, cargar: cargar};
+  const v = document.querySelector('.view[data-view="formaspago"]');
+  if (v) {
+    const mira = () => { if (!v.hidden && !P.d && !P.cargando) { pintar(); cargar(); } };
+    new MutationObserver(mira).observe(v, {attributes: true, attributeFilter: ['hidden']}); mira();
+    new MutationObserver(() => { if (P.d && !document.getElementById('fpgPos')) pintar(); }).observe(v, {childList: true, subtree: true});
+    const r = document.getElementById('refresh'); if (r) r.addEventListener('click', () => { P.d = null; if (!v.hidden) { pintar(); cargar(); } });
+  }
+})();
+</script>
 <style>/* bx2: Todos los pendientes tipo correo (Diego 20-nov) */
 #vista{display:none!important}
 .bx2-lista{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
