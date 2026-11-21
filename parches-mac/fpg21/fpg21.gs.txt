@@ -1,0 +1,74 @@
+
+/* ---------- fpg21 (Diego 20-nov noche): CRUCE CON EL POS EN LA APP DE LA TIENDA ----------
+   La VM baja cada hora el detalle de formas de pago del POS (TE Transferencia Electrónica y NC Nota de crédito) a CLAVES,
+   pestaña 'Formas de pago POS detalle' (Fecha | Tienda | Factura | Forma | Valor c/IVA | Total factura | Banco | Referencia | Aprobación | Secuencial POS).
+   La tienda ve: "Por registrar" = pagos del POS que nadie registró (con factura, valor, total y comprobante ya llenos) y
+   "Por revisar" = registros que no cuadran con el POS (factura que no existe en el POS, o valor distinto), con corrección en un toque. */
+const FPG_POS = {HOJA: 'Formas de pago POS detalle', DESDE: '2026-11-20', DIAS: 7};
+function fpgSinAc_(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim(); }
+/** Filas del POS de una tienda en la ventana: [{fecha, tipo:'TE'|'NC', valor, total, banco, ref, sec}] */
+function fpgPosTienda_(tienda) {
+  const sh = claves_().getSheetByName(FPG_POS.HOJA);
+  if (!sh || sh.getLastRow() < 2) return [];
+  const lim = [FPG_POS.DESDE, sumarDiasIso_(hoy_(), -FPG_POS.DIAS)].sort().pop(), t = fpgSinAc_(tienda);
+  return sh.getRange(2, 1, sh.getLastRow() - 1, 10).getDisplayValues()
+    .map(r => ({fecha: fpgIso_(r[0]), tienda: r[1], tipo: /^NC/i.test(r[3]) ? 'NC' : /^TE/i.test(r[3]) ? 'TE' : '', valor: fpgNum_(r[4]), total: fpgNum_(r[5]),
+      banco: String(r[6] || '').trim(), ref: String(r[7] || '').replace(/^'/, '').replace(/\D/g, ''), sec: Number(String(r[9] || '').replace(/\D/g, '')) || 0}))
+    .filter(x => x.tipo && x.sec && x.fecha >= lim && fpgSinAc_(x.tienda) === t);
+}
+const fpgSec_ = f => Number(String(f || '').replace(/\D/g, '').slice(-9)) || 0;
+const fpgTipo_ = forma => forma === 'Nota de crédito' ? 'NC' : (forma === 'Préstamo empleado' || forma === 'Descuento inventario') ? '' : 'TE';
+/** Cruce de una tienda: {pend: [...], rev: [...], fechas: [...]} */
+function fpgCruce_(tienda, lista, pos) {
+  pos = pos || fpgPosTienda_(tienda);
+  const lim = [FPG_POS.DESDE, sumarDiasIso_(hoy_(), -FPG_POS.DIAS)].sort().pop();
+  const vig = (lista || []).filter(x => x.tienda === tienda && x.estado !== 'Anulada' && fpgTipo_(x.forma));
+  // agrupar el POS por secuencial y tipo (una factura puede traer 2 TE)
+  const G = {};
+  pos.forEach(p => { const k = p.tipo + ' ' + p.sec; const g = G[k] || (G[k] = {tipo: p.tipo, sec: p.sec, fecha: p.fecha, valor: 0, total: 0, banco: p.banco, ref: p.ref});
+    g.valor = Math.round((g.valor + p.valor) * 100) / 100; g.total = Math.max(g.total, p.total); if (!g.ref && p.ref) g.ref = p.ref; if (p.fecha < g.fecha) g.fecha = p.fecha; });
+  const reg = {}; vig.forEach(x => { const k = fpgTipo_(x.forma) + ' ' + fpgSec_(x.factura); (reg[k] = reg[k] || []).push(x); });
+  const pend = Object.keys(G).filter(k => !reg[k]).map(k => G[k]).sort((a, b) => (b.fecha + ('00000000' + b.sec).slice(-9)).localeCompare(a.fecha + ('00000000' + a.sec).slice(-9)));
+  const diasPos = {}; pos.forEach(p => { diasPos[p.fecha] = 1; });
+  const rev = [], usados = new Set();
+  vig.forEach(x => {
+    const tipo = fpgTipo_(x.forma), k = tipo + ' ' + fpgSec_(x.factura), g = G[k], fd = x.fechaFac || x.fecha;
+    if (g) {   // está en el POS: ¿cuadra el valor?
+      const suma = reg[k].reduce((a, y) => a + (Number(y.valor) || 0), 0);
+      if (reg[k][0].id === x.id && Math.abs(suma - g.valor) > 0.01) rev.push({id: x.id, tipo: 'valor', x: x, pos: g, suma: Math.round(suma * 100) / 100});
+      return;
+    }
+    if (fd < lim || !diasPos[fd]) return;   // sin datos del POS de ese día: no se puede decir nada
+    if (['Deuna', 'Tipti', 'Transferencias', 'Nota de crédito'].indexOf(x.forma) < 0) return;   // vales y otras formas pueden no salir como TE en el POS
+    const sug = pend.find(p => !usados.has(p) && p.tipo === tipo && p.fecha === fd && Math.abs(p.valor - Number(x.valor)) <= 0.01);
+    if (sug) usados.add(sug);
+    rev.push({id: x.id, tipo: 'factura', x: x, sug: sug || null});
+  });
+  return {pend: pend.filter(p => !usados.has(p)), rev: rev, desde: lim};   // lo que se corrige no sale también como pendiente (evita registrarlo dos veces)
+}
+
+/** fpg21: la tienda corrige el N° de factura de un registro suyo con la factura que el POS tiene por ese valor. Queda 'Corrección' en la bitácora. */
+function apiFPGCorregirTienda(token, id, persona, sec) {
+  const tienda = exigirTienda_(token).nombre;
+  persona = String(persona || '').trim().slice(0, 80); sec = Number(String(sec || '').replace(/\D/g, '')) || 0;
+  if (!persona) throw new Error('Elige tu nombre.');
+  asPersonaValida_(tienda, persona);
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    const sh = fpgHoja_(), L = fpgFilas_(), lista = L.map(fpgObj_);
+    const i = L.findIndex(r => r[0] === String(id)); if (i < 0) throw new Error('No encontré el registro.');
+    const antes = lista[i];
+    if (antes.tienda !== tienda) throw new Error('Ese registro no es de tu tienda.');
+    if (antes.estado === 'Anulada') throw new Error('Ese registro está anulado.');
+    if (antes.entregado) throw new Error('Ya está marcado como entregado: pide a Financiero que lo revise.');
+    const c = fpgCruce_(tienda, lista), r = c.rev.find(y => y.id === antes.id && y.tipo === 'factura');
+    if (!r || !r.sug || r.sug.sec !== sec) throw new Error('El POS ya no muestra esa corrección. Actualiza la pantalla.');
+    const nueva = String(antes.factura).slice(0, 8) + ('00000000' + sec).slice(-9);
+    if (!/^\d{3}-\d{3}-\d{9}$/.test(nueva)) throw new Error('No pude armar la factura nueva.');
+    sh.getRange(i + 2, 7).setValue("'" + nueva);
+    const o = fpgObj_(sh.getRange(i + 2, 1, 1, FPG.CAB.length).getDisplayValues()[0]);
+    fpgLog_('Corrección', o, persona, 'Tienda', 'Factura corregida de ' + antes.factura + ' a ' + nueva + ': la anterior no estaba en el POS y el POS tiene ' +
+      (r.sug.tipo === 'NC' ? 'una nota de crédito' : 'una transferencia') + ' de $' + Number(r.sug.valor).toFixed(2) + ' en la ' + nueva + ' (cruce con el POS) · ' + fpgDetalle_(o));
+    return o;
+  } finally { lock.releaseLock(); }
+}
