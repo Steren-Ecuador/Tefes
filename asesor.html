@@ -1209,6 +1209,8 @@ function aplicar(d){
   CORTE = d.corte || '';
   EQUIPO = d.equipo.map(p => ({id: slug(p.nombre), nombre: p.nombre, cargo: p.cargo ? p.cargo.charAt(0) + p.cargo.slice(1).toLowerCase() : '', mes: p.mes || 0, ayer: p.ayer || 0, meta: p.meta || 0, gar: p.gar || 0, garUsd: p.garUsd || 0}));
   YO = EQUIPO.find(p => p.nombre === d.yo.nombre);
+  /* gv1 (21-nov, Diego): el perfil personal del gerente de tienda va en verde */
+  if (YO && /^gerente/i.test(YO.cargo || '')) { const r = document.documentElement.style; r.setProperty('--brand', '#0f6b3f'); r.setProperty('--brand2', '#0a4f2e'); const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = '#0f6b3f'; }
   SUELDO = d.yo.esquema ? {fijo: d.yo.esquema.fijo, pct: d.yo.esquema.pct} : {fijo: 0, pct: 0};
   // Freno (21-nov): un porcentaje fuera de 0-10 % o un fijo fuera de 0-3000 es un error de carga; no se muestra nada de dinero.
   if (!(SUELDO.pct >= 0 && SUELDO.pct <= 0.10) || !(SUELDO.fijo >= 0 && SUELDO.fijo <= 3000)) SUELDO = {fijo: 0, pct: 0};
