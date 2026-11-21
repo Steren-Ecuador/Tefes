@@ -296,10 +296,12 @@ function sello(ok, txt, sub){
 }
 function renderMeta(){
   const dr = diasTrabajoRestantes(), pctTxt = (SUELDO.pct * 100).toFixed(1).replace('.', ',') + '%';
-  const minV = YO.meta, ganaMin = SUELDO.fijo + minV * SUELDO.pct;
+  /* gt1 (21-nov): el gerente de tienda cobra sobre la venta TOTAL de la tienda (Diego). */
+  const GER = /^gerente/i.test(YO.cargo || ''), vMes = GER ? TIENDA.mes : YO.mes;
+  const minV = GER ? (TIENDA.presupuesto || YO.meta) : YO.meta, ganaMin = SUELDO.fijo + minV * SUELDO.pct;
   const miV = E.metaGanar ? Math.max((E.metaGanar - SUELDO.fijo) / SUELDO.pct, 0) : 0;
   const porDia = falta => falta <= 0 ? '' : dr ? 'unos <b>' + usd0(falta / dr) + ' por día</b> en tus ' + dr + (dr === 1 ? ' día' : ' días') + ' de trabajo que quedan' : 'no te quedan días de trabajo este mes';
-  const cMin = YO.mes / minV, cMi = miV ? YO.mes / miV : 0;
+  const cMin = vMes / minV, cMi = miV ? vMes / miV : 0;
   let h = '';
   /* 0. MES CERRADO: resultado oficial del POS y comisión a cobrar (solo si Diego lo publicó) */
   if (CIERRE && CIERRE.mes){
@@ -321,22 +323,24 @@ function renderMeta(){
     const col = cMi >= 1 ? 'var(--ok)' : 'var(--brand)';
     h += '<div class="card" style="text-align:center;border:2px solid var(--brand)"><div class="fila"><h3 style="margin:0">🚀 Mi meta: ganar ' + usd0(E.metaGanar) + '</h3><span class="chip verde">Aprobada</span></div>' +
       '<div class="anillo" style="background:' + anillo(cMi, col) + '"><div><b>' + Math.round(Math.min(cMi, 9.99) * 100) + '%</b><span class="tiny muted">de ' + usd0(miV) + '</span></div></div>' +
-      '<div class="small">' + (cMi >= 1 ? '🏆 ¡Lo lograste! Lo que vendas desde hoy es extra.' : 'Te faltan <b>' + usd0(miV - YO.mes) + '</b>: ' + porDia(miV - YO.mes) + '.') + '</div>' +
+      '<div class="small">' + (cMi >= 1 ? '🏆 ¡Lo lograste! Lo que vendas desde hoy es extra.' : 'Te faltan <b>' + usd0(miV - vMes) + '</b>' + (GER ? ' de venta de la tienda' : '') + ': ' + porDia(miV - vMes) + '.') + '</div>' +
       '<button id="mgCambiar" style="background:none;border:0;color:var(--brand);padding:8px 0 0;font-weight:700;cursor:pointer">Cambiar mi meta</button></div>';
   }
   /* 2. META MÍNIMA */
   h += '<div class="card"><div class="fila"><h3 style="margin:0">🎯 Meta mínima: ' + usd0(minV) + '</h3><span class="chip ' + (cMin >= 1 || cMin >= ritmo ? 'verde' : 'amb') + '">' + Math.round(cMin * 100) + '%</span></div>' +
     '<div class="bar"><i class="' + (cMin >= 1 ? 'ok' : cMin >= ritmo ? 'ok' : 'warn') + '" style="width:' + Math.min(cMin, 1) * 100 + '%"></i><u style="left:' + ritmo * 100 + '%"></u></div>' +
-    '<div class="small">' + (cMin >= 1 ? '✅ ¡Cumplida! Ahora ve por tu meta.' : 'Te faltan <b>' + usd0(minV - YO.mes) + '</b>: ' + porDia(minV - YO.mes) + '.') + '</div>' +
-    '<div class="tiny muted" style="margin-top:4px">Te la asigna tu gerente. Es lo mínimo del mes.</div></div>';
+    '<div class="small">' + (cMin >= 1 ? '✅ ¡Cumplida! Ahora ve por tu meta.' : 'Te faltan <b>' + usd0(minV - vMes) + '</b>' + (GER ? ' de venta de la tienda' : '') + ': ' + porDia(minV - vMes) + '.') + '</div>' +
+    '<div class="tiny muted" style="margin-top:4px">' + (GER ? 'Es la meta de venta de tu tienda en el mes.' : 'Te la asigna tu gerente. Es lo mínimo del mes.') + '</div></div>';
   /* 3. MI CUENTA: lo que va ganando cada día */
-  const D = ventasDiarias(), com = D.map(x => x.venta * SUELDO.pct), saldo = com.reduce((s, x) => s + x, 0), ult = D[D.length - 1];
+  const D = GER ? [] : ventasDiarias(), com = D.map(x => x.venta * SUELDO.pct), saldo = GER ? TIENDA.mes * SUELDO.pct : com.reduce((s, x) => s + x, 0), ult = GER ? {venta: TIENDA.ayer} : D[D.length - 1];
   if (!SUELDO.pct) h += '<div class="card" style="background:linear-gradient(135deg,#0b3b5c,#0078be);color:#fff"><div class="fila"><span class="tiny" style="opacity:.8">MI CUENTA DE COMISIONES · ' + MESES[HOY.getMonth()].toUpperCase() + '</span><span style="font-size:20px">💳</span></div>' +
     '<div style="font-weight:800;margin:8px 0 4px">Tu esquema de comisión aún no está cargado.</div><div class="tiny" style="opacity:.85">Tus ventas sí se están contando. Apenas se cargue tu esquema, aquí verás lo que llevas ganado.</div></div>';
   else h += '<div class="card" style="background:linear-gradient(135deg,#0b3b5c,#0078be);color:#fff"><div class="fila"><span class="tiny" style="opacity:.8">MI CUENTA DE COMISIONES · ' + MESES[HOY.getMonth()].toUpperCase() + '</span><span style="font-size:20px">💳</span></div>' +
-    '<div style="font-size:34px;font-weight:900;margin:6px 0 2px">' + usd2(saldo) + '</div><div class="tiny" style="opacity:.85">ganados en comisiones hasta ayer · ' + pctTxt + ' de tu venta con garantías</div>' +
+    '<div style="font-size:34px;font-weight:900;margin:6px 0 2px">' + usd2(saldo) + '</div><div class="tiny" style="opacity:.85">ganados en comisiones hasta ayer · ' + pctTxt + (GER ? ' de la venta total de la tienda' : ' de tu venta con garantías') + '</div>' +
     (ult && ult.venta * SUELDO.pct > 0 ? '<div style="margin-top:10px;background:rgba(255,255,255,.15);border-radius:10px;padding:8px 10px;font-weight:800">Último día: +' + usd2(ult.venta * SUELDO.pct) + ' 🎉</div>' : '') + '</div>';
-  h += '<div class="card"><h3>Movimientos</h3>' + (D.length ? D.slice().reverse().slice(0, 10).map((x, i) => '<div class="fila" style="padding:8px 0;border-top:' + (i ? '1px solid var(--line)' : '0') + '"><div><b class="small">' + fCorta(x.fecha) + '</b><div class="tiny muted">Vendiste ' + usd0(x.venta) + '</div></div>' + (SUELDO.pct ? '<b style="color:var(--ok)">+' + usd2(x.venta * SUELDO.pct) + '</b>' : '') + '</div>').join('') : '<div class="vacio">Tu primer día de venta aparece aquí mañana.</div>') +
+  if (GER) h += '<div class="card"><h3>Venta de la tienda</h3><div class="fila" style="padding:8px 0"><div><b class="small">' + esc(TIENDA.nombre) + ' en ' + MESES[HOY.getMonth()] + '</b><div class="tiny muted">Ayer: ' + usd0(TIENDA.ayer) + '</div></div><b>' + usd0(TIENDA.mes) + '</b></div>' +
+    '<div class="tiny muted" style="margin-top:6px">Tu comisión es el ' + pctTxt + ' de la venta total de la tienda. Es referencial: el valor final se calcula al cierre del mes con el POS. Tu sueldo fijo va aparte.</div></div>';
+  else h += '<div class="card"><h3>Movimientos</h3>' + (D.length ? D.slice().reverse().slice(0, 10).map((x, i) => '<div class="fila" style="padding:8px 0;border-top:' + (i ? '1px solid var(--line)' : '0') + '"><div><b class="small">' + fCorta(x.fecha) + '</b><div class="tiny muted">Vendiste ' + usd0(x.venta) + '</div></div>' + (SUELDO.pct ? '<b style="color:var(--ok)">+' + usd2(x.venta * SUELDO.pct) + '</b>' : '') + '</div>').join('') : '<div class="vacio">Tu primer día de venta aparece aquí mañana.</div>') +
     '<div class="tiny muted" style="margin-top:6px">Se actualiza cada noche. Es referencial: el valor final se calcula al cierre del mes con el POS. Tu sueldo fijo va aparte.</div></div>';
   /* 4. ¿QUÉ TE MOTIVA? + frase del día */
   h += '<div class="card"><h3 style="margin-bottom:4px">¿Para qué es tu meta?</h3><div class="tiny muted">Así te damos frases a tu medida.</div><div class="btns">' +
