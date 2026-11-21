@@ -2783,7 +2783,7 @@ async function guardarEstado(id, estado, comentario, btn, fecha){
   if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
   try {
     // Se relee la fila justo antes de escribir para no pisar cambios de la tienda
-    let filas; for (let k = 0; ; k++) { try { filas = await getRange('Pendientes!A1:W', true); break; } catch (e3) { if (k >= 2 || !(['server_unavailable', 'upstream_error', 'rate_limited', 'timeout'].includes(e3 && e3.code) || (e3 && e3.retryable))) throw e3; if (btn) btn.textContent = 'Google tardó, reintentando…'; await new Promise(ok => setTimeout(ok, [2000, 5000][k])); } }   // gs2
+    let filas; for (let k = 0; ; k++) { try { filas = await (async () => { const ids = await getRange1('Pendientes!A1:A', true), ix = ids.findIndex(x => x[0] === id); if (ix < 1) return ids; const f = await getRange1('Pendientes!A' + (ix + 1) + ':W' + (ix + 1), true); return ids.map((x, k) => k === ix ? (f[0] || x) : x); })(); break;   /* gs3 */ } catch (e3) { if (k >= 2 || !(['server_unavailable', 'upstream_error', 'rate_limited', 'timeout'].includes(e3 && e3.code) || (e3 && e3.retryable))) throw e3; if (btn) btn.textContent = 'Google tardó, reintentando…'; await new Promise(ok => setTimeout(ok, [2000, 5000][k])); } }   // gs2
     const idx = filas.findIndex(r => r[0] === id);
     if (idx < 1) throw {code:'tool_error', message:'No se encontró ' + id + ' en la hoja.'};
     const r = filas[idx].slice(); while (r.length < 23) r.push('');
