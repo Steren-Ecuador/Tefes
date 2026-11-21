@@ -1,6 +1,12 @@
 
 /* ---------- fpg22 (Diego 21-nov): EL ADMINISTRADOR VE LOS PENDIENTES DEL POS DE CADA TIENDA Y REGISTRA O CORRIGE DESDE SU PANEL ----------
    Lo ven el administrador y Financiero; registrar y corregir, solo el administrador. Queda en la bitácora con su nombre y "Administrador". */
+/** fpg22: facturas anuladas con NC completa (y refacturadas): no son pendientes. CLAVES 'Formas de pago POS anuladas': Tienda | Secuencial | NC | Fecha NC | Motivo | Rehecha en */
+function fpgAnuladas_() {
+  const sh = claves_().getSheetByName('Formas de pago POS anuladas'), S = new Set();
+  if (sh && sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 2).getDisplayValues().forEach(r => { const n = Number(String(r[1]).replace(/\D/g, '').slice(-9)); if (r[0] && n) S.add(fpgSinAc_(r[0]) + ' ' + n); });
+  return S;
+}
 function fpgAdmin_(ptoken, quien) {
   const s = fpgPuede_(ptoken, quien);
   if (!s.admin) throw new Error('Solo el administrador registra o corrige desde el panel.');
@@ -16,10 +22,11 @@ function apiFPGPanelPos(ptoken, quien) {
   const s = fpgPuede_(ptoken, quien);
   const lista = fpgFilas_().map(fpgObj_), sh = claves_().getSheetByName(FPG_POS.HOJA);
   const lim = [FPG_POS.DESDE, sumarDiasIso_(hoy_(), -FPG_POS.DIAS)].sort().pop(), ini = sumarDiasIso_(lim, -7);
-  const pos = !sh || sh.getLastRow() < 2 ? [] : sh.getRange(2, 1, sh.getLastRow() - 1, 10).getDisplayValues()
+  let pos = !sh || sh.getLastRow() < 2 ? [] : sh.getRange(2, 1, sh.getLastRow() - 1, 10).getDisplayValues()
     .map(r => ({fecha: fpgIso_(r[0]), tienda: r[1], tipo: /^NC/i.test(r[3]) ? 'NC' : /^TE/i.test(r[3]) ? 'TE' : '', valor: fpgNum_(r[4]), total: fpgNum_(r[5]),
       banco: String(r[6] || '').trim(), ref: String(r[7] || '').replace(/^'/, '').replace(/\D/g, ''), sec: Number(String(r[9] || '').replace(/\D/g, '')) || 0}))
     .filter(x => x.tipo && x.sec && x.fecha >= ini);
+  const anu = fpgAnuladas_(); pos = pos.filter(x => !anu.has(fpgSinAc_(x.tienda) + ' ' + x.sec));
   const nombres = tiendasFilas_().filter(r => r[0] && String(r[1]).toLowerCase().indexOf('s') === 0).map(r => r[0]);
   const tiendas = nombres.map(t => {
     const k = fpgSinAc_(t), c = fpgCruce_(t, lista, pos.filter(x => fpgSinAc_(x.tienda) === k));
