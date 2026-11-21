@@ -4904,7 +4904,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     'universidad|tabla': 'universidad/tabla', 'universidad|gol': 'universidad/gol', 'universidad|car': 'universidad/car', 'universidad|al': 'universidad/al',
     'politicas|leer': 'politicas/politicas', 'guias|': 'politicas/guias', 'politicas|rep': 'politicas/reporte',
     'contactos|tel': 'contactos/tel', 'contactos|wa': 'contactos/wa', 'contactos|mail': 'contactos/mail', 'contactos|hor': 'contactos/hor',
-    'clientes|pf': 'clientes/pf', 'clientes|vf': 'clientes/vf', 'formaspago|': 'ventas/formaspago', 'formaspago|tr': 'ventas/formaspago', 'formaspago|ot': 'ventas/formaspago'};
+    'clientes|pf': 'clientes/pf', 'clientes|vf': 'clientes/vf', 'formaspago|': 'formaspago/tr', 'formaspago|tr': 'formaspago/tr', 'formaspago|ot': 'formaspago/ot'};   /* mfp1 */
   let quien = '', pedido = false, previo = null;   // mpf2
   const H = document.documentElement; H.classList.add('mpf-espera');
   const listo = () => H.classList.remove('mpf-espera');
@@ -4930,6 +4930,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     if (!cfg || cfg.todo || !Array.isArray(cfg.claves)) { abajo(); const t = document.getElementById('tabs'); if (t) t.dataset.mn = String(Date.now()); listo(); return; }
     const A = new Set(cfg.claves), M = window.MN_T_REF;   // in1
     if (A.has('hoy/hoy')) ['validacion', 'supervision', 'ventas', 'actividades'].forEach(x => A.add('inicio/' + x));
+    if (A.has('ventas/formaspago')) ['tr', 'ot'].forEach(x => A.add('formaspago/' + x));   // mfp1: clave vieja (Financiero)
     const tabs = document.getElementById('tabs'); if (!M || !tabs) return;
     const vivas = {}, todas = {};
     Object.keys(M).forEach(t => { const keep = M[t].filter(x => { const k = K[x[0] + '|' + x[1]]; todas[x[0]] = 1; const ok = !k || A.has(k); if (ok) vivas[x[0]] = 1; return ok; }); M[t].length = 0; keep.forEach(x => M[t].push(x)); });
