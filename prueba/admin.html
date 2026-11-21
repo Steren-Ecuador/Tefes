@@ -2783,7 +2783,7 @@ async function guardarEstado(id, estado, comentario, btn, fecha){
   if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
   try {
     // Se relee la fila justo antes de escribir para no pisar cambios de la tienda
-    const filas = await getRange('Pendientes!A1:W', true);
+    let filas; for (let k = 0; ; k++) { try { filas = await getRange('Pendientes!A1:W', true); break; } catch (e3) { if (k >= 2 || !(['server_unavailable', 'upstream_error', 'rate_limited', 'timeout'].includes(e3 && e3.code) || (e3 && e3.retryable))) throw e3; if (btn) btn.textContent = 'Google tardó, reintentando…'; await new Promise(ok => setTimeout(ok, [2000, 5000][k])); } }   // gs2
     const idx = filas.findIndex(r => r[0] === id);
     if (idx < 1) throw {code:'tool_error', message:'No se encontró ' + id + ' en la hoja.'};
     const r = filas[idx].slice(); while (r.length < 23) r.push('');
@@ -2797,7 +2797,7 @@ async function guardarEstado(id, estado, comentario, btn, fecha){
     if ((estado === 'Reabierto' || estado === 'Mensaje') && /^\d{4}-\d{2}-\d{2}$/.test(fecha || '')) await setRange(`Pendientes!M${idx + 1}`, [[fecha]]);   // fc1   // nueva fecha límite
     toast({Mensaje:'Mensaje enviado', Pendiente:'Movido a Abierto', Cerrado:'Pendiente cerrado', Reabierto:'Pendiente reabierto, la tienda lo verá en su lista'}[estado] || 'Movido a ' + estado);
     $('#drawer').innerHTML = '';
-    await cargar(true);
+    try { await cargar(true); } catch (e2) { toast('Guardado ✓. La lista se actualiza en unos segundos.', 5000); setTimeout(() => { try { Promise.resolve(cargar(true)).catch(() => {}); } catch (_) {} }, 20000); return; }   /* gs2 */
     if (btn && estado === 'Mensaje') detalle(id);   // al cerrar, validar o devolver el detalle queda cerrado (Diego 2026-10-26)
   } catch (e) {
     toast(e.code === 'server_unavailable' || e.code === 'upstream_error' ? 'Google Sheets no respondió después de varios intentos. Pulsa Actualizar para ver si quedó guardado.' : errorCopy(e), 7000);
