@@ -2019,6 +2019,7 @@ function renderPend(){
   const base = filtraMios() ? base0.filter(puede) : base0, chM = chipMios(base0);
   st.vista = 'tablero';
   document.querySelectorAll('#vista button').forEach(b => { b.className = b.dataset.v === st.vista ? 'on' : ''; b.onclick = () => { st.vista = b.dataset.v; if (window.REG) REG.vista(st.vista === 'tablero' ? 'Tablero' : 'Lista'); try { localStorage.setItem('vistaPend', st.vista); } catch (e) {} renderPend(); }; });
+  if (st.vista === 'tablero' && window.bx2Pend) return bx2Pend(base, hoy, E, typeof chM === 'string' ? chM : '', typeof bindMios === 'function' ? bindMios : null);   /* bx2 */
   if (st.vista === 'tablero') {   // filtro "Vencidos": abiertos con la fecha límite ya pasada
     const nV = base.filter(E.vencidos[1]).length, B = st.soloVenc ? base.filter(E.vencidos[1]) : base;
     $('#fEstado').innerHTML = chM + `<button class="chip ${st.soloVenc ? 'on' : ''}" id="fVenc" aria-pressed="${!!st.soloVenc}">Vencidos (${nV})</button>`;
@@ -5151,6 +5152,53 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     const r = document.getElementById('refresh'); if (r) r.addEventListener('click', () => { F.verBit = false; if (!v.hidden) { F.d = null; cargar(); pintar(); } else F.d = null; });
   }
 })();
+</script>
+<style>/* bx2: Todos los pendientes tipo correo (Diego 20-nov) */
+#vista{display:none!important}
+.bx2-lista{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.bx2-lista .bx-row.leido .bx-dot{visibility:hidden}.bx2-lista .bx-row.leido .bx-as b{font-weight:500}
+.bx2-der{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:0}
+.bx2-f{font-size:12.5px;color:var(--fg-3);white-space:nowrap}.bx2-f.venc{color:var(--bad);font-weight:600}
+.bx2-acc{display:flex;gap:6px}.bx2-acc button{font:inherit;font-size:12.5px;font-weight:600;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;white-space:nowrap}
+.bx2-acc button.ok{background:var(--good,#1f8a4c);border-color:transparent;color:#fff}.bx2-acc button:disabled{opacity:.6;cursor:default}
+.bx2-tag{font-size:11.5px;color:var(--fg-3);margin-right:6px}
+.bx2-mas{display:block;width:100%;padding:10px;border:0;border-top:1px solid var(--line);background:var(--surface-2);font:inherit;font-weight:600;cursor:pointer}
+@media(max-width:700px){.bx2-der{grid-column:2 / 4;grid-row:3;flex-direction:row;justify-content:space-between;align-items:center}}
+</style>
+<script>/* bx2: bandeja tipo correo para Todos los pendientes. Carpetas por estado, lo más reciente arriba,
+   validar rápido sin abrir (✓ Validar) o abrir el pendiente para responder con detalle. */
+window.bx2Pend = function(base, hoy, E, chips, bind){
+  const F = {validar: 'Por validar', abiertos: 'Abiertos', vencidos: 'Vencidos', cerrados: 'Cerrados', todos: 'Todos'};
+  if (!F[st.bxF]) st.bxF = 'validar';
+  const fil = k => base.filter(E[k][1]);
+  $('#fEstado').innerHTML = (chips || '') + Object.keys(F).map(k => `<button class="chip ${st.bxF === k ? 'on' : ''}" data-bx="${k}">${F[k]} (${fil(k).length})</button>`).join(' ');
+  document.querySelectorAll('#fEstado .chip[data-bx]').forEach(c => c.onclick = () => { st.bxF = c.dataset.bx; st.bxMax = 60; renderPend(); });
+  if (bind) bind();
+  const s = (a, b) => String(a || '').localeCompare(String(b || ''));
+  const ord = {validar: (a, b) => s(b.fres, a.fres), abiertos: (a, b) => s(a.fcomp || '9', b.fcomp || '9'), vencidos: (a, b) => s(a.fcomp, b.fcomp),
+    cerrados: (a, b) => s(b.fcierre, a.fcierre), todos: (a, b) => s(b.id, a.id)}[st.bxF];
+  const L = fil(st.bxF).sort(ord), max = st.bxMax || 60, V = L.slice(0, max);
+  $('#pcount').textContent = L.length + ' en ' + F[st.bxF];
+  const fch = f => !f ? '' : f === hoy ? 'Hoy' : dias(f, hoy) === 1 ? 'Ayer' : fmtF(f).replace(/ 20\d\d$/, '');
+  const puedo = p => typeof puede !== 'function' || puede(p);
+  const fecha = p => { const venc = ABIERTOS.includes(p.estado) && p.fcomp && p.fcomp < hoy;
+    if (p.estado === 'Por validar') return `<span class="bx2-f">Respondió ${fch(p.fres).toLowerCase() || ''}</span>`;
+    if (p.estado === 'Cerrado') return `<span class="bx2-f">Cerrado ${fch(p.fcierre).toLowerCase()}</span>`;
+    return `<span class="bx2-f${venc ? ' venc' : ''}">${venc ? 'Venció ' + fch(p.fcomp).toLowerCase() : p.fcomp ? 'Vence ' + fch(p.fcomp).toLowerCase() : 'Sin fecha'}</span>`; };
+  const resumen = p => p.estado === 'Por validar' ? 'Tienda: ' + (p.comT || 'sin comentario') + (p.fotoD && p.fotoD.length ? ' · 📷 ' + p.fotoD.length : '')
+    : p.estado === 'Cerrado' ? (p.comS || p.accion || '') : (p.accion || p.texto || '');
+  $('#plist').innerHTML = !L.length ? `<div class="empty">${st.bxF === 'validar' ? 'Nada espera validación. Bandeja al día.' : 'No hay pendientes aquí con estos filtros.'}</div>` :
+    `<div class="bx2-lista">${V.map(p => `<div class="bx-row${p.estado === 'Por validar' ? '' : ' leido'}" role="button" tabindex="0" data-id="${esc(p.id)}">
+      <span class="bx-dot" aria-hidden="true"></span>
+      <div class="bx-de">${esc(p.tienda)}<small>${esc(p.resp || '')}</small></div>
+      <div class="bx-as"><span class="bx2-tag">${esc(p.punto || '')}${p.prior === 'Alta' ? ' · Alta' : ''}</span><b>${esc(p.hallazgo || p.texto || p.punto)}</b><span> — ${esc(resumen(p))}</span></div>
+      <div class="bx2-der">${fecha(p)}${p.estado === 'Por validar' && puedo(p) ? `<span class="bx2-acc"><button class="ok" data-ok="${esc(p.id)}" title="La corrección está bien: se cierra">✓ Validar</button><button data-ab="${esc(p.id)}">Revisar</button></span>` : ''}</div>
+    </div>`).join('')}${L.length > max ? `<button class="bx2-mas" id="bx2Mas">Ver ${Math.min(60, L.length - max)} más</button>` : ''}</div>`;
+  $('#plist').querySelectorAll('.bx-row').forEach(r => { r.onclick = () => detalle(r.dataset.id); r.onkeydown = e => { if (e.key === 'Enter') detalle(r.dataset.id); }; });
+  $('#plist').querySelectorAll('[data-ab]').forEach(b => b.onclick = e => { e.stopPropagation(); detalle(b.dataset.ab); });
+  $('#plist').querySelectorAll('[data-ok]').forEach(b => b.onclick = e => { e.stopPropagation(); b.closest('.bx2-acc').querySelectorAll('button').forEach(x => x.disabled = true); guardarEstado(b.dataset.ok, 'Cerrado', '', b); });
+  const m = $('#bx2Mas'); if (m) m.onclick = () => { st.bxMax = max + 60; renderPend(); };
+};
 </script>
 </body>
 </html>
