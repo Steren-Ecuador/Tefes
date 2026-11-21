@@ -815,11 +815,7 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
 
   <div class="view" data-view="pendientes" hidden>
     <div class="kpis" id="kpis"></div>
-    <div>
-      <div class="sec-h"><h2>Tiendas: detalle de ventas y supervisión</h2><span class="hint">Peor puntaje de supervisión primero. Toca una tienda para ver su detalle.</span></div>
-      <div class="panel flush scroll" id="stores"><div class="skeleton">Cargando tiendas…</div></div>
-    </div>
-    <section class="panel" id="explorer">
+    <section class="panel" id="explorer"><!-- bx5 -->
       <div class="panel-h"><h2>Todos los pendientes</h2><span class="small faint" id="pcount"></span></div>
       <p class="small faint" id="masFallan" style="margin:-6px 0 12px"></p>
       <div class="filters">
@@ -830,6 +826,10 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
       </div>
       <div class="scroll" id="plist"></div>
     </section>
+    <div>
+      <div class="sec-h"><h2>Tiendas: detalle de ventas y supervisión</h2><span class="hint">Peor puntaje de supervisión primero. Toca una tienda para ver su detalle.</span></div>
+      <div class="panel flush scroll" id="stores"><div class="skeleton">Cargando tiendas…</div></div>
+    </div>
   </div>
 
   <div class="view" data-view="whatsapp" hidden></div><!-- wa3 -->
