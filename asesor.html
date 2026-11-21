@@ -1206,6 +1206,8 @@ function aplicar(d){
   EQUIPO = d.equipo.map(p => ({id: slug(p.nombre), nombre: p.nombre, cargo: p.cargo ? p.cargo.charAt(0) + p.cargo.slice(1).toLowerCase() : '', mes: p.mes || 0, ayer: p.ayer || 0, meta: p.meta || 0, gar: p.gar || 0, garUsd: p.garUsd || 0}));
   YO = EQUIPO.find(p => p.nombre === d.yo.nombre);
   SUELDO = d.yo.esquema ? {fijo: d.yo.esquema.fijo, pct: d.yo.esquema.pct} : {fijo: 0, pct: 0};
+  // Freno (21-nov): un porcentaje fuera de 0-10 % o un fijo fuera de 0-3000 es un error de carga; no se muestra nada de dinero.
+  if (!(SUELDO.pct >= 0 && SUELDO.pct <= 0.10) || !(SUELDO.fijo >= 0 && SUELDO.fijo <= 3000)) SUELDO = {fijo: 0, pct: 0};
   DIARIO = d.yo.diario || [];
   TURNOS = {}; ((d.horario && d.horario.turnos) || []).forEach(t => { TURNOS[slug(t.persona)] = t.dias; });
   E.proformas = d.proformas || [];
