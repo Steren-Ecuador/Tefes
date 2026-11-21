@@ -2283,7 +2283,7 @@ async function guardarEstado(id, estado, comentario, btn, fecha){
     await api('apiAccion', st.yo.nombre, id, estado, comentario || '', fecha || '');
     toast({Mensaje:'Mensaje enviado', Pendiente:'Movido a Abierto', Cerrado:'Pendiente cerrado', Reabierto:'Pendiente reabierto, la tienda lo verá en su lista'}[estado] || 'Movido a ' + estado);
     $('#drawer').innerHTML = '';
-    await cargar(true);
+    try { await cargar(true); } catch (e2) { toast('Guardado ✓. La lista se actualiza en unos segundos.', 5000); setTimeout(() => { try { Promise.resolve(cargar(true)).catch(() => {}); } catch (_) {} }, 20000); return; }   /* gs2 */
     if (btn && estado === 'Mensaje') detalle(id);
   } catch (e) {
     toast(e.message, 7000);
