@@ -1,0 +1,81 @@
+
+/* ---------- fpg22 (Diego 21-nov): EL ADMINISTRADOR VE LOS PENDIENTES DEL POS DE CADA TIENDA Y REGISTRA O CORRIGE DESDE SU PANEL ----------
+   Lo ven el administrador y Financiero; registrar y corregir, solo el administrador. Queda en la bitácora con su nombre y "Administrador". */
+function fpgAdmin_(ptoken, quien) {
+  const s = fpgPuede_(ptoken, quien);
+  if (!s.admin) throw new Error('Solo el administrador registra o corrige desde el panel.');
+  return s;
+}
+function fpgTiendaPanel_(tienda) {
+  const t = tiendasFilas_().find(r => r[0] === String(tienda || '') && String(r[1]).toLowerCase().indexOf('s') === 0);
+  if (!t) throw new Error('Elige una tienda.');
+  return t[0];
+}
+/** Todas las tiendas: {admin, hoy, desde, tiendas: [{tienda, prefijo, pend, rev, gente}]} (más pendientes primero) */
+function apiFPGPanelPos(ptoken, quien) {
+  const s = fpgPuede_(ptoken, quien);
+  const lista = fpgFilas_().map(fpgObj_), sh = claves_().getSheetByName(FPG_POS.HOJA);
+  const lim = [FPG_POS.DESDE, sumarDiasIso_(hoy_(), -FPG_POS.DIAS)].sort().pop(), ini = sumarDiasIso_(lim, -7);
+  const pos = !sh || sh.getLastRow() < 2 ? [] : sh.getRange(2, 1, sh.getLastRow() - 1, 10).getDisplayValues()
+    .map(r => ({fecha: fpgIso_(r[0]), tienda: r[1], tipo: /^NC/i.test(r[3]) ? 'NC' : /^TE/i.test(r[3]) ? 'TE' : '', valor: fpgNum_(r[4]), total: fpgNum_(r[5]),
+      banco: String(r[6] || '').trim(), ref: String(r[7] || '').replace(/^'/, '').replace(/\D/g, ''), sec: Number(String(r[9] || '').replace(/\D/g, '')) || 0}))
+    .filter(x => x.tipo && x.sec && x.fecha >= ini);
+  const nombres = tiendasFilas_().filter(r => r[0] && String(r[1]).toLowerCase().indexOf('s') === 0).map(r => r[0]);
+  const tiendas = nombres.map(t => {
+    const k = fpgSinAc_(t), c = fpgCruce_(t, lista, pos.filter(x => fpgSinAc_(x.tienda) === k));
+    const pre = lista.filter(x => x.tienda === t).map(x => String(x.factura).slice(0, 7)).filter(x => /^\d{3}-\d{3}$/.test(x));
+    return {tienda: t, prefijo: pre.sort((a, b) => pre.filter(y => y === b).length - pre.filter(y => y === a).length)[0] || '', pend: c.pend, rev: c.rev,
+      gente: s.admin ? vfGente_(t).map(x => x.nombre) : []};
+  }).filter(x => x.pend.length || x.rev.length || pos.some(p => fpgSinAc_(p.tienda) === fpgSinAc_(x.tienda)))
+    .sort((a, b) => (b.pend.length + b.rev.length) - (a.pend.length + a.rev.length) || a.tienda.localeCompare(b.tienda));
+  return {admin: !!s.admin, hoy: hoy_(), desde: lim, formas: FPG.FORMAS.filter(f => !FPG.APAGADAS[f]), tiendas: tiendas};
+}
+/** Foto del comprobante subida desde el panel (opcional), a la carpeta de fotos de esa tienda */
+function apiFPGFotoPanel(ptoken, quien, tienda, dataUrl, nombre) {
+  fpgAdmin_(ptoken, quien); tienda = fpgTiendaPanel_(tienda);
+  const m = String(dataUrl).match(/^data:(image\/[a-z]+);base64,(.+)$/);
+  if (!m) throw new Error('Formato de foto no válido');
+  const file = subcarpeta_('CARPETA_FOTOS_ID', 'Fotos', tienda).createFile(Utilities.newBlob(Utilities.base64Decode(m[2]), m[1],
+    (nombre || 'foto') + '_' + Utilities.formatDate(new Date(), TZ, 'yyyyMMdd_HHmmss') + '.jpg'));
+  try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (err) {}
+  return {url: file.getUrl()};
+}
+/** Registrar por una tienda desde el panel. Mismas reglas contables que la tienda; la foto es opcional (el comprobante ya viene del POS). */
+function apiFPGRegistrarPanel(ptoken, quien, tienda, d) {
+  const s = fpgAdmin_(ptoken, quien); tienda = fpgTiendaPanel_(tienda); d = d || {};
+  if (FPG.APAGADAS[String(d.forma || '')]) throw new Error('Esa forma de pago todavía no está habilitada.');
+  if (String(d.vendedor || '').trim()) asPersonaValida_(tienda, String(d.vendedor).trim().slice(0, 80));
+  if (d.confirmo !== true) throw new Error('Confirma que revisaste los datos.');
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    const sh = fpgHoja_(), L = fpgFilas_();
+    const EXT = fpgExtras_(), v = fpgValidar_(d, tienda, L.map(fpgObj_), hoy_(), fpgFormasDe_(tienda, EXT), EXT, {sinFoto: true});
+    const id = 'FP' + ('0000' + (Math.max(0, ...L.map(r => Number(String(r[0]).replace(/\D/g, '')) || 0)) + 1)).slice(-5);
+    sh.appendRow([id, hoy_(), Utilities.formatDate(new Date(), TZ, 'HH:mm'), tienda, s.nombre, s.perfilFpg, "'" + v.factura, v.forma, "'" + v.pedido, v.valor,
+      v.cliente, v.valorFac, v.foto, '', '', '', 'Vigente', '', '', v.otra, v.banco, "'" + v.fechaFac, v.vendedor]);
+    const o = fpgObj_(sh.getRange(sh.getLastRow(), 1, 1, FPG.CAB.length).getDisplayValues()[0]);
+    fpgLog_('Registro', o, s.nombre, s.perfilFpg, fpgDetalle_(o) + ' · registrado desde el panel con el detalle del POS' + (v.foto ? '' : ' · sin foto'));
+    return o;
+  } finally { lock.releaseLock(); }
+}
+/** Corregir el N° de factura de un registro de cualquier tienda con la sugerencia del POS. */
+function apiFPGCorregirPanel(ptoken, quien, id, sec) {
+  const s = fpgAdmin_(ptoken, quien); sec = Number(String(sec || '').replace(/\D/g, '')) || 0;
+  const lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    const sh = fpgHoja_(), L = fpgFilas_(), lista = L.map(fpgObj_);
+    const i = L.findIndex(r => r[0] === String(id)); if (i < 0) throw new Error('No encontré el registro.');
+    const antes = lista[i];
+    if (antes.estado === 'Anulada') throw new Error('Ese registro está anulado.');
+    if (antes.entregado) throw new Error('Ya está marcado como entregado.');
+    const c = fpgCruce_(antes.tienda, lista), r = c.rev.find(y => y.id === antes.id && y.tipo === 'factura');
+    if (!r || !r.sug || r.sug.sec !== sec) throw new Error('El POS ya no muestra esa corrección. Actualiza la pantalla.');
+    const nueva = String(antes.factura).slice(0, 8) + ('00000000' + sec).slice(-9);
+    if (!/^\d{3}-\d{3}-\d{9}$/.test(nueva)) throw new Error('No pude armar la factura nueva.');
+    sh.getRange(i + 2, 7).setValue("'" + nueva);
+    const o = fpgObj_(sh.getRange(i + 2, 1, 1, FPG.CAB.length).getDisplayValues()[0]);
+    fpgLog_('Corrección', o, s.nombre, s.perfilFpg, 'Factura corregida de ' + antes.factura + ' a ' + nueva + ' desde el panel: la anterior no estaba en el POS y el POS tiene ' +
+      (r.sug.tipo === 'NC' ? 'una nota de crédito' : 'una transferencia') + ' de $' + Number(r.sug.valor).toFixed(2) + ' en la ' + nueva + ' (cruce con el POS) · ' + fpgDetalle_(o));
+    return o;
+  } finally { lock.releaseLock(); }
+}
