@@ -38,6 +38,7 @@
 .tk-ovh button{border:0;background:#E5F7FC;color:#002F57;border-radius:10px;padding:8px 14px;font-weight:700}
 .tk-s #pfDet,.tk-s #uniDet{color:#ffd0cc!important;font-weight:600}
 @media(min-width:701px){.tk-s{padding:16px 18px}.tk-vis{margin:0 0 10px}.tk-donut{width:130px;height:130px}.tk-donut::after{inset:15px}.tk-donut b{font-size:30px}.tk-pic{width:150px;height:105px;font-size:50px}.tk-stack{width:100%}.tk-stack div{font-size:12.5px;padding:7px 10px}.tk-rg{width:84px;height:84px;font-size:19px}.tk-rg::before{-webkit-mask:radial-gradient(circle,transparent 33px,#000 34px);mask:radial-gradient(circle,transparent 33px,#000 34px)}.tk-t{font-size:20px}.tk-b{min-width:0}}
+@media(min-width:701px){.tk-s:has(.ts-eq){grid-column:span 2}.tk-s .ts-eq{max-width:none}.tk-vis{flex:none;margin-top:auto;margin-bottom:auto}.tk-feed{align-items:stretch}}
 @media(max-width:1000px) and (min-width:701px){.tk-feed{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){
   #main.tk1-on{padding:0!important;margin:0!important}
@@ -52,5 +53,16 @@
   .tk-pos{display:flex;position:absolute;top:12px;left:20px;right:20px;gap:4px;z-index:3}.tk-pos i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.3)}.tk-pos i.on{background:#fff}
   .tk-urg{top:24px}
 }
+/* si ni sin dibujo cabe: texto más compacto */
+.tk-s.tk-apr .tk-t{font-size:20px}
+.tk-s.tk-apr .tk-d{font-size:13.5px}
+.tk-txt{display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical;overflow:hidden}
+.tk-s.tk-apr .tk-txt{-webkit-line-clamp:4}
+.tk-s.tk-apr2 .tk-txt{-webkit-line-clamp:2}
+.tk-s.tk-apr .tk-big{font-size:32px}
+.tk-vi{display:flex;flex-direction:column;align-items:center;justify-content:center;transform-origin:center center;flex:none;width:100%}
+/* celulares chicos: que los nombres del menú de abajo no se monten */
+@media(max-width:380px){nav button{font-size:9px!important;flex:1 1 0!important;min-width:0;white-space:normal!important;line-height:1.1;text-align:center}}
+@media(max-width:700px){.tk-s .ts-eq{flex-wrap:nowrap;overflow-x:auto;max-width:100%;justify-content:safe center;scrollbar-width:none;padding:4px 2px}.tk-s .ts-eq::-webkit-scrollbar{display:none}.tk-s .ts-eq>*{flex:none}}
 @media (prefers-reduced-motion:reduce){.tk-b:active{transform:none}}
 </style>

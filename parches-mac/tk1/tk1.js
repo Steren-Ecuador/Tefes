@@ -13,7 +13,7 @@
     const mes = nm(r[4]) || 0, pres = nm(r[5]), ritmo = d.getUTCDate() / fin, quedan = fin - d.getUTCDate();
     return {mes, pres, dia: nm(r[3]) || 0, cu: pres ? mes / pres : null, ritmo, quedan, mesTxt: new Intl.DateTimeFormat('es-EC', {month: 'long', timeZone: 'UTC'}).format(d)};
   }
-  const sl = (c, vis, k, t, d, btns, extra) => '<section class="tk-s tk-c' + c + '"' + (extra || '') + '><div class="tk-vis">' + vis + '</div><div class="tk-k">' + k + '</div><div class="tk-t">' + t + '</div>' + (d ? '<div class="tk-d">' + d + '</div>' : '') + (btns ? '<div class="tk-btns">' + btns + '</div>' : '') + '</section>';
+  const sl = (c, vis, k, t, d, btns, extra) => '<section class="tk-s tk-c' + c + '"' + (extra || '') + '><div class="tk-vis"><div class="tk-vi">' + vis + '</div></div><div class="tk-k">' + k + '</div><div class="tk-t">' + t + '</div>' + (d ? '<div class="tk-d">' + d + '</div>' : '') + (btns ? '<div class="tk-btns">' + btns + '</div>' : '') + '</section>';
   const bt = (txt, attr, sec) => '<button class="tk-b' + (sec ? ' sec' : '') + '" ' + attr + '>' + txt + '</button>';
   function slides(){
     const D = S.data, hoy = D.hoy, sem = semanaDe(hoy), G = gente(), out = [];
@@ -34,7 +34,7 @@
       const f = faltan(a), ya = lecs(a).map(l => l.persona);
       const av = '<div class="tk-av">' + G.map((n, i) => '<span class="' + (ya.indexOf(n) < 0 ? 'no' : '') + '" style="background:' + COL[i % COL.length] + '">' + esc(ini(n)) + '</span>').join('') + '</div>';
       out.push('<div data-an="' + esc(a.id) + '" style="display:contents">' + sl(1, '<div class="tk-pic">📣</div>', 'Anuncio · Gerencia TEFES · ' + esc(fechaCorta(a.desde)), esc(a.titulo),
-        (a.texto ? esc(a.texto) : '') + av + '<div style="font-size:13px;margin-top:6px;opacity:.9">Confirmaron ' + ya.length + (G.length ? ' de ' + G.length : '') + (f.length ? ' · faltan ' + esc(f.map(x => String(x).split(' ')[0]).join(', ')) : '') + '</div>',
+        (a.texto ? '<span class="tk-txt">' + esc(a.texto) + '</span>' : '') + av + '<div style="font-size:13px;margin-top:6px;opacity:.9">Confirmaron ' + ya.length + (G.length ? ' de ' + G.length : '') + (f.length ? ' · faltan ' + esc(f.map(x => String(x).split(' ')[0]).join(', ')) : '') + '</div>',
         bt('👍 Leí y confirmo', 'data-conf'), '') + '</div>');
     });
     /* 3. Pendientes de supervisión */
@@ -68,6 +68,31 @@
     out.push(sl(5, tsEquipo(), 'Tu equipo', 'Lecturas del equipo', 'Aro de color = lo que cada uno ya leyó. Toca a la persona para ver qué le falta. Universidad: <span id="uniDet">revisando…</span>', bt('Ver Universidad Steren', 'id="uniVer"', 1)));
     return out;
   }
+  /* que nada se monte ni se salga: en cada pantalla el dibujo se achica (o se oculta) para que el texto y los botones quepan */
+  function tkAjustar(){
+    const fe = document.getElementById('tkFeed');
+    if (fe && getComputedStyle(fe).display === 'block') {   /* celular: el muro llega justo hasta el menú de abajo */
+      const nb = [...document.querySelectorAll('nav')].find(n => { const r = n.getBoundingClientRect(); return r.height && r.top > innerHeight / 2; });
+      const tope = nb ? nb.getBoundingClientRect().top : innerHeight, y = fe.getBoundingClientRect().top;
+      if (tope - y > 200) fe.style.height = Math.floor(tope - y) + 'px';
+    }
+    document.querySelectorAll('#tkFeed .tk-s').forEach(s => {
+      const v = s.querySelector('.tk-vis'), x = v && v.firstElementChild;
+      s.classList.remove('tk-apr', 'tk-apr2');
+      if (v) { v.style.display = ''; v.style.height = ''; v.style.flex = ''; if (x) x.style.transform = ''; }
+      const cs = getComputedStyle(s), libre = s.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const resto = () => [...s.children].filter(e => e !== v && getComputedStyle(e).position !== 'absolute').reduce((a, e) => { const m = getComputedStyle(e); return a + e.offsetHeight + parseFloat(m.marginTop) + parseFloat(m.marginBottom); }, 0);
+      if (!v || !x) return;
+      const alto = x.offsetHeight, hay = libre - resto() - 10;
+      if (getComputedStyle(document.getElementById('tkFeed')).display !== 'block') return;   /* compu: tarjetas crecen solas */
+      if (hay >= alto) return;
+      let k = hay / alto;
+      if (k < 0.55) { s.classList.add('tk-apr'); k = (libre - resto() - 10) / alto; }   /* primero el texto más compacto */
+      if (k < (s.querySelector('.ts-eq') ? 0.3 : 0.45)) { v.style.display = 'none'; if (libre - resto() < 0) s.classList.add('tk-apr2'); return; }   /* el equipo se achica más antes de ocultarse */
+      k = Math.min(1, k); x.style.transform = 'scale(' + k.toFixed(3) + ')'; v.style.flex = 'none'; v.style.height = Math.floor(alto * k) + 'px';
+    });
+  }
+  let _tkT; window.addEventListener('resize', () => { clearTimeout(_tkT); _tkT = setTimeout(tkAjustar, 120); });
   renderInicio = function(){
     const L = slides(), m = $('#main');
     m.classList.add('tk1-on');
@@ -86,8 +111,9 @@
     m.querySelectorAll('[data-tkx]').forEach(b => b.onclick = () => { ov.hidden = true; });
     confetiFx();
     const ub = $('#uniVer'); if (ub) ub.onclick = uniAbrir;
-    const pb = $('#pfVer'); if (pb) pb.onclick = pfTAbrir; pfTCargar().then(pfTDetalle, () => {});
-    uniTiendaCargar().then(uniDetalle, () => {});
+    const pb = $('#pfVer'); if (pb) pb.onclick = pfTAbrir; pfTCargar().then(pfTDetalle, () => {}).then(tkAjustar);
+    uniTiendaCargar().then(uniDetalle, () => {}).then(tkAjustar);
+    tkAjustar(); setTimeout(tkAjustar, 400);
   };
   /* al salir del Inicio, el #main vuelve a su margen normal */
   const _irA = irA; irA = function(v){ const m = $('#main'); if (m && v !== 'inicio') m.classList.remove('tk1-on'); return _irA.apply(this, arguments); };
