@@ -1117,8 +1117,8 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
         <div class="panel flush bx" id="validar"><div class="skeleton">Cargando…</div></div>
     </div>
     <div class="hl-sec"><!-- hl1 -->
-      <div class="sec-h"><h2>Tabla de posiciones · Supervisión<span class="cfil"></span></h2><span class="hint">De mejor a peor puntaje.</span></div>
-      <div class="panel flush" id="hlSup"><div class="skeleton">Cargando…</div></div>
+      <div class="sec-h"><h2>Tabla de posiciones · Supervisión<span class="cfil"></span></h2><span class="hint">Mejor puntaje del mes primero. Toca una tienda para ver su detalle.</span></div>
+      <div class="panel flush" id="hlSup" style="overflow-x:auto"><div class="skeleton">Cargando…</div></div>
     </div>
     <div class="hl-sec"><!-- hl1 -->
       <div class="sec-h"><h2>Tabla de posiciones · Ventas vs presupuesto<span class="cfil"></span></h2><span class="hint">De mayor a menor cumplimiento del mes.</span></div>
@@ -1747,6 +1747,7 @@ function render(){
   const alDia = hayV ? String(st.ventas.ultimo || '') : '';
   $('#stores').innerHTML = !filas.length ? `<div class="empty">${st.ciudad ? 'No hay tiendas activas en ' + esc(st.ciudad) + '.' : 'No hay tiendas activas en la hoja Tiendas.'}</div>` : pos1Html(filas, hoy, masBaja);   // pos1
   document.querySelectorAll('#stores tr.click').forEach(tr => tr.onclick = () => detalleTienda(tr.dataset.t));
+  /* hs1 */ if ($('#hlSup') && $('#stores')) { $('#hlSup').innerHTML = $('#stores').innerHTML; $('#hlSup').querySelectorAll('tr.click').forEach(tr => tr.onclick = () => detalleTienda(tr.dataset.t)); }
   renderValidar(filtraMios() ? pendC.filter(puede) : pendC, hoy);
   $('#nPend').textContent = (filtraMios() ? pendC.filter(p => p.estado === 'Por validar' && puede(p)).length : val) || '';
 
