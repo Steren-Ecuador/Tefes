@@ -755,8 +755,8 @@ tr.fl-tot td{font-weight:700;border-bottom:0;background:var(--surface-2)}
         <div class="panel flush bx" id="validar"><div class="skeleton">Cargando…</div></div>
     </div>
     <div class="hl-sec"><!-- hl1 -->
-      <div class="sec-h"><h2>Tabla de posiciones · Supervisión<span class="cfil"></span></h2><span class="hint">De mejor a peor puntaje.</span></div>
-      <div class="panel flush" id="hlSup"><div class="skeleton">Cargando…</div></div>
+      <div class="sec-h"><h2>Tabla de posiciones · Supervisión<span class="cfil"></span></h2><span class="hint">Mejor puntaje del mes primero. Toca una tienda para ver su detalle.</span></div>
+      <div class="panel flush" id="hlSup" style="overflow-x:auto"><div class="skeleton">Cargando…</div></div>
     </div>
     <div class="hl-sec"><!-- hl1 -->
       <div class="sec-h"><h2>Tabla de posiciones · Ventas vs presupuesto<span class="cfil"></span></h2><span class="hint">De mayor a menor cumplimiento del mes.</span></div>
@@ -1925,6 +1925,7 @@ function render(){
   const alDia = st.ventas ? st.ventas.ultimo : '';
   $('#stores').innerHTML = !filas.length ? '<div class="empty">No hay tiendas activas en la hoja Tiendas.</div>' : pos1Html(filas, hoy, masBaja);   // pos1
   document.querySelectorAll('#stores tr.click').forEach(tr => tr.onclick = () => detalleTienda(tr.dataset.t));
+  /* hs1 */ if ($('#hlSup') && $('#stores')) { $('#hlSup').innerHTML = $('#stores').innerHTML; $('#hlSup').querySelectorAll('tr.click').forEach(tr => tr.onclick = () => detalleTienda(tr.dataset.t)); }
   renderValidar(d);
 
   // Supervisión vs. autosupervisión
