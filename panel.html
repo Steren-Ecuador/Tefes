@@ -1308,7 +1308,8 @@ const SECS = ['A','B','C','D','E','F'];
 const SEC_NAMES = {A:'Imagen, limpieza y mantenimiento',B:'Merchandising, exhibición y precios',C:'Ventas y productividad del equipo',D:'Servicio, personal y operación',E:'Inventarios, caja y control interno',F:'Muestreo Top 50'};
 const ABIERTOS = ['Pendiente','En proceso','Reabierto'];
 const SEC_CORTO = {A:'Imagen y limpieza',B:'Exhibición y precios',C:'Ventas y equipo',D:'Servicio y operación',E:'Inventario y caja',F:'Muestreo Top 50'};
-window.TEM_ST = () => st;   // tem1: el buscador lee tiendas, políticas y guías
+window.TEM_ST = () => st;
+window.BS2_API = () => ({st, ir: typeof ir === 'function' ? ir : null, detalleTienda: typeof detalleTienda === 'function' ? detalleTienda : null, iv2Tomas: typeof iv2Tomas === 'function' ? iv2Tomas : null, renderInventario: typeof renderInventario === 'function' ? renderInventario : null, hoyISO: typeof hoyISO === 'function' ? hoyISO : null});   // bs2   // tem1: el buscador lee tiendas, políticas y guías
 const st = {yo:null, d:null, fEstado:'abiertos', fTienda:'', fSec:'', fQ:'', vista:'tablero', ciudad:null};
 /* Ciudad de cada tienda (fija). Una tienda que no esté aquí no se dibuja en el mapa, pero sí sale en la lista y las tablas. */
 const CIUDAD = {Condado:'Quito', Portal:'Quito', Megakywi:'Quito', Megamaxi:'Quito', 'Mall Jardín':'Quito', Scala:'Quito', Tumbaco:'Quito',
@@ -4207,6 +4208,46 @@ button.cal-fila:hover{background:var(--surface-2)}
 
 </script>
 <script>
+/* bs2: el buscador tambien encuentra datos (supervisiones e inventarios por tienda y semana). Diego 2026-11-22 */
+window.bs2Q = () => { const i = document.querySelector('.tem-caja input, input[aria-label="Buscar"]'); return String(i ? i.value : '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); };
+window.bs2Sem = iso => { const d = new Date(String(iso).slice(0, 10) + 'T12:00'); if (isNaN(d)) return null; d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7); const a = new Date(d.getFullYear(), 0, 4, 12); return {n: 1 + Math.round((d - a) / 864e5 / 7 - (3 - (a.getDay() + 6) % 7) / 7 + 0.0001), y: d.getFullYear()}; };
+window.bs2Pide = q => { const m = q.match(/(?:^|[^a-z0-9])(?:s|sem|semana)\s*(\d{1,2})(?![0-9])/);
+  return {wk: m ? +m[1] : null, sup: /supervi|autosup|califica|nota|puntaje|evalua/.test(q), inv: /inv|muestreo|conteo|top ?50|ciclico/.test(q)}; };
+window.bs2Pct = v => v == null || isNaN(v) ? '' : Math.round(v * (v <= 1 ? 100 : 1)) + ' %';
+window.bs2Kf = x => { const m = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][+String(x).slice(5, 7) - 1] || ''; return ' ' + +String(x).slice(8, 10) + ' ' + m + ' ' + m.slice(0, 3) + ' ' + m.slice(0, 4); };
+window.bs2Fc = x => +String(x).slice(8, 10) + '/' + +String(x).slice(5, 7);
+window.bs2Dias = (iso, hoy) => (new Date(String(hoy).slice(0, 10) + 'T12:00') - new Date(String(iso).slice(0, 10) + 'T12:00')) / 864e5;
+
+window.bs2Extra = function(out){
+  const A = window.BS2_API && BS2_API(); if (!A || !A.st || !A.st.d) return;
+  const st = A.st, ir = A.ir, detalleTienda = A.detalleTienda, iv2Tomas = A.iv2Tomas, renderInventario = A.renderInventario, hoyISO = A.hoyISO;
+  const q = bs2Q(), P = bs2Pide(q); if (!q || (!P.sup && !P.inv && P.wk == null)) return;
+  const hoy = (typeof hoyISO === 'function' && hoyISO()) || new Date().toISOString().slice(0, 10), visible = v => { const b = document.querySelector('#tabs button[data-v="' + v + '"]'); return b && !b.hidden && b.style.display !== 'none'; };
+  const kwS = n => ' semana sem s' + n + ' ' + n;
+  if (P.sup || !P.inv) (st.d.sups || []).filter(s => s.total != null && s.fecha && s.tienda).forEach(s => {
+    const w = bs2Sem(s.fecha), dd = bs2Dias(s.fecha, hoy); if (!w || dd < 0 || dd > (P.wk != null ? 200 : 56) || (P.wk != null && w.n !== P.wk)) return;
+    out.push({grupo: 'Supervisiones', t: 'Supervisión S' + w.n + ' · ' + s.tienda + ' · ' + bs2Pct(s.total), sub: (s.tipo || 'Supervisión') + ' del ' + bs2Fc(s.fecha) + (s.por ? ' · ' + s.por : ''),
+      kw: 'supervision autosupervision calificacion nota puntaje evaluacion ' + (s.tipo || '') + bs2Kf(s.fecha) + kwS(w.n), peso: -dd / 1000,
+      go: () => { if (typeof detalleTienda === 'function') detalleTienda(s.tienda); }});
+  });
+  if ((P.inv || !P.sup) && visible('inventario')) {
+    const abrir = (sem, t) => () => { st.iv2Sem = sem; st.iv2T = t; st.iv2Rev = false; st.iv2Abierto = null; ir('inventario'); if (typeof renderInventario === 'function') renderInventario(); };
+    const semTxt = (y, n) => y + '-S' + String(n).padStart(2, '0'), act = bs2Sem(hoy);
+    if (st.mue && typeof iv2Tomas === 'function') {
+      let T = []; try { T = iv2Tomas(); } catch (e) {}
+      T.forEach(x => { const n = +String(x.sem).slice(-2), y = +String(x.sem).slice(0, 4); if (!n) return;
+        if (P.wk != null ? n !== P.wk : (act.y * 53 + act.n) - (y * 53 + n) > 4 || (y * 53 + n) > (act.y * 53 + act.n)) return;
+        out.push({grupo: 'Inventarios', t: 'Inventario S' + n + ' · ' + x.t + ' · ' + x.tipo, sub: (x.e || x.fase || 'Programado') + (x.falta ? ' · ' + x.falta : ''),
+          kw: 'inventario muestreo conteo top 50 ciclico ' + kwS(n), peso: -((act.y * 53 + act.n) - (y * 53 + n)) / 100, go: abrir(x.sem, x.t)}); });
+    } else {
+      const n = P.wk != null ? P.wk : act.n, y = P.wk != null && P.wk > act.n ? act.y - 1 : act.y;
+      (st.d.tiendas || []).filter(t => t.activa).forEach(t => out.push({grupo: 'Inventarios', t: 'Inventario S' + n + ' · ' + t.nombre, sub: 'Abrir el inventario de esa semana',
+        kw: 'inventario muestreo conteo top 50 ciclico ' + kwS(n), go: abrir(semTxt(y, n), t.nombre)}));
+    }
+  }
+};
+</script>
+<script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "¿Qué buscas? Inventario, Scala, política…",
   temas: [{"id": "hoy", "nombre": "Inicio", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash"]}, {"id": "formaspago", "nombre": "Formas de pago", "vistas": ["formaspago"]}, {"id": "universidad", "nombre": "Universidad", "vistas": ["universidad"]}, {"id": "inventarios", "nombre": "Mercadería", "vistas": ["inventario"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["contactos"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["clientes"]}],
@@ -4219,6 +4260,7 @@ window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "af
     else if (S.pol && S.pol.po) S.pol.po.slice(1).filter(r => r[0] && r[1]).forEach(r => out.push({grupo: 'Leer', t: String(r[1]), sub: 'Cómo trabajamos › Políticas', kw: 'politica ' + r[0], v: 'politicas'}));
     let G = Array.isArray(S.gui) ? S.gui : []; if (!G.length && typeof guiasModelo === 'function') { try { G = guiasModelo() || []; } catch (e) {} }
     G.forEach(g => out.push({grupo: 'Leer', t: g.titulo, sub: 'Cómo trabajamos › ' + (g.tipo === 'Manual' ? 'Manuales' : 'Guías'), kw: (g.tipo || '') + ' ' + (g.resumen || ''), v: 'guias'}));
+    try { if (window.bs2Extra) bs2Extra(out); } catch (e) {}   // bs2
     return out;
   }};
 /* tem1: temas arriba (en vez de una pestaña por pantalla) y buscador "tipo Google" (Diego 2026-10-25).
@@ -4295,7 +4337,8 @@ window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "af
   }
   let lista = [], sel = 0;
   function buscar(){
-    const q = norm(inp.value).trim(), qs = q.split(/\s+/).filter(Boolean);
+    const BS2_STOP = new Set(["a", "al", "como", "con", "cual", "cuales", "dame", "de", "del", "el", "en", "es", "esta", "este", "fue", "la", "las", "los", "me", "mi", "mis", "mostrar", "muestrame", "para", "por", "que", "quiero", "su", "sus", "tal", "un", "una", "ver", "y"]);
+    const q = norm(inp.value).trim(), qs0 = q.split(/[\s,.;:?¿!¡]+/).filter(Boolean), qs = qs0.filter(w => !BS2_STOP.has(w)).length ? qs0.filter(w => !BS2_STOP.has(w)) : qs0;
     if (!qs.length) { res.hidden = true; res.innerHTML = ''; lista = []; return; }
     lista = todos().map(it => [puntaje(it, qs), it]).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0]).slice(0, 9).map(x => x[1]);
     sel = 0;
@@ -4308,6 +4351,9 @@ window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "af
     res.innerHTML = h; res.hidden = false;
     res.querySelectorAll('[data-i]').forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => abrir(lista[+b.dataset.i]); });
   }
+  /* bs1 */ let bs1Ult = '';
+  function bs1Suelta(){ const q = inp.value.trim(); if (q.length < 2 || q === bs1Ult) return; bs1Ult = q;
+    try { if (window.REG) REG.ev('Buscar', q + ' → ' + (lista.length ? '(sin clic, ' + lista.length + ' resultados)' : '(sin resultados)')); } catch (e) {} }
   function abrir(it){
     if (!it) return;
     res.hidden = true; const q = inp.value; inp.value = ''; inp.blur();
@@ -4318,12 +4364,12 @@ window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "af
   function marcar(){ res.querySelectorAll('[data-i]').forEach(b => b.classList.toggle('on', +b.dataset.i === sel)); const o = res.querySelector('[data-i="' + sel + '"]'); if (o) o.scrollIntoView({block: 'nearest'}); }
   inp.addEventListener('input', buscar);
   inp.addEventListener('focus', () => { if (inp.value) buscar(); });
-  inp.addEventListener('blur', () => setTimeout(() => { res.hidden = true; }, 150));
+  inp.addEventListener('blur', () => { bs1Suelta(); setTimeout(() => { res.hidden = true; }, 150); });
   inp.addEventListener('keydown', e => {
     if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, lista.length - 1); marcar(); e.preventDefault(); }
     else if (e.key === 'ArrowUp') { sel = Math.max(sel - 1, 0); marcar(); e.preventDefault(); }
     else if (e.key === 'Enter') { abrir(lista[sel]); e.preventDefault(); }
-    else if (e.key === 'Escape') { inp.value = ''; res.hidden = true; inp.blur(); }
+    else if (e.key === 'Escape') { bs1Suelta(); inp.value = ''; res.hidden = true; inp.blur(); }
   });
   document.addEventListener('keydown', e => {
     const t = e.target, escribe = t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable);
@@ -4969,7 +5015,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     if (pedido && quien && quien !== y.nombre) { location.reload(); return; }   // otra persona en el mismo equipo
     quien = y.nombre; pedido = true;
     if (!previo) try { const c = JSON.parse(localStorage.getItem('mpfCfg') || 'null'); if (c && c.n === quien && c.c) aplicar(c.c, true); } catch (e) {}   // mpf2: al instante con lo recordado
-    cvCtx.api('apiMenusPerfil', y.nombre).then(c => aplicar(c)).catch(() => { setTimeout(() => { pedido = false; quien = ''; }, 4000); });   // mpf2: si falla, reintenta (no muestra todo)
+    new Promise((ok, ko) => google.script.run.withSuccessHandler(ok).withFailureHandler(ko).apiMenusPerfil(y.nombre)).then(c => aplicar(c))   /* mpq1 */.catch(() => { setTimeout(() => { pedido = false; quien = ''; }, 4000); });   // mpf2: si falla, reintenta (no muestra todo)
   }, 700);
 })();
 </script>
