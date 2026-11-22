@@ -4,6 +4,7 @@
 <head>
 <base target="_top">
 <meta charset="utf-8">
+<script src="vista.js"></script><!-- vc1 -->
 <!-- pwa1 --><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icono-192.png"><link rel="apple-touch-icon" href="icono-180.png">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Steren"><meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script>if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));</script>
@@ -1179,8 +1180,8 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
         <div class="panel flush bx" id="validar"><div class="skeleton">Cargando…</div></div>
     </div>
     <div class="hl-sec"><!-- hl1 -->
-      <div class="sec-h"><h2>Tabla de posiciones · Supervisión<span class="cfil"></span></h2><span class="hint">De mejor a peor puntaje.</span></div>
-      <div class="panel flush" id="hlSup"><div class="skeleton">Cargando…</div></div>
+      <div class="sec-h"><h2>Tabla de posiciones · Supervisión<span class="cfil"></span></h2><span class="hint">Mejor puntaje del mes primero. Toca una tienda para ver su detalle.</span></div>
+      <div class="panel flush" id="hlSup" style="overflow-x:auto"><div class="skeleton">Cargando…</div></div>
     </div>
     <div class="hl-sec"><!-- hl1 -->
       <div class="sec-h"><h2>Tabla de posiciones · Ventas vs presupuesto<span class="cfil"></span></h2><span class="hint">De mayor a menor cumplimiento del mes.</span></div>
@@ -1307,7 +1308,8 @@ const SECS = ['A','B','C','D','E','F'];
 const SEC_NAMES = {A:'Imagen, limpieza y mantenimiento',B:'Merchandising, exhibición y precios',C:'Ventas y productividad del equipo',D:'Servicio, personal y operación',E:'Inventarios, caja y control interno',F:'Muestreo Top 50'};
 const ABIERTOS = ['Pendiente','En proceso','Reabierto'];
 const SEC_CORTO = {A:'Imagen y limpieza',B:'Exhibición y precios',C:'Ventas y equipo',D:'Servicio y operación',E:'Inventario y caja',F:'Muestreo Top 50'};
-window.TEM_ST = () => st;   // tem1: el buscador lee tiendas, políticas y guías
+window.TEM_ST = () => st;
+window.BS2_API = () => ({st, ir: typeof ir === 'function' ? ir : null, detalleTienda: typeof detalleTienda === 'function' ? detalleTienda : null, iv2Tomas: typeof iv2Tomas === 'function' ? iv2Tomas : null, renderInventario: typeof renderInventario === 'function' ? renderInventario : null, hoyISO: typeof hoyISO === 'function' ? hoyISO : null});   // bs2   // tem1: el buscador lee tiendas, políticas y guías
 const st = {yo:null, d:null, fEstado:'abiertos', fTienda:'', fSec:'', fQ:'', vista:'tablero', ciudad:null};
 /* Ciudad de cada tienda (fija). Una tienda que no esté aquí no se dibuja en el mapa, pero sí sale en la lista y las tablas. */
 const CIUDAD = {Condado:'Quito', Portal:'Quito', Megakywi:'Quito', Megamaxi:'Quito', 'Mall Jardín':'Quito', Scala:'Quito', Tumbaco:'Quito',
@@ -1809,6 +1811,7 @@ function render(){
   const alDia = hayV ? String(st.ventas.ultimo || '') : '';
   $('#stores').innerHTML = !filas.length ? `<div class="empty">${st.ciudad ? 'No hay tiendas activas en ' + esc(st.ciudad) + '.' : 'No hay tiendas activas en la hoja Tiendas.'}</div>` : pos1Html(filas, hoy, masBaja);   // pos1
   document.querySelectorAll('#stores tr.click').forEach(tr => tr.onclick = () => detalleTienda(tr.dataset.t));
+  /* hs1 */ if ($('#hlSup') && $('#stores')) { $('#hlSup').innerHTML = $('#stores').innerHTML; $('#hlSup').querySelectorAll('tr.click').forEach(tr => tr.onclick = () => detalleTienda(tr.dataset.t)); }
   renderValidar(filtraMios() ? pendC.filter(puede) : pendC, hoy);
   $('#nPend').textContent = (filtraMios() ? pendC.filter(p => p.estado === 'Por validar' && puede(p)).length : val) || '';
 
@@ -4205,6 +4208,46 @@ button.cal-fila:hover{background:var(--surface-2)}
 
 </script>
 <script>
+/* bs2: el buscador tambien encuentra datos (supervisiones e inventarios por tienda y semana). Diego 2026-11-22 */
+window.bs2Q = () => { const i = document.querySelector('.tem-caja input, input[aria-label="Buscar"]'); return String(i ? i.value : '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); };
+window.bs2Sem = iso => { const d = new Date(String(iso).slice(0, 10) + 'T12:00'); if (isNaN(d)) return null; d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7); const a = new Date(d.getFullYear(), 0, 4, 12); return {n: 1 + Math.round((d - a) / 864e5 / 7 - (3 - (a.getDay() + 6) % 7) / 7 + 0.0001), y: d.getFullYear()}; };
+window.bs2Pide = q => { const m = q.match(/(?:^|[^a-z0-9])(?:s|sem|semana)\s*(\d{1,2})(?![0-9])/);
+  return {wk: m ? +m[1] : null, sup: /supervi|autosup|califica|nota|puntaje|evalua/.test(q), inv: /inv|muestreo|conteo|top ?50|ciclico/.test(q)}; };
+window.bs2Pct = v => v == null || isNaN(v) ? '' : Math.round(v * (v <= 1 ? 100 : 1)) + ' %';
+window.bs2Kf = x => { const m = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][+String(x).slice(5, 7) - 1] || ''; return ' ' + +String(x).slice(8, 10) + ' ' + m + ' ' + m.slice(0, 3) + ' ' + m.slice(0, 4); };
+window.bs2Fc = x => +String(x).slice(8, 10) + '/' + +String(x).slice(5, 7);
+window.bs2Dias = (iso, hoy) => (new Date(String(hoy).slice(0, 10) + 'T12:00') - new Date(String(iso).slice(0, 10) + 'T12:00')) / 864e5;
+
+window.bs2Extra = function(out){
+  const A = window.BS2_API && BS2_API(); if (!A || !A.st || !A.st.d) return;
+  const st = A.st, ir = A.ir, detalleTienda = A.detalleTienda, iv2Tomas = A.iv2Tomas, renderInventario = A.renderInventario, hoyISO = A.hoyISO;
+  const q = bs2Q(), P = bs2Pide(q); if (!q || (!P.sup && !P.inv && P.wk == null)) return;
+  const hoy = (typeof hoyISO === 'function' && hoyISO()) || new Date().toISOString().slice(0, 10), visible = v => { const b = document.querySelector('#tabs button[data-v="' + v + '"]'); return b && !b.hidden && b.style.display !== 'none'; };
+  const kwS = n => ' semana sem s' + n + ' ' + n;
+  if (P.sup || !P.inv) (st.d.sups || []).filter(s => s.total != null && s.fecha && s.tienda).forEach(s => {
+    const w = bs2Sem(s.fecha), dd = bs2Dias(s.fecha, hoy); if (!w || dd < 0 || dd > (P.wk != null ? 200 : 56) || (P.wk != null && w.n !== P.wk)) return;
+    out.push({grupo: 'Supervisiones', t: 'Supervisión S' + w.n + ' · ' + s.tienda + ' · ' + bs2Pct(s.total), sub: (s.tipo || 'Supervisión') + ' del ' + bs2Fc(s.fecha) + (s.por ? ' · ' + s.por : ''),
+      kw: 'supervision autosupervision calificacion nota puntaje evaluacion ' + (s.tipo || '') + bs2Kf(s.fecha) + kwS(w.n), peso: -dd / 1000,
+      go: () => { if (typeof detalleTienda === 'function') detalleTienda(s.tienda); }});
+  });
+  if ((P.inv || !P.sup) && visible('inventario')) {
+    const abrir = (sem, t) => () => { st.iv2Sem = sem; st.iv2T = t; st.iv2Rev = false; st.iv2Abierto = null; ir('inventario'); if (typeof renderInventario === 'function') renderInventario(); };
+    const semTxt = (y, n) => y + '-S' + String(n).padStart(2, '0'), act = bs2Sem(hoy);
+    if (st.mue && typeof iv2Tomas === 'function') {
+      let T = []; try { T = iv2Tomas(); } catch (e) {}
+      T.forEach(x => { const n = +String(x.sem).slice(-2), y = +String(x.sem).slice(0, 4); if (!n) return;
+        if (P.wk != null ? n !== P.wk : (act.y * 53 + act.n) - (y * 53 + n) > 4 || (y * 53 + n) > (act.y * 53 + act.n)) return;
+        out.push({grupo: 'Inventarios', t: 'Inventario S' + n + ' · ' + x.t + ' · ' + x.tipo, sub: (x.e || x.fase || 'Programado') + (x.falta ? ' · ' + x.falta : ''),
+          kw: 'inventario muestreo conteo top 50 ciclico ' + kwS(n), peso: -((act.y * 53 + act.n) - (y * 53 + n)) / 100, go: abrir(x.sem, x.t)}); });
+    } else {
+      const n = P.wk != null ? P.wk : act.n, y = P.wk != null && P.wk > act.n ? act.y - 1 : act.y;
+      (st.d.tiendas || []).filter(t => t.activa).forEach(t => out.push({grupo: 'Inventarios', t: 'Inventario S' + n + ' · ' + t.nombre, sub: 'Abrir el inventario de esa semana',
+        kw: 'inventario muestreo conteo top 50 ciclico ' + kwS(n), go: abrir(semTxt(y, n), t.nombre)}));
+    }
+  }
+};
+</script>
+<script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "afterend", placeholder: "¿Qué buscas? Inventario, Scala, política…",
   temas: [{"id": "hoy", "nombre": "Inicio", "vistas": ["hoy"]}, {"id": "supervision", "nombre": "Supervisión", "vistas": ["supervision", "pendientes", "calendario"]}, {"id": "anuncios", "nombre": "Anuncios", "vistas": ["anuncios"]}, {"id": "ventas", "nombre": "Ventas", "vistas": ["flash"]}, {"id": "formaspago", "nombre": "Formas de pago", "vistas": ["formaspago"]}, {"id": "universidad", "nombre": "Universidad", "vistas": ["universidad"]}, {"id": "inventarios", "nombre": "Mercadería", "vistas": ["inventario"]}, {"id": "politicas", "nombre": "Políticas", "vistas": ["politicas", "guias"]}, {"id": "contactos", "nombre": "Contactos", "vistas": ["contactos"]}, {"id": "clientes", "nombre": "Clientes", "vistas": ["clientes"]}],
@@ -4217,6 +4260,7 @@ window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "af
     else if (S.pol && S.pol.po) S.pol.po.slice(1).filter(r => r[0] && r[1]).forEach(r => out.push({grupo: 'Leer', t: String(r[1]), sub: 'Cómo trabajamos › Políticas', kw: 'politica ' + r[0], v: 'politicas'}));
     let G = Array.isArray(S.gui) ? S.gui : []; if (!G.length && typeof guiasModelo === 'function') { try { G = guiasModelo() || []; } catch (e) {} }
     G.forEach(g => out.push({grupo: 'Leer', t: g.titulo, sub: 'Cómo trabajamos › ' + (g.tipo === 'Manual' ? 'Manuales' : 'Guías'), kw: (g.tipo || '') + ' ' + (g.resumen || ''), v: 'guias'}));
+    try { if (window.bs2Extra) bs2Extra(out); } catch (e) {}   // bs2
     return out;
   }};
 /* tem1: temas arriba (en vez de una pestaña por pantalla) y buscador "tipo Google" (Diego 2026-10-25).
@@ -4293,7 +4337,8 @@ window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "af
   }
   let lista = [], sel = 0;
   function buscar(){
-    const q = norm(inp.value).trim(), qs = q.split(/\s+/).filter(Boolean);
+    const BS2_STOP = new Set(["a", "al", "como", "con", "cual", "cuales", "dame", "de", "del", "el", "en", "es", "esta", "este", "fue", "la", "las", "los", "me", "mi", "mis", "mostrar", "muestrame", "para", "por", "que", "quiero", "su", "sus", "tal", "un", "una", "ver", "y"]);
+    const q = norm(inp.value).trim(), qs0 = q.split(/[\s,.;:?¿!¡]+/).filter(Boolean), qs = qs0.filter(w => !BS2_STOP.has(w)).length ? qs0.filter(w => !BS2_STOP.has(w)) : qs0;
     if (!qs.length) { res.hidden = true; res.innerHTML = ''; lista = []; return; }
     lista = todos().map(it => [puntaje(it, qs), it]).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0]).slice(0, 9).map(x => x[1]);
     sel = 0;
@@ -4306,6 +4351,9 @@ window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "af
     res.innerHTML = h; res.hidden = false;
     res.querySelectorAll('[data-i]').forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => abrir(lista[+b.dataset.i]); });
   }
+  /* bs1 */ let bs1Ult = '';
+  function bs1Suelta(){ const q = inp.value.trim(); if (q.length < 2 || q === bs1Ult) return; bs1Ult = q;
+    try { if (window.REG) REG.ev('Buscar', q + ' → ' + (lista.length ? '(sin clic, ' + lista.length + ' resultados)' : '(sin resultados)')); } catch (e) {} }
   function abrir(it){
     if (!it) return;
     res.hidden = true; const q = inp.value; inp.value = ''; inp.blur();
@@ -4316,12 +4364,12 @@ window.TEM = {tabs: "#tabs", montarBuscar: ".bar .row1 .brand", dondeBuscar: "af
   function marcar(){ res.querySelectorAll('[data-i]').forEach(b => b.classList.toggle('on', +b.dataset.i === sel)); const o = res.querySelector('[data-i="' + sel + '"]'); if (o) o.scrollIntoView({block: 'nearest'}); }
   inp.addEventListener('input', buscar);
   inp.addEventListener('focus', () => { if (inp.value) buscar(); });
-  inp.addEventListener('blur', () => setTimeout(() => { res.hidden = true; }, 150));
+  inp.addEventListener('blur', () => { bs1Suelta(); setTimeout(() => { res.hidden = true; }, 150); });
   inp.addEventListener('keydown', e => {
     if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, lista.length - 1); marcar(); e.preventDefault(); }
     else if (e.key === 'ArrowUp') { sel = Math.max(sel - 1, 0); marcar(); e.preventDefault(); }
     else if (e.key === 'Enter') { abrir(lista[sel]); e.preventDefault(); }
-    else if (e.key === 'Escape') { inp.value = ''; res.hidden = true; inp.blur(); }
+    else if (e.key === 'Escape') { bs1Suelta(); inp.value = ''; res.hidden = true; inp.blur(); }
   });
   document.addEventListener('keydown', e => {
     const t = e.target, escribe = t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable);
@@ -4955,7 +5003,9 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     Object.keys(todas).forEach(v => { if (!vivas[v]) { const b = tabs.querySelector('button[data-v="' + v + '"]'); if (b) { b.dataset.mpf = '1'; b.hidden = true; } } });
     new MutationObserver(() => tabs.querySelectorAll('button[data-mpf]').forEach(b => { if (!b.hidden) b.hidden = true; })).observe(tabs, {subtree: true, attributes: true, attributeFilter: ['hidden', 'style']});
     const on = tabs.querySelector('button[data-v].on');
-    if (on && on.hidden) { const p = [...tabs.querySelectorAll('button[data-v]')].find(b => !b.hidden && b.style.display !== 'none'); if (p) p.click(); }
+    if (on && on.hidden) { const vis = b => b && !b.hidden && b.style.display !== 'none'; let p = null;   /* mpf8: primer tema del menú del perfil */
+      try { ((window.TEM && TEM.temas) || []).some(t => (t.vistas || []).some(v => { const b = tabs.querySelector('button[data-v="' + v + '"]'); if (vis(b)) { p = b; return true; } return false; })); } catch (e) {}
+      p = p || [...tabs.querySelectorAll('button[data-v]')].find(vis); if (p) p.click(); }
     try { const T = ((window.TEM && TEM.temas) || []).find(t => t.id === 'ventas-fpg7-inactivo');   // fpg7: si de Ventas solo queda Formas de pago, el tema se llama así
       if (T && vivas.formaspago && T.vistas.filter(v => vivas[v] || !todas[v]).length === 1) T.nombre = 'Formas de pago'; } catch (e) {}
     abajo(); tabs.dataset.mn = String(Date.now()); listo();
@@ -4965,7 +5015,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     if (pedido && quien && quien !== y.nombre) { location.reload(); return; }   // otra persona en el mismo equipo
     quien = y.nombre; pedido = true;
     if (!previo) try { const c = JSON.parse(localStorage.getItem('mpfCfg') || 'null'); if (c && c.n === quien && c.c) aplicar(c.c, true); } catch (e) {}   // mpf2: al instante con lo recordado
-    cvCtx.api('apiMenusPerfil', y.nombre).then(c => aplicar(c)).catch(() => { setTimeout(() => { pedido = false; quien = ''; }, 4000); });   // mpf2: si falla, reintenta (no muestra todo)
+    new Promise((ok, ko) => google.script.run.withSuccessHandler(ok).withFailureHandler(ko).apiMenusPerfil(y.nombre)).then(c => aplicar(c))   /* mpq1 */.catch(() => { setTimeout(() => { pedido = false; quien = ''; }, 4000); });   // mpf2: si falla, reintenta (no muestra todo)
   }, 700);
 })();
 </script>
@@ -5478,5 +5528,68 @@ window.bx2Pend = function(base, hoy, E, chips, bind, C){
 })();
 </script>
 <style>/* pos1 */.pos1 td,.pos1 th{white-space:nowrap}.pos1 .pos1-pos{position:relative;font-weight:600;color:var(--muted,#64748b);width:34px}.pos1 tr.pos1-top td.pos1-pos{box-shadow:inset 5px 0 0 #0078BE}.pos1 tr.pos1-baja td.pos1-pos{box-shadow:inset 5px 0 0 var(--bad)}.pos1-pts{font-size:17px}.pos1 td.pos1-pos{padding-left:10px!important}.pos1-w,.pos1-sh{display:flex;gap:5px;justify-content:center}.pos1-sh{margin-top:4px;font-size:10px;font-weight:500}.pos1-sh span{width:28px;text-align:center}.pos1-b{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;font-style:normal;flex:none}.pos1-good{background:var(--good)}.pos1-warn{background:var(--warn)}.pos1-bad{background:var(--bad)}.pos1-no{background:#2b2f3a}.pos1-na{border:2px solid #c9ced8;background:transparent}.pos1-ult{outline:2px solid #0078BE;outline-offset:2px}@media(max-width:700px){.pos1 .pos1-oc{display:none!important}.pos1 td,.pos1 th{padding-left:2px!important;padding-right:2px!important;font-size:12px}.pos1 th:last-child{white-space:normal;font-size:10px}.pos1 td.store{white-space:normal;font-size:13px;max-width:92px}.pos1 .pill{padding:1px 5px;font-size:11px}.pos1 .pos1-pos{width:22px}.pos1-b{width:18px;height:18px;font-size:8px}.pos1-ult{outline-offset:1px}.pos1-w,.pos1-sh{gap:2px}.pos1-sh span{width:18px;font-size:7px}.pos1-pts{font-size:14px}}#stores table.pos1{display:table!important}#stores table.pos1 thead{display:table-header-group!important}#stores table.pos1 tbody{display:table-row-group!important}#stores table.pos1 tr{display:table-row!important}#stores table.pos1 td,#stores table.pos1 th{display:table-cell!important}#stores table.pos1 td.pos1-oc,#stores table.pos1 th.pos1-oc{display:none!important}@media(min-width:701px){#stores table.pos1 td.pos1-oc,#stores table.pos1 th.pos1-oc{display:table-cell!important}}</style>
+<!-- emx1 inicio -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap">
+<style id="emx1">
+/* emx1 · Estilo Steren México para los paneles (supervisores y admin). Solo apariencia; en modo oscuro no cambia nada. */
+:root:not(#emx):not([data-theme="dark"]){--head:#fff;--head-ink:#002f57;--head-2:#5d6b7a;--head-line:#c9d3dd;
+  --tem-head:#fff;--tem-ink:#002f57;--tem-2:#4a5866;--tem-chip:#e5f7fc;
+  --accent:#006b9e;--accent-soft:#e5f7fc;--brand:#006b9e;--brand-soft:#e5f7fc}
+html,body{font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+:root:not([data-theme="dark"]) .bar{border-bottom:1px solid #e2e7ee;box-shadow:0 6px 18px -14px rgba(0,47,87,.35)}
+:root:not([data-theme="dark"]) .bar .tem-nav button.on,:root:not([data-theme="dark"]) .bar .tabs button.on{color:#002f57;border-bottom-color:#0093d0}
+:root:not([data-theme="dark"]) .tem-sub button.on{background:#002f57;color:#fff}
+:root:not([data-theme="dark"]) ::selection{background:#cdeefb;color:#002f57}
+/* Movimiento suave: corto, solo para dar respuesta al toque */
+button,.btn,.chip{transition:background-color .15s ease-out,color .15s ease-out,border-color .15s ease-out,transform .12s ease-out,box-shadow .15s ease-out}
+button:active,.btn:active,.chip:active{transform:scale(.97)}
+@media (prefers-reduced-motion: reduce){button:active,.btn:active,.chip:active{transform:none}}
+:root:not([data-theme="dark"]) .tem-campo{background:#f4f4f4!important;border:1px solid #e2e7ee}
+</style>
+<!-- emx1 fin -->
+<script>/* tkp: Inicio del panel tipo TikTok en el celular (22-nov-2026, Diego): cada parte del Inicio es una pantalla; al llegar al final se desliza hacia arriba para pasar a la siguiente */
+(function(){
+  const cel = () => matchMedia('(max-width:700px)').matches;
+  const V = () => document.querySelector('.view[data-view="hoy"]');
+  const B = () => { const v = V(); return v && !v.hidden && cel() ? [...v.querySelectorAll(':scope > .mn-chips button')] : []; };
+  const pos = () => { const b = B(); return {b, i: b.findIndex(x => x.classList.contains('on'))}; };
+  const fin = () => innerHeight + scrollY >= document.documentElement.scrollHeight - 4;
+  let sig = null;
+  function pintar(){
+    const {b, i} = pos();
+    if (!sig) { sig = document.createElement('button'); sig.type = 'button'; sig.className = 'tkp-sig'; sig.onclick = () => ir(1); document.body.appendChild(sig);}
+    const ok = b.length > 1 && i >= 0;
+    document.body.classList.toggle('tkp-on', ok && i < b.length - 1);
+    sig.hidden = !(ok && i < b.length - 1 && fin());
+    if (!sig.hidden) sig.innerHTML = '<span>Desliza ↑ o toca para ver</span><b>' + b[i + 1].textContent + '</b>';
+  }
+  function ir(d){
+    const {b, i} = pos(), j = i + d; if (i < 0 || j < 0 || j >= b.length) return;
+    const v = V(); b[j].click();
+    v.classList.remove('tkp-in'); void v.offsetWidth; v.classList.add('tkp-in');
+    setTimeout(pintar, 60);
+  }
+  let y0 = null, x0 = 0, f0 = false;
+  addEventListener('touchstart', e => { if (!B().length || e.touches.length > 1 || e.target.closest('.mn-chips,input,textarea,select,dialog,.modal,[role="dialog"]')) { y0 = null; return; }
+    y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; f0 = fin(); }, {passive: true});
+  addEventListener('touchend', e => { if (y0 == null) return; const t = e.changedTouches[0], dy = t.clientY - y0, dx = t.clientX - x0; y0 = null;
+    if (dy < -70 && Math.abs(dy) > Math.abs(dx) * 1.5 && f0 && fin()) ir(1); }, {passive: true});
+  addEventListener('scroll', () => { if (sig) pintar(); }, {passive: true});
+  addEventListener('resize', pintar);
+  setInterval(pintar, 800);
+})();
+</script>
+<style>/* tkp */
+.tkp-sig{display:none}
+@media(max-width:700px){
+body.tkp-on .view[data-view="hoy"]{padding-bottom:84px}
+.tkp-sig:not([hidden]){display:flex;flex-direction:column;align-items:center;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(74px + env(safe-area-inset-bottom));z-index:40;border:0;border-radius:16px;padding:8px 18px;background:#002F57;color:#fff;font:600 12px Heebo,system-ui,sans-serif;box-shadow:0 10px 26px rgba(0,47,87,.35);max-width:calc(100% - 40px);animation:tkpPulso 1.6s ease-in-out infinite}
+.tkp-sig b{font-size:14.5px;color:#E5F7FC;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.view.tkp-in>:not(.mn-chips){animation:tkpSube .38s cubic-bezier(.2,.8,.2,1)}
+@keyframes tkpSube{from{transform:translateY(60px);opacity:0}to{transform:none;opacity:1}}
+@keyframes tkpPulso{50%{transform:translateX(-50%) translateY(-4px)}}
+}
+@media (prefers-reduced-motion:reduce){.view.tkp-in>*,.tkp-sig{animation:none!important}}
+</style>
 </body>
 </html>

@@ -4,6 +4,7 @@
 <head>
 <base target="_top">
 <meta charset="utf-8">
+<script src="vista.js"></script><!-- vc1 -->
 <!-- pwa1 --><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icono-192.png"><link rel="apple-touch-icon" href="icono-180.png">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Steren"><meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script>if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));</script>
@@ -535,6 +536,7 @@ input[type=tel],input[type=email]{width:100%;border:1px solid var(--line);border
 @media(max-width:420px){.fl-t .hs{display:none}.fl-mia b{font-size:16px}}
 /* uni1: informe Universidad Steren */
 .uni-t{overflow-x:auto;-webkit-overflow-scrolling:touch}.uni-t table{width:100%;border-collapse:collapse;font-size:13px}.uni-t th{text-align:left;font-weight:600;opacity:.7;padding:6px 6px;border-bottom:1px solid rgba(127,127,127,.3);white-space:nowrap}.uni-t td{padding:7px 6px;border-bottom:1px solid rgba(127,127,127,.18);vertical-align:top}.uni-t td.n{white-space:nowrap}.uni-e{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;white-space:nowrap}.uni-e.r{background:#fde9e7;color:#c0352b}.uni-e.a{background:#fff3e0;color:#b25c00}.uni-e.o{background:#e5f5ec;color:#1a7f4b}.uni-res{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.uni-s{font-size:12px;opacity:.7}
+/* pp1 */ .pprev{font-size:12px;color:var(--warn);margin:4px 0 2px}.pprev.venc{color:var(--bad)}.pprev.mini{margin:0;white-space:nowrap;font-size:11px}
 </style>
 <style>
 :root{--tem-head:var(--brand);--tem-ink:#fff;--tem-2:rgba(255,255,255,.8);--tem-chip:rgba(255,255,255,.18)}
@@ -2723,13 +2725,25 @@ function trfE04Auto(p){
   }
   guardarBorrador(); actualizarFooter(); return true;
 }
+/* pp1: pendiente abierto del punto (el más antiguo, igual que sd1 en el servidor) */
+function pprevDe(p){ return ((S.data && S.data.pendientes) || []).find(x => x.punto === p.id && x.estado && x.estado !== 'Cerrado') || null; }
+function pprevIso(s){ const i = iso(s); if (i) return i; const d = new Date(s); return isNaN(d) ? '' : d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function pprevHtml(p, mini){
+  const x = pprevDe(p); if (!x) return '';
+  const desde = pprevIso(x.fechaSup), fc = pprevIso(x.fechaCompromiso), hoy = S.data.hoy;
+  const venc = ABIERTOS.includes(x.estado) && fc && hoy && fc < hoy ? Math.round((new Date(hoy + 'T12:00') - new Date(fc + 'T12:00')) / 864e5) : 0;
+  const tag = mini ? 'span' : 'div';
+  return '<' + tag + ' class="pprev' + (mini ? ' mini' : '') + (venc ? ' venc' : '') + '">⏳ Pendiente' + (desde ? ' desde el ' + (+desde.slice(8, 10)) + '-' + MESES_S[+desde.slice(5, 7) - 1] : '') +
+    (x.estado === 'Por validar' ? ' · por validar' : '') + (venc ? ' · <b>vencido hace ' + venc + ' día' + (venc > 1 ? 's' : '') + '</b>' : '') + '</' + tag + '>';
+}
+function pprevTitulo(p){ const x = pprevDe(p); return x ? 'Se suma al pendiente abierto ' + esc(x.id) : 'Pendiente que se va a crear'; }
 function puntoHtml(p){
   const it = S.form.items[p.id] || {}, F = S.form;
   const g = it.calif == null ? '' : 'g' + (it.calif === 'N/A' ? 'na' : it.calif);
   if (it.calif != null && !it.abierto && !faltaEn(p) && (it.calif === '2' || it.calif === 'N/A') && !document.documentElement.classList.contains('tk')) {
     const nf = fotosDe(it).length + pendientesDe('P_' + p.id).length;
     return '<div class="card punto mini ' + g + '" data-abrir><span class="pid">' + esc(p.id) + '</span><span class="mtx">' + esc(p.texto) + '</span>' +
-      (nf ? '<span class="tiny muted">📷 ' + nf + '</span>' : '') + '<span class="mres ' + (it.calif === '2' ? 'r2' : 'rna') + '">' + (it.calif === '2' ? '✓ Cumple' : 'N/A') + '</span></div>';
+      (nf ? '<span class="tiny muted">📷 ' + nf + '</span>' : '') + pprevHtml(p, true) + '<span class="mres ' + (it.calif === '2' ? 'r2' : 'rna') + '">' + (it.calif === '2' ? '✓ Cumple' : 'N/A') + '</span></div>';
   }
   const pend = it.calif === '0' || it.calif === '1';
   const fs = fotosDe(it), max = S.data.maxFotos || 3, req = fotoReq(p, it.calif), sub = pendientesDe('P_' + p.id).filter(t => !t.error).length;
@@ -2740,7 +2754,7 @@ function puntoHtml(p){
   const sec6 = (S.data.secciones.find(s => s.cod === p.sec) || {}).nombre || '', n6 = ptsF().indexOf(p) + 1;
   return '<div class="card punto ' + g + '">' + '<div class="tk-sec">' + esc(p.sec + ') ' + sec6) + ' · ' + n6 + ' de ' + ptsF().length + '</div>' +
     '<div><span class="pid">' + esc(p.id) + '</span>' + esc(p.texto) + '</div>' +
-    '<div class="tools"><button class="link" data-guia>Ver criterio</button>' + (!verObs ? '<button class="link" data-ver="verObs">+ Observación</button>' : '') + (!verDato ? '<button class="link" data-ver="verDato">+ Dato</button>' : '') + (it.calif === '2' || it.calif === 'N/A' ? '<button class="link" data-cerrar>Listo ▲</button>' : '') + '</div>' +
+    pprevHtml(p) + '<div class="tools"><button class="link" data-guia>Ver criterio</button>' + (!verObs ? '<button class="link" data-ver="verObs">+ Observación</button>' : '') + (!verDato ? '<button class="link" data-ver="verDato">+ Dato</button>' : '') + (it.calif === '2' || it.calif === 'N/A' ? '<button class="link" data-cerrar>Listo ▲</button>' : '') + '</div>' +
     '<div class="guia">' + esc(p.criterio) + '</div>' + ventasHtml(p) + polVisitaHtml(p) + idcD04Html(p) + trfE04Html(p) +
     '<div class="cal">' + [['2','c2','Cumple'],['1','c1','Parcial'],['0','c0','Incumple'],['N/A','cna','No aplica']].map(([v,c,l]) => '<button class="' + c + ' ' + (it.calif===v?'on':'') + '" data-c="' + v + '">' + v + '<small>' + l + '</small></button>').join('') + '</div>' +
     (verObs ? '<label class="f">Observación' + (pend ? ' (qué se encontró)' : '') + '</label><textarea data-i="obs" rows="2" placeholder="Qué se encontró">' + esc(it.obs||'') + '</textarea>' : '') +
@@ -2749,7 +2763,7 @@ function puntoHtml(p){
       '<div class="phead"><span class="small"><b>Fotos</b> <span class="muted">(' + (fs.length + sub) + '/' + max + ')</span></span><span class="' + cls + '">' + (fs.length && req ? 'Listo ✓' : sub && req ? 'Subiendo…' : etiqueta) + '</span></div>' +
       (p.queFoto ? '<div class="hint">' + esc(p.queFoto) + '</div>' : '') +
       '<div data-fotos>' + fotosFila('P_' + p.id, fs, max) + '</div>') +
-    (pend ? '<div class="pblock"><div class="ttl">Pendiente que se va a crear</div>' +
+    (pend ? '<div class="pblock"><div class="ttl">' + pprevTitulo(p) + '</div>' +
       '<label class="f">Acción correctiva *</label><textarea data-i="accion" rows="2" placeholder="Qué debe hacer la tienda. Escribe y elige una sugerencia">' + esc(it.accion||'') + '</textarea>' +
       '<div class="sug" data-sug>' + sugs.map((t, i) => '<button data-s="' + i + '"><b>Sugerencia</b>' + esc(t.texto) + '</button>').join('') + '</div>' +
       '<div class="grid2">' +
@@ -2987,6 +3001,128 @@ function enlaceSup(){
     else $('#main').innerHTML = '<div class="empty">No se pudo cargar: ' + esc(e.message) + '<br><br><button class="btn primary" onclick="location.reload()">Reintentar</button></div>'; }
 })();
 setTimeout(() => { if (!S.data) $('#main').innerHTML = '<div class="empty">La conexión está tardando más de lo normal. Revisa tu internet y vuelve a intentar.<br><br><button class="btn primary" onclick="location.reload()">Reintentar</button></div>'; }, 30000);
+/* tk1: Inicio tipo TikTok (Diego 22-nov-2026). Reemplaza el armado del Inicio; los datos y botones son los mismos de antes. */
+(function(){
+  if (typeof renderInicio !== 'function') return;
+  const COL = ['#0078be', '#7b4bc4', '#d0477a', '#1a8f7a', '#e07b16', '#3d5a80'];
+  const ini = n => String(n || '').split(' ').filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase();
+  const d0 = n => '$' + Math.round(n || 0).toLocaleString('es-EC');
+  function venta(){
+    const F = S.data.flash; if (!F || !F.filas || F.filas.length < 2) return null;
+    const nm = v => { if (v === '' || v == null) return null; const n = typeof v === 'number' ? v : Number(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
+    const r = F.filas.slice(1).find(x => String(x[1]) === F.mio); if (!r) return null;
+    const f = String(r[6] || '').slice(0, 10); if (!/^\d{4}-\d{2}-\d{2}/.test(f)) return null;
+    const d = new Date(f + 'T12:00:00Z'), fin = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+    const mes = nm(r[4]) || 0, pres = nm(r[5]), ritmo = d.getUTCDate() / fin, quedan = fin - d.getUTCDate();
+    return {mes, pres, dia: nm(r[3]) || 0, cu: pres ? mes / pres : null, ritmo, quedan, mesTxt: new Intl.DateTimeFormat('es-EC', {month: 'long', timeZone: 'UTC'}).format(d)};
+  }
+  const sl = (c, vis, k, t, d, btns, extra) => '<section class="tk-s tk-c' + c + '"' + (extra || '') + '><div class="tk-vis"><div class="tk-vi">' + vis + '</div></div><div class="tk-k">' + k + '</div><div class="tk-t">' + t + '</div>' + (d ? '<div class="tk-d">' + d + '</div>' : '') + (btns ? '<div class="tk-btns">' + btns + '</div>' : '') + '</section>';
+  const bt = (txt, attr, sec) => '<button class="tk-b' + (sec ? ' sec' : '') + '" ' + attr + '>' + txt + '</button>';
+  function slides(){
+    const D = S.data, hoy = D.hoy, sem = semanaDe(hoy), G = gente(), out = [];
+    const abiertos = D.pendientes.filter(p => ABIERTOS.includes(p.estado)), venc = abiertos.filter(p => p.fechaCompromiso && p.fechaCompromiso < hoy).length;
+    const auto = D.supervisiones.find(s => s.tipo === 'Autosupervisión' && String(s.fecha).slice(0, 10) >= sem[0]);
+    /* 1. Venta del mes */
+    const v = venta(), dato = D.dato && D.dato.texto ? String(D.dato.texto) : '';
+    if (v && v.pres) {
+      const falta = Math.max(v.pres - v.mes, 0), ok = v.cu >= v.ritmo, p = Math.round(Math.min(v.cu, 1) * 100);
+      out.push(sl(0, '<div class="tk-donut' + (ok ? ' ok' : '') + '" style="--p:' + p + '"><b>' + Math.round(v.cu * 100) + '%<small>de la meta</small></b></div>',
+        'Hola, equipo ' + esc(D.tienda) + ' 👋', 'Venta de ' + esc(v.mesTxt) + ': ' + d0(v.mes),
+        'De ' + d0(v.pres) + '. ' + (v.cu >= 1 ? '¡Meta cumplida! 🎉' : (ok ? 'Vamos sobre el ritmo 💪' : 'Vamos un pelín por debajo del ritmo.') + (v.quedan > 0 ? ' Faltan <b>' + d0(falta / v.quedan) + ' por día</b>.' : '')) +
+        '<div class="tk-bar"><i class="' + (ok ? 'ok' : '') + '" style="width:' + p + '%"></i><u style="left:' + v.ritmo * 100 + '%"></u></div>' + (dato ? '<div style="opacity:.85;font-size:13px">' + esc(dato) + '</div>' : ''),
+        bt('Ver ventas', 'data-tkv') ));
+    } else if (dato) out.push(sl(0, '<div class="tk-pic">☀️</div>', 'Hola, equipo ' + esc(D.tienda) + ' 👋', 'Dato del día', esc(dato), bt('Ver ventas', 'data-tkv')));
+    /* 2. Anuncios sin confirmar: uno por pantalla */
+    (D.anuncios || []).filter(a => activo(a) && (faltan(a).length || !G.length && !a.lecturas.length)).forEach(a => {
+      const f = faltan(a), ya = lecs(a).map(l => l.persona);
+      const av = '<div class="tk-av">' + G.map((n, i) => '<span class="' + (ya.indexOf(n) < 0 ? 'no' : '') + '" style="background:' + COL[i % COL.length] + '">' + esc(ini(n)) + '</span>').join('') + '</div>';
+      out.push('<div data-an="' + esc(a.id) + '" style="display:contents">' + sl(1, '<div class="tk-pic">📣</div>', 'Anuncio · Gerencia TEFES · ' + esc(fechaCorta(a.desde)), esc(a.titulo),
+        (a.texto ? '<span class="tk-txt">' + esc(a.texto) + '</span>' : '') + av + '<div style="font-size:13px;margin-top:6px;opacity:.9">Confirmaron ' + ya.length + (G.length ? ' de ' + G.length : '') + (f.length ? ' · faltan ' + esc(f.map(x => String(x).split(' ')[0]).join(', ')) : '') + '</div>',
+        bt('👍 Leí y confirmo', 'data-conf'), '') + '</div>');
+    });
+    /* 3. Pendientes de supervisión */
+    if (abiertos.length) out.push(sl(3, '<div class="tk-num">' + abiertos.length + '</div>', 'Supervisión', abiertos.length === 1 ? '1 pendiente por corregir' : abiertos.length + ' pendientes por corregir',
+      venc ? '<b style="color:#ffb4ae">' + venc + ' vencido' + (venc > 1 ? 's' : '') + '</b>. Corrígelos y envíalos con foto.' : 'Todos a tiempo. Corrígelos y envíalos con foto.', bt('Ver pendientes', 'data-ir="pend"')));
+    /* 4. Autosupervisión de la semana */
+    if (!auto) out.push(sl(2, '<div class="tk-pic">📋</div>', 'Esta semana', 'Falta la autosupervisión', 'Hazla una vez por semana: el teléfono te lleva punto por punto.', bt('Hacer ahora', 'data-ir="sup"')));
+    /* 5. Actividades del mes (caja chica y otras) */
+    (D.actividades || []).filter(a => !a.hecho).forEach(a => { const d = diasHasta(a.vence);
+      out.push(sl(3, '<div class="tk-pic">🗓️</div>', 'Actividad del mes', esc(a.titulo), d < 0 ? '<b style="color:#ffb4ae">Vencida el ' + fechaCorta(a.vence) + '</b>' : d === 0 ? 'Vence hoy' : 'Entregar hasta el ' + fechaCorta(a.vence) + ' · faltan ' + d + ' día' + (d === 1 ? '' : 's'),
+        bt('Ya entregué', 'data-actv="' + esc(a.id + '|' + a.periodo) + '"'))); });
+    /* 6. Políticas y guías por leer */
+    const P = polPend(), Gu = guiaPend();
+    if (P.length) out.push(sl(2, '<div class="tk-stack">' + P.slice(0, 3).map(p => '<div>' + esc(p.titulo) + '<small>' + (G.length ? (G.length - polFaltan(p).length) + ' de ' + G.length + ' la aprobaron' : '') + '</small></div>').join('') + '</div>',
+      'Cómo trabajamos', P.length === 1 ? '1 política por leer' : P.length + ' políticas por leer', 'Cada uno elige su nombre y responde 3 preguntas.', bt('Leer ahora', 'data-ir="pol"')));
+    if (Gu.length) out.push(sl(5, '<div class="tk-stack">' + Gu.slice(0, 3).map(g => '<div>' + esc(g.titulo) + '<small>' + (G.length ? 'faltan ' + guiaFaltan(g).length + ' de ' + G.length : '') + '</small></div>').join('') + '</div>',
+      'Cómo trabajamos', Gu.length === 1 ? '1 guía por leer' : Gu.length + ' guías por leer', 'Cada persona la lee y confirma.', bt('Leer', 'data-ir="gui"')));
+    /* 7. Clientes: lista de espera (si hay algo que hacer) y proformas */
+    const r = D.ventasFuturas;
+    if (r && (r.llego || r.bodega || r.viejos)) out.push(sl(1, '<div class="tk-pic">⏳</div>', 'Lista de espera',
+      r.llego ? (r.llego === 1 ? 'Llegó un producto que espera un cliente' : 'Llegaron ' + r.llego + ' productos que esperan clientes') : r.bodega ? (r.bodega === 1 ? 'Un producto que espera un cliente está en otra tienda' : r.bodega + ' productos que esperan clientes están en otras tiendas') : (r.viejos === 1 ? 'Un cliente espera hace más de 60 días' : r.viejos + ' clientes esperan hace más de 60 días'),
+      r.llego ? 'Contacta al cliente hoy.' : r.bodega ? 'Pide la transferencia a tu tienda.' : 'Llámalo y ofrécele una alternativa.', bt('Ver lista de espera', 'data-ir="inv"')));
+    out.push(sl(3, '<div class="tk-pic">🧾</div>', 'Clientes', 'Proformas del equipo', '<span id="pfDet">Revisando…</span>', bt('Ver proformas', 'id="pfVer"')));
+    /* 8. Logros de la semana */
+    const inv = D.inventario, invOk = inv && (!inv.fase || inv.fase === 'Enviado'), ex = inv && inv.exactitud != null ? Math.round(inv.exactitud * (inv.exactitud <= 1 ? 100 : 1)) : null;
+    const rings = (auto ? '<div class="tk-rg" style="--p:' + Math.round(auto.total * 100) + '">' + pct(auto.total) + '<small>Autosup.</small></div>' : '') + (invOk && ex != null ? '<div class="tk-rg" style="--p:' + ex + '">' + ex + '%<small>Muestreo</small></div>' : '');
+    const chips = [auto ? '✓ Autosupervisión ' + pct(auto.total) : '', inv ? (invOk ? '✓ ' : '') + 'Muestreo Top 50: ' + esc(invTexto(inv)) : '', !abiertos.length ? '✓ Sin pendientes' : ''].filter(Boolean);
+    if (chips.length) out.push(sl(4, rings ? '<div style="text-align:center"><div style="font-size:50px">🏆</div><div class="tk-rings">' + rings + '</div></div>' : '<div class="tk-num">🏆</div>', 'Esta semana', auto || !abiertos.length ? '¡Buen trabajo, ' + esc(D.tienda) + '!' : 'Cómo vamos',
+      chips.join('<br>'), inv ? bt('Ver inventario', 'data-ir="inv"', 1) : ''));
+    /* 9. El equipo y la Universidad */
+    out.push(sl(5, tsEquipo(), 'Tu equipo', 'Lecturas del equipo', 'Aro de color = lo que cada uno ya leyó. Toca a la persona para ver qué le falta. Universidad: <span id="uniDet">revisando…</span>', bt('Ver Universidad Steren', 'id="uniVer"', 1)));
+    return out;
+  }
+  /* que nada se monte ni se salga: en cada pantalla el dibujo se achica (o se oculta) para que el texto y los botones quepan */
+  function tkAjustar(){
+    const fe = document.getElementById('tkFeed');
+    if (fe && getComputedStyle(fe).display === 'block') {   /* celular: el muro llega justo hasta el menú de abajo */
+      const nb = [...document.querySelectorAll('nav')].find(n => { const r = n.getBoundingClientRect(); return r.height && r.top > innerHeight / 2; });
+      const tope = nb ? nb.getBoundingClientRect().top : innerHeight, y = fe.getBoundingClientRect().top;
+      if (tope - y > 200) fe.style.height = Math.floor(tope - y) + 'px';
+    }
+    document.querySelectorAll('#tkFeed .tk-s').forEach(s => {
+      const v = s.querySelector('.tk-vis'), x = v && v.firstElementChild;
+      s.classList.remove('tk-apr', 'tk-apr2');
+      if (v) { v.style.display = ''; v.style.height = ''; v.style.flex = ''; if (x) x.style.transform = ''; }
+      const cs = getComputedStyle(s), libre = s.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const resto = () => [...s.children].filter(e => e !== v && getComputedStyle(e).position !== 'absolute').reduce((a, e) => { const m = getComputedStyle(e); return a + e.offsetHeight + parseFloat(m.marginTop) + parseFloat(m.marginBottom); }, 0);
+      if (!v || !x) return;
+      const alto = x.offsetHeight, hay = libre - resto() - 10;
+      if (getComputedStyle(document.getElementById('tkFeed')).display !== 'block') return;   /* compu: tarjetas crecen solas */
+      if (hay >= alto) return;
+      let k = hay / alto;
+      if (k < 0.55) { s.classList.add('tk-apr'); k = (libre - resto() - 10) / alto; }   /* primero el texto más compacto */
+      if (k < (s.querySelector('.ts-eq') ? 0.3 : 0.45)) { v.style.display = 'none'; if (libre - resto() < 0) s.classList.add('tk-apr2'); return; }   /* el equipo se achica más antes de ocultarse */
+      k = Math.min(1, k); x.style.transform = 'scale(' + k.toFixed(3) + ')'; v.style.flex = 'none'; v.style.height = Math.floor(alto * k) + 'px';
+    });
+  }
+  let _tkT; window.addEventListener('resize', () => { clearTimeout(_tkT); _tkT = setTimeout(tkAjustar, 120); });
+  renderInicio = function(){
+    const L = slides(), m = $('#main');
+    m.classList.add('tk1-on');
+    m.innerHTML = '<div class="tk-feed" id="tkFeed">' + L.join('') + '</div>' +
+      '<div class="tk-ov" id="tkVentas" hidden><div class="tk-ovh">Ventas<button data-tkx>Cerrar</button></div>' + stockBtn(S.data.stock) + flashHtml() + garHtml() + '</div>';
+    /* rayitas de avance arriba de cada pantalla (celular) */
+    const SS = [...m.querySelectorAll('.tk-s')];
+    SS.forEach((s, i) => { const p = document.createElement('div'); p.className = 'tk-pos'; p.innerHTML = SS.map((_, k) => '<i class="' + (k <= i ? 'on' : '') + '"></i>').join(''); s.appendChild(p); });
+    const fe = $('#tkFeed'); if (fe) fe.scrollTop = 0;
+    fdsMontar();
+    m.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => irA(b.dataset.ir));
+    const A = S.data.anuncios || [];
+    m.querySelectorAll('[data-conf]').forEach(b => b.onclick = () => modalConfirmar(A.find(x => x.id === b.closest('[data-an]').dataset.an)));
+    const ov = $('#tkVentas');
+    m.querySelectorAll('[data-tkv]').forEach(b => b.onclick = () => { ov.hidden = false; ov.scrollTop = 0; });
+    m.querySelectorAll('[data-tkx]').forEach(b => b.onclick = () => { ov.hidden = true; });
+    confetiFx();
+    const ub = $('#uniVer'); if (ub) ub.onclick = uniAbrir;
+    const pb = $('#pfVer'); if (pb) pb.onclick = pfTAbrir; pfTCargar().then(pfTDetalle, () => {}).then(tkAjustar);
+    uniTiendaCargar().then(uniDetalle, () => {}).then(tkAjustar);
+    tkAjustar(); setTimeout(tkAjustar, 400);
+  };
+  /* al salir del Inicio, el #main vuelve a su margen normal */
+  const _irA = irA; irA = function(v){ const m = $('#main'); if (m && v !== 'inicio') m.classList.remove('tk1-on'); return _irA.apply(this, arguments); };
+  if (S.data && S.vista === 'inicio') renderInicio();
+})();
+/* /tk1 */
 window.__S = S;
 })();
 </script>
@@ -3006,6 +3142,37 @@ window.__S = S;
 })();
 </script>
 <script>
+/* bs2: el buscador tambien encuentra datos (supervisiones e inventarios por tienda y semana). Diego 2026-11-22 */
+window.bs2Q = () => { const i = document.querySelector('.tem-caja input, input[aria-label="Buscar"]'); return String(i ? i.value : '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); };
+window.bs2Sem = iso => { const d = new Date(String(iso).slice(0, 10) + 'T12:00'); if (isNaN(d)) return null; d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7); const a = new Date(d.getFullYear(), 0, 4, 12); return {n: 1 + Math.round((d - a) / 864e5 / 7 - (3 - (a.getDay() + 6) % 7) / 7 + 0.0001), y: d.getFullYear()}; };
+window.bs2Pide = q => { const m = q.match(/(?:^|[^a-z0-9])(?:s|sem|semana)\s*(\d{1,2})(?![0-9])/);
+  return {wk: m ? +m[1] : null, sup: /supervi|autosup|califica|nota|puntaje|evalua/.test(q), inv: /inv|muestreo|conteo|top ?50|ciclico/.test(q)}; };
+window.bs2Pct = v => v == null || isNaN(v) ? '' : Math.round(v * (v <= 1 ? 100 : 1)) + ' %';
+window.bs2Kf = x => { const m = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][+String(x).slice(5, 7) - 1] || ''; return ' ' + +String(x).slice(8, 10) + ' ' + m + ' ' + m.slice(0, 3) + ' ' + m.slice(0, 4); };
+window.bs2Fc = x => +String(x).slice(8, 10) + '/' + +String(x).slice(5, 7);
+window.bs2Dias = (iso, hoy) => (new Date(String(hoy).slice(0, 10) + 'T12:00') - new Date(String(iso).slice(0, 10) + 'T12:00')) / 864e5;
+
+window.bs2Extra = function(out){
+  const D = window.TEM_DATA && TEM_DATA(); if (!D) return;
+  const q = bs2Q(), P = bs2Pide(q); if (!q || (!P.sup && !P.inv && P.wk == null)) return;
+  const hoy = String(D.hoy || new Date().toISOString()).slice(0, 10), kwS = n => ' semana sem s' + n + ' ' + n;
+  const ir = (v, sel) => () => setTimeout(() => { const el = sel && document.querySelector(sel); if (el) { el.scrollIntoView({block: 'center'}); el.style.outline = '2px solid #0096E0'; setTimeout(() => el.style.outline = '', 2500); } }, 350);
+  if (P.sup || !P.inv) (D.supervisiones || []).forEach((s, i) => { if (!s.fecha || s.total == null) return;
+    const w = bs2Sem(s.fecha), dd = bs2Dias(s.fecha, hoy); if (!w || dd < 0 || dd > (P.wk != null ? 200 : 56) || (P.wk != null && w.n !== P.wk)) return;
+    out.push({grupo: 'Supervisiones', t: 'Supervisión S' + w.n + ' · ' + bs2Pct(s.total), sub: (s.tipo || 'Supervisión') + ' del ' + bs2Fc(s.fecha) + (s.por ? ' · ' + s.por : ''),
+      kw: 'supervision autosupervision calificacion nota puntaje evaluacion historial ' + (s.tipo || '') + bs2Kf(s.fecha) + kwS(w.n), peso: -dd / 1000, v: 'sup', go: ir('sup', '.hist-l .hist-i:nth-child(' + (i + 1) + ')')});
+  });
+  if (P.inv || !P.sup) {
+    const act = bs2Sem(hoy), v = D.inventario;
+    if (v && (P.wk == null || P.wk === act.n)) out.push({grupo: 'Inventarios', t: 'Inventario de esta semana (S' + act.n + ')', sub: (typeof invTexto === 'function' ? invTexto(v) : (v.fase || '')),
+      kw: 'inventario muestreo conteo top 50 actual hoy ' + kwS(act.n), v: 'inv', go: ir('inv', '.inv')});
+    (D.informesInv || []).forEach(x => { const w = x.fecha && bs2Sem(x.fecha); if (!w || (P.wk != null && w.n !== P.wk) || (P.wk == null && bs2Dias(x.fecha, hoy) > 35)) return;
+      out.push({grupo: 'Inventarios', t: 'Inventario S' + w.n + ' · ' + (x.tipo || '') + ' · ' + (x.estado || ''), sub: 'Informe ' + x.id + ' · a descontar $' + Number(x.desc || 0).toFixed(2).replace('.', ','),
+        kw: 'inventario muestreo conteo informe acta descuento ' + bs2Kf(x.fecha) + kwS(w.n), v: 'inv', go: ir('inv', '[data-infinv="' + String(x.id).replace(/"/g, '') + '"]')}); });
+  }
+};
+</script>
+<script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "header > nav", montarBuscar: "#temTop .marca", dondeBuscar: "afterend", placeholder: "¿Qué necesitas? Conteo, caja chica, garantía…",
   temas: [{"id": "inicio", "nombre": "Inicio", "vistas": ["inicio"]}, {"id": "ventas", "nombre": "Formas de pago", "vistas": ["pago"]}, {"id": "trabajo", "nombre": "Mi trabajo", "vistas": ["pend", "sup", "inv"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["pol", "gui"]}],
@@ -3016,6 +3183,7 @@ window.TEM = {tabs: "header > nav", montarBuscar: "#temTop .marca", dondeBuscar:
     (D.politicas || []).forEach(p => out.push({grupo: 'Leer', t: p.titulo, sub: 'Cómo trabajamos › Políticas', kw: 'politica', v: 'pol'}));
     (D.guias || []).forEach(g => out.push({grupo: 'Leer', t: g.titulo, sub: 'Cómo trabajamos › ' + (g.tipo === 'Manual' ? 'Manuales' : 'Guías'), kw: (g.tipo || '') + ' ' + (g.resumen || ''), v: 'gui'}));
     (D.pendientes || []).filter(p => p.estado !== 'Cerrado').forEach(p => out.push({grupo: 'Mis pendientes', t: (p.hallazgo || p.texto || p.punto || ''), sub: 'Mi trabajo › Pendientes · ' + (p.estado || ''), kw: (p.punto || '') + ' ' + (p.seccion || ''), v: 'pend', peso: -1}));
+    try { if (window.bs2Extra) bs2Extra(out); } catch (e) {}   // bs2
     return out;
   }};
 /* tem1: temas arriba (en vez de una pestaña por pantalla) y buscador "tipo Google" (Diego 2026-10-25).
@@ -3091,7 +3259,8 @@ window.TEM = {tabs: "header > nav", montarBuscar: "#temTop .marca", dondeBuscar:
   }
   let lista = [], sel = 0;
   function buscar(){
-    const q = norm(inp.value).trim(), qs = q.split(/\s+/).filter(Boolean);
+    const BS2_STOP = new Set(["a", "al", "como", "con", "cual", "cuales", "dame", "de", "del", "el", "en", "es", "esta", "este", "fue", "la", "las", "los", "me", "mi", "mis", "mostrar", "muestrame", "para", "por", "que", "quiero", "su", "sus", "tal", "un", "una", "ver", "y"]);
+    const q = norm(inp.value).trim(), qs0 = q.split(/[\s,.;:?¿!¡]+/).filter(Boolean), qs = qs0.filter(w => !BS2_STOP.has(w)).length ? qs0.filter(w => !BS2_STOP.has(w)) : qs0;
     if (!qs.length) { res.hidden = true; res.innerHTML = ''; lista = []; return; }
     lista = todos().map(it => [puntaje(it, qs), it]).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0]).slice(0, 9).map(x => x[1]);
     sel = 0;
@@ -3104,6 +3273,9 @@ window.TEM = {tabs: "header > nav", montarBuscar: "#temTop .marca", dondeBuscar:
     res.innerHTML = h; res.hidden = false;
     res.querySelectorAll('[data-i]').forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => abrir(lista[+b.dataset.i]); });
   }
+  /* bs1 */ let bs1Ult = '';
+  function bs1Suelta(){ const q = inp.value.trim(); if (q.length < 2 || q === bs1Ult) return; bs1Ult = q;
+    try { if (window.REG) REG.ev('Buscar', q + ' → ' + (lista.length ? '(sin clic, ' + lista.length + ' resultados)' : '(sin resultados)')); } catch (e) {} }
   function abrir(it){
     if (!it) return;
     res.hidden = true; const q = inp.value; inp.value = ''; inp.blur();
@@ -3114,12 +3286,12 @@ window.TEM = {tabs: "header > nav", montarBuscar: "#temTop .marca", dondeBuscar:
   function marcar(){ res.querySelectorAll('[data-i]').forEach(b => b.classList.toggle('on', +b.dataset.i === sel)); const o = res.querySelector('[data-i="' + sel + '"]'); if (o) o.scrollIntoView({block: 'nearest'}); }
   inp.addEventListener('input', buscar);
   inp.addEventListener('focus', () => { if (inp.value) buscar(); });
-  inp.addEventListener('blur', () => setTimeout(() => { res.hidden = true; }, 150));
+  inp.addEventListener('blur', () => { bs1Suelta(); setTimeout(() => { res.hidden = true; }, 150); });
   inp.addEventListener('keydown', e => {
     if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, lista.length - 1); marcar(); e.preventDefault(); }
     else if (e.key === 'ArrowUp') { sel = Math.max(sel - 1, 0); marcar(); e.preventDefault(); }
     else if (e.key === 'Enter') { abrir(lista[sel]); e.preventDefault(); }
-    else if (e.key === 'Escape') { inp.value = ''; res.hidden = true; inp.blur(); }
+    else if (e.key === 'Escape') { bs1Suelta(); inp.value = ''; res.hidden = true; inp.blur(); }
   });
   document.addEventListener('keydown', e => {
     const t = e.target, escribe = t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable);
@@ -3476,6 +3648,144 @@ window.ppLectura = async function(el, filas, op){
   nav button[data-v=pago]{white-space:normal;line-height:1.1;text-align:center;font-size:10.5px}
   nav button[data-v=sup]{order:4} nav button[data-v=inv]{order:5} nav button[data-v=pol]{order:6}
 }
+</style>
+<!-- emx1 inicio -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap">
+<style id="emx1">
+/* emx1 · Estilo Steren México (22/11/2026). Solo apariencia y movimiento suave; no cambia lógica.
+   Referencia: steren.com.mx (blanco, azul marino #002F57, botón #006B9E, celeste #E5F7FC, letra Heebo).
+   Fuente única de este bloque: herramientas/estilo-mx/. Se copia dentro de cada página con aplicar.py. */
+:root{--brand:#006b9e;--brand-soft:#e5f7fc;--navy:#002f57;--celeste:#7fd3f5;
+  --tem-head:#fff;--tem-ink:#002f57;--tem-2:#4a5866;--tem-chip:#e5f7fc;--radius:12px}
+html,body{font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+::selection{background:#cdeefb;color:#002f57}
+/* Encabezado blanco con el logo, como steren.com.mx */
+header{background:#fff!important;color:#16202c!important;border-bottom:1px solid #e2e7ee;box-shadow:0 6px 18px -14px rgba(0,47,87,.35)}
+header h1{color:#002f57;font-weight:800}
+header .sub{color:#5d6b7a;opacity:1;letter-spacing:.14em;text-transform:uppercase;font-size:11px;font-weight:500}
+.tem-campo{background:#f4f4f4!important;border:1px solid #e2e7ee}
+.tem-sub button.on{background:#002f57;color:#fff}
+/* Bloque de la tienda (celular) en azul marino */
+.perfil{background:#002f57!important;color:#fff;border-bottom:0!important;position:relative;overflow:hidden}
+.perfil::after{content:"";position:absolute;right:-70px;top:-70px;width:180px;height:180px;border-radius:50%;background:repeating-linear-gradient(180deg,rgba(127,211,245,.14) 0 10px,transparent 10px 20px);pointer-events:none}
+.pf-top,.pf-btns,.pf-hist{position:relative;z-index:1}
+.pf-logo{border:3px solid #7fd3f5!important}
+.pf-num b{color:#fff}
+.pf-num b.warn{color:#ffd24d!important}
+.pf-num b.mal{color:#ff8a80!important}
+.pf-num span{color:#cfe3f2!important}
+.pf-btns button{background:rgba(255,255,255,.12)!important;color:#fff;border:1px solid rgba(255,255,255,.25)!important;border-radius:8px!important}
+.pf-btns button.pri{background:#fff!important;color:#002f57!important;border-color:#fff!important}
+.pf-hist button{color:#fff!important}
+.pf-hist .aro{background:rgba(255,255,255,.25)!important}
+.pf-hist button.nuevo .aro{background:#7fd3f5!important}
+.pf-hist .cir{background:#0f3a63!important;border-color:#002f57!important;color:#fff!important}
+.card{border-radius:12px;box-shadow:0 1px 2px rgba(0,47,87,.05),0 6px 18px -10px rgba(0,47,87,.25)}
+nav button.on{color:#006b9e}
+/* Movimiento suave (skills de Emil Kowalski): corto, solo para dar respuesta al toque */
+button,.btn,.chip,a.btn{transition:background-color .15s ease-out,color .15s ease-out,border-color .15s ease-out,transform .12s ease-out,box-shadow .15s ease-out}
+button:active,.btn:active,.chip:active{transform:scale(.97)}
+main .card{animation:emx-in .22s cubic-bezier(.16,1,.3,1) both}
+.perfil{animation:emx-in .25s cubic-bezier(.16,1,.3,1) both}
+@keyframes emx-in{from{opacity:.35;transform:translateY(6px)}}
+@media (hover:hover){a.card:hover,button.card:hover{transform:translateY(-2px)}}
+@media (prefers-reduced-motion: reduce){main .card,.perfil{animation:none}button:active,.btn:active,.chip:active{transform:none}}
+/* Asesores: su encabezado personal va en azul marino */
+header:has(.cab){background:#002f57!important;color:#fff!important;border-bottom:0;position:sticky;overflow:hidden}
+header:has(.cab)::after{content:"";position:absolute;right:-60px;top:-70px;width:160px;height:160px;border-radius:50%;background:repeating-linear-gradient(180deg,rgba(127,211,245,.14) 0 10px,transparent 10px 20px);pointer-events:none}
+.cab .av{border-color:#7fd3f5!important}
+.cab span{color:#cfe3f2;opacity:1}
+</style>
+<script>
+/* emx1 · Números del bloque de la tienda que suben contando (solo apariencia). */
+(function () {
+  if (!window.MutationObserver || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+  function contar(b) {
+    var fin = b.textContent, m = /^(\d{1,4})(%?)$/.exec(fin.trim());
+    if (!m || b.dataset.emx === fin) return;         // ya contado, o es un paso de nuestra propia cuenta
+    var n = +m[1], suf = m[2], ini = performance.now(), dur = 600;
+    function poner(t) { b.dataset.emx = t; b.textContent = t; }
+    poner('0' + suf);
+    (function paso(ahora) {
+      if (b.textContent !== b.dataset.emx) return;   // la app cambió el número mientras contaba: se respeta
+      var k = Math.min(1, (ahora - ini) / dur);
+      if (k >= 1) return poner(fin);
+      poner(Math.round(n * (1 - Math.pow(1 - k, 3))) + suf);
+      requestAnimationFrame(paso);
+    })(ini);
+  }
+  new MutationObserver(function () { document.querySelectorAll('.pf-num b').forEach(contar); })
+    .observe(document.documentElement, {childList: true, subtree: true, characterData: true});
+})();
+</script>
+<!-- emx1 fin -->
+<style>/* tk1: Inicio de la tienda tipo TikTok (celular) y tarjetas (computadora), colores Steren México */
+#main.tk1-on{padding-left:0;padding-right:0}
+.tk-feed{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding:4px 0 10px}
+.tk-s{position:relative;border-radius:18px;color:#fff;padding:16px 58px 16px 18px;min-height:330px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;font-family:Heebo,system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,47,87,.18)}
+.tk-c0{background:radial-gradient(circle at 80% 10%,#006B9E 0,#002F57 62%)}
+.tk-c1{background:radial-gradient(circle at 20% 15%,#1b7fb8 0,#00233f 65%)}
+.tk-c2{background:radial-gradient(circle at 85% 20%,#00a3d9 0,#003b66 66%)}
+.tk-c3{background:radial-gradient(circle at 15% 20%,#3f6fb0 0,#0b1f3a 66%)}
+.tk-c4{background:radial-gradient(circle at 80% 15%,#1f9a5c 0,#063321 66%)}
+.tk-c5{background:radial-gradient(circle at 50% 10%,#2b6ea3 0,#002F57 66%)}
+.tk-vis{flex:1;display:flex;align-items:center;justify-content:center;margin:0 -40px 8px 0;min-height:0}
+.tk-k{font-size:11px;letter-spacing:.07em;text-transform:uppercase;opacity:.85;font-weight:700}
+.tk-t{font-size:21px;font-weight:800;line-height:1.15;margin:5px 0 6px}
+.tk-big{font-size:32px;font-weight:800;line-height:1.05;margin:4px 0}
+.tk-d{font-size:14px;opacity:.93}
+.tk-d b{font-weight:700}
+.tk-btns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.tk-b{flex:1;min-width:120px;border:0;border-radius:12px;padding:11px 12px;font:700 15px Heebo,system-ui,sans-serif;background:#E5F7FC;color:#002F57;cursor:pointer}
+.tk-b.sec{background:rgba(255,255,255,.16);color:#fff}
+.tk-b:active{transform:scale(.97)}
+.tk-urg{position:absolute;top:14px;left:18px;background:#ff5a4f;color:#fff;font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 9px}
+.tk-side{position:absolute;right:10px;top:14px;display:flex;flex-direction:column;gap:12px;align-items:center;font-size:11px;text-align:center}
+.tk-side .i{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:18px;margin:0 auto 2px}
+.tk-donut{--p:0;width:150px;height:150px;border-radius:50%;background:conic-gradient(#f0a04b calc(var(--p)*1%),rgba(255,255,255,.18) 0);display:flex;align-items:center;justify-content:center;position:relative}
+.tk-donut.ok{background:conic-gradient(#2fbf71 calc(var(--p)*1%),rgba(255,255,255,.18) 0)}
+.tk-donut::after{content:"";position:absolute;inset:17px;border-radius:50%;background:#002F57}
+.tk-donut b{position:relative;z-index:1;font-size:34px;line-height:1;text-align:center}.tk-donut b small{display:block;font-size:12px;font-weight:500;opacity:.85}
+.tk-bar{height:9px;background:rgba(255,255,255,.22);border-radius:6px;position:relative;margin:10px 0 6px;overflow:hidden}.tk-bar i{position:absolute;left:0;top:0;bottom:0;background:#f0a04b;border-radius:6px}.tk-bar i.ok{background:#2fbf71}.tk-bar u{position:absolute;top:0;bottom:0;width:3px;background:#fff}
+.tk-pic{width:200px;height:150px;border-radius:20px;background:linear-gradient(160deg,#E5F7FC,#9fd8ef);box-shadow:0 14px 34px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:66px}
+.tk-av{display:flex;margin-top:8px}.tk-av span{width:30px;height:30px;border-radius:50%;border:2px solid #fff;margin-right:-7px;color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center}.tk-av span.no{opacity:.35}
+.tk-stack{display:flex;flex-direction:column;gap:7px;width:230px}.tk-stack div{background:#fff;color:#002F57;border-radius:13px;padding:9px 12px;font-weight:700;font-size:13.5px;box-shadow:0 8px 20px rgba(0,0,0,.25)}.tk-stack div:nth-child(1){transform:rotate(-2deg)}.tk-stack div:nth-child(2){transform:rotate(1.5deg)}.tk-stack small{display:block;color:#5b6b7c;font-weight:500;font-size:11.5px}
+.tk-rings{display:flex;gap:14px}.tk-rg{--p:0;width:96px;height:96px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;font-weight:800;position:relative}.tk-rg::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(#2fbf71 calc(var(--p)*1%),rgba(255,255,255,.2) 0);-webkit-mask:radial-gradient(circle,transparent 38px,#000 39px);mask:radial-gradient(circle,transparent 38px,#000 39px)}.tk-rg small{font-size:10.5px;font-weight:500;opacity:.85}
+.tk-num{font-size:84px;font-weight:800;line-height:1;text-shadow:0 8px 24px rgba(0,0,0,.3)}
+.tk-s .ts-eq{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 4px;max-width:270px}.tk-s .ts-st{color:#fff;background:none;border:0}.tk-s .ts-st small,.tk-s .ts-st em{color:#fff}.tk-s .ts-h{display:none}
+.tk-pos{display:none}
+.tk-ov{position:fixed;inset:0;z-index:60;background:var(--bg,#f4f6f8);overflow-y:auto;padding:0 12px 90px}.tk-ov[hidden]{display:none}
+.tk-ovh{position:sticky;top:0;z-index:2;background:#fff;margin:0 -12px 12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e3e8ee;font:700 17px Heebo,system-ui,sans-serif;color:#002F57}
+.tk-ovh button{border:0;background:#E5F7FC;color:#002F57;border-radius:10px;padding:8px 14px;font-weight:700}
+.tk-s #pfDet,.tk-s #uniDet{color:#ffd0cc!important;font-weight:600}
+@media(min-width:701px){.tk-s{padding:16px 18px}.tk-vis{margin:0 0 10px}.tk-donut{width:130px;height:130px}.tk-donut::after{inset:15px}.tk-donut b{font-size:30px}.tk-pic{width:150px;height:105px;font-size:50px}.tk-stack{width:100%}.tk-stack div{font-size:12.5px;padding:7px 10px}.tk-rg{width:84px;height:84px;font-size:19px}.tk-rg::before{-webkit-mask:radial-gradient(circle,transparent 33px,#000 34px);mask:radial-gradient(circle,transparent 33px,#000 34px)}.tk-t{font-size:20px}.tk-b{min-width:0}}
+@media(min-width:701px){.tk-s:has(.ts-eq){grid-column:span 2}.tk-s .ts-eq{max-width:none}.tk-vis{flex:none;margin-top:auto;margin-bottom:auto}.tk-feed{align-items:stretch}}
+@media(max-width:1000px) and (min-width:701px){.tk-feed{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){
+  #main.tk1-on{padding:0!important;margin:0!important}
+  .tk-feed{display:block;height:calc(100dvh - var(--hh,100px) - 62px - env(safe-area-inset-bottom));overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;overscroll-behavior:contain;padding:0;gap:0}
+  .tk-feed::-webkit-scrollbar{display:none}
+  .tk-s{height:100%;min-height:0;border-radius:0;scroll-snap-align:start;scroll-snap-stop:always;padding:44px 62px 18px 20px;box-shadow:none}
+  .tk-t{font-size:25px}.tk-big{font-size:42px}.tk-d{font-size:15px}
+  .tk-donut{width:190px;height:190px}.tk-donut::after{inset:21px}.tk-donut b{font-size:44px}
+  .tk-pic{width:250px;height:200px;font-size:84px}.tk-stack{width:260px}.tk-rg{width:112px;height:112px}.tk-rg::before{-webkit-mask:radial-gradient(circle,transparent 45px,#000 46px);mask:radial-gradient(circle,transparent 45px,#000 46px)}
+  .tk-side{top:auto;bottom:110px}
+  .tk-urg{top:14px}
+  .tk-pos{display:flex;position:absolute;top:12px;left:20px;right:20px;gap:4px;z-index:3}.tk-pos i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.3)}.tk-pos i.on{background:#fff}
+  .tk-urg{top:24px}
+}
+/* si ni sin dibujo cabe: texto más compacto */
+.tk-s.tk-apr .tk-t{font-size:20px}
+.tk-s.tk-apr .tk-d{font-size:13.5px}
+.tk-txt{display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical;overflow:hidden}
+.tk-s.tk-apr .tk-txt{-webkit-line-clamp:4}
+.tk-s.tk-apr2 .tk-txt{-webkit-line-clamp:2}
+.tk-s.tk-apr .tk-big{font-size:32px}
+.tk-vi{display:flex;flex-direction:column;align-items:center;justify-content:center;transform-origin:center center;flex:none;width:100%}
+/* celulares chicos: que los nombres del menú de abajo no se monten */
+@media(max-width:380px){nav button{font-size:9px!important;flex:1 1 0!important;min-width:0;white-space:normal!important;line-height:1.1;text-align:center}}
+@media(max-width:700px){.tk-s .ts-eq{flex-wrap:nowrap;overflow-x:auto;max-width:100%;justify-content:safe center;scrollbar-width:none;padding:4px 2px}.tk-s .ts-eq::-webkit-scrollbar{display:none}.tk-s .ts-eq>*{flex:none}}
+@media (prefers-reduced-motion:reduce){.tk-b:active{transform:none}}
 </style>
 </body>
 </html>

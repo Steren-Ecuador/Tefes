@@ -1,0 +1,44 @@
+<script>/* tkp: Inicio del panel tipo TikTok en el celular (22-nov-2026, Diego): cada parte del Inicio es una pantalla; al llegar al final se desliza hacia arriba para pasar a la siguiente */
+(function(){
+  const cel = () => matchMedia('(max-width:700px)').matches;
+  const V = () => document.querySelector('.view[data-view="hoy"]');
+  const B = () => { const v = V(); return v && !v.hidden && cel() ? [...v.querySelectorAll(':scope > .mn-chips button')] : []; };
+  const pos = () => { const b = B(); return {b, i: b.findIndex(x => x.classList.contains('on'))}; };
+  const fin = () => innerHeight + scrollY >= document.documentElement.scrollHeight - 4;
+  let sig = null;
+  function pintar(){
+    const {b, i} = pos();
+    if (!sig) { sig = document.createElement('button'); sig.type = 'button'; sig.className = 'tkp-sig'; sig.onclick = () => ir(1); document.body.appendChild(sig);}
+    const ok = b.length > 1 && i >= 0;
+    document.body.classList.toggle('tkp-on', ok && i < b.length - 1);
+    sig.hidden = !(ok && i < b.length - 1 && fin());
+    if (!sig.hidden) sig.innerHTML = '<span>Desliza ↑ o toca para ver</span><b>' + b[i + 1].textContent + '</b>';
+  }
+  function ir(d){
+    const {b, i} = pos(), j = i + d; if (i < 0 || j < 0 || j >= b.length) return;
+    const v = V(); b[j].click();
+    v.classList.remove('tkp-in'); void v.offsetWidth; v.classList.add('tkp-in');
+    setTimeout(pintar, 60);
+  }
+  let y0 = null, x0 = 0, f0 = false;
+  addEventListener('touchstart', e => { if (!B().length || e.touches.length > 1 || e.target.closest('.mn-chips,input,textarea,select,dialog,.modal,[role="dialog"]')) { y0 = null; return; }
+    y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; f0 = fin(); }, {passive: true});
+  addEventListener('touchend', e => { if (y0 == null) return; const t = e.changedTouches[0], dy = t.clientY - y0, dx = t.clientX - x0; y0 = null;
+    if (dy < -70 && Math.abs(dy) > Math.abs(dx) * 1.5 && f0 && fin()) ir(1); }, {passive: true});
+  addEventListener('scroll', () => { if (sig) pintar(); }, {passive: true});
+  addEventListener('resize', pintar);
+  setInterval(pintar, 800);
+})();
+</script>
+<style>/* tkp */
+.tkp-sig{display:none}
+@media(max-width:700px){
+body.tkp-on .view[data-view="hoy"]{padding-bottom:84px}
+.tkp-sig:not([hidden]){display:flex;flex-direction:column;align-items:center;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(74px + env(safe-area-inset-bottom));z-index:40;border:0;border-radius:16px;padding:8px 18px;background:#002F57;color:#fff;font:600 12px Heebo,system-ui,sans-serif;box-shadow:0 10px 26px rgba(0,47,87,.35);max-width:calc(100% - 40px);animation:tkpPulso 1.6s ease-in-out infinite}
+.tkp-sig b{font-size:14.5px;color:#E5F7FC;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.view.tkp-in>:not(.mn-chips){animation:tkpSube .38s cubic-bezier(.2,.8,.2,1)}
+@keyframes tkpSube{from{transform:translateY(60px);opacity:0}to{transform:none;opacity:1}}
+@keyframes tkpPulso{50%{transform:translateX(-50%) translateY(-4px)}}
+}
+@media (prefers-reduced-motion:reduce){.view.tkp-in>*,.tkp-sig{animation:none!important}}
+</style>
