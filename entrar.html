@@ -16,12 +16,12 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap">
 <!-- PRUEBA del ingreso por cargo (25/10/2026). Habla con IngresoPrueba.gs por el doPost de la app. Los enlaces de siempre no cambian. -->
 <style>
-/* Estilo de prueba (22/11/2026): mundo visual de steren.com.ec. Solo CSS y encabezado; la lógica no cambia. */
+/* Estilo de prueba (22/11/2026): mundo visual de steren.com.mx. Solo CSS y encabezado; la lógica no cambia. */
 :root{
   --bg:#f4f7fa; --surface:#ffffff; --line:#e2e8ee; --line-2:#c3ced8;
   --fg:#16202a; --fg-2:#45525f; --fg-3:#5c6875;
-  --brand:#0093d0; --accent:#0077b0; --accent-hover:#00669a; --accent-ink:#ffffff; --accent-soft:#e5f3fa; --accent-text:#005a85;
-  --top:#ffffff; --bad:#c0392b; --bad-soft:#fdecea; --warn-soft:#fff6e0; --warn-line:#f1dca8;
+  --brand:#0093d0; --accent:#006b9e; --accent-hover:#005a87; --accent-ink:#ffffff; --accent-soft:#e5f7fc; --accent-text:#003b7c;
+  --navy:#002f57; --navy-2:#003b7c; --rojo:#e01218; --top:#ffffff; --bad:#c0392b; --bad-soft:#fdecea; --warn-soft:#fff6e0; --warn-line:#f1dca8;
   --ring:0 0 0 3px rgba(0,147,208,.28);
   --sombra:0 1px 2px rgba(22,32,42,.04),0 8px 24px -12px rgba(22,32,42,.12);
   --f-body:"Heebo",-apple-system,"Segoe UI",Arial,sans-serif;
@@ -31,13 +31,13 @@
   --bg:#0e141a; --surface:#16202a; --line:#24313e; --line-2:#3a4958;
   --fg:#e8eef3; --fg-2:#aab6c2; --fg-3:#95a2af;
   --brand:#38b6ea; --accent:#38b6ea; --accent-hover:#5cc5f0; --accent-ink:#06121b; --accent-soft:#12303f; --accent-text:#bfe6f7;
-  --top:#121a22; --bad:#f0796d; --bad-soft:#3d1c19; --warn-soft:#33280f; --warn-line:#5a4720;
+  --navy:#0a2a47; --navy-2:#0f3a63; --rojo:#ff5a5f; --top:#121a22; --bad:#f0796d; --bad-soft:#3d1c19; --warn-soft:#33280f; --warn-line:#5a4720;
   --ring:0 0 0 3px rgba(56,182,234,.35); --sombra:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0e141a; --surface:#16202a; --line:#24313e; --line-2:#3a4958;
   --fg:#e8eef3; --fg-2:#aab6c2; --fg-3:#95a2af;
   --brand:#38b6ea; --accent:#38b6ea; --accent-hover:#5cc5f0; --accent-ink:#06121b; --accent-soft:#12303f; --accent-text:#bfe6f7;
-  --top:#121a22; --bad:#f0796d; --bad-soft:#3d1c19; --warn-soft:#33280f; --warn-line:#5a4720;
+  --navy:#0a2a47; --navy-2:#0f3a63; --rojo:#ff5a5f; --top:#121a22; --bad:#f0796d; --bad-soft:#3d1c19; --warn-soft:#33280f; --warn-line:#5a4720;
   --ring:0 0 0 3px rgba(56,182,234,.35); --sombra:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased}
@@ -104,18 +104,42 @@ p .link{font-size:inherit;padding:6px 2px;margin:-6px 0}
 .rueda{width:32px;height:32px;border:3px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:g 0.9s linear infinite}
 @keyframes g{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion: reduce){.rueda{animation-duration:3s}.btn,input{transition:none}}
+
+/* Mundo Steren México: franja azul marino, titular en bloque marino, banda celeste */
+.franja{background:var(--navy);color:#fff;font-size:14px;padding:9px 16px}
+.franja .in{max-width:440px;margin:0 auto;display:flex;align-items:center;gap:8px}
+.franja svg{flex:none;color:#7fd3f5}
+.franja b{color:#ffd24d;font-weight:700}
+main{padding-top:20px}
+.titular{background:var(--navy);color:#fff;border-radius:12px;padding:22px 20px 20px;box-shadow:0 10px 30px -14px rgba(0,47,87,.6);position:relative;overflow:hidden}
+.titular::after{content:"";position:absolute;right:-70px;top:-60px;width:150px;height:150px;border-radius:50%;background:repeating-linear-gradient(180deg,rgba(127,211,245,.16) 0 9px,transparent 9px 18px);pointer-events:none}
+.titular h1{color:#fff;position:relative}
+.titular .suave{color:#cfe3f2;position:relative}
+.titular .sello{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7fd3f5;margin-bottom:8px;position:relative}
+.btn{border-radius:8px;font-weight:700}
+input{border-radius:8px}
+.card{border-radius:12px}
+.puedes{background:var(--accent-soft);border-color:transparent;box-shadow:none}
+.puedes h2{color:var(--accent-text)}
+.puedes li::before{background:var(--surface)}
+.chip{background:transparent;border:1.5px solid var(--navy-2);color:var(--navy-2);font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase}
+.avatar{background:var(--navy);color:#fff;box-shadow:0 0 0 4px var(--accent-soft)}
+#vRevisa>.icono{display:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .chip{border-color:var(--accent);color:var(--accent-text)}}
+:root[data-theme="dark"] .chip{border-color:var(--accent);color:var(--accent-text)}
 </style>
 </head>
 <body>
 <div class="prueba">Prueba del ingreso por cargo. Los enlaces de siempre siguen igual.</div>
 <header><div class="in"><div class="marca"><img src="icono-192.png" alt="" width="36" height="36"><div><b>TEFES</b><span>Steren · Ecuador</span></div></div></div></header>
+<div class="franja"><div class="in"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span><b>Portal de tiendas</b> · supervisión, ventas y políticas</span></div></div>
 <main>
   <div class="aviso" id="aviso" role="alert" hidden></div>
 
   <section class="vista" id="vCargando"><div class="cargando"><div class="rueda" aria-label="Cargando"></div></div></section>
 
   <section class="vista" id="vPedir" hidden>
-    <div><h1>Entra con tu correo</h1><p class="suave">Sin claves. Te llega un código al correo, lo escribes aquí y listo.</p></div>
+    <div class="titular"><span class="sello">Ingreso sin claves</span><h1>Entra con tu correo</h1><p class="suave">Sin claves. Te llega un código al correo, lo escribes aquí y listo.</p></div>
     <form id="fPedir" class="vista" novalidate>
       <div class="campo"><label for="correo">Tu correo</label>
         <input id="correo" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="nombre@correo.com" required></div>
@@ -137,7 +161,7 @@ p .link{font-size:inherit;padding:6px 2px;margin:-6px 0}
 
   <section class="vista" id="vRevisa" hidden>
     <div class="icono" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
-    <div><h1>Revisa tu correo</h1><p class="suave" id="tRevisa">Si tu correo está registrado, en menos de un minuto te llega un código de 6 dígitos. Vence en 15 minutos.</p></div>
+    <div class="titular"><span class="sello">Paso 2 de 2</span><h1>Revisa tu correo</h1><p class="suave" id="tRevisa">Si tu correo está registrado, en menos de un minuto te llega un código de 6 dígitos. Vence en 15 minutos.</p></div>
     <form id="fCodigo" class="card" novalidate>
       <label for="codigo">Escribe aquí el código del correo</label>
       <input id="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000 000">
@@ -158,7 +182,7 @@ p .link{font-size:inherit;padding:6px 2px;margin:-6px 0}
   </section>
 
   <section class="vista" id="vDentro" hidden>
-    <div><h1 id="dNombre"></h1><p class="suave" id="dDesde"></p></div>
+    <div class="titular"><h1 id="dNombre"></h1><p class="suave" id="dDesde"></p></div>
     <div id="dIr" class="vista"></div>
     <div id="dPerfiles" class="vista"></div>
     <p class="chico" id="dNotas"></p>
