@@ -3490,5 +3490,75 @@ window.ppLectura = async function(el, filas, op){
   nav button[data-v=sup]{order:4} nav button[data-v=inv]{order:5} nav button[data-v=pol]{order:6}
 }
 </style>
+<!-- emx1 inicio -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap">
+<style id="emx1">
+/* emx1 · Estilo Steren México (22/11/2026). Solo apariencia y movimiento suave; no cambia lógica.
+   Referencia: steren.com.mx (blanco, azul marino #002F57, botón #006B9E, celeste #E5F7FC, letra Heebo).
+   Fuente única de este bloque: herramientas/estilo-mx/. Se copia dentro de cada página con aplicar.py. */
+:root{--brand:#006b9e;--brand-soft:#e5f7fc;--navy:#002f57;--celeste:#7fd3f5;
+  --tem-head:#fff;--tem-ink:#002f57;--tem-2:#4a5866;--tem-chip:#e5f7fc;--radius:12px}
+html,body{font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+::selection{background:#cdeefb;color:#002f57}
+/* Encabezado blanco con el logo, como steren.com.mx */
+header{background:#fff!important;color:#16202c!important;border-bottom:1px solid #e2e7ee;box-shadow:0 6px 18px -14px rgba(0,47,87,.35)}
+header h1{color:#002f57;font-weight:800}
+header .sub{color:#5d6b7a;opacity:1;letter-spacing:.14em;text-transform:uppercase;font-size:11px;font-weight:500}
+.tem-campo{background:#f4f4f4!important;border:1px solid #e2e7ee}
+.tem-sub button.on{background:#002f57;color:#fff}
+/* Bloque de la tienda (celular) en azul marino */
+.perfil{background:#002f57!important;color:#fff;border-bottom:0!important;position:relative;overflow:hidden}
+.perfil::after{content:"";position:absolute;right:-70px;top:-70px;width:180px;height:180px;border-radius:50%;background:repeating-linear-gradient(180deg,rgba(127,211,245,.14) 0 10px,transparent 10px 20px);pointer-events:none}
+.pf-top,.pf-btns,.pf-hist{position:relative;z-index:1}
+.pf-logo{border:3px solid #7fd3f5!important}
+.pf-num b{color:#fff}
+.pf-num b.warn{color:#ffd24d!important}
+.pf-num b.mal{color:#ff8a80!important}
+.pf-num span{color:#cfe3f2!important}
+.pf-btns button{background:rgba(255,255,255,.12)!important;color:#fff;border:1px solid rgba(255,255,255,.25)!important;border-radius:8px!important}
+.pf-btns button.pri{background:#fff!important;color:#002f57!important;border-color:#fff!important}
+.pf-hist button{color:#fff!important}
+.pf-hist .aro{background:rgba(255,255,255,.25)!important}
+.pf-hist button.nuevo .aro{background:#7fd3f5!important}
+.pf-hist .cir{background:#0f3a63!important;border-color:#002f57!important;color:#fff!important}
+.card{border-radius:12px;box-shadow:0 1px 2px rgba(0,47,87,.05),0 6px 18px -10px rgba(0,47,87,.25)}
+nav button.on{color:#006b9e}
+/* Movimiento suave (skills de Emil Kowalski): corto, solo para dar respuesta al toque */
+button,.btn,.chip,a.btn{transition:background-color .15s ease-out,color .15s ease-out,border-color .15s ease-out,transform .12s ease-out,box-shadow .15s ease-out}
+button:active,.btn:active,.chip:active{transform:scale(.97)}
+main .card{animation:emx-in .22s cubic-bezier(.16,1,.3,1) both}
+.perfil{animation:emx-in .25s cubic-bezier(.16,1,.3,1) both}
+@keyframes emx-in{from{opacity:.35;transform:translateY(6px)}}
+@media (hover:hover){a.card:hover,button.card:hover{transform:translateY(-2px)}}
+@media (prefers-reduced-motion: reduce){main .card,.perfil{animation:none}button:active,.btn:active,.chip:active{transform:none}}
+/* Asesores: su encabezado personal va en azul marino */
+header:has(.cab){background:#002f57!important;color:#fff!important;border-bottom:0;position:sticky;overflow:hidden}
+header:has(.cab)::after{content:"";position:absolute;right:-60px;top:-70px;width:160px;height:160px;border-radius:50%;background:repeating-linear-gradient(180deg,rgba(127,211,245,.14) 0 10px,transparent 10px 20px);pointer-events:none}
+.cab .av{border-color:#7fd3f5!important}
+.cab span{color:#cfe3f2;opacity:1}
+</style>
+<script>
+/* emx1 · Números del bloque de la tienda que suben contando (solo apariencia). */
+(function () {
+  if (!window.MutationObserver || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+  function contar(b) {
+    var fin = b.textContent, m = /^(\d{1,4})(%?)$/.exec(fin.trim());
+    if (!m || b.dataset.emx === fin) return;         // ya contado, o es un paso de nuestra propia cuenta
+    var n = +m[1], suf = m[2], ini = performance.now(), dur = 600;
+    function poner(t) { b.dataset.emx = t; b.textContent = t; }
+    poner('0' + suf);
+    (function paso(ahora) {
+      if (b.textContent !== b.dataset.emx) return;   // la app cambió el número mientras contaba: se respeta
+      var k = Math.min(1, (ahora - ini) / dur);
+      if (k >= 1) return poner(fin);
+      poner(Math.round(n * (1 - Math.pow(1 - k, 3))) + suf);
+      requestAnimationFrame(paso);
+    })(ini);
+  }
+  new MutationObserver(function () { document.querySelectorAll('.pf-num b').forEach(contar); })
+    .observe(document.documentElement, {childList: true, subtree: true, characterData: true});
+})();
+</script>
+<!-- emx1 fin -->
 </body>
 </html>
