@@ -5117,6 +5117,8 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
 .p22-err{color:#b3261e;font-size:13.5px;min-height:18px;margin:10px 0 0}
 .p22-bt{display:flex;gap:8px;margin-top:12px}.p22-bt .btn{flex:1;padding:10px}
 .p22-res{background:var(--surface-2,#eef3f8);border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.5}
+.fpg-cc [data-fps],.fpg-cc #fpgB,.fpg-cc .fpg-bar{display:none!important}
+.p22-cc{display:inline-block;margin-left:4px;padding:0 6px;border-radius:6px;background:#e8eefc;color:#1a3f8f;font-size:11.5px;font-weight:600}
 @media(max-width:560px){.p22-it{grid-template-columns:minmax(0,1fr) auto}.p22-it .btn{grid-column:1 / 3;width:100%}}
 </style>
 <script>/* fpg22 (Diego 21-nov): arriba de Formas de pago, las tiendas con pagos del POS sin registrar o que no cuadran.
@@ -5135,7 +5137,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     if (P.cargando) return;
     if (!C() || !quien()) { setTimeout(cargar, 800); return; }
     P.cargando = true; P.error = '';
-    C().api('apiFPGPanelPos', quien()).then(x => { P.d = x; const T = x.tiendas || []; if (!T.some(y => y.tienda === P.t)) P.t = (T[0] || {}).tienda || ''; })
+    C().api('apiFPGPanelPos', quien()).then(x => { P.d = x; document.body.classList.toggle('fpg-cc', !!x.cc); if (x.cc && window.fpgColorPerfil) window.fpgColorPerfil('Call center'); const T = x.tiendas || []; if (!T.some(y => y.tienda === P.t)) P.t = (T[0] || {}).tienda || ''; })
       .catch(err => { P.error = (err && err.message) || 'No se pudo cargar el cuadre con el POS.'; })
       .finally(() => { P.cargando = false; pintar(); });
   }
@@ -5149,16 +5151,17 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     if (P.error) { el.innerHTML = '<div class="p22"><span class="small faint">' + e(P.error) + '</span> <button class="btn" id="p22Re">Reintentar</button></div>'; document.getElementById('p22Re').onclick = cargar; return; }
     if (!P.d) { el.innerHTML = '<div class="p22"><span class="small faint">Cruzando con el POS…</span></div>'; return; }
     const T = P.d.tiendas || [], tot = T.reduce((a, x) => a + x.pend.length, 0), totv = T.reduce((a, x) => a + x.pend.reduce((b, p) => b + p.valor, 0), 0), rv = T.reduce((a, x) => a + x.rev.length, 0);
-    let h = '<div class="p22"><div class="p22-h"><b>Cuadre con el POS</b><span>' + (tot ? tot + ' por registrar (' + usd(totv) + ')' : 'Nada por registrar') + (rv ? ' · ' + rv + ' por revisar' : '') + ' · desde el ' + fC(P.d.desde) + '</span></div>';
-    if (!tot && !rv) { el.innerHTML = h + '<div class="p22-ok">✓ Todas las tiendas al día con el POS</div></div>'; return; }
+    const CC = P.d.cc;
+    let h = '<div class="p22"><div class="p22-h"><b>' + (CC ? (CC.jefe ? 'Ventas del call center sin registrar' : 'Tus ventas por registrar') : 'Cuadre con el POS') + '</b><span>' + (tot ? tot + ' por registrar (' + usd(totv) + ')' : 'Nada por registrar') + (rv ? ' · ' + rv + ' por revisar' : '') + ' · desde el ' + fC(P.d.desde) + '</span></div>';
+    if (!tot && !rv) { el.innerHTML = h + '<div class="p22-ok">' + (CC ? '✓ No hay ventas del call center pendientes' : '✓ Todas las tiendas al día con el POS') + '</div></div>'; return; }
     h += '<div class="p22-ch">' + T.map(x => { const n = x.pend.length, r = x.rev.length;
       return '<button data-p22t="' + e(x.tienda) + '"' + (x.tienda === P.t ? ' class="on"' : '') + '>' + e(x.tienda) + (n ? '<i>' + n + '</i>' : '') + (r ? '<i class="rv">' + r + '</i>' : '') + (!n && !r ? '<i class="ok">✓</i>' : '') + '</button>'; }).join('') + '</div>';
     const A = tAct();
     if (A) {
-      const adm = P.d.admin;
+      const adm = P.d.admin, reg = adm || !!(CC && CC.registra);
       if (A.pend.length) h += '<div class="p22-bx p22-reg"><div class="p22-bh">Por registrar en ' + e(A.tienda) + '<span>' + A.pend.length + ' · ' + usd(A.pend.reduce((a, p) => a + p.valor, 0)) + '</span></div>' +
         A.pend.map((p, i) => '<div class="p22-it"><div><b>Factura ' + e(fac(A, p.sec) || 'N° ' + p.sec) + '</b><small>' + fC(p.fecha) + ' · ' + (p.tipo === 'NC' ? 'Nota de crédito' : 'Transferencia' + (p.banco === '17' ? ' (Deuna)' : '') + (p.ref ? ' · comprobante ' + e(p.ref) : '')) +
-          (p.total > p.valor + 0.009 ? ' · factura de ' + usd(p.total) : '') + '</small></div><span class="p22-v">' + usd(p.valor) + '</span>' + (adm ? '<button class="btn primary" data-p22r="' + i + '">Registrar</button>' : '<span></span>') + '</div>').join('') + '</div>';
+          (p.total > p.valor + 0.009 ? ' · factura de ' + usd(p.total) : '') + (p.cc && !(CC && !CC.jefe) ? '<span class="p22-cc">Call center · ' + e(p.cc) + '</span>' : '') + '</small></div><span class="p22-v">' + usd(p.valor) + '</span>' + (reg ? '<button class="btn primary" data-p22r="' + i + '">Registrar</button>' : '<span></span>') + '</div>').join('') + '</div>';
       if (A.rev.length) h += '<div class="p22-bx p22-rev"><div class="p22-bh">Por revisar en ' + e(A.tienda) + '<span>' + A.rev.length + '</span></div>' +
         A.rev.map((r, i) => { const x = r.x;
           const txt = r.tipo === 'valor' ? 'Registraron ' + usd(r.suma) + ' y el POS tiene ' + usd(r.pos.valor) + ' en esta factura.' :
@@ -5189,8 +5192,8 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
         '<label>Forma de pago</label><div class="p22-fx" id="p22Fx">' + formas.map(f => '<button data-f="' + e(f) + '"' + (f === F0 ? ' class="on"' : '') + '>' + e(f === 'Transferencias' ? 'Transferencia bancaria' : f) + '</button>').join('') + '</div>' +
         '<div id="p22Cta" hidden><label>Cuenta que recibió</label><select id="p22Ban"><option value="">Elige la cuenta</option>' + CUENTAS.map(c => '<option>' + e(c) + '</option>').join('') + '</select></div>' +
         '<label id="p22RefL">Comprobante</label><input id="p22Ref" inputmode="numeric" value="' + e(p.ref || '') + '">') +
-      '<label>Vendedor</label><select id="p22Ven"><option value="">Elige quién vendió</option>' + (A.gente || []).map(n => '<option>' + e(n) + '</option>').join('') + '</select>' +
-      '<label>Foto del comprobante (opcional)</label><input type="file" id="p22Foto" accept="image/*">' +
+      (P.d.cc ? '<label>Vendedor</label><input id="p22Ven" value="' + e(P.d.cc.nombre) + '" readonly>' : '<label>Vendedor</label><select id="p22Ven"><option value="">Elige quién vendió</option>' + (A.gente || []).map(n => '<option>' + e(n) + '</option>').join('') + '</select>') +
+      '<label>Foto del comprobante' + (P.d.cc ? ' (obligatoria en transferencias)' : ' (opcional)') + '</label><input type="file" id="p22Foto" accept="image/*">' +
       '<div class="p22-err" id="p22Err"></div><div class="p22-bt"><button class="btn" id="p22No">Cancelar</button><button class="btn primary" id="p22Si">Guardar</button></div>');
     const $ = id => m.querySelector('#' + id); let forma = F0;
     const fx = () => { m.querySelectorAll('#p22Fx button').forEach(b => b.classList.toggle('on', b.dataset.f === forma)); const c = $('p22Cta'); if (c) c.hidden = forma !== 'Transferencias';
@@ -5224,6 +5227,15 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
       catch (y) { b.disabled = false; b.textContent = 'Cambiar'; m.querySelector('#p22Err').textContent = (y && y.message) || 'No se pudo corregir.'; } };
   }
   window.fpg22 = {P: P, pintar: pintar, cargar: cargar};
+  /* Color de la cabecera por perfil (Diego 21-nov): supervisores y gerencia azul Steren; Financiero, Control y liquidaciones y Auditoría verde petróleo; call center morado. */
+  const COL = {'financiero': '#0f766e', 'control y liquidaciones': '#0f766e', 'auditores': '#0f766e', 'auditoria': '#0f766e', 'call center': '#6d28d9', 'call center jefe': '#6d28d9'};
+  window.fpgColorPerfil = p => { const c = COL[String(p || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()]; if (!c) return;
+    const r = document.documentElement.style; r.setProperty('--head', c); r.setProperty('--tem-head', c);
+    const eb = document.getElementById('eyebrow'); if (eb && /^Supervisores/.test(eb.textContent)) eb.textContent = eb.textContent.replace(/^Supervisores/, /^call/i.test(p) ? 'Call center' : String(p).trim()); };
+  let nC = 0; const tC = setInterval(() => { const c = window.cvCtx;
+    if (c && typeof c.api === 'function' && !c.__col) { const a = c.api; c.api = function (fn) { const pr = a.apply(this, arguments);
+      if (fn === 'apiMenusPerfil' && pr && pr.then) pr.then(r => { try { window.fpgColorPerfil(r && r.perfil); } catch (x) {} }); return pr; }; c.__col = 1; clearInterval(tC); }
+    if (++nC > 300) clearInterval(tC); }, 50);
   const v = document.querySelector('.view[data-view="formaspago"]');
   if (v) {
     const mira = () => { if (!v.hidden && !P.d && !P.cargando) { pintar(); cargar(); } };

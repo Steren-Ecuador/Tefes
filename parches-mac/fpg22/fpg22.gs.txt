@@ -28,18 +28,22 @@ function apiFPGPanelPos(ptoken, quien) {
     .filter(x => x.tipo && x.sec && x.fecha >= ini);
   const anu = fpgAnuladas_(); pos = pos.filter(x => !anu.has(fpgSinAc_(x.tienda) + ' ' + x.sec));
   const nombres = tiendasFilas_().filter(r => r[0] && String(r[1]).toLowerCase().indexOf('s') === 0).map(r => r[0]);
-  const tiendas = nombres.map(t => {
+  const CCD = fpgCCDatos_(), cc = fpgCC_(s, CCD);   // call center
+  let tiendas = nombres.map(t => {
     const k = fpgSinAc_(t), c = fpgCruce_(t, lista, pos.filter(x => fpgSinAc_(x.tienda) === k));
     const pre = lista.filter(x => x.tienda === t).map(x => String(x.factura).slice(0, 7)).filter(x => /^\d{3}-\d{3}$/.test(x));
+    c.pend.forEach(p => { const per = CCD.fac[k + ' ' + p.sec]; if (per) p.cc = per; });   // call center: de quién es la venta
     return {tienda: t, prefijo: pre.sort((a, b) => pre.filter(y => y === b).length - pre.filter(y => y === a).length)[0] || '', pend: c.pend, rev: c.rev,
       gente: s.admin ? vfGente_(t).map(x => x.nombre) : []};
   }).filter(x => x.pend.length || x.rev.length || pos.some(p => fpgSinAc_(p.tienda) === fpgSinAc_(x.tienda)))
     .sort((a, b) => (b.pend.length + b.rev.length) - (a.pend.length + a.rev.length) || a.tienda.localeCompare(b.tienda));
-  return {admin: !!s.admin, hoy: hoy_(), desde: lim, formas: FPG.FORMAS.filter(f => !FPG.APAGADAS[f]), tiendas: tiendas};
+  if (cc) tiendas = tiendas.map(T => ({tienda: T.tienda, prefijo: T.prefijo, gente: [], pend: T.pend.filter(p => cc.mio(p.cc)), rev: T.rev.filter(r => cc.suyo(r.x))}))
+    .filter(T => T.pend.length || T.rev.length);
+  return {admin: !!s.admin, cc: cc ? {jefe: cc.jefe, nombre: s.nombre, registra: !cc.jefe} : null, hoy: hoy_(), desde: lim, formas: FPG.FORMAS.filter(f => !FPG.APAGADAS[f]), tiendas: tiendas};
 }
 /** Foto del comprobante subida desde el panel (opcional), a la carpeta de fotos de esa tienda */
 function apiFPGFotoPanel(ptoken, quien, tienda, dataUrl, nombre) {
-  fpgAdmin_(ptoken, quien); tienda = fpgTiendaPanel_(tienda);
+  fpgAdminOCC_(ptoken, quien); tienda = fpgTiendaPanel_(tienda);
   const m = String(dataUrl).match(/^data:(image\/[a-z]+);base64,(.+)$/);
   if (!m) throw new Error('Formato de foto no válido');
   const file = subcarpeta_('CARPETA_FOTOS_ID', 'Fotos', tienda).createFile(Utilities.newBlob(Utilities.base64Decode(m[2]), m[1],
@@ -49,14 +53,15 @@ function apiFPGFotoPanel(ptoken, quien, tienda, dataUrl, nombre) {
 }
 /** Registrar por una tienda desde el panel. Mismas reglas contables que la tienda; la foto es opcional (el comprobante ya viene del POS). */
 function apiFPGRegistrarPanel(ptoken, quien, tienda, d) {
-  const s = fpgAdmin_(ptoken, quien); tienda = fpgTiendaPanel_(tienda); d = d || {};
+  const s = fpgAdminOCC_(ptoken, quien); tienda = fpgTiendaPanel_(tienda); d = d || {};
+  const cc = s.admin ? null : fpgCC_(s); if (cc) d.vendedor = s.nombre;   // call center: la venta es suya y la foto de la transferencia es obligatoria
   if (FPG.APAGADAS[String(d.forma || '')]) throw new Error('Esa forma de pago todavía no está habilitada.');
-  if (String(d.vendedor || '').trim()) asPersonaValida_(tienda, String(d.vendedor).trim().slice(0, 80));
+  if (!cc && String(d.vendedor || '').trim()) asPersonaValida_(tienda, String(d.vendedor).trim().slice(0, 80));
   if (d.confirmo !== true) throw new Error('Confirma que revisaste los datos.');
   const lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
     const sh = fpgHoja_(), L = fpgFilas_();
-    const EXT = fpgExtras_(), v = fpgValidar_(d, tienda, L.map(fpgObj_), hoy_(), fpgFormasDe_(tienda, EXT), EXT, {sinFoto: true});
+    const EXT = fpgExtras_(), v = fpgValidar_(d, tienda, L.map(fpgObj_), hoy_(), fpgFormasDe_(tienda, EXT), EXT, cc ? {} : {sinFoto: true});
     const id = 'FP' + ('0000' + (Math.max(0, ...L.map(r => Number(String(r[0]).replace(/\D/g, '')) || 0)) + 1)).slice(-5);
     sh.appendRow([id, hoy_(), Utilities.formatDate(new Date(), TZ, 'HH:mm'), tienda, s.nombre, s.perfilFpg, "'" + v.factura, v.forma, "'" + v.pedido, v.valor,
       v.cliente, v.valorFac, v.foto, '', '', '', 'Vigente', '', '', v.otra, v.banco, "'" + v.fechaFac, v.vendedor]);
@@ -85,4 +90,45 @@ function apiFPGCorregirPanel(ptoken, quien, id, sec) {
       (r.sug.tipo === 'NC' ? 'una nota de crédito' : 'una transferencia') + ' de $' + Number(r.sug.valor).toFixed(2) + ' en la ' + nueva + ' (cruce con el POS) · ' + fpgDetalle_(o));
     return o;
   } finally { lock.releaseLock(); }
+}
+
+/* ---------- fpg22 · CALL CENTER (Diego 21-nov) ----------
+   Las ventas del call center se facturan en el local de una tienda. Cada agente (perfil 'Call center') ve en el panel solo sus ventas
+   pendientes y lo que él registró, y registra (no corrige ni anula). La jefa (perfil 'Call center jefe', Tania Amagua) ve todo lo del call center, sin registrar.
+   CLAVES 'Call center': Nombre | Logins ERP (separados por coma) | Rol | Activo.
+   CLAVES 'Formas de pago call center': Fecha | Tienda | Secuencial | Factura | Login ERP | Valor (facturas del call center en las tiendas, desde la lista diaria del ERP). */
+const FPG_CC = {GENTE: 'Call center', FAC: 'Formas de pago call center'};
+/** {gente: Set(nombres sin acento), fac: {'tienda sec': 'Nombre'}} */
+function fpgCCDatos_() {
+  const c = claves_(), g = c.getSheetByName(FPG_CC.GENTE), f = c.getSheetByName(FPG_CC.FAC), login = {}, gente = new Set(), fac = {};
+  if (g && g.getLastRow() > 1) g.getRange(2, 1, g.getLastRow() - 1, 4).getDisplayValues().forEach(r => {
+    if (!String(r[0]).trim() || /^no$/i.test(String(r[3]).trim())) return;
+    gente.add(fpgSinAc_(r[0]));
+    String(r[1]).split(/[,;\s]+/).map(x => x.trim().toLowerCase()).filter(Boolean).forEach(l => { login[l] = String(r[0]).trim(); });
+  });
+  if (f && f.getLastRow() > 1) f.getRange(2, 1, f.getLastRow() - 1, 6).getDisplayValues().forEach(r => {
+    const sec = Number(String(r[2]).replace(/\D/g, '').slice(-9)), per = login[String(r[4]).trim().toLowerCase()];
+    if (r[1] && sec && per) fac[fpgSinAc_(r[1]) + ' ' + sec] = per;
+  });
+  return {gente: gente, fac: fac};
+}
+/** null si no es del call center; si lo es: {jefe, fac, mio(nombre), suyo(registro)} */
+function fpgCC_(s, D) {
+  if (!/^call center/i.test(String(s.perfilFpg || ''))) return null;
+  D = D || fpgCCDatos_();
+  const jefe = /jef/i.test(s.perfilFpg), yo = fpgSinAc_(s.nombre), fac = D.fac;
+  const mio = per => !!per && (jefe || fpgSinAc_(per) === yo);
+  const suyo = x => { const per = fac[fpgSinAc_(x.tienda) + ' ' + fpgSec_(x.factura)];
+    return jefe ? (D.gente.has(fpgSinAc_(x.registro)) || D.gente.has(fpgSinAc_(x.vendedor)) || !!per)
+                : (fpgSinAc_(x.registro) === yo || fpgSinAc_(x.vendedor) === yo || mio(per)); };
+  return {jefe: jefe, fac: fac, mio: mio, suyo: suyo};
+}
+function fpgNoCC_(s) { if (fpgCC_(s)) throw new Error('Tu perfil no puede hacer esto. Escríbele a Diego.'); return s; }
+/** Registrar desde el panel: el administrador o un agente del call center (la jefa solo ve). */
+function fpgAdminOCC_(ptoken, quien) {
+  const s = fpgPuede_(ptoken, quien);
+  if (s.admin) return s;
+  const cc = fpgCC_(s);
+  if (cc && !cc.jefe) return s;
+  throw new Error('Solo el administrador o el call center registran desde el panel.');
 }
