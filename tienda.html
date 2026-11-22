@@ -3117,6 +3117,9 @@ window.TEM = {tabs: "header > nav", montarBuscar: "#temTop .marca", dondeBuscar:
     res.innerHTML = h; res.hidden = false;
     res.querySelectorAll('[data-i]').forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => abrir(lista[+b.dataset.i]); });
   }
+  /* bs1 */ let bs1Ult = '';
+  function bs1Suelta(){ const q = inp.value.trim(); if (q.length < 2 || q === bs1Ult) return; bs1Ult = q;
+    try { if (window.REG) REG.ev('Buscar', q + ' → ' + (lista.length ? '(sin clic, ' + lista.length + ' resultados)' : '(sin resultados)')); } catch (e) {} }
   function abrir(it){
     if (!it) return;
     res.hidden = true; const q = inp.value; inp.value = ''; inp.blur();
@@ -3127,12 +3130,12 @@ window.TEM = {tabs: "header > nav", montarBuscar: "#temTop .marca", dondeBuscar:
   function marcar(){ res.querySelectorAll('[data-i]').forEach(b => b.classList.toggle('on', +b.dataset.i === sel)); const o = res.querySelector('[data-i="' + sel + '"]'); if (o) o.scrollIntoView({block: 'nearest'}); }
   inp.addEventListener('input', buscar);
   inp.addEventListener('focus', () => { if (inp.value) buscar(); });
-  inp.addEventListener('blur', () => setTimeout(() => { res.hidden = true; }, 150));
+  inp.addEventListener('blur', () => { bs1Suelta(); setTimeout(() => { res.hidden = true; }, 150); });
   inp.addEventListener('keydown', e => {
     if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, lista.length - 1); marcar(); e.preventDefault(); }
     else if (e.key === 'ArrowUp') { sel = Math.max(sel - 1, 0); marcar(); e.preventDefault(); }
     else if (e.key === 'Enter') { abrir(lista[sel]); e.preventDefault(); }
-    else if (e.key === 'Escape') { inp.value = ''; res.hidden = true; inp.blur(); }
+    else if (e.key === 'Escape') { bs1Suelta(); inp.value = ''; res.hidden = true; inp.blur(); }
   });
   document.addEventListener('keydown', e => {
     const t = e.target, escribe = t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable);
