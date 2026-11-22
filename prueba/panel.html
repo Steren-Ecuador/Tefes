@@ -4904,7 +4904,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     if (pedido && quien && quien !== y.nombre) { location.reload(); return; }   // otra persona en el mismo equipo
     quien = y.nombre; pedido = true;
     if (!previo) try { const c = JSON.parse(localStorage.getItem('mpfCfg') || 'null'); if (c && c.n === quien && c.c) aplicar(c.c, true); } catch (e) {}   // mpf2: al instante con lo recordado
-    cvCtx.api('apiMenusPerfil', y.nombre).then(c => aplicar(c)).catch(() => { setTimeout(() => { pedido = false; quien = ''; }, 4000); });   // mpf2: si falla, reintenta (no muestra todo)
+    new Promise((ok, ko) => google.script.run.withSuccessHandler(ok).withFailureHandler(ko).apiMenusPerfil(y.nombre)).then(c => aplicar(c))   /* mpq1 */.catch(() => { setTimeout(() => { pedido = false; quien = ''; }, 4000); });   // mpf2: si falla, reintenta (no muestra todo)
   }, 700);
 })();
 </script>
