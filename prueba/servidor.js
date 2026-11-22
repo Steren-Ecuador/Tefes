@@ -307,6 +307,12 @@
   };
   API.apiAliasNombres = function () { return {}; };
   API.apiMenusPerfil = function () { var c = ''; try { c = localStorage.getItem('mpfPrueba') || ''; } catch (e) {} var o = []; try { o = JSON.parse(localStorage.getItem('mpfOrden') || '[]'); } catch (e) {} return c ? {perfil: 'Prueba', todo: false, claves: JSON.parse(c), orden: o} : {perfil: '', todo: true, orden: o}; };   // mp5: orden con mpfOrden   // mp3: en la prueba ve todo salvo que se fije mpfPrueba   // ma2: alias de nombres; en la prueba no hay alias
+  /* fpg22: cuadre con el POS por tienda (en la prueba no hay ventas del POS ni se guarda) */
+  API.apiFPGPanelPos = function (p) { panelOk(p); return {admin: false, cc: false, desde: '', formas: [], tiendas: []}; };
+  API.apiFPGRegistrarPanel = function (p) { panelOk(p); throw new Error('En la prueba el cuadre con el POS no se guarda.'); };
+  API.apiFPGCorregirPanel = function (p) { panelOk(p); throw new Error('En la prueba no se corrigen registros.'); };
+  API.apiFPGFotoPanel = function (p) { panelOk(p); return {url: 'https://drive.google.com/prueba-foto'}; };
+  API.apiFPGCorregirTienda = function (tok) { tiendaDe(tok); throw new Error('En la prueba no se corrigen registros.'); };
   API.apiUniPanel = function (p) { panelOk(p); return {fecha: '', total: 0, filas: []}; };   // Universidad Steren: en la prueba no hay lecturas de cursos
   API.apiUniTienda = function (tok) {   // c01u: datos de ejemplo, uno sin cuenta, uno con carreras a medias y uno sin entrar hace 20 días
     var t = tiendaDe(tok), g = gente(t), hoy = DB.isoDe(new Date());
