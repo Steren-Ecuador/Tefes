@@ -535,6 +535,7 @@ input[type=tel],input[type=email]{width:100%;border:1px solid var(--line);border
 @media(max-width:420px){.fl-t .hs{display:none}.fl-mia b{font-size:16px}}
 /* uni1: informe Universidad Steren */
 .uni-t{overflow-x:auto;-webkit-overflow-scrolling:touch}.uni-t table{width:100%;border-collapse:collapse;font-size:13px}.uni-t th{text-align:left;font-weight:600;opacity:.7;padding:6px 6px;border-bottom:1px solid rgba(127,127,127,.3);white-space:nowrap}.uni-t td{padding:7px 6px;border-bottom:1px solid rgba(127,127,127,.18);vertical-align:top}.uni-t td.n{white-space:nowrap}.uni-e{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;white-space:nowrap}.uni-e.r{background:#fde9e7;color:#c0352b}.uni-e.a{background:#fff3e0;color:#b25c00}.uni-e.o{background:#e5f5ec;color:#1a7f4b}.uni-res{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.uni-s{font-size:12px;opacity:.7}
+/* pp1 */ .pprev{font-size:12px;color:var(--warn);margin:4px 0 2px}.pprev.venc{color:var(--bad)}.pprev.mini{margin:0;white-space:nowrap;font-size:11px}
 </style>
 <style>
 :root{--tem-head:var(--brand);--tem-ink:#fff;--tem-2:rgba(255,255,255,.8);--tem-chip:rgba(255,255,255,.18)}
@@ -2723,13 +2724,25 @@ function trfE04Auto(p){
   }
   guardarBorrador(); actualizarFooter(); return true;
 }
+/* pp1: pendiente abierto del punto (el más antiguo, igual que sd1 en el servidor) */
+function pprevDe(p){ return ((S.data && S.data.pendientes) || []).find(x => x.punto === p.id && x.estado && x.estado !== 'Cerrado') || null; }
+function pprevIso(s){ const i = iso(s); if (i) return i; const d = new Date(s); return isNaN(d) ? '' : d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function pprevHtml(p, mini){
+  const x = pprevDe(p); if (!x) return '';
+  const desde = pprevIso(x.fechaSup), fc = pprevIso(x.fechaCompromiso), hoy = S.data.hoy;
+  const venc = ABIERTOS.includes(x.estado) && fc && hoy && fc < hoy ? Math.round((new Date(hoy + 'T12:00') - new Date(fc + 'T12:00')) / 864e5) : 0;
+  const tag = mini ? 'span' : 'div';
+  return '<' + tag + ' class="pprev' + (mini ? ' mini' : '') + (venc ? ' venc' : '') + '">⏳ Pendiente' + (desde ? ' desde el ' + (+desde.slice(8, 10)) + '-' + MESES_S[+desde.slice(5, 7) - 1] : '') +
+    (x.estado === 'Por validar' ? ' · por validar' : '') + (venc ? ' · <b>vencido hace ' + venc + ' día' + (venc > 1 ? 's' : '') + '</b>' : '') + '</' + tag + '>';
+}
+function pprevTitulo(p){ const x = pprevDe(p); return x ? 'Se suma al pendiente abierto ' + esc(x.id) : 'Pendiente que se va a crear'; }
 function puntoHtml(p){
   const it = S.form.items[p.id] || {}, F = S.form;
   const g = it.calif == null ? '' : 'g' + (it.calif === 'N/A' ? 'na' : it.calif);
   if (it.calif != null && !it.abierto && !faltaEn(p) && (it.calif === '2' || it.calif === 'N/A') && !document.documentElement.classList.contains('tk')) {
     const nf = fotosDe(it).length + pendientesDe('P_' + p.id).length;
     return '<div class="card punto mini ' + g + '" data-abrir><span class="pid">' + esc(p.id) + '</span><span class="mtx">' + esc(p.texto) + '</span>' +
-      (nf ? '<span class="tiny muted">📷 ' + nf + '</span>' : '') + '<span class="mres ' + (it.calif === '2' ? 'r2' : 'rna') + '">' + (it.calif === '2' ? '✓ Cumple' : 'N/A') + '</span></div>';
+      (nf ? '<span class="tiny muted">📷 ' + nf + '</span>' : '') + pprevHtml(p, true) + '<span class="mres ' + (it.calif === '2' ? 'r2' : 'rna') + '">' + (it.calif === '2' ? '✓ Cumple' : 'N/A') + '</span></div>';
   }
   const pend = it.calif === '0' || it.calif === '1';
   const fs = fotosDe(it), max = S.data.maxFotos || 3, req = fotoReq(p, it.calif), sub = pendientesDe('P_' + p.id).filter(t => !t.error).length;
@@ -2740,7 +2753,7 @@ function puntoHtml(p){
   const sec6 = (S.data.secciones.find(s => s.cod === p.sec) || {}).nombre || '', n6 = ptsF().indexOf(p) + 1;
   return '<div class="card punto ' + g + '">' + '<div class="tk-sec">' + esc(p.sec + ') ' + sec6) + ' · ' + n6 + ' de ' + ptsF().length + '</div>' +
     '<div><span class="pid">' + esc(p.id) + '</span>' + esc(p.texto) + '</div>' +
-    '<div class="tools"><button class="link" data-guia>Ver criterio</button>' + (!verObs ? '<button class="link" data-ver="verObs">+ Observación</button>' : '') + (!verDato ? '<button class="link" data-ver="verDato">+ Dato</button>' : '') + (it.calif === '2' || it.calif === 'N/A' ? '<button class="link" data-cerrar>Listo ▲</button>' : '') + '</div>' +
+    pprevHtml(p) + '<div class="tools"><button class="link" data-guia>Ver criterio</button>' + (!verObs ? '<button class="link" data-ver="verObs">+ Observación</button>' : '') + (!verDato ? '<button class="link" data-ver="verDato">+ Dato</button>' : '') + (it.calif === '2' || it.calif === 'N/A' ? '<button class="link" data-cerrar>Listo ▲</button>' : '') + '</div>' +
     '<div class="guia">' + esc(p.criterio) + '</div>' + ventasHtml(p) + polVisitaHtml(p) + idcD04Html(p) + trfE04Html(p) +
     '<div class="cal">' + [['2','c2','Cumple'],['1','c1','Parcial'],['0','c0','Incumple'],['N/A','cna','No aplica']].map(([v,c,l]) => '<button class="' + c + ' ' + (it.calif===v?'on':'') + '" data-c="' + v + '">' + v + '<small>' + l + '</small></button>').join('') + '</div>' +
     (verObs ? '<label class="f">Observación' + (pend ? ' (qué se encontró)' : '') + '</label><textarea data-i="obs" rows="2" placeholder="Qué se encontró">' + esc(it.obs||'') + '</textarea>' : '') +
@@ -2749,7 +2762,7 @@ function puntoHtml(p){
       '<div class="phead"><span class="small"><b>Fotos</b> <span class="muted">(' + (fs.length + sub) + '/' + max + ')</span></span><span class="' + cls + '">' + (fs.length && req ? 'Listo ✓' : sub && req ? 'Subiendo…' : etiqueta) + '</span></div>' +
       (p.queFoto ? '<div class="hint">' + esc(p.queFoto) + '</div>' : '') +
       '<div data-fotos>' + fotosFila('P_' + p.id, fs, max) + '</div>') +
-    (pend ? '<div class="pblock"><div class="ttl">Pendiente que se va a crear</div>' +
+    (pend ? '<div class="pblock"><div class="ttl">' + pprevTitulo(p) + '</div>' +
       '<label class="f">Acción correctiva *</label><textarea data-i="accion" rows="2" placeholder="Qué debe hacer la tienda. Escribe y elige una sugerencia">' + esc(it.accion||'') + '</textarea>' +
       '<div class="sug" data-sug>' + sugs.map((t, i) => '<button data-s="' + i + '"><b>Sugerencia</b>' + esc(t.texto) + '</button>').join('') + '</div>' +
       '<div class="grid2">' +
