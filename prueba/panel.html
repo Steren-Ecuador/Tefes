@@ -4894,7 +4894,9 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     Object.keys(todas).forEach(v => { if (!vivas[v]) { const b = tabs.querySelector('button[data-v="' + v + '"]'); if (b) { b.dataset.mpf = '1'; b.hidden = true; } } });
     new MutationObserver(() => tabs.querySelectorAll('button[data-mpf]').forEach(b => { if (!b.hidden) b.hidden = true; })).observe(tabs, {subtree: true, attributes: true, attributeFilter: ['hidden', 'style']});
     const on = tabs.querySelector('button[data-v].on');
-    if (on && on.hidden) { const p = [...tabs.querySelectorAll('button[data-v]')].find(b => !b.hidden && b.style.display !== 'none'); if (p) p.click(); }
+    if (on && on.hidden) { const vis = b => b && !b.hidden && b.style.display !== 'none'; let p = null;   /* mpf8: primer tema del menú del perfil */
+      try { ((window.TEM && TEM.temas) || []).some(t => (t.vistas || []).some(v => { const b = tabs.querySelector('button[data-v="' + v + '"]'); if (vis(b)) { p = b; return true; } return false; })); } catch (e) {}
+      p = p || [...tabs.querySelectorAll('button[data-v]')].find(vis); if (p) p.click(); }
     try { const T = ((window.TEM && TEM.temas) || []).find(t => t.id === 'ventas-fpg7-inactivo');   // fpg7: si de Ventas solo queda Formas de pago, el tema se llama así
       if (T && vivas.formaspago && T.vistas.filter(v => vivas[v] || !todas[v]).length === 1) T.nombre = 'Formas de pago'; } catch (e) {}
     abajo(); tabs.dataset.mn = String(Date.now()); listo();
