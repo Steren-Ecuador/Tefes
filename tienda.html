@@ -1193,7 +1193,7 @@ const aucUsd = n => '$' + Number(n || 0).toFixed(2).replace('.', ',');
 function aucCargar(){
   if (AUCS.cargando) return; AUCS.cargando = true; AUCS.error = '';
   api('apiAutoconsumoLista').then(L => { AUCS.lista = L || []; }).catch(e => { AUCS.error = e.message || 'No se pudo cargar.'; })
-    .finally(() => { AUCS.cargando = false; if (S.vista === 'inv') renderInv(); });
+    .finally(() => { AUCS.cargando = false; aucRepintar(); });
 }
 function aucItemHtml(x){
   return '<div class="vf-it"><div class="vf-h"><b>Fact. ' + esc(x.factura) + ' · ' + aucUsd(x.valor) + '</b><span class="tag ' + (AUC_TAG[x.estado] || 'vf-esp') + '">' + esc(x.estado) + '</span></div>' +
@@ -1215,9 +1215,10 @@ function aucHtml(){
   else h += '<div class="card" style="margin-top:10px">' + L.map(aucItemHtml).join('') + '</div>';
   return h;
 }
+function aucRepintar(){ if (S.vista === 'pago') renderPago(); else if (S.vista === 'inv') renderInv(); }   // fac1
 function aucEnlazar(){
   const n = $('#aucNuevo'); if (n) n.onclick = aucFormulario;
-  const re = $('#aucRe'); if (re) re.onclick = () => { AUCS.error = ''; AUCS.lista = null; renderInv(); };
+  const re = $('#aucRe'); if (re) re.onclick = () => { AUCS.error = ''; AUCS.lista = null; aucRepintar(); };
 }
 function aucFormulario(){
   const hoy = S.data.hoy || new Date().toISOString().slice(0, 10);
@@ -1248,13 +1249,13 @@ function aucFormulario(){
       const r = await api('apiAutoconsumoRegistrar', d);
       (AUCS.lista = AUCS.lista || []).unshift(r);
       if (window.REG) REG.ev('Autoconsumo', r.id + ' · ' + r.factura);
-      closeModal(); toast('Registrada. Queda por autorizar.', 3500); renderInv();
+      closeModal(); toast('Registrada. Queda por autorizar.', 3500); aucRepintar();
     } catch (e) { b.disabled = false; b.textContent = 'Guardar'; toast(e.message || 'No se pudo guardar. Revisa tu internet.', 4000); }
   };
 }
 /* ---------- fpg1: FORMAS DE PAGO de facturas del POS (Diego 2026-11-16). Una fila por factura y forma de pago. ---------- */
 const FPGS = {lista: null, formas: [], cargando: false, error: '', todos: false, grupo: 'tr'};
-const FPG_GRUPOS = [['tr', 'Transferencias'], ['ot', 'Otros']];   // fpg8
+const FPG_GRUPOS = [['tr', 'Transferencia', '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3.5-3.5"/><path d="M20 16H7l3.5 3.5"/></svg>'], ['ot', 'Otras', '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>'], ['ac', 'Autoconsumos', '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>']];   // fpg8 + fac1 */ /* fac1 */
 const FPG_OTROS = ['Nota de crédito', 'Préstamo empleado', 'Descuento inventario'], fpgGrupo = x => FPG_OTROS.indexOf(x.forma) >= 0 || (FPGS.extras || []).some(e => e.n === x.forma && e.g === 'ot') ? 'ot' : 'tr';
 const fpgNom = f => ({'Transferencias': 'Transferencia', 'Préstamo empleado': 'Préstamo a empleado', 'Descuento inventario': 'Descuento por inventario'})[f] || f;
 const fpgRefTxt = x => x.forma === 'Nota de crédito' ? 'NC ' + x.pedido + (x.banco ? ' · devuelta ' + x.banco : '') + (x.otra ? ' · ' + x.otra : '') : x.forma === 'Préstamo empleado' ? 'Empleado ' + (x.otra || '') + ' · ' + x.pedido + (x.pedido == 1 ? ' cuota de ' : ' cuotas de ') + fpgUsd(Math.floor(x.valor * 100 / (Number(x.pedido) || 1)) / 100) + ' al mes' : x.forma === 'Descuento inventario' ? 'Empleado ' + (x.otra || '') + ' · inventario ' + x.pedido + ' · ' + x.banco + (x.banco == 1 ? ' cuota de ' : ' cuotas de ') + fpgUsd(Math.floor(x.valor * 100 / (Number(x.banco) || 1)) / 100) + ' al mes' :
@@ -1270,7 +1271,8 @@ function fpgHtml(){   // fpg8: Transferencias | Notas de crédito | Préstamos e
   if (FPGS.lista === null && !FPGS.error) fpgCargar();
   const G = FPGS.grupo || 'tr', L = (FPGS.lista || []).filter(x => fpgGrupo(x) === G), hoy = S.data.hoy || new Date().toISOString().slice(0, 10), deHoy = L.filter(x => x.fecha === hoy && x.estado !== 'Anulada');
   let h = '<div class="sec-t" style="margin-top:16px"><h3>Formas de pago</h3><span class="tiny muted">' + (deHoy.length ? deHoy.length + ' hoy · ' + fpgUsd(deHoy.reduce((a, x) => a + x.valor, 0)) : '') + '</span></div>';
-  h += '<div class="seg fpg-seg" style="margin-bottom:10px">' + FPG_GRUPOS.map(([k, l]) => '<button data-fpgg="' + k + '" class="' + (k === G ? 'on' : '') + '" style="flex:1">' + l + '</button>').join('') + '</div>';
+  h += '<div class="seg fpg-seg" style="margin-bottom:10px">' + FPG_GRUPOS.map(([k, l, ic]) => '<button data-fpgg="' + k + '" class="' + (k === G ? 'on' : '') + '" style="flex:1">' + (ic || '') + '<span>' + l + '</span></button>').join('') + '</div>';
+  if (G === 'ac') return h + aucHtml();   // fac1: Autoconsumos dentro de Formas de pago
   h += fpgPosHtml();   // fpg21
   h += '<button class="btn block" id="fpgNuevo">' + ({tr: '+ Registrar pago con Deuna, Tipti, transferencia u otra', ot: '+ Registrar nota de crédito, préstamo o descuento por inventario'})[G] + '</button>';
   if (FPGS.error) h += '<div class="card small" style="margin-top:10px">' + esc(FPGS.error) + ' <button class="link" id="fpgRe">Reintentar</button></div>';
@@ -1288,6 +1290,7 @@ function fpgHtml(){   // fpg8: Transferencias | Notas de crédito | Préstamos e
   return h;
 }
 function fpgEnlazar(){
+  if ((FPGS.grupo || 'tr') === 'ac') { aucEnlazar(); document.querySelectorAll('[data-fpgg]').forEach(b => b.onclick = () => { FPGS.grupo = b.dataset.fpgg; FPGS.todos = false; renderPago(); }); return; }   // fac1
   fpgPosEnlazar();   // fpg21
   const n = $('#fpgNuevo'); if (n) n.onclick = fpgFormulario;
   document.querySelectorAll('[data-fpgg]').forEach(b => b.onclick = () => { FPGS.grupo = b.dataset.fpgg; FPGS.todos = false; renderPago(); });   // fpg8
@@ -1368,11 +1371,11 @@ function fpgWizard(o){
   const PLA = {A: 'Pide valor y comprobante.', B: 'Pide valor y número.', C: 'Pide valor, comprobante y foto.', D: 'Empleado, valor y cuotas (máx. 6).'};
   Object.keys(EXW).forEach(n => { AYUDA[n] = PLA[EXW[n].p] || ''; });
   const gExtra = g => (o.extras || []).filter(x => g === 'asesor' ? x.p !== 'D' : x.g === g).map(x => x.n);
-  const FORMAS = (GRUPOS[o.grupo || 'tr'] || GRUPOS.tr).concat(gExtra(o.grupo || 'tr')).filter(f => permitidas.indexOf(f) >= 0);
+  const FORMAS = (GRUPOS[o.grupo || 'tr'] || GRUPOS.tr).concat(gExtra(o.grupo || 'tr')).filter(f => permitidas.indexOf(f) >= 0).filter((f, i, A) => !o.forma || A.indexOf(o.forma) < 0 || f === o.forma);   // fpt1: forma elegida desde el botón
   const FPG_APAGADAS = {'Préstamo empleado': 1, 'Descuento inventario': 1};   // fpg18: se ven transparentes, aún no se usan
   const solo = FORMAS.length === 1;
   const CUENTAS = o.cuentas && o.cuentas.length ? o.cuentas : BANCOS;   // fpg8: cuentas de la empresa (Diego las define)
-  const TIT = {tr: 'Registrar pago con transferencia', ot: 'Registrar otra forma de pago', asesor: 'Registrar forma de pago'}[o.grupo || 'tr'] || 'Registrar forma de pago';
+  const TIT = o.forma && FORMAS.length === 1 ? 'Registrar ' + (NOM[o.forma] || o.forma) : {tr: 'Registrar pago con transferencia', ot: 'Registrar otra forma de pago', asesor: 'Registrar forma de pago'}[o.grupo || 'tr'] || 'Registrar forma de pago';
   const D = {pto: localStorage.getItem('fpgPto') || o.prefijo || '', sec: '', fechaFac: hoy, valorFac: '', forma: solo ? FORMAS[0] : '', otra: '', banco: '', pedido: '', valor: '', foto: '', fotoFile: null, fotoUrl: '', quien: o.quienFijo || '', vend: o.quienFijo || '', confirmo: false};
   let paso = 1, guardando = false, err = '', fijo = null, tocado = false, pasoVisto = 0;   // fpg13
   const cerrar = () => { if (D.fotoUrl) URL.revokeObjectURL(D.fotoUrl); bg.remove(); };
@@ -1564,6 +1567,84 @@ function fpgWizard(o){
   }
   pintar();
 }
+/* fpt1 (Diego 22-nov): "por registrar" en rojo, "por revisar" en amarillo, botones por forma de pago y "ya registradas" en verde, con guía */
+const FPT_F = [['Deuna', 'd!', '#00a19a', 'QR, con comprobante', 'tr'], ['Tipti', 'Tipti', '#7cb518', 'Con n.º de pedido', 'tr'], ['Transferencias', '🏦', '#006B9E', 'A cuenta de Tefes', 'tr'],
+  ['Nota de crédito', 'NC', '#6d28d9', 'Devolución anterior', 'ot'], ['Otra', '✎', '#475569', 'Shopping, MobiSol…', 'tr'], ['Préstamo empleado', '$', '#b45309', 'Compra de empleado', 'ot'],
+  ['Descuento inventario', '▤', '#9f1239', 'Faltante de inventario', 'ot']];
+const FPT_APAGADAS = {'Préstamo empleado': 1, 'Descuento inventario': 1};
+const FPT_CORTO = {'Transferencias': 'Transferencia', 'Nota de crédito': 'NC', 'Préstamo empleado': 'Préstamo', 'Descuento inventario': 'Descuento'};
+function fptNueva(forma, grupo){
+  fpgWizard({api: d => api('apiFPGRegistrar', d), subirFoto: async (f, n) => (await api('apiSubirFoto', await reducirFoto(f, 'Pago ' + n.replace(/\D/g, '')), n)), subirOk: r => (r && r.url) || r,
+    formas: FPGS.formas, extras: FPGS.extras, grupo: grupo, forma: forma, prefijo: FPGS.prefijo, hoy: FPGS.hoy || (S.data && S.data.hoy), lista: (FPGS.lista || []).slice(), quienHtml: vfQuien('fwQuien'), desde: 'Tienda',
+    alGuardar: r => { if (window.REG) REG.ev('Forma de pago', r.id + ' · ' + r.factura); FPGS.lista = [r].concat((FPGS.lista || []).filter(x => x.id !== r.id)); if (S.vista === 'pago') renderPago(); }});
+}
+function fpgHtml(){
+  if (FPGS.lista === null && !FPGS.error) fpgCargar();
+  const hoy = FPGS.hoy || (S.data && S.data.hoy) || new Date().toISOString().slice(0, 10), P = FPGS.pos || {}, pend = P.pend || [], rev = P.rev || [];
+  const enRev = {}; rev.forEach(r => { if (r.x && r.x.id) enRev[r.x.id] = 1; });
+  const lunes = (() => { const t = new Date(hoy + 'T12:00:00Z'); t.setUTCDate(t.getUTCDate() - (t.getUTCDay() + 6) % 7); return t.toISOString().slice(0, 10); })();
+  const L = (FPGS.lista || []).filter(x => !enRev[x.id]), vig = L.filter(x => x.estado !== 'Anulada'), sem = vig.filter(x => x.fecha >= lunes);
+  const guia = localStorage.getItem('fptGuia') !== '0';
+  let h = '<div class="fpt-h"><h3>Formas de pago</h3><button class="fpt-gb" id="fptG">❓ Cómo se hace</button></div>';
+  if (guia) h += '<div class="fpt-guia"><h4>Cómo registrar los pagos</h4><ol>' +
+    '<li><b>Empieza por lo rojo.</b><small>Son facturas que el POS cobró con transferencia, Deuna, Tipti o nota de crédito y que nadie ha registrado. Toca <b>Registrar</b>: la factura, el valor y la fecha ya vienen llenos. Solo eliges quién vendió y subes la foto del comprobante.</small></li>' +
+    '<li><b>Luego lo amarillo.</b><small>Son registros que no cuadran con el POS, por ejemplo un número de factura o un valor distinto. Lee qué pasó y toca <b>Corregir</b>, o anúlalo y regístralo de nuevo.</small></li>' +
+    '<li><b>Si el cliente pagó y no aparece en rojo</b><small>El POS se actualiza cada 2 horas. Elige cómo pagó en <b>Registrar un pago</b> y sigue los pasos.</small></li>' +
+    '<li><b>Meta del día:</b> nada en rojo antes del cierre.<small>Lo verde ya está listo; no tienes que hacer nada.</small></li></ol><button class="fpt-gx" id="fptGx">Entendido, ocultar guía</button></div>';
+  if (FPGS.error) return h + '<div class="card small">' + esc(FPGS.error) + ' <button class="link" id="fpgRe">Reintentar</button></div>';
+  if (FPGS.lista === null) return h + '<div class="card muted small"><span class="spin"></span> Cargando…</div>';
+  h += '<div class="fpt-res"><button class="r" data-fptir="fptRojo"><b>' + pend.length + '</b><span>por registrar' + (pend.length ? ' · ' + fpgUsd(pend.reduce((a, p) => a + p.valor, 0)) : '') + '</span></button>' +
+    '<button class="a" data-fptir="fptAmbar"><b>' + rev.length + '</b><span>por revisar</span></button><button class="v" data-fptir="fptVerde"><b>' + sem.length + '</b><span>listas esta semana</span></button></div>';
+  h += '<div class="fpt-bx fpt-rojo" id="fptRojo"><div class="fpt-bh"><div>🔴 Por registrar<small>El POS los cobró y nadie los registró. Registra cada uno.</small></div><span class="n">' + pend.length + '</span></div>' +
+    (pend.length ? pend.map((p, i) => '<div class="fpt-it"><div><b>Factura ' + esc(fpgFac(p.sec)) + '</b><small>' + (p.tipo === 'NC' ? 'Pagada con nota de crédito' : 'Transferencia' + (p.ref ? ' · comprobante ' + esc(p.ref) : '')) + ' · ' + fpgDia(p.fecha) +
+      (p.total > p.valor + 0.009 ? ' · factura de ' + fpgUsd(p.total) : '') + '</small></div><span class="fpt-v">' + fpgUsd(p.valor) + '</span><button class="btn primary" data-fpgp="' + i + '">' + (p.tipo === 'NC' ? 'Registrar NC' : 'Registrar') + '</button></div>').join('')
+      : '<div class="fpt-ok">✓ Nada pendiente. ¡Bien!</div>') + '</div>';
+  if (rev.length) h += '<div class="fpt-bx fpt-ambar" id="fptAmbar"><div class="fpt-bh"><div>🟡 Por revisar<small>Ya están registrados, pero algo no cuadra con el POS.</small></div><span class="n">' + rev.length + '</span></div>' + rev.map((r, i) => { const x = r.x;
+    const txt = r.tipo === 'valor' ? 'Registraste ' + fpgUsd(r.suma) + ', pero en el POS ' + (r.pos.tipo === 'NC' ? 'la nota de crédito' : 'la transferencia') + ' de esta factura es de <b>' + fpgUsd(r.pos.valor) + '</b>. Si te equivocaste, anúlalo y regístralo de nuevo.'
+      : r.sug ? 'Pusiste la factura <s>' + esc(x.factura) + '</s>, pero en el POS ' + (r.sug.tipo === 'NC' ? 'la nota de crédito' : 'el pago') + ' de ' + fpgUsd(r.sug.valor) + ' ' + fpgDel(r.sug.fecha) + ' es la <b>' + esc(String(x.factura).slice(0, 8) + ('00000000' + r.sug.sec).slice(-9)) + '</b>.'
+      : 'No encuentro la factura <b>' + esc(x.factura) + '</b> en el POS ' + fpgDel(x.fechaFac || x.fecha) + '. Revisa el número' + (x.fecha === hoy ? ': si está mal, anúlalo y regístralo de nuevo.' : ' y avisa a Financiero.');
+    return '<div class="fpt-it"><div><b>' + esc([x.id, fpgNom(x.forma), x.vendedorVer || x.registroVer].filter(Boolean).join(' · ')) + '</b><small>Registrado ' + fpgDia(x.fecha) + ' ' + esc(x.hora || '') + '</small></div><span class="fpt-v">' + fpgUsd(x.valor) + '</span>' +
+      (r.tipo === 'factura' && r.sug ? '<button class="btn" data-fpgc="' + i + '">Corregir a ' + r.sug.sec + '</button>' : x.fecha === hoy && x.estado !== 'Anulada' ? '<button class="btn" data-fpgan="' + esc(x.id) + '">Anular</button>' : '<span></span>') +
+      '<div class="fpt-dif">' + txt + '</div></div>'; }).join('') + '</div>';
+  const perm = FPGS.formas && FPGS.formas.length ? FPGS.formas : null;
+  const botones = FPT_F.filter(f => !perm || perm.indexOf(f[0]) >= 0 || FPT_APAGADAS[f[0]]).concat((FPGS.extras || []).filter(e => !perm || perm.indexOf(e.n) >= 0).map(e => [e.n, esc(String(e.n).charAt(0).toUpperCase()), '#334155', '', e.g === 'ot' ? 'ot' : 'tr']));
+  h += '<div class="fpt-bx fpt-azul"><div class="fpt-bh"><div>➕ Registrar un pago<small>Elige cómo pagó el cliente.</small></div></div><div class="fpt-fm">' +
+    botones.map(f => '<button class="fpt-f" data-fptf="' + esc(f[0]) + '" data-fptg="' + f[4] + '"' + (FPT_APAGADAS[f[0]] ? ' disabled title="Próximamente"' : '') + '><div class="fpt-ic" style="background:' + f[2] + '">' + f[1] + '</div>' + esc(fpgNom(f[0])) + '<small>' + (FPT_APAGADAS[f[0]] ? 'Próximamente' : esc(f[3])) + '</small></button>').join('') +
+    '<button class="fpt-f" data-fptauc="1"><div class="fpt-ic" style="background:#0f766e">🛍</div>Autoconsumo<small>Uso de la tienda</small></button></div><div class="fpt-sub">El efectivo y la tarjeta no se registran aquí; ya los tiene el POS.</div></div>';
+  const per = FPGS.fptPer || 'hoy', fo = FPGS.fptFo || '';
+  const V0 = (per === 'hoy' ? L.filter(x => x.fecha === hoy) : per === 'sem' ? L.filter(x => x.fecha >= lunes) : L).filter(x => !fo || x.forma === fo);
+  const formasHay = [...new Set(L.map(x => x.forma))];
+  const V = FPGS.todos ? V0 : V0.slice(0, 10);
+  h += '<div class="fpt-bx fpt-verde" id="fptVerde"><div class="fpt-bh"><div>✅ Ya registradas<small>Listas. No tienes que hacer nada.</small></div><span class="n">' + V0.filter(x => x.estado !== 'Anulada').length + '</span></div>' +
+    '<div class="fpt-ch">' + [['hoy', 'Hoy'], ['sem', 'Esta semana'], ['todas', 'Últimos 60 días']].map(([k, t]) => '<button data-fptper="' + k + '" class="' + (per === k ? 'on' : '') + '">' + t + '</button>').join('') +
+    (formasHay.length > 1 ? formasHay.map(f => '<button data-fptfo="' + esc(f) + '" class="' + (fo === f ? 'on' : '') + '">' + esc(FPT_CORTO[f] || f) + '</button>').join('') : '') + '</div>' +
+    (V.length ? V.map(x => '<div class="fpt-it"' + (x.estado === 'Anulada' ? ' style="opacity:.55"' : '') + '><div><b>Fact. ' + esc(x.factura) + '</b><small>' + esc(fpgRefTxt(x)) + (x.vendedor ? ' · vendió ' + esc(x.vendedorVer || x.vendedor) : '') + ' · registró ' + esc(x.registroVer || x.registro) + ' ' + fpgDia(x.fecha) + (x.hora ? ' ' + esc(x.hora) : '') +
+      (x.foto ? ' · <a href="' + esc(x.foto) + '" target="_blank" rel="noopener">ver foto</a>' : '') + '</small>' + (x.estado === 'Anulada' ? '<small style="color:var(--bad)">Anulada por ' + esc(x.anulo) + ': ' + esc(x.motivoAnula) + '</small>' : '') +
+      (x.estado !== 'Anulada' && !x.entregado && x.fecha === hoy ? '<button class="link" data-fpgan="' + esc(x.id) + '" style="margin-top:2px">Anular (me equivoqué)</button>' : '') + '</div><span class="fpt-v">' + fpgUsd(x.valor) + '</span><span class="fpt-tag">' + esc(x.estado === 'Anulada' ? 'Anulada' : (FPT_CORTO[x.forma] || x.forma)) + '</span></div>').join('')
+      : '<div class="fpt-ok" style="color:#64748b">' + (per === 'hoy' ? 'Hoy todavía no hay pagos registrados.' : 'No hay pagos con este filtro.') + '</div>') +
+    (V0.length > V.length ? '<button class="fpt-mas" id="fpgTodos">Ver las ' + V0.length + '</button>' : '') + '</div>';
+  if (FPGS.fptAuc) h += '<div id="fptAuc">' + aucHtml() + '</div>';
+  else if (AUCS.lista && AUCS.lista.length) { const pa = AUCS.lista.filter(x => x.estado === 'Por autorizar').length; h += '<button class="fpt-mas" style="border:1px solid #e2e7ee;border-radius:12px" id="fptAucVer">Ver mis autoconsumos' + (pa ? ' (' + pa + ' por autorizar)' : '') + '</button>'; }
+  else if (AUCS.lista === null && !AUCS.error) aucCargar();
+  return h;
+}
+function fpgEnlazar(){
+  fpgPosEnlazar();
+  const g = $('#fptG'), gx = $('#fptGx');
+  if (g) g.onclick = () => { localStorage.setItem('fptGuia', localStorage.getItem('fptGuia') === '0' ? '1' : '0'); renderPago(); };
+  if (gx) gx.onclick = () => { localStorage.setItem('fptGuia', '0'); renderPago(); };
+  document.querySelectorAll('[data-fptir]').forEach(b => b.onclick = () => { const e = document.getElementById(b.dataset.fptir); if (e) e.scrollIntoView({behavior: 'smooth', block: 'start'}); });
+  document.querySelectorAll('[data-fptf]').forEach(b => b.onclick = () => fptNueva(b.dataset.fptf, b.dataset.fptg));
+  document.querySelectorAll('[data-fptauc]').forEach(b => b.onclick = () => { FPGS.fptAuc = true; aucFormulario(); });
+  document.querySelectorAll('[data-fptper]').forEach(b => b.onclick = () => { FPGS.fptPer = b.dataset.fptper; FPGS.todos = false; renderPago(); });
+  document.querySelectorAll('[data-fptfo]').forEach(b => b.onclick = () => { FPGS.fptFo = FPGS.fptFo === b.dataset.fptfo ? '' : b.dataset.fptfo; FPGS.todos = false; renderPago(); });
+  const av = $('#fptAucVer'); if (av) av.onclick = () => { FPGS.fptAuc = true; renderPago(); };
+  if (FPGS.fptAuc) aucEnlazar();
+  const re = $('#fpgRe'); if (re) re.onclick = () => { FPGS.error = ''; FPGS.lista = null; renderPago(); };
+  const t = $('#fpgTodos'); if (t) t.onclick = () => { FPGS.todos = true; renderPago(); };
+  document.querySelectorAll('[data-fpgan]').forEach(b => b.onclick = () => fpgAnular(b.dataset.fpgan));
+}
+
 /* fpg21 (Diego 20-nov noche): CRUCE CON EL POS. Cada hora la VM sube a CLAVES las transferencias (TE) y notas de crédito (NC) del POS.
    Aquí la tienda ve "Por registrar" (lo que el POS cobró y nadie registró, con datos ya llenos) y "Por revisar" (registros que no cuadran),
    un número rojo en Formas de pago y un aviso en Hoy. Registrar un pendiente es una sola pantalla. */
@@ -1684,7 +1765,7 @@ function fpgFormulario(){   // fpg5: asistente de 4 pasos
     alGuardar: r => { if (window.REG) REG.ev('Forma de pago', r.id + ' · ' + r.factura); FPGS.lista = [r].concat((FPGS.lista || []).filter(x => x.id !== r.id)); if (S.vista === 'pago') renderPago(); }});
 }
 function renderInv(){
-  $('#main').innerHTML = vfHtml() + aucHtml() + inventarioHtml() + informesInvHtml();   // aco1 + fpg1
+  $('#main').innerHTML = vfHtml() + inventarioHtml() + informesInvHtml();   /* fac1: autoconsumo pasa a Formas de pago */   // aco1 + fpg1
   vfEnlazar(); aucEnlazar();
 }
 function renderPago(){   // fpg4: Formas de pago (opción principal del menú; Diego 17-nov la renombró)
@@ -3787,5 +3868,39 @@ header:has(.cab)::after{content:"";position:absolute;right:-60px;top:-70px;width
 @media(max-width:700px){.tk-s .ts-eq{flex-wrap:nowrap;overflow-x:auto;max-width:100%;justify-content:safe center;scrollbar-width:none;padding:4px 2px}.tk-s .ts-eq::-webkit-scrollbar{display:none}.tk-s .ts-eq>*{flex:none}}
 @media (prefers-reduced-motion:reduce){.tk-b:active{transform:none}}
 </style>
+<style>/* fac1 */.fpg-seg{border:0!important;gap:8px;overflow:visible!important}.fpg-seg button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px 4px 9px;font-size:13.5px;line-height:1.1;border:1px solid var(--line)!important;border-radius:14px;background:#fff;color:#002F57;box-shadow:0 1px 3px rgba(0,47,87,.08)}.fpg-seg button svg{flex:none;width:34px;height:34px;padding:8px;border-radius:50%;background:#E5F7FC;color:#006B9E;box-sizing:border-box}.fpg-seg button span{white-space:nowrap}.fpg-seg button.on{background:#002F57;color:#fff;border-color:#002F57!important;box-shadow:0 6px 16px rgba(0,47,87,.25)}.fpg-seg button.on svg{background:rgba(255,255,255,.16);color:#fff}@media(max-width:380px){.fpg-seg button{font-size:12px}}</style>
+<style>/* fpt1 (Diego 22-nov): Formas de pago de la tienda en 4 bloques + guía */
+.fpt-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 10px}.fpt-h h3{margin:0;font-size:19px;color:#002F57}
+.fpt-gb{border:1px solid #006B9E;background:#fff;color:#006B9E;border-radius:999px;padding:6px 12px;font:600 13px inherit;cursor:pointer;white-space:nowrap}
+.fpt-guia{background:#E5F7FC;border-radius:14px;padding:12px 14px;margin:0 0 12px;font-size:14px}.fpt-guia h4{margin:0 0 6px;font-size:15px;color:#002F57}
+.fpt-guia ol{margin:0;padding-left:20px}.fpt-guia li{margin:0 0 7px}.fpt-guia small{display:block;color:#334155;font-size:13px}.fpt-guia .fpt-gx{display:block;margin:4px 0 0 auto;border:0;background:none;color:#006B9E;font:600 13px inherit;cursor:pointer}
+.fpt-res{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 12px}.fpt-res button{text-align:left;border-radius:14px;padding:9px 11px;border:1px solid #e2e7ee;background:#fff;cursor:pointer;font:inherit;color:inherit}
+.fpt-res b{display:block;font-size:22px;line-height:1.1}.fpt-res span{font-size:12px;color:#334155}
+.fpt-res .r{background:#fdecec;border-color:#f5c2c2}.fpt-res .r b{color:#c62828}.fpt-res .a{background:#fff6e5;border-color:#f3d9a8}.fpt-res .a b{color:#b45309}.fpt-res .v{background:#eaf7ee;border-color:#bfe3c9}.fpt-res .v b{color:#15803d}
+.fpt-bx{background:#fff;border-radius:16px;border:1px solid #e2e7ee;margin:0 0 12px;overflow:hidden}
+.fpt-bh{display:flex;align-items:center;gap:10px;padding:11px 14px;font-weight:700;font-size:15.5px}.fpt-bh small{display:block;font-weight:400;font-size:12.5px;color:#334155}
+.fpt-bh .n{margin-left:auto;min-width:26px;height:26px;border-radius:13px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;color:#fff;padding:0 8px;flex:none}
+.fpt-rojo{border-color:#f5c2c2}.fpt-rojo .fpt-bh{background:#fdecec;color:#c62828}.fpt-rojo .n{background:#c62828}
+.fpt-ambar{border-color:#f3d9a8}.fpt-ambar .fpt-bh{background:#fff6e5;color:#b45309}.fpt-ambar .n{background:#b45309}
+.fpt-verde .fpt-bh{background:#eaf7ee;color:#15803d}.fpt-verde .n{background:#15803d}
+.fpt-azul .fpt-bh{background:#002F57;color:#fff}.fpt-azul .fpt-bh small{color:#cfe3f1}
+.fpt-it{display:grid;grid-template-columns:1fr auto auto;gap:4px 12px;align-items:center;padding:11px 14px;border-top:1px solid #e2e7ee}
+.fpt-it b{font-size:14.5px}.fpt-it small{display:block;color:#64748b;font-size:12.5px;word-break:break-word}.fpt-it .fpt-v{font-weight:700;font-size:15px;white-space:nowrap}
+.fpt-it .btn{white-space:nowrap}.fpt-rojo .fpt-it .btn{background:#c62828;color:#fff;border-color:#c62828}
+.fpt-dif{grid-column:1/-1;font-size:13px;background:#fff6e5;border-radius:8px;padding:7px 10px;color:#5b3a06}
+.fpt-ok{padding:12px 14px;border-top:1px solid #e2e7ee;color:#15803d;font-size:13.5px}
+.fpt-fm{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;padding:12px 14px 6px}
+.fpt-f{border:1.5px solid #e2e7ee;background:#fff;border-radius:14px;padding:11px 4px 9px;text-align:center;cursor:pointer;font:600 13px inherit;color:#002F57}
+.fpt-f:hover{border-color:#006B9E;box-shadow:0 4px 12px rgba(0,47,87,.12)}.fpt-f[disabled]{opacity:.4;cursor:not-allowed;box-shadow:none}
+.fpt-ic{width:42px;height:42px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font:800 13px inherit;color:#fff}
+.fpt-f small{display:block;font-weight:400;font-size:11px;color:#64748b;margin-top:2px;line-height:1.25}
+.fpt-sub{padding:0 14px 12px;font-size:12.5px;color:#64748b}
+.fpt-ch{display:flex;gap:6px;padding:10px 14px 6px;overflow-x:auto;scrollbar-width:none}.fpt-ch::-webkit-scrollbar{display:none}
+.fpt-ch button{border:1px solid #e2e7ee;background:#fff;border-radius:999px;padding:5px 11px;font:600 12.5px inherit;cursor:pointer;color:#334155;white-space:nowrap}.fpt-ch button.on{background:#002F57;color:#fff;border-color:#002F57}
+.fpt-tag{font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 9px;background:#eef2f6;color:#334155;white-space:nowrap}
+.fpt-mas{display:block;width:100%;text-align:center;padding:10px;color:#006B9E;font:600 13.5px inherit;border:0;border-top:1px solid #e2e7ee;background:#fff;cursor:pointer}
+@media(max-width:560px){.fpt-verde .fpt-tag{grid-column:2;justify-self:end}.fpt-fm{grid-template-columns:repeat(2,1fr)}.fpt-it{grid-template-columns:1fr auto}.fpt-it .btn{grid-column:1/-1;width:100%}.fpt-res b{font-size:19px}}
+</style>
+
 </body>
 </html>
