@@ -320,7 +320,7 @@ function sello(ok, txt, sub){
   $('#cx').onclick = () => { cerrar(); renderMeta(); };
 }
 function renderMeta(){
-  const dr = diasTrabajoRestantes(), pctTxt = (SUELDO.pct * 100).toFixed(1).replace('.', ',') + '%';
+  const dr = diasTrabajoRestantes(), pctTxt = (SUELDO.pct * 100).toFixed(2).replace('.', ',') + '%';
   const minV = YO.meta, ganaMin = SUELDO.fijo + minV * SUELDO.pct;
   const miV = E.metaGanar ? Math.max((E.metaGanar - SUELDO.fijo) / SUELDO.pct, 0) : 0;
   const porDia = falta => falta <= 0 ? '' : dr ? 'unos <b>' + usd0(falta / dr) + ' por día</b> en tus ' + dr + (dr === 1 ? ' día' : ' días') + ' de trabajo que quedan' : 'no te quedan días de trabajo este mes';

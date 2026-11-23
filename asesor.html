@@ -333,7 +333,7 @@ function sello(ok, txt, sub){
   $('#cx').onclick = () => { cerrar(); renderMeta(); };
 }
 function renderMeta(){
-  const dr = diasTrabajoRestantes(), pctTxt = (SUELDO.pct * 100).toFixed(1).replace('.', ',') + '%';
+  const dr = diasTrabajoRestantes(), pctTxt = (SUELDO.pct * 100).toFixed(2).replace('.', ',') + '%';
   /* gt1 (21-nov): el gerente de tienda cobra sobre la venta TOTAL de la tienda (Diego). */
   const GER = /^gerente/i.test(YO.cargo || ''), vMes = GER ? TIENDA.mes : YO.mes;
   const minV = GER ? (TIENDA.presupuesto || YO.meta) : YO.meta, ganaMin = SUELDO.fijo + minV * SUELDO.pct;
@@ -346,7 +346,7 @@ function renderMeta(){
     const mN = MESES[Number(CIERRE.mes.slice(5, 7)) - 1], pago = CIERRE.pago ? new Date(CIERRE.pago + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'long'}) : '';
     h += '<div class="card" style="background:linear-gradient(135deg,#0f6b3f,#1a9a5c);color:#fff"><div class="fila"><span class="tiny" style="opacity:.85">' + mN.toUpperCase() + ' CERRADO · DATO OFICIAL DEL POS</span><span style="font-size:20px">🏁</span></div>' +
       '<div class="tiny" style="opacity:.85;margin-top:6px">Tu comisión de ' + mN + '</div><div style="font-size:34px;font-weight:900;margin:2px 0">' + usd2(CIERRE.comision) + '</div>' +
-      '<div class="tiny" style="opacity:.9">Vendiste ' + usd2(CIERRE.venta) + (CIERRE.gar ? ' · ' + CIERRE.gar + (CIERRE.gar === 1 ? ' garantía' : ' garantías') : '') + (CIERRE.pct ? ' · ' + (CIERRE.pct * 100).toFixed(1).replace('.', ',') + '% de comisión' : '') + '</div>' +
+      '<div class="tiny" style="opacity:.9">Vendiste ' + usd2(CIERRE.venta) + (CIERRE.gar ? ' · ' + CIERRE.gar + (CIERRE.gar === 1 ? ' garantía' : ' garantías') : '') + (CIERRE.pct ? ' · ' + (CIERRE.pct * 100).toFixed(2).replace('.', ',') + '% de comisión' : '') + '</div>' +
       (pago ? '<div style="margin-top:10px;background:rgba(255,255,255,.15);border-radius:10px;padding:8px 10px;font-weight:800">Se paga el ' + pago + ' 💰</div>' : '') +
       '<div class="tiny" style="opacity:.8;margin-top:6px">Tu sueldo fijo va aparte.</div></div>';
   }
