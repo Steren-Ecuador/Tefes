@@ -2533,7 +2533,7 @@ function renderAuc(){
   const n = x => { let s = String(x == null ? '' : x).replace(/[$\s]/g, ''); if (s.indexOf(',') >= 0) s = s.replace(/\./g, '').replace(',', '.'); const k = Number(s); return isNaN(k) ? 0 : k; };
   const L = (st.auc || [[]]).slice(1).map((r, i) => ({fila: i + 2, id: String(r[0] || '').trim(), fecha: iso(r[1]), tienda: String(r[3] || ''), registro: String(r[4] || ''),
     factura: String(r[5] || '').replace(/^'/, ''), fechaFac: iso(r[6]), valor: n(r[7]), productos: String(r[8] || ''), motivo: String(r[9] || ''), detalle: String(r[10] || ''),
-    pidio: String(r[11] || ''), foto: String(r[12] || ''), estado: String(r[13] || '').trim() || 'Por autorizar', reviso: String(r[14] || ''), fechaRev: iso(r[15]), comentario: String(r[16] || '')}))
+    pidio: String(r[11] || ''), foto: String(r[12] || ''), estado: String(r[13] || '').trim() || 'Por autorizar', reviso: String(r[14] || ''), fechaRev: iso(r[15]), comentario: String(r[16] || ''), para: String(r[17] || '')}))   /* aco3 */
     .filter(x => x.id);
   if (!L.length) { el.innerHTML = '<div class="sec-h"><h2>Facturas de autoconsumo</h2></div><div class="panel"><div class="empty">' +
     (st.auc === null ? 'No se pudieron cargar.' : 'Todavía no hay registros. Las tiendas los registran en Formas de pago → Autoconsumos.') + '</div></div>'; return; }
@@ -2562,7 +2562,7 @@ function renderAuc(){
       ${V.map(x => `<tr><td><b>${esc(x.factura)}</b><div class="small faint">${fd(x.fechaFac)}${x.foto ? ` · <a href="${esc(x.foto)}" target="_blank" rel="noopener">foto</a>` : ''}</div></td>
         <td>${esc(x.tienda)}<div class="small faint">registró ${esc(x.registro)} el ${fd(x.fecha)}</div></td>
         <td class="num">${usd.format(x.valor)}</td>
-        <td><b>${esc(x.motivo)}</b><div class="obs">${esc(x.detalle)}</div><div class="obs">Productos: ${esc(x.productos)}</div><div class="small faint">Pidió: ${esc(x.pidio)}</div></td>
+        <td><b>${esc(x.motivo)}</b><div class="obs">${esc(x.detalle)}</div><div class="obs">Productos: ${esc(x.productos)}</div><div class="small faint">${x.para ? 'Para: ' + esc(x.para) + ' · ' : ''}Pidió: ${esc(x.pidio)}</div></td>
         <td><span class="pill ${AUC_PILL[x.estado] || 'p-na'}">${esc(x.estado)}</span>${x.fechaRev ? `<div class="small faint">${esc(x.reviso)} ${fd(x.fechaRev)}</div>` : ''}${x.comentario ? `<div class="obs">${esc(x.comentario)}</div>` : ''}
           ${AUC_EDITA ? `<div><button class="kmas" data-aucr="${x.fila}">${x.estado === 'Por autorizar' ? 'Revisar' : 'Cambiar'}</button></div>` : ''}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">Sin facturas con este filtro.</td></tr>'}
       </tbody></table></div>
@@ -2574,7 +2574,7 @@ function renderAuc(){
     const fila = +b.dataset.aucr, x = L.find(y => y.fila === fila), r = st.auc[fila - 1];
     $('#drawer').innerHTML = `<div class="drawer-bg"><div class="drawer" role="dialog" aria-label="Revisar autoconsumo">
       <div class="d-top"><div class="d-top-t"><b>Factura ${esc(x.factura)} · ${usd.format(x.valor)}</b><span>${esc(x.tienda)} · ${fd(x.fechaFac)}</span></div><button class="d-x" id="dClose">Cerrar</button></div>
-      <p><b>${esc(x.motivo)}</b>: ${esc(x.detalle)}</p><p class="small">Productos: ${esc(x.productos)}<br>Pidió: ${esc(x.pidio)} · registró ${esc(x.registro)}${x.foto ? ` · <a href="${esc(x.foto)}" target="_blank" rel="noopener">ver foto</a>` : ''}</p>
+      <p><b>${esc(x.motivo)}</b>: ${esc(x.detalle)}</p><p class="small">Productos: ${esc(x.productos)}<br>${x.para ? 'Para: ' + esc(x.para) + ' · ' : ''}Pidió: ${esc(x.pidio)} · registró ${esc(x.registro)}${x.foto ? ` · <a href="${esc(x.foto)}" target="_blank" rel="noopener">ver foto</a>` : ''}</p>
       <div class="lbl">Comentario para la tienda${x.estado === 'Por autorizar' ? ' (obligatorio si la rechazas)' : ''}</div><input type="text" id="aucCom" maxlength="300" value="${esc(x.comentario)}">
       <div class="actions"><button class="btn good" id="aucAut">Autorizar</button><button class="btn bad" id="aucRech">Rechazar</button>${x.estado !== 'Por autorizar' ? '<button class="btn" id="aucPend">Volver a por autorizar</button>' : ''}</div></div></div>`;
     $('#dClose').onclick = () => $('#drawer').innerHTML = '';
