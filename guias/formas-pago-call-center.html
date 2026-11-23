@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Registro de formas de pago (call center)</title>
+<style>
+body{margin:0}
+:root{
+  --bg:#f4f6f9; --card:#fff; --ink:#16202c; --muted:#5d6b7a; --line:#e2e7ee;
+  --brand:#0b4f8a; --brand-soft:#e7f0f9; --ok:#1a7f4b; --ok-soft:#e5f5ec; --warn:#b26a00; --warn-soft:#fff3df;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141a; --card:#1a222c; --ink:#e6ebf1; --muted:#9aa7b5; --line:#2b3542;
+  --brand:#6fb0ec; --brand-soft:#16304a; --ok:#3fb27a; --ok-soft:#14301f; --warn:#e3a13a; --warn-soft:#3a2a10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --card:#1a222c; --ink:#e6ebf1; --muted:#9aa7b5; --line:#2b3542;
+  --brand:#6fb0ec; --brand-soft:#16304a; --ok:#3fb27a; --ok-soft:#14301f; --warn:#e3a13a; --warn-soft:#3a2a10; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--brand)}
+h1{font-size:28px;line-height:1.2;margin:4px 0 8px;text-wrap:balance}
+h2{font-size:20px;margin:0 0 8px;text-wrap:balance}
+p{margin:0 0 10px} .muted{color:var(--muted)}
+.paso{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.num{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;font-weight:800;margin-bottom:8px}
+:root[data-theme="dark"] .num{color:#0b1824}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .num{color:#0b1824}}
+ul,ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.clave{background:var(--brand-soft);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:15px}
+.clave.warn{background:var(--warn-soft)}
+.indice{display:flex;flex-wrap:wrap;gap:8px}
+.indice a{font-size:14px;text-decoration:none;color:var(--brand);background:var(--brand-soft);border-radius:999px;padding:4px 12px}
+.tabla{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600}
+td b{color:var(--brand)}
+</style>
+</head><body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TEFES · Procedimiento · Call center</div>
+    <h1>Registro de formas de pago en la app</h1>
+    <p class="muted">Cómo registra cada agente del call center la forma de pago y el comprobante de sus ventas. Vigente desde noviembre de 2026.</p>
+    <nav class="indice">
+      <a href="#porque">Por qué</a><a href="#formas">Formas de pago</a><a href="#nc">Notas de crédito</a><a href="#pasos">Paso a paso</a><a href="#reglas">Reglas</a>
+    </nav>
+  </header>
+
+  <section class="paso" id="porque">
+    <div class="num">1</div>
+    <h2>¿Por qué lo hacemos?</h2>
+    <p>El POS registra los pagos solo como "Transferencia electrónica" o "Nota de crédito": no dice si fue Deuna, Tipti o a qué cuenta llegó el dinero, ni cuál es el comprobante. Sin ese dato, Financiero no puede cuadrar lo que llega al banco con cada factura, y las diferencias terminan como faltantes de la tienda donde se facturó.</p>
+    <p>Las tiendas ya lo registran desde el 18 de noviembre. Las ventas del call center salen facturadas en una tienda, por eso cada agente registra las suyas.</p>
+    <div class="clave"><b>Objetivo:</b> que cada factura pagada sin efectivo ni tarjeta tenga su forma de pago y su comprobante en la app el mismo día de la factura, para que Financiero cuadre el 100 % contra el banco y el POS, y ninguna tienda cargue con una venta del call center.</div>
+  </section>
+
+  <section class="paso" id="formas">
+    <div class="num">2</div>
+    <h2>Formas de pago que se registran</h2>
+    <div class="tabla"><table>
+      <tr><th>Forma de pago</th><th>Qué se registra</th></tr>
+      <tr><td><b>Deuna</b></td><td>Valor y número de comprobante (solo números) + foto del comprobante.</td></tr>
+      <tr><td><b>Tipti</b></td><td>Valor y número de pedido Tipti.</td></tr>
+      <tr><td><b>Transferencia bancaria</b></td><td>Cuenta de Tefes a la que llegó (Pichincha, Produbanco o Bolivariano; la app muestra las tres), valor y número de comprobante + foto (obligatoria).</td></tr>
+      <tr><td><b>Nota de crédito</b></td><td>N° completo de la nota de crédito (005-001-000000123), factura devuelta y valor.</td></tr>
+      <tr><td><b>Otra</b></td><td>Qué forma de pago es, valor y número de comprobante.</td></tr>
+    </table></div>
+    <div class="clave">Si una factura se pagó con dos formas (por ejemplo, Deuna y transferencia), se registra cada una con su valor.</div>
+  </section>
+
+  <section class="paso" id="nc">
+    <div class="num">3</div>
+    <h2>Notas de crédito: también se registran</h2>
+    <p>Cuando una factura se anula o se devuelve con nota de crédito y se emite una factura nueva, registra la factura nueva con su forma de pago. Si se pagó con la nota de crédito, elige <b>Otros › Nota de crédito</b> y escribe el N° de la NC y la factura devuelta. Con eso la factura devuelta sale sola de los pendientes.</p>
+  </section>
+
+  <section class="paso" id="pasos">
+    <div class="num">4</div>
+    <h2>Cómo registrar (paso a paso)</h2>
+    <ol>
+      <li>Entra a la app con tu enlace y tu código.</li>
+      <li>Abre <b>Formas de pago</b>. Arriba ves "Tus ventas por registrar": son tus facturas que el POS cobró y todavía no tienen registro.</li>
+      <li>Toca <b>Registrar</b> en la factura (o el botón Registrar si no aparece en la lista) y revisa tienda y número de factura completo.</li>
+      <li>Elige la forma de pago y escribe el valor.</li>
+      <li>Escribe el número real del comprobante y sube la foto.</li>
+      <li>Toca <b>Guardar</b>. La factura sale de tu lista de pendientes.</li>
+    </ol>
+  </section>
+
+  <section class="paso" id="reglas">
+    <div class="num">5</div>
+    <h2>Reglas</h2>
+    <ul>
+      <li>Registra el <b>mismo día</b> de la factura. Lo pendiente desde el 18 de noviembre, regístralo ya.</li>
+      <li>Nunca uses números de relleno (000000, 999999, "EMPRESA").</li>
+      <li>Un comprobante es para una sola factura: el sistema no deja repetirlo.</li>
+      <li>La jefa del call center ve los registros de todo el equipo; cada agente ve los suyos.</li>
+    </ul>
+  </section>
+</div>
+</body></html>
