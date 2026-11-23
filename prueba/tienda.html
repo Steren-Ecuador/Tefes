@@ -1130,7 +1130,7 @@ const aucUsd = n => '$' + Number(n || 0).toFixed(2).replace('.', ',');
 function aucCargar(){
   if (AUCS.cargando) return; AUCS.cargando = true; AUCS.error = '';
   api('apiAutoconsumoLista').then(L => { AUCS.lista = L || []; }).catch(e => { AUCS.error = e.message || 'No se pudo cargar.'; })
-    .finally(() => { AUCS.cargando = false; if (S.vista === 'inv') renderInv(); });
+    .finally(() => { AUCS.cargando = false; aucRepintar(); });
 }
 function aucItemHtml(x){
   return '<div class="vf-it"><div class="vf-h"><b>Fact. ' + esc(x.factura) + ' · ' + aucUsd(x.valor) + '</b><span class="tag ' + (AUC_TAG[x.estado] || 'vf-esp') + '">' + esc(x.estado) + '</span></div>' +
@@ -1152,9 +1152,10 @@ function aucHtml(){
   else h += '<div class="card" style="margin-top:10px">' + L.map(aucItemHtml).join('') + '</div>';
   return h;
 }
+function aucRepintar(){ if (S.vista === 'pago') renderPago(); else if (S.vista === 'inv') renderInv(); }   // fac1
 function aucEnlazar(){
   const n = $('#aucNuevo'); if (n) n.onclick = aucFormulario;
-  const re = $('#aucRe'); if (re) re.onclick = () => { AUCS.error = ''; AUCS.lista = null; renderInv(); };
+  const re = $('#aucRe'); if (re) re.onclick = () => { AUCS.error = ''; AUCS.lista = null; aucRepintar(); };
 }
 function aucFormulario(){
   const hoy = S.data.hoy || new Date().toISOString().slice(0, 10);
@@ -1185,13 +1186,13 @@ function aucFormulario(){
       const r = await api('apiAutoconsumoRegistrar', d);
       (AUCS.lista = AUCS.lista || []).unshift(r);
       if (window.REG) REG.ev('Autoconsumo', r.id + ' · ' + r.factura);
-      closeModal(); toast('Registrada. Queda por autorizar.', 3500); renderInv();
+      closeModal(); toast('Registrada. Queda por autorizar.', 3500); aucRepintar();
     } catch (e) { b.disabled = false; b.textContent = 'Guardar'; toast(e.message || 'No se pudo guardar. Revisa tu internet.', 4000); }
   };
 }
 /* ---------- fpg1: FORMAS DE PAGO de facturas del POS (Diego 2026-11-16). Una fila por factura y forma de pago. ---------- */
 const FPGS = {lista: null, formas: [], cargando: false, error: '', todos: false, grupo: 'tr'};
-const FPG_GRUPOS = [['tr', 'Transferencias'], ['ot', 'Otros']];   // fpg8
+const FPG_GRUPOS = [['tr', 'Transferencia', '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h13l-3.5-3.5"/><path d="M20 16H7l3.5 3.5"/></svg>'], ['ot', 'Otras', '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>'], ['ac', 'Autoconsumos', '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 12H6.2z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>']];   // fpg8 + fac1 */ /* fac1 */
 const FPG_OTROS = ['Nota de crédito', 'Préstamo empleado', 'Descuento inventario'], fpgGrupo = x => FPG_OTROS.indexOf(x.forma) >= 0 || (FPGS.extras || []).some(e => e.n === x.forma && e.g === 'ot') ? 'ot' : 'tr';
 const fpgNom = f => ({'Transferencias': 'Transferencia', 'Préstamo empleado': 'Préstamo a empleado', 'Descuento inventario': 'Descuento por inventario'})[f] || f;
 const fpgRefTxt = x => x.forma === 'Nota de crédito' ? 'NC ' + x.pedido + (x.banco ? ' · devuelta ' + x.banco : '') + (x.otra ? ' · ' + x.otra : '') : x.forma === 'Préstamo empleado' ? 'Empleado ' + (x.otra || '') + ' · ' + x.pedido + (x.pedido == 1 ? ' cuota de ' : ' cuotas de ') + fpgUsd(Math.floor(x.valor * 100 / (Number(x.pedido) || 1)) / 100) + ' al mes' : x.forma === 'Descuento inventario' ? 'Empleado ' + (x.otra || '') + ' · inventario ' + x.pedido + ' · ' + x.banco + (x.banco == 1 ? ' cuota de ' : ' cuotas de ') + fpgUsd(Math.floor(x.valor * 100 / (Number(x.banco) || 1)) / 100) + ' al mes' :
@@ -1207,7 +1208,8 @@ function fpgHtml(){   // fpg8: Transferencias | Notas de crédito | Préstamos e
   if (FPGS.lista === null && !FPGS.error) fpgCargar();
   const G = FPGS.grupo || 'tr', L = (FPGS.lista || []).filter(x => fpgGrupo(x) === G), hoy = S.data.hoy || new Date().toISOString().slice(0, 10), deHoy = L.filter(x => x.fecha === hoy && x.estado !== 'Anulada');
   let h = '<div class="sec-t" style="margin-top:16px"><h3>Formas de pago</h3><span class="tiny muted">' + (deHoy.length ? deHoy.length + ' hoy · ' + fpgUsd(deHoy.reduce((a, x) => a + x.valor, 0)) : '') + '</span></div>';
-  h += '<div class="seg fpg-seg" style="margin-bottom:10px">' + FPG_GRUPOS.map(([k, l]) => '<button data-fpgg="' + k + '" class="' + (k === G ? 'on' : '') + '" style="flex:1">' + l + '</button>').join('') + '</div>';
+  h += '<div class="seg fpg-seg" style="margin-bottom:10px">' + FPG_GRUPOS.map(([k, l, ic]) => '<button data-fpgg="' + k + '" class="' + (k === G ? 'on' : '') + '" style="flex:1">' + (ic || '') + '<span>' + l + '</span></button>').join('') + '</div>';
+  if (G === 'ac') return h + aucHtml();   // fac1: Autoconsumos dentro de Formas de pago
   h += fpgPosHtml();   // fpg21
   h += '<button class="btn block" id="fpgNuevo">' + ({tr: '+ Registrar pago con Deuna, Tipti, transferencia u otra', ot: '+ Registrar nota de crédito, préstamo o descuento por inventario'})[G] + '</button>';
   if (FPGS.error) h += '<div class="card small" style="margin-top:10px">' + esc(FPGS.error) + ' <button class="link" id="fpgRe">Reintentar</button></div>';
@@ -1225,6 +1227,7 @@ function fpgHtml(){   // fpg8: Transferencias | Notas de crédito | Préstamos e
   return h;
 }
 function fpgEnlazar(){
+  if ((FPGS.grupo || 'tr') === 'ac') { aucEnlazar(); document.querySelectorAll('[data-fpgg]').forEach(b => b.onclick = () => { FPGS.grupo = b.dataset.fpgg; FPGS.todos = false; renderPago(); }); return; }   // fac1
   fpgPosEnlazar();   // fpg21
   const n = $('#fpgNuevo'); if (n) n.onclick = fpgFormulario;
   document.querySelectorAll('[data-fpgg]').forEach(b => b.onclick = () => { FPGS.grupo = b.dataset.fpgg; FPGS.todos = false; renderPago(); });   // fpg8
@@ -1621,7 +1624,7 @@ function fpgFormulario(){   // fpg5: asistente de 4 pasos
     alGuardar: r => { if (window.REG) REG.ev('Forma de pago', r.id + ' · ' + r.factura); FPGS.lista = [r].concat((FPGS.lista || []).filter(x => x.id !== r.id)); if (S.vista === 'pago') renderPago(); }});
 }
 function renderInv(){
-  $('#main').innerHTML = vfHtml() + aucHtml() + inventarioHtml() + informesInvHtml();   // aco1 + fpg1
+  $('#main').innerHTML = vfHtml() + inventarioHtml() + informesInvHtml();   /* fac1: autoconsumo pasa a Formas de pago */   // aco1 + fpg1
   vfEnlazar(); aucEnlazar();
 }
 function renderPago(){   // fpg4: Formas de pago (opción principal del menú; Diego 17-nov la renombró)
@@ -3688,5 +3691,6 @@ header:has(.cab)::after{content:"";position:absolute;right:-60px;top:-70px;width
 @media(max-width:700px){.tk-s .ts-eq{flex-wrap:nowrap;overflow-x:auto;max-width:100%;justify-content:safe center;scrollbar-width:none;padding:4px 2px}.tk-s .ts-eq::-webkit-scrollbar{display:none}.tk-s .ts-eq>*{flex:none}}
 @media (prefers-reduced-motion:reduce){.tk-b:active{transform:none}}
 </style>
+<style>/* fac1 */.fpg-seg{border:0!important;gap:8px;overflow:visible!important}.fpg-seg button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px 4px 9px;font-size:13.5px;line-height:1.1;border:1px solid var(--line)!important;border-radius:14px;background:#fff;color:#002F57;box-shadow:0 1px 3px rgba(0,47,87,.08)}.fpg-seg button svg{flex:none;width:34px;height:34px;padding:8px;border-radius:50%;background:#E5F7FC;color:#006B9E;box-sizing:border-box}.fpg-seg button span{white-space:nowrap}.fpg-seg button.on{background:#002F57;color:#fff;border-color:#002F57!important;box-shadow:0 6px 16px rgba(0,47,87,.25)}.fpg-seg button.on svg{background:rgba(255,255,255,.16);color:#fff}@media(max-width:380px){.fpg-seg button{font-size:12px}}</style>
 </body>
 </html>
