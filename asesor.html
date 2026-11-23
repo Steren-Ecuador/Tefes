@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<script src="vista.js"></script><!-- vc1 -->
 <!-- pwa1 --><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icono-192.png"><link rel="apple-touch-icon" href="icono-180.png">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Steren"><meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script>if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));</script>
@@ -256,6 +257,7 @@ function renderMuro(){
   document.querySelectorAll('[data-per]').forEach(b => b.onclick = () => perfil(EQUIPO.find(p => p.id === b.dataset.per)));
   document.querySelectorAll('[data-leer]').forEach(b => b.onclick = () => { E.leidos[b.dataset.leer] = new Date().toISOString(); guardar(); toast('Gracias, quedó registrado con tu nombre.'); render(); });
   document.querySelectorAll('[data-apl]').forEach(b => b.onclick = () => { const k = b.dataset.apl, y = k + ':yo'; E.aplausos[k] = (E.aplausos[k] || 0) + (E.aplausos[y] ? -1 : 1); E.aplausos[y] = !E.aplausos[y]; guardar(); renderMuro(); });
+  tkgMuro();   /* tkg */
 }
 function perfil(p){
   const c = p.meta ? p.mes / p.meta : 0, dias = turnosDe(p.id);
@@ -267,6 +269,42 @@ function perfil(p){
     '<button class="btn block" style="margin-top:14px" id="cx">Cerrar</button>');
   $('#cx').onclick = cerrar;
 }
+
+
+
+/* tkg: Inicio tipo TikTok genérico (celular): cada grupo de tarjetas ocupa una pantalla y se desliza hacia arriba */
+  function tkgArmar(cont, grupos, clave){
+    window.__tkgPos = window.__tkgPos || {};
+    if (!cont || !matchMedia('(max-width:700px)').matches) return;
+    grupos = grupos.map(g => g.filter(Boolean)).filter(g => g.length);
+    if (grupos.length < 2) return;
+    const fe = document.createElement('div'); fe.className = 'tkg-feed';
+    grupos[0][0].before(fe);
+    grupos.forEach((g, i) => {
+      const s = document.createElement('section'); s.className = 'tkg-s tkg-c' + (i % 4);
+      const w = document.createElement('div'); w.className = 'tkg-in';
+      g.forEach(e => { if (!e.classList.contains('card')) e.classList.add('tkg-hoja'); w.appendChild(e); });
+      const p = document.createElement('div'); p.className = 'tkg-pos'; p.innerHTML = grupos.map((_, k) => '<i class="' + (k <= i ? 'on' : '') + '"></i>').join('');
+      s.appendChild(p); s.appendChild(w); fe.appendChild(s);
+    });
+    const medir = () => {
+      const r = fe.getBoundingClientRect(), nb = [...document.querySelectorAll('nav')].find(n => { const q = n.getBoundingClientRect(); return q.height && q.top > innerHeight / 2; });
+      const tope = nb ? nb.getBoundingClientRect().top : innerHeight, y = r.top + (fe.parentElement ? 0 : 0);
+      fe.style.height = Math.max(300, Math.floor(tope - y)) + 'px';
+      fe.style.width = document.documentElement.clientWidth + 'px'; fe.style.marginLeft = (-(r.left - parseFloat(fe.style.marginLeft || 0))) + 'px';
+      fe.querySelectorAll('.tkg-s').forEach(s => s.classList.toggle('tkg-alto', s.offsetHeight > fe.clientHeight + 2));   /* pantallas más altas: se pueden recorrer completas */
+    };
+    medir(); setTimeout(medir, 350); fe.scrollTop = window.__tkgPos[clave] || 0;
+    fe.addEventListener('scroll', () => { window.__tkgPos[clave] = fe.scrollTop; }, {passive: true});
+    if (!window.__tkgR) { window.__tkgR = 1; addEventListener('resize', () => document.querySelectorAll('.tkg-feed').forEach(f => f.__m && f.__m())); }
+    fe.__m = medir;
+    document.body.classList.add('tkg-body');
+  }
+/* /tkg */
+function tkgMuro(){ const m = sec('muro'), k = [...m.children], g = []; let i = 0;
+  if (k[0] && !k[0].classList.contains('hist') && k[0].textContent.indexOf('🎂') >= 0) g.push([k[i++]]);
+  g.push([k[i++], k[i++]]); g.push([k[i++]]); while (i < k.length) g.push([k[i++]]);
+  tkgArmar(m, g, 'muro'); }   /* tkg-muro */
 
 /* ================= MI META ================= */
 function diasTrabajoRestantes(){ let n = 0; for (let d = HOY.getDate(); d <= finMes; d++){ const x = new Date(HOY.getFullYear(), HOY.getMonth(), d); if (turnosDe(YO.id)[(x.getDay() + 6) % 7] !== 'Libre') n++; } return n; }
@@ -295,7 +333,7 @@ function sello(ok, txt, sub){
   $('#cx').onclick = () => { cerrar(); renderMeta(); };
 }
 function renderMeta(){
-  const dr = diasTrabajoRestantes(), pctTxt = (SUELDO.pct * 100).toFixed(1).replace('.', ',') + '%';
+  const dr = diasTrabajoRestantes(), pctTxt = (SUELDO.pct * 100).toFixed(2).replace('.', ',') + '%';
   /* gt1 (21-nov): el gerente de tienda cobra sobre la venta TOTAL de la tienda (Diego). */
   const GER = /^gerente/i.test(YO.cargo || ''), vMes = GER ? TIENDA.mes : YO.mes;
   const minV = GER ? (TIENDA.presupuesto || YO.meta) : YO.meta, ganaMin = SUELDO.fijo + minV * SUELDO.pct;
@@ -308,7 +346,7 @@ function renderMeta(){
     const mN = MESES[Number(CIERRE.mes.slice(5, 7)) - 1], pago = CIERRE.pago ? new Date(CIERRE.pago + 'T12:00:00').toLocaleDateString('es-EC', {day: 'numeric', month: 'long'}) : '';
     h += '<div class="card" style="background:linear-gradient(135deg,#0f6b3f,#1a9a5c);color:#fff"><div class="fila"><span class="tiny" style="opacity:.85">' + mN.toUpperCase() + ' CERRADO · DATO OFICIAL DEL POS</span><span style="font-size:20px">🏁</span></div>' +
       '<div class="tiny" style="opacity:.85;margin-top:6px">Tu comisión de ' + mN + '</div><div style="font-size:34px;font-weight:900;margin:2px 0">' + usd2(CIERRE.comision) + '</div>' +
-      '<div class="tiny" style="opacity:.9">Vendiste ' + usd2(CIERRE.venta) + (CIERRE.gar ? ' · ' + CIERRE.gar + (CIERRE.gar === 1 ? ' garantía' : ' garantías') : '') + (CIERRE.pct ? ' · ' + (CIERRE.pct * 100).toFixed(1).replace('.', ',') + '% de comisión' : '') + '</div>' +
+      '<div class="tiny" style="opacity:.9">Vendiste ' + usd2(CIERRE.venta) + (CIERRE.gar ? ' · ' + CIERRE.gar + (CIERRE.gar === 1 ? ' garantía' : ' garantías') : '') + (CIERRE.pct ? ' · ' + (CIERRE.pct * 100).toFixed(2).replace('.', ',') + '% de comisión' : '') + '</div>' +
       (pago ? '<div style="margin-top:10px;background:rgba(255,255,255,.15);border-radius:10px;padding:8px 10px;font-weight:800">Se paga el ' + pago + ' 💰</div>' : '') +
       '<div class="tiny" style="opacity:.8;margin-top:6px">Tu sueldo fijo va aparte.</div></div>';
   }
@@ -1267,5 +1305,94 @@ arrancar();
 })();
 </script>
 <!-- le1 --><script>/* le1 */</script>
+<!-- emx1 inicio -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap">
+<style id="emx1">
+/* emx1 · Estilo Steren México (22/11/2026). Solo apariencia y movimiento suave; no cambia lógica.
+   Referencia: steren.com.mx (blanco, azul marino #002F57, botón #006B9E, celeste #E5F7FC, letra Heebo).
+   Fuente única de este bloque: herramientas/estilo-mx/. Se copia dentro de cada página con aplicar.py. */
+:root{--brand:#006b9e;--brand-soft:#e5f7fc;--navy:#002f57;--celeste:#7fd3f5;
+  --tem-head:#fff;--tem-ink:#002f57;--tem-2:#4a5866;--tem-chip:#e5f7fc;--radius:12px}
+html,body{font-family:"Heebo",-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+::selection{background:#cdeefb;color:#002f57}
+/* Encabezado blanco con el logo, como steren.com.mx */
+header{background:#fff!important;color:#16202c!important;border-bottom:1px solid #e2e7ee;box-shadow:0 6px 18px -14px rgba(0,47,87,.35)}
+header h1{color:#002f57;font-weight:800}
+header .sub{color:#5d6b7a;opacity:1;letter-spacing:.14em;text-transform:uppercase;font-size:11px;font-weight:500}
+.tem-campo{background:#f4f4f4!important;border:1px solid #e2e7ee}
+.tem-sub button.on{background:#002f57;color:#fff}
+/* Bloque de la tienda (celular) en azul marino */
+.perfil{background:#002f57!important;color:#fff;border-bottom:0!important;position:relative;overflow:hidden}
+.perfil::after{content:"";position:absolute;right:-70px;top:-70px;width:180px;height:180px;border-radius:50%;background:repeating-linear-gradient(180deg,rgba(127,211,245,.14) 0 10px,transparent 10px 20px);pointer-events:none}
+.pf-top,.pf-btns,.pf-hist{position:relative;z-index:1}
+.pf-logo{border:3px solid #7fd3f5!important}
+.pf-num b{color:#fff}
+.pf-num b.warn{color:#ffd24d!important}
+.pf-num b.mal{color:#ff8a80!important}
+.pf-num span{color:#cfe3f2!important}
+.pf-btns button{background:rgba(255,255,255,.12)!important;color:#fff;border:1px solid rgba(255,255,255,.25)!important;border-radius:8px!important}
+.pf-btns button.pri{background:#fff!important;color:#002f57!important;border-color:#fff!important}
+.pf-hist button{color:#fff!important}
+.pf-hist .aro{background:rgba(255,255,255,.25)!important}
+.pf-hist button.nuevo .aro{background:#7fd3f5!important}
+.pf-hist .cir{background:#0f3a63!important;border-color:#002f57!important;color:#fff!important}
+.card{border-radius:12px;box-shadow:0 1px 2px rgba(0,47,87,.05),0 6px 18px -10px rgba(0,47,87,.25)}
+nav button.on{color:#006b9e}
+/* Movimiento suave (skills de Emil Kowalski): corto, solo para dar respuesta al toque */
+button,.btn,.chip,a.btn{transition:background-color .15s ease-out,color .15s ease-out,border-color .15s ease-out,transform .12s ease-out,box-shadow .15s ease-out}
+button:active,.btn:active,.chip:active{transform:scale(.97)}
+main .card{animation:emx-in .22s cubic-bezier(.16,1,.3,1) both}
+.perfil{animation:emx-in .25s cubic-bezier(.16,1,.3,1) both}
+@keyframes emx-in{from{opacity:.35;transform:translateY(6px)}}
+@media (hover:hover){a.card:hover,button.card:hover{transform:translateY(-2px)}}
+@media (prefers-reduced-motion: reduce){main .card,.perfil{animation:none}button:active,.btn:active,.chip:active{transform:none}}
+/* Asesores: su encabezado personal va en azul marino */
+header:has(.cab){background:#002f57!important;color:#fff!important;border-bottom:0;position:sticky;overflow:hidden}
+header:has(.cab)::after{content:"";position:absolute;right:-60px;top:-70px;width:160px;height:160px;border-radius:50%;background:repeating-linear-gradient(180deg,rgba(127,211,245,.14) 0 10px,transparent 10px 20px);pointer-events:none}
+.cab .av{border-color:#7fd3f5!important}
+.cab span{color:#cfe3f2;opacity:1}
+</style>
+<script>
+/* emx1 · Números del bloque de la tienda que suben contando (solo apariencia). */
+(function () {
+  if (!window.MutationObserver || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+  function contar(b) {
+    var fin = b.textContent, m = /^(\d{1,4})(%?)$/.exec(fin.trim());
+    if (!m || b.dataset.emx === fin) return;         // ya contado, o es un paso de nuestra propia cuenta
+    var n = +m[1], suf = m[2], ini = performance.now(), dur = 600;
+    function poner(t) { b.dataset.emx = t; b.textContent = t; }
+    poner('0' + suf);
+    (function paso(ahora) {
+      if (b.textContent !== b.dataset.emx) return;   // la app cambió el número mientras contaba: se respeta
+      var k = Math.min(1, (ahora - ini) / dur);
+      if (k >= 1) return poner(fin);
+      poner(Math.round(n * (1 - Math.pow(1 - k, 3))) + suf);
+      requestAnimationFrame(paso);
+    })(ini);
+  }
+  new MutationObserver(function () { document.querySelectorAll('.pf-num b').forEach(contar); })
+    .observe(document.documentElement, {childList: true, subtree: true, characterData: true});
+})();
+</script>
+<!-- emx1 fin -->
+<style>/* tkg: Inicio tipo TikTok genérico (celular), colores Steren México */
+@media(max-width:700px){
+.tkg-feed{overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;margin-top:-12px;margin-bottom:12px}
+.tkg-feed::-webkit-scrollbar{display:none}
+.tkg-s{min-height:100%;scroll-snap-align:start;scroll-snap-stop:always;position:relative;display:flex;flex-direction:column;justify-content:center;padding:30px 14px 16px;box-sizing:border-box}
+.tkg-s.tkg-alto{scroll-snap-stop:normal;justify-content:flex-start}
+.tkg-c0{background:radial-gradient(circle at 80% 10%,#006B9E 0,#002F57 62%)}
+.tkg-c1{background:radial-gradient(circle at 20% 15%,#1b7fb8 0,#00233f 65%)}
+.tkg-c2{background:radial-gradient(circle at 85% 20%,#00a3d9 0,#003b66 66%)}
+.tkg-c3{background:radial-gradient(circle at 15% 20%,#3f6fb0 0,#0b1f3a 66%)}
+.tkg-in{width:100%;max-width:560px;margin:0 auto}
+.tkg-in>.card,.tkg-in>.tkg-hoja{box-shadow:0 14px 34px rgba(0,0,0,.3);margin-bottom:12px}
+.tkg-in>:last-child{margin-bottom:0}
+.tkg-hoja{background:#fff;border-radius:14px;padding:10px 10px 6px}
+.tkg-pos{position:absolute;top:12px;left:16px;right:16px;display:flex;gap:4px;z-index:3}
+.tkg-pos i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.3)}
+.tkg-pos i.on{background:#fff}
+}
+</style>
 </body>
 </html>
