@@ -1256,7 +1256,6 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
   <div class="view" data-view="inventario" hidden>
     <details hidden class="panel cv-box" id="cvBox" ontoggle="if(this.open&&window.cvRender){cvRender();cvCargar();}"><summary><span class="cv-dot" id="cvLuz"></span><b>En vivo</b><span class="hint" id="cvLuzTxt">Revisando…</span></summary><div id="vivoBody" style="margin-top:12px"><div class="skeleton">Cargando conteos…</div></div></details>
     <div id="invBody"><div class="skeleton">Cargando inventario…</div></div>
-    <div id="aucBody"></div>
   </div>
 
   <div class="view" data-view="politicas" hidden>
@@ -1291,6 +1290,7 @@ setTimeout(cvIniciar, 1500);   // carga al abrir el panel para la luz de la pest
     <section class="panel" id="formaspago">
       <div class="panel-h"><h2>Formas de pago</h2><span class="small faint">Lo que registran asesores, gerentes y call center por cada factura del POS.</span></div>
       <div id="fpgBody"><div class="skeleton">Cargando formas de pago…</div></div>
+      <div id="aucBody"></div>   <!-- aco2 -->
     </section>
   </div>
   <div id="tipos" hidden></div><span id="byPointSub" hidden></span>
@@ -1603,7 +1603,7 @@ function hlPintar(filas, todas){
 }
 /* mn1: sub-opciones del menú por temas (Diego 8-nov): una vista muestra solo la parte elegida */
 (function(){
-  const MN_T = {"hoy": [["hoy", "val", "Esperan tu validación"], ["hoy", "sup", "Posiciones de supervisión"], ["hoy", "ven", "Ventas vs presupuesto"], ["hoy", "act", "Actividades del mes"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "fl", "Flash de ventas"], ["flash", "fd", "Explorar ventas"], ["flash", "gar", "Garantías extendidas"], ["flash", "pp", "Presupuesto por persona"]], "formaspago": [["formaspago", "tr", "Registros"], ["formaspago", "ot", "Pendientes por local"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "stock", "Consultar stock"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "pf", "Proformas"], ["clientes", "vf", "Lista de espera"]]};
+  const MN_T = {"hoy": [["hoy", "val", "Esperan tu validación"], ["hoy", "sup", "Posiciones de supervisión"], ["hoy", "ven", "Ventas vs presupuesto"], ["hoy", "act", "Actividades del mes"]], "supervision": [["supervision", "", "Nueva supervisión"], ["pendientes", "", "Todos los pendientes"], ["calendario", "", "Calendario"]], "anuncios": [["anuncios", "", "Anuncios"]], "ventas": [["flash", "fl", "Flash de ventas"], ["flash", "fd", "Explorar ventas"], ["flash", "gar", "Garantías extendidas"], ["flash", "pp", "Presupuesto por persona"]], "formaspago": [["formaspago", "tr", "Registros"], ["formaspago", "ot", "Pendientes por local"], ["formaspago", "ac", "Autoconsumos"]], "inventarios": [["inventario", "top", "Inventario Top 50"], ["inventario", "stock", "Consultar stock"]], "universidad": [["universidad", "tabla", "Tabla"], ["universidad", "gol", "Goleadores"], ["universidad", "car", "Carreras"], ["universidad", "al", "Alertas"]], "politicas": [["politicas", "leer", "Políticas"], ["guias", "", "Manuales y guías"], ["politicas", "rep", "Reporte de lectura"]], "contactos": [["contactos", "tel", "Teléfonos"], ["contactos", "wa", "WhatsApp"], ["contactos", "mail", "Correos"], ["contactos", "hor", "Horarios de atención"]], "clientes": [["clientes", "pf", "Proformas"], ["clientes", "vf", "Lista de espera"]]};
   window.MN_SUB = window.MN_SUB || {};
   window.MN_T_REF = MN_T;   // mp3
   const subsDe = v => { const r = []; Object.keys(MN_T).forEach(t => MN_T[t].forEach(x => { if (x[0] === v && x[1]) r.push(x); })); return r; };
@@ -2535,8 +2535,8 @@ function renderAuc(){
     factura: String(r[5] || '').replace(/^'/, ''), fechaFac: iso(r[6]), valor: n(r[7]), productos: String(r[8] || ''), motivo: String(r[9] || ''), detalle: String(r[10] || ''),
     pidio: String(r[11] || ''), foto: String(r[12] || ''), estado: String(r[13] || '').trim() || 'Por autorizar', reviso: String(r[14] || ''), fechaRev: iso(r[15]), comentario: String(r[16] || '')}))
     .filter(x => x.id);
-  if (!L.length) { el.innerHTML = '<div class="sec-h" style="margin-top:22px"><h2>Facturas de autoconsumo</h2></div><div class="panel"><div class="empty">' +
-    (st.auc === null ? 'No se pudieron cargar.' : 'Todavía no hay registros. Las tiendas los hacen en Inventario → Registrar factura de autoconsumo.') + '</div></div>'; return; }
+  if (!L.length) { el.innerHTML = '<div class="sec-h"><h2>Facturas de autoconsumo</h2></div><div class="panel"><div class="empty">' +
+    (st.auc === null ? 'No se pudieron cargar.' : 'Todavía no hay registros. Las tiendas los registran en Formas de pago → Autoconsumos.') + '</div></div>'; return; }
   const usd = new Intl.NumberFormat('es-EC', {style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2});
   const fd = f => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(f); return m ? (+m[3]) + '/' + (+m[2]) : f; };
   const mes = hoyISO().slice(0, 7), delMes = L.filter(x => (x.fechaFac || x.fecha).slice(0, 7) === mes);
@@ -2547,7 +2547,7 @@ function renderAuc(){
   const tiendas = [...new Set(L.map(x => x.tienda))].sort();
   const chip = (k, t) => `<button class="chip${fE === k ? ' on' : ''}" data-auce="${k}">${t}</button>`;
   const porT = {}; delMes.forEach(x => { porT[x.tienda] = (porT[x.tienda] || 0) + x.valor; });
-  el.innerHTML = `<div class="sec-h" style="margin-top:22px"><h2>Facturas de autoconsumo</h2><span class="hint">Las registra cada tienda con su motivo.${AUC_EDITA ? ' Revisa cada una y autorízala o recházala.' : ' Diego las autoriza o rechaza.'}</span></div>
+  el.innerHTML = `<div class="sec-h"><h2>Facturas de autoconsumo</h2><span class="hint">Las registra cada tienda con su motivo.${AUC_EDITA ? ' Revisa cada una y autorízala o recházala.' : ' Diego las autoriza o rechaza.'}</span></div>
     <div class="kpis">
       <div class="kpi ${pend.length ? 'warn' : ''}"><b>${pend.length}</b><span>por autorizar (${usd.format(suma(pend))})</span></div>
       <div class="kpi"><b>${usd.format(suma(delMes))}</b><span>facturado este mes (${delMes.length})</span></div>
@@ -2792,7 +2792,8 @@ function cbLeer(){ if (st.cbd !== undefined || !st.yo) return; st.cbd = null; ge
    Estados: Programado · Contando · Enviado a revisión · Revisado sin novedades / con novedades (→ facturado, acta firmada) · Informe a RRHH y Auditoría · Cerrado.
    Documentos por informe en la pestaña privada 'Documentos de cobro' (C Acta · E Factura · I RRHH · L Auditoría · M Fecha auditoría). */
 function iv2Tomas(){
-  const me = (st.mue.me || []).slice(1).filter(r => r[0] && r[1]), ml = (st.mue.ml || []).slice(1).filter(r => r[0] && r[1]);
+  const semOk = r => /^\d{4}-S\d{2}$/.test(String(r[0]).trim());   /* iv3 */
+  const me = (st.mue.me || []).slice(1).filter(r => r[0] && r[1] && semOk(r)), ml = (st.mue.ml || []).slice(1).filter(r => r[0] && r[1] && semOk(r));
   const esCic = r => /c[ií]clico/i.test(String(r[6] || '')), T = {};
   const add = (sem, t, tipo) => { const k = sem + '|' + t + '|' + tipo; return T[k] = T[k] || {k, sem, t, tipo, fase: '', act: '', por: '', n: 0}; };
   ml.forEach(r => add(String(r[0]), r[1], esCic(r) ? 'Cíclico' : 'Top 50').n++);
@@ -4970,7 +4971,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     'universidad|tabla': 'universidad/tabla', 'universidad|gol': 'universidad/gol', 'universidad|car': 'universidad/car', 'universidad|al': 'universidad/al',
     'politicas|leer': 'politicas/politicas', 'guias|': 'politicas/guias', 'politicas|rep': 'politicas/reporte',
     'contactos|tel': 'contactos/tel', 'contactos|wa': 'contactos/wa', 'contactos|mail': 'contactos/mail', 'contactos|hor': 'contactos/hor',
-    'clientes|pf': 'clientes/pf', 'clientes|vf': 'clientes/vf', 'formaspago|': 'formaspago/tr', 'formaspago|tr': 'formaspago/tr', 'formaspago|ot': 'formaspago/ot'};   /* mfp1 */
+    'clientes|pf': 'clientes/pf', 'clientes|vf': 'clientes/vf', 'formaspago|': 'formaspago/tr', 'formaspago|tr': 'formaspago/tr', 'formaspago|ot': 'formaspago/ot', 'formaspago|ac': 'formaspago/ac'};   /* aco2 */   /* mfp1 */
   let quien = '', pedido = false, previo = null;   // mpf2
   const H = document.documentElement; H.classList.add('mpf-espera');
   const listo = () => H.classList.remove('mpf-espera');
@@ -4996,7 +4997,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
     if (!cfg || cfg.todo || !Array.isArray(cfg.claves)) { abajo(); const t = document.getElementById('tabs'); if (t) t.dataset.mn = String(Date.now()); listo(); return; }
     const A = new Set(cfg.claves), M = window.MN_T_REF;   // in1
     if (A.has('hoy/hoy')) ['validacion', 'supervision', 'ventas', 'actividades'].forEach(x => A.add('inicio/' + x));
-    if (A.has('ventas/formaspago')) ['tr', 'ot'].forEach(x => A.add('formaspago/' + x));   // mfp1: clave vieja (Financiero)
+    if (A.has('ventas/formaspago')) ['tr', 'ot', 'ac'].forEach(x => A.add('formaspago/' + x));   // mfp1: clave vieja (Financiero)
     const tabs = document.getElementById('tabs'); if (!M || !tabs) return;
     const vivas = {}, todas = {};
     Object.keys(M).forEach(t => { const keep = M[t].filter(x => { const k = K[x[0] + '|' + x[1]]; todas[x[0]] = 1; const ok = !k || A.has(k); if (ok) vivas[x[0]] = 1; return ok; }); M[t].length = 0; keep.forEach(x => M[t].push(x)); });
@@ -5626,6 +5627,11 @@ body:not(.fpg-cc) .view[data-view="formaspago"][data-sub="ot"] #fpgBody{display:
 .fpf-fm button.on{border-color:#006B9E;box-shadow:inset 0 0 0 2px #006B9E;background:#f2fafd}
 .fpf-on #fpgX,.fpf-on label:has(#fpgF){display:none!important}
 @media(max-width:700px){.fpf-res{padding:14px}.fpf-tot b{font-size:26px}.fpf-xls{margin-left:0;width:100%;justify-content:center}.fpf-fm{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.fpf-fm::-webkit-scrollbar{display:none}.fpf-fm button{flex:none;min-width:0}}
+</style>
+<style>/* aco2 */
+.view[data-view="formaspago"]:not([data-sub="ac"]) #aucBody{display:none!important}
+body:not(.fpg-cc) .view[data-view="formaspago"][data-sub="ac"] #fpgBody,body:not(.fpg-cc) .view[data-view="formaspago"][data-sub="ac"] #fpgPos,body:not(.fpg-cc) .view[data-view="formaspago"][data-sub="ac"] #fpcBody{display:none!important}
+body.fpg-cc [data-v="formaspago"][data-k="ac"]{display:none!important}
 </style>
 </body>
 </html>
