@@ -1597,8 +1597,8 @@ function fpgHtml(){
   h += '<div class="fpt-res"><button class="r" data-fptir="fptRojo"><b>' + pend.length + '</b><span>por registrar' + (pend.length ? ' · ' + fpgUsd(pend.reduce((a, p) => a + p.valor, 0)) : '') + '</span></button>' +
     '<button class="a" data-fptir="fptAmbar"><b>' + rev.length + '</b><span>por revisar</span></button><button class="v" data-fptir="fptVerde"><b>' + sem.length + '</b><span>listas esta semana</span></button></div>';
   h += '<div class="fpt-bx fpt-rojo" id="fptRojo"><div class="fpt-bh"><div>🔴 Por registrar<small>El POS los cobró y nadie los registró. Registra cada uno.</small></div><span class="n">' + pend.length + '</span></div>' +
-    (pend.length ? pend.map((p, i) => '<div class="fpt-it"><div><b>Factura ' + esc(fpgFac(p.sec)) + '</b><small>' + (p.tipo === 'NC' ? 'Pagada con nota de crédito' : 'Transferencia' + (p.ref ? ' · comprobante ' + esc(p.ref) : '')) + ' · ' + fpgDia(p.fecha) +
-      (p.total > p.valor + 0.009 ? ' · factura de ' + fpgUsd(p.total) : '') + '</small></div><span class="fpt-v">' + fpgUsd(p.valor) + '</span><button class="btn primary" data-fpgp="' + i + '">' + (p.tipo === 'NC' ? 'Registrar NC' : 'Registrar') + '</button></div>').join('')
+    (pend.length ? pend.map((p, i) => '<div class="fpt-it' + (p.cc ? ' fpt-cc' : '') + '"><div><b>Factura ' + esc(fpgFac(p.sec)) + '</b>' + (p.cc ? '<span class="fpt-cct">📞 Call center · ' + esc(p.cc) + '</span>' : '') + '<small>'   /* fpt2 */ + (p.tipo === 'NC' ? 'Pagada con nota de crédito' : 'Transferencia' + (p.ref ? ' · comprobante ' + esc(p.ref) : '')) + ' · ' + fpgDia(p.fecha) +
+      (p.total > p.valor + 0.009 ? ' · factura de ' + fpgUsd(p.total) : '') + (p.cc ? '<br>Venta del call center: la registra ' + esc(String(p.cc).split(' ')[0]) + ' desde su panel. No la registres tú.' : '') + '</small></div><span class="fpt-v">' + fpgUsd(p.valor) + '</span><button class="btn ' + (p.cc ? 'ghost' : 'primary') + '" data-fpgp="' + i + '">' + (p.tipo === 'NC' ? 'Registrar NC' : 'Registrar') + '</button></div>').join('')
       : '<div class="fpt-ok">✓ Nada pendiente. ¡Bien!</div>') + '</div>';
   if (rev.length) h += '<div class="fpt-bx fpt-ambar" id="fptAmbar"><div class="fpt-bh"><div>🟡 Por revisar<small>Ya están registrados, pero algo no cuadra con el POS.</small></div><span class="n">' + rev.length + '</span></div>' + rev.map((r, i) => { const x = r.x;
     const txt = r.tipo === 'valor' ? 'Registraste ' + fpgUsd(r.suma) + ', pero en el POS ' + (r.pos.tipo === 'NC' ? 'la nota de crédito' : 'la transferencia') + ' de esta factura es de <b>' + fpgUsd(r.pos.valor) + '</b>. Si te equivocaste, anúlalo y regístralo de nuevo.'
@@ -3903,5 +3903,6 @@ header:has(.cab)::after{content:"";position:absolute;right:-60px;top:-70px;width
 @media(max-width:560px){.fpt-verde .fpt-tag{grid-column:2;justify-self:end}.fpt-fm{grid-template-columns:repeat(2,1fr)}.fpt-it{grid-template-columns:1fr auto}.fpt-it .btn{grid-column:1/-1;width:100%}.fpt-res b{font-size:19px}}
 </style>
 
+<style>/* fpt2 */.fpt-cct{display:inline-block;margin-left:8px;padding:2px 9px;border-radius:999px;background:#ede9fe;color:#5b21b6;font-size:12px;font-weight:700;vertical-align:middle}.fpt-rojo .fpt-it.fpt-cc{background:#faf8ff}.fpt-rojo .fpt-it.fpt-cc .btn{background:#fff;color:#64748b;border-color:#cbd5e1}</style>
 </body>
 </html>
