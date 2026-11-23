@@ -1200,7 +1200,7 @@ function aucItemHtml(x){
     '<div class="small"><b>' + esc(x.motivo) + '</b>: ' + esc(x.detalle) + '</div>' +
     '<div class="vf-obs">' + esc(x.productos) + '</div>' +
     (x.estado !== 'Por autorizar' && x.comentario ? '<div class="small" style="color:' + (x.estado === 'Rechazada' ? 'var(--bad)' : 'var(--ok)') + '">' + esc(x.reviso || 'Revisión') + ': ' + esc(x.comentario) + '</div>' : '') +
-    '<div class="tiny muted">Factura del ' + fechaCorta(x.fechaFac) + ' · pidió ' + esc(x.pidio) + ' · registró ' + esc(x.registro) + ' el ' + fechaCorta(x.fecha) +
+    '<div class="tiny muted">Factura del ' + fechaCorta(x.fechaFac) + (x.para ? ' · para ' + esc(x.para) : '') + ' · pidió ' + esc(x.pidio) + ' · registró ' + esc(x.registro) + ' el ' + fechaCorta(x.fecha) +
       (x.fechaRev ? ' · revisada el ' + fechaCorta(x.fechaRev) : '') + (x.foto ? ' · <a href="' + esc(x.foto) + '" target="_blank" rel="noopener">ver foto</a>' : '') + '</div></div>';
 }
 function aucHtml(){
@@ -1229,6 +1229,7 @@ function aucFormulario(){
     '<label class="f">Valor total de la factura (con IVA)</label><input type="number" id="aucValor" min="0" step="0.01" inputmode="decimal" placeholder="0,00">' +
     '<label class="f">Motivo</label><select id="aucMot"><option value="">Elige el motivo</option>' + AUC_MOTIVOS.map(m => '<option>' + esc(m) + '</option>').join('') + '</select>' +
     '<label class="f">Explica el motivo</label><textarea id="aucDet" maxlength="500" placeholder="Para qué se usó, a quién se entregó, por qué no se vendió…"></textarea>' +
+    '<label class="f">¿Para quién es?</label><input type="text" id="aucPara" maxlength="100" autocomplete="off" placeholder="Cliente o persona que recibe el producto">' +   /* aco3 */
     '<label class="f">¿Quién lo pidió o autorizó?</label><input type="text" id="aucPidio" maxlength="80" autocomplete="off" placeholder="Ej.: Diego Revelo por WhatsApp">' +
     '<label class="f">¿Quién registra?</label>' + vfQuien('aucQuien') +
     '<label class="f">Foto de la factura (opcional)</label><input type="file" id="aucFoto" accept="image/*">' +
@@ -1236,10 +1237,10 @@ function aucFormulario(){
   $('#aucNo').onclick = closeModal;
   $('#aucSi').onclick = async () => {
     const d = {factura: $('#aucFac').value.trim(), fechaFac: $('#aucFecha').value, valor: $('#aucValor').value, productos: '',   /* ac2: el detalle sale del ERP con el n.º de factura */
-      motivo: $('#aucMot').value, detalle: $('#aucDet').value.trim(), pidio: $('#aucPidio').value.trim(), registro: $('#aucQuien').value.trim()};
+      motivo: $('#aucMot').value, detalle: $('#aucDet').value.trim(), pidio: $('#aucPidio').value.trim(), para: ($('#aucPara').value || '').trim(), registro: $('#aucQuien').value.trim()};
     const falta = (d.factura.match(/\d/g) || []).length < 3 ? 'Escribe el número de factura.' : !d.fechaFac ? 'Pon la fecha de la factura.' : !(Number(d.valor) > 0) ? 'Pon el valor total de la factura.' :
       !d.motivo ? 'Elige el motivo.' : d.detalle.length < 10 ? 'Explica el motivo con un poco más de detalle.' :
-      d.pidio.length < 3 ? 'Escribe quién lo pidió o autorizó.' : !d.registro ? 'Elige tu nombre.' : '';
+      d.para.length < 3 ? 'Escribe para quién es (cliente o persona que lo recibe).' : d.pidio.length < 3 ? 'Escribe quién lo pidió o autorizó.' : !d.registro ? 'Elige tu nombre.' : '';
     if (falta) { toast(falta, 3500); return; }
     const b = $('#aucSi'); b.disabled = true;
     try {
