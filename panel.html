@@ -3389,7 +3389,7 @@ function infNuevo(){
   const todos = F.slice().sort((a, b) => (Number(a.n) || 0) - (Number(b.n) || 0)).map(o => [o.cod, o.desc, o.teo, nv(o.c1), nv(o.c2), o.cr ? nv(o.cr[7]) : '', o.fin == null ? '' : o.teo + o.fin, nv(o.fin)]);
   const gente = (st.ivPe || []).slice(1).filter(r => r[1] === ui.tienda && String(r[6] || 'Activo').trim() === 'Activo').map(r => ({n: String(r[0]).trim(), c: String(r[4] || '').trim()}));
   const lid = (gente.find(p => /^gerente/i.test(p.c)) || gente.find(p => /^sub\s*gerente/i.test(p.c)) || gente[0] || {}).n || '';
-  const S = st.infS = {items, orig, corr: corrL, todos, gente, sel: gente.map(p => p.n), lider: lid, modo: '4060', obs: '', nProd: F.length, exact: F.length ? pct(okF / F.length) : '–', guardado: null};
+  const S = st.infS = {items, orig, corr: corrL, todos, gente, sel: gente.map(p => p.n), lider: lid, modo: '4060', obs: '', nProd: F.length, exact: F.length ? pct(okF / F.length) : '–', guardado: null, precio: hoyISO() >= '2026-11-24' && hoyISO() <= '2026-12-01' ? 'bw' : 'pvp'};   // bw1: en Black Week se cobra con el precio rebajado
   const avisos = [abiertos ? abiertos + ' productos todavía sin contar ni revisar' : '', sinRev ? sinRev + ' diferencias sin tu revisión (se toman como las dejó la tienda)' : '', enRev ? enRev + ' productos marcados "Sigue en revisión" (no se descuentan)' : ''].filter(Boolean);
   $('#drawer').querySelector('.drawer').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><h2>Informe de inventario</h2><div class="small faint">${esc(ui.tienda)} · ${ui.tipo === 'cic' ? 'Inventario cíclico' : 'Muestreo Top 50'} · ${esc(ui.sem)}</div></div><button class="btn" id="infVolver">Volver</button></div>
@@ -3402,6 +3402,7 @@ function infNuevo(){
     <div class="lbl">Personal que firma</div>
     <div id="infGente">${gente.map((p, i) => `<label class="if-per"><input type="checkbox" data-p="${i}" checked><span>${esc(p.n)}<br><span class="small faint">${esc(p.c)}</span></span><span class="v small" id="infV${i}"></span></label>`).join('') || '<div class="empty">No hay personal activo de esta tienda en la Base.</div>'}</div>
     <div class="iv-fil"><label class="small" style="display:flex;flex-direction:column;gap:3px">Líder de la tienda<select id="infLider">${gente.map(p => `<option${p.n === lid ? ' selected' : ''}>${esc(p.n)}</option>`).join('')}</select></label>
+      <label class="small" style="display:flex;flex-direction:column;gap:3px">Precio del descuento<select id="infPrecio"><option value="pvp"${S.precio === 'pvp' ? ' selected' : ''}>PVP normal</option><option value="bw"${S.precio === 'bw' ? ' selected' : ''}>Black Week (−20%)</option></select></label>   <!-- bw1 -->
       <label class="small" style="display:flex;flex-direction:column;gap:3px">Reparto<select id="infModo"><option value="4060">40% líder · 60% resto en partes iguales</option><option value="iguales">Partes iguales (responsables identificados)</option></select></label></div>
     <div class="if-tot" id="infTot"></div>
     <textarea id="infObs" placeholder="Observaciones (opcional)"></textarea>
@@ -3412,6 +3413,7 @@ function infNuevo(){
   $('#infGente').querySelectorAll('[data-p]').forEach(c => c.onchange = () => { S.sel = S.gente.filter((p, i) => $('#infGente [data-p="' + i + '"]').checked).map(p => p.n); infCalc(); });
   $('#infLider').onchange = e => { S.lider = e.target.value; infCalc(); };
   $('#infModo').onchange = e => { S.modo = e.target.value; infCalc(); };
+  $('#infPrecio').onchange = e => { S.precio = e.target.value; infCalc(); };   // bw1
   $('#infObs').oninput = e => { S.obs = e.target.value.trim(); };
   $('#infVer').onclick = e => infPdf(infArmar(), e.target, true);
   $('#infGuardar').onclick = () => infGuardar();
@@ -3421,7 +3423,8 @@ function infNuevo(){
 function infCalc(){
   const S = st.infS; if (!S) return;
   const falt = S.items.filter(x => x.dif < 0).reduce((a, x) => a - x.tot, 0), sobr = S.items.filter(x => x.dif > 0).reduce((a, x) => a + x.tot, 0);
-  let des = Math.round(S.items.filter(x => x.des && x.dif < 0).reduce((a, x) => a - x.tot, 0) * 100) / 100;
+  const desPvp = Math.round(S.items.filter(x => x.des && x.dif < 0).reduce((a, x) => a - x.tot, 0) * 100) / 100;
+  let des = S.precio === 'bw' ? Math.round(S.items.filter(x => x.des && x.dif < 0).reduce((a, x) => a - x.dif * Math.round(x.pvp * 80) / 100, 0) * 100) / 100 : desPvp;   // bw1: −20% por unidad
   const tol = des > 0 && des <= INF_TOL; if (tol) des = 0;
   const sel = S.gente.filter(p => S.sel.indexOf(p.n) >= 0), lider = sel.some(p => p.n === S.lider) ? S.lider : '';
   const cent = Math.round(des * 100), rep = [];
@@ -3432,17 +3435,17 @@ function infCalc(){
       resto.forEach((p, i) => rep.push({n: p.n, c: p.c, p: Math.round(6000 / resto.length) / 100, v: (c + (i < (cent - l) - c * resto.length ? 1 : 0)) / 100}));
     } else { const c = Math.floor(cent / sel.length); sel.forEach((p, i) => rep.push({n: p.n, c: p.c, p: Math.round(10000 / sel.length) / 100, v: (c + (i < cent - c * sel.length ? 1 : 0)) / 100})); }
   }
-  Object.assign(S, {falt: Math.round(falt * 100) / 100, sobr: Math.round(sobr * 100) / 100, desc: des, tol, rep});
+  Object.assign(S, {falt: Math.round(falt * 100) / 100, sobr: Math.round(sobr * 100) / 100, desc: des, descPvp: tol ? 0 : desPvp, tol, rep});
   S.gente.forEach((p, i) => { const x = rep.find(r => r.n === p.n), v = $('#infV' + i); if (v) v.innerHTML = x ? '<b>' + ivMon(x.v) + '</b>' + (p.n === lider && S.modo === '4060' && sel.length > 1 ? '<br><span class="faint">líder 40%</span>' : '') : '<span class="faint">no firma</span>'; });
   $('#infTot').innerHTML = `<span>Faltante al PVP</span><b class="bad-t">${ivDin(-S.falt)}</b><span>Sobrante al PVP (se carga a la tienda)</span><b>${ivMon(S.sobr)}</b>
-    <span><b>A descontar al personal</b>${tol ? '<br><span class="small faint">Dentro de la tolerancia de $10: no se descuenta</span>' : ''}</span><b style="font-size:19px">${ivMon(S.desc)}</b>`;
+    ${S.precio === 'bw' ? `<span>A PVP normal sería</span><b>${ivMon(S.descPvp)}</b>` : ''}<span><b>A descontar al personal${S.precio === 'bw' ? ' (precio Black Week −20%)' : ''}</b>${tol ? '<br><span class="small faint">Dentro de la tolerancia de $10: no se descuenta</span>' : ''}</span><b style="font-size:19px">${ivMon(S.desc)}</b>`;
 }
 function infArmar(){
   const S = st.infS, ui = st.ivUI, d = new Date();
   return {id: S.guardado || 'Borrador', fecha: hoyISO(), hora: d.toTimeString().slice(0, 5), semana: ui.sem, tienda: ui.tienda, tipo: ui.tipo === 'cic' ? 'Inventario cíclico' : 'Muestreo Top 50',
     elaboro: st.yo.nombre, cargoElab: 'Supervisor', lider: S.lider, items: S.items, falt: S.falt, sobr: S.sobr, desc: S.desc, tol: S.tol,
-    reparto: S.rep, obs: S.obs, nProd: S.nProd, exact: S.exact, orig: S.orig, corr: S.corr, todos: S.todos,
-    regla: S.modo === '4060' ? 'Faltante íntegro a PVP: 40% al líder de la tienda y 60% en partes iguales al resto del personal. Tolerancia: hasta $10 por inventario.' : 'Faltante íntegro a PVP en partes iguales entre los responsables identificados. Tolerancia: hasta $10 por inventario.'};
+    reparto: S.rep, obs: S.obs, nProd: S.nProd, exact: S.exact, orig: S.orig, corr: S.corr, todos: S.todos, precio: S.precio, descPvp: S.descPvp,
+    regla: (S.precio === 'bw' ? 'Se descuenta con el precio Black Week (−20% sobre el PVP): ' + ivMon(S.desc) + '; a PVP normal serían ' + ivMon(S.descPvp) + '. ' : '') + (S.modo === '4060' ? 'Faltante íntegro a PVP: 40% al líder de la tienda y 60% en partes iguales al resto del personal. Tolerancia: hasta $10 por inventario.' : 'Faltante íntegro a PVP en partes iguales entre los responsables identificados. Tolerancia: hasta $10 por inventario.')};
 }
 async function infGuardar(){
   const S = st.infS, falta = $('#infFalta'), b = $('#infGuardar');
