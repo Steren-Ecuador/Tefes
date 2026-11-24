@@ -815,11 +815,12 @@ function infHTML(f){
   const hh = s => { const m = /(\d{1,2}):(\d{2})/.exec(String(s || '')); if (!m) return e(s); const n = +m[1]; return (n % 12 || 12) + ':' + m[2] + ' ' + (n < 12 ? 'a.m.' : 'p.m.'); };
   const td = 'border:1px solid #bbb;padding:4px 6px;vertical-align:top', th = td + ';background:#eee;text-align:left;font-weight:700;color:#15202b;text-transform:none;letter-spacing:0;font-size:inherit;white-space:normal';
   const falt = f.items.filter(x => x.dif < 0), sobr = f.items.filter(x => x.dif > 0);
+  const cob = !!(f.precio && f.precio !== 'pvp'), pcU = x => x.pc != null ? x.pc : f.precio === 'bw' ? Math.round(x.pvp * 80) / 100 : x.pvp;   // pc1
   const tabla = (L, conDesc) => `<table style="width:100%;border-collapse:collapse;font-size:10.5px;margin-top:4px"><thead><tr>
       <th style="${th}">Código</th><th style="${th}">Descripción</th><th style="${th};text-align:right">Sistema</th><th style="${th};text-align:right">Físico</th>
-      <th style="${th};text-align:right">Dif.</th><th style="${th};text-align:right">PVP unit.</th><th style="${th};text-align:right">Total PVP</th><th style="${th}">Resolución</th></tr></thead><tbody>` +
+      <th style="${th};text-align:right">Dif.</th><th style="${th};text-align:right">PVP unit.</th><th style="${th};text-align:right">Total PVP</th>${cob && conDesc ? `<th style="${th};text-align:right">Precio cobro</th><th style="${th};text-align:right">A cobrar</th>` : ''}<th style="${th}">Resolución</th></tr></thead><tbody>` +
     L.map(x => `<tr style="page-break-inside:avoid"><td style="${td};white-space:nowrap">${e(x.cod)}</td><td style="${td}">${e(x.desc)}</td><td style="${td};text-align:right">${e(x.sis)}</td><td style="${td};text-align:right">${e(x.cont)}</td>
-      <td style="${td};text-align:right">${sg(x.dif)}</td><td style="${td};text-align:right">${d(x.pvp)}</td><td style="${td};text-align:right">${d(x.tot)}</td>
+      <td style="${td};text-align:right">${sg(x.dif)}</td><td style="${td};text-align:right">${d(x.pvp)}</td><td style="${td};text-align:right">${d(x.tot)}</td>${cob && conDesc ? `<td style="${td};text-align:right">${x.des ? d(pcU(x)) : '–'}</td><td style="${td};text-align:right">${x.des ? d(Math.round(pcU(x) * x.dif * 100) / 100) : '–'}</td>` : ''}
       <td style="${td}">${e(x.dec || '')}${conDesc ? (x.des ? '<br><b>Se descuenta</b>' : '<br>No se descuenta') : ''}</td></tr>`).join('') + '</tbody></table>';
   const firma = r => `<table style="width:100%;border-collapse:collapse;border:1px solid #bbb;font-size:11px"><tr><td style="padding:8px 10px;vertical-align:top"><b>${e(r.n)}</b><br><span style="color:#555">${e(r.c)}</span></td>
       <td style="padding:8px 10px;text-align:right;vertical-align:top;width:120px">Valor a descontar<br><b style="font-size:14px">${d(r.v)}</b></td></tr>
@@ -857,8 +858,8 @@ function infHTML(f){
   <h3 style="font:700 14px Arial;margin:12px 0 2px">${f.orig ? '3. Resultado final · ' : ''}Faltantes</h3>${falt.length ? tabla(falt, true) : '<p style="margin:2px 0">Sin faltantes.</p>'}
   <h3 style="font:700 14px Arial;margin:12px 0 2px">${f.orig ? 'Resultado final · ' : ''}Sobrantes</h3>${sobr.length ? tabla(sobr, false) + '<p style="margin:4px 0 0;font-size:10.5px;color:#555">Los sobrantes se cargan a la tienda una vez confirmadas las cantidades; no reducen el faltante.</p>' : '<p style="margin:2px 0">Sin sobrantes.</p>'}
   <div style="page-break-inside:avoid;margin-top:14px;border:2px solid #15202b;border-radius:6px;padding:10px 12px">
-    <table style="width:100%;border-collapse:collapse"><tr><td><b style="font-size:14px">Valor a descontar al personal (PVP)</b></td><td style="text-align:right"><b style="font-size:20px">${d(f.desc)}</b></td></tr></table>
-    <div style="font-size:10.5px;color:#555;margin-top:2px">${e(f.regla || '')}</div>
+    <table style="width:100%;border-collapse:collapse"><tr><td><b style="font-size:14px">Valor a descontar al personal (${e(cob ? f.precioNom || 'precio Black Week −20%' : 'PVP')})</b></td><td style="text-align:right"><b style="font-size:20px">${d(f.desc)}</b></td></tr></table>
+    ${cob && f.descPvp != null ? `<div style="font-size:11.5px;margin-top:2px">A PVP normal serían <b>${d(f.descPvp)}</b></div>` : ''}<div style="font-size:10.5px;color:#555;margin-top:2px">${e(f.regla || '')}</div>
     ${f.tol ? '<div style="margin-top:4px;font-weight:700">El faltante está dentro de la tolerancia de $10: no se descuenta.</div>' : ''}
   </div>
   ${f.obs ? `<p style="margin:10px 0 0"><b>Observaciones:</b> ${e(f.obs)}</p>` : ''}
@@ -2902,7 +2903,7 @@ async function invBuscarCargar(){
   if (!st.yo) { if (res) res.innerHTML = '<div class="small faint">Identifícate para buscar en las listas de conteo.</div>'; return; }
   st.mueCargando = true; if (res) res.innerHTML = '<div class="small faint">Buscando…</div>';
   try {
-    const [me, ml, co, inf, pe] = await Promise.all(['MueEstado!A1:E', 'MueLista!A1:S', 'MueCorrecciones!A1:M', "'Informes de inventario'!A1:P", 'Personal!A1:G'].map(getRange));
+    const [me, ml, co, inf, pe] = await Promise.all(['MueEstado!A1:E', 'MueLista!A1:S', 'MueCorrecciones!A1:N', "'Informes de inventario'!A1:P", 'Personal!A1:G'].map(getRange));
     st.mue = {me, ml, co, inf}; st.ivPe = pe; st.ivQ = st.ivQ || {};
   } catch (e) { if (res) res.innerHTML = `<div class="small faint">No se pudo buscar: ${esc(errorCopy(e))}</div>`; return; }
   finally { st.mueCargando = false; }
@@ -2911,7 +2912,7 @@ async function invBuscarCargar(){
 /* pr1: lee las listas sin mostrar nada; al terminar vuelve a pintar Inventario con los pendientes de revisión */
 async function invPendCargar(){
   if (st.mueCargando || st.pendRevErr) return; st.mueCargando = true;
-  try { const [me, ml, co, inf, pe] = await Promise.all(['MueEstado!A1:E', 'MueLista!A1:S', 'MueCorrecciones!A1:M', "'Informes de inventario'!A1:P", 'Personal!A1:G'].map(getRange));
+  try { const [me, ml, co, inf, pe] = await Promise.all(['MueEstado!A1:E', 'MueLista!A1:S', 'MueCorrecciones!A1:N', "'Informes de inventario'!A1:P", 'Personal!A1:G'].map(getRange));
     st.mue = {me, ml, co, inf}; st.ivPe = pe; st.ivQ = st.ivQ || {}; }
   catch (e) { st.pendRevErr = true; return; }
   finally { st.mueCargando = false; }
@@ -2951,7 +2952,7 @@ async function invAbrir(tienda, sem, filtro){
   if (!/^todas$/i.test(String(st.yo.tiendas || '').trim()) && lista(st.yo.tiendas).indexOf(tienda) < 0) { toast(tienda + ' no está asignada a ti.'); return; }
   $('#drawer').innerHTML = `<div class="drawer-bg"><div class="drawer ancho"><h2>${esc(tienda)}</h2><div class="skeleton">Cargando el inventario…</div></div></div>`;
   try {
-    const [me, ml, co, inf, pe] = await Promise.all(['MueEstado!A1:E', 'MueLista!A1:S', 'MueCorrecciones!A1:M', "'Informes de inventario'!A1:P", 'Personal!A1:G'].map(getRange));
+    const [me, ml, co, inf, pe] = await Promise.all(['MueEstado!A1:E', 'MueLista!A1:S', 'MueCorrecciones!A1:N', "'Informes de inventario'!A1:P", 'Personal!A1:G'].map(getRange));
     st.mue = {me, ml, co, inf}; st.ivPe = pe; st.ivQ = {};
     invDetalle(tienda, sem, filtro);
     try { REG.ev('Acción', 'Inventario ' + tienda); } catch (x) {}
@@ -3006,6 +3007,117 @@ async function invQuien(sem, tienda){
     (m[c] = m[c] || {1: [], 2: []})[ro].push(nombreCorto(r[4]) + ' ' + (r[7] || 0) + (r[6] ? ' (' + String(r[6]).toLowerCase() + ')' : '')); });
   return (st.ivQ[k] = m);
 }
+/* af1 (Diego 24-nov-2026): agregar como faltante o sobrante un producto que no estaba en la lista del conteo.
+   Queda como una revisión más en MueCorrecciones (col N = PVP) con el comentario "Agregado fuera de la lista: <motivo>"
+   y entra en faltantes/sobrantes, diferencia y descuento del informe y del PDF. Buscador: stock y PVP del ERP (datos cifrados de Consultar stock). */
+const AF_TXT = 'Agregado fuera de la lista', AF_DEC = 'Faltante a cargo del personal', AF_SOB = 'Sobrante cargar a la tienda';   // Diego 24-nov: faltantes y sobrantes
+const AF_N = {'Mall Sol': 0, 'Urdesa': 1, 'Samborondón': 2, 'Condado': 3, 'Mall Jardín': 4, 'Portal': 5, 'Scala': 6, 'Megakywi': 7, 'Megamaxi': 8, 'Tumbaco': 9};
+function ivAgr(sem, tienda, corr){
+  const enLista = new Set(((st.mue && st.mue.ml) || []).slice(1).filter(r => r[0] === sem && r[1] === tienda).map(r => sinApo(r[3])));
+  return Object.keys(corr).filter(c => !enLista.has(c) && String(corr[c][11] || '').indexOf(AF_TXT) === 0).map(c => {
+    const cr = corr[c], teo = ivN(cr[5]) || 0, fin = ivN(cr[8]) || 0, pvp = ivN(cr[13]) || 0, find = ivN(cr[9]);
+    const mot = String(cr[11]).replace(/^[^:]*:\s*/, '');
+    return {n: 9999, cod: c, desc: cr[4], grupo: '', mot: '', barras: '', teo, costo: find != null && fin ? find / fin : 0, c1: null, c2: null, contado: null,
+      estado: 'Agregado', cerrado: true, dif: null, difd: null, difp: null, causa: 'Agregado por ' + (cr[12] || 'Diego'), exp: mot, cic: /\(cíclico\)/.test(cr[11]), cr,
+      pvp, fin, find: find == null ? null : find, finp: Math.round(fin * pvp * 100) / 100, agr: true};
+  });
+}
+async function afFuente(){
+  if (st.d && st.d.stockTok) return {u: 'data.enc.js', k: st.d.stockTok};   // admin: copia cifrada dentro del artefacto
+  const u = String(await api('apiStockPanel')), p = u.split('#');   // panel: la misma de Consultar stock (GitHub)
+  return {u: p[0] + 'data.enc.js', k: new URLSearchParams(p[1] || '').get('k')};
+}
+async function afCatalogo(){
+  if (st.afCat) return st.afCat;
+  const f = await afFuente(); if (!f.k) throw new Error('sin clave del stock');
+  const r = await fetch(f.u, {cache: 'no-cache'}); if (!r.ok) throw new Error('HTTP ' + r.status);
+  const s = await r.text(), iv = /iv:"([^"]+)"/.exec(s), ct = /ct:"([^"]+)"/.exec(s);
+  const b64 = x => Uint8Array.from(atob(x.replace(/-/g, '+').replace(/_/g, '/') + '=='.slice(0, (4 - x.length % 4) % 4)), c => c.charCodeAt(0));
+  const key = await crypto.subtle.importKey('raw', b64(f.k), 'AES-GCM', false, ['decrypt']);
+  const pt = new TextDecoder().decode(await crypto.subtle.decrypt({name: 'AES-GCM', iv: b64(iv[1])}, key, b64(ct[1])));
+  const i = pt.indexOf('window.STOCK_DATA='), fe = /STOCK_FECHA="([^"]*)"/.exec(pt);
+  return (st.afCat = {fecha: fe ? fe[1] : '', d: JSON.parse(pt.slice(i + 18, pt.lastIndexOf(']') + 1))});
+}
+function afAbrir(){
+  const ui = st.ivUI; if (!ui) return;
+  let box = $('#afBox'); if (!box) { $('#ivInf').insertAdjacentHTML('afterend', '<div id="afBox"></div>'); box = $('#afBox'); }
+  if (box.innerHTML) { box.innerHTML = ''; return; }
+  const ti = AF_N[ui.tienda], enLista = new Set(st.mue.ml.slice(1).filter(r => r[0] === ui.sem && r[1] === ui.tienda).map(r => sinApo(r[3]).toUpperCase()));
+  let sel = null;
+  box.innerHTML = `<div class="iv-form" style="border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0">
+    <div><b>Agregar un producto que no estaba en la lista</b> <span class="small faint">faltante o sobrante</span></div>
+    <input type="search" id="afQ" placeholder="Código, descripción o código de barras" autocomplete="off" style="font:inherit;font-size:16px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg)">
+    <div id="afRes" class="small faint">Cargando el catálogo del ERP…</div>
+    <div id="afSel"></div></div>`;
+  const pintarSel = () => {
+    const el = $('#afSel'); if (!sel) { el.innerHTML = ''; return; }
+    const stk = sel.stk == null ? '' : `Stock del ERP en ${esc(ui.tienda)}: <b>${sel.stk}</b>${st.afCat && st.afCat.fecha ? ' (al ' + esc(st.afCat.fecha) + ')' : ''}`;
+    el.innerHTML = `<div class="iv-desc"><b>${esc(sel.cod)}</b> · ${sel.man ? '<input id="afDesc" placeholder="Descripción" style="font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);min-width:220px">' : esc(sel.desc)}</div>
+      <div class="small faint">${sel.man ? 'No está en el catálogo del ERP: escribe la descripción y el PVP.' : 'PVP $' + sel.pvp.toLocaleString('es-EC', {minimumFractionDigits: 2}) + (stk ? ' · ' + stk : '')}</div>
+      <div class="fila">${sel.man ? '<label class="r-lbl" for="afPvp">PVP</label><input type="number" id="afPvp" min="0" step="0.01" inputmode="decimal">' : ''}
+        <label class="r-lbl" for="afSis">Sistema</label><input type="number" id="afSis" min="0" step="1" inputmode="numeric" value="${sel.stk == null ? '' : Math.max(0, sel.stk)}">
+        <label class="r-lbl" for="afFis">Físico</label><input type="number" id="afFis" min="0" step="1" inputmode="numeric" value="">
+        <span class="small" id="afDif"></span></div>
+      <textarea id="afMot" placeholder="Motivo: cómo se detectó la diferencia"></textarea>
+      <p class="r-falta" id="afFalta" hidden></p>
+      <div class="actions" style="margin:0"><button class="btn primary" id="afOk">Agregar al inventario</button><button class="btn" id="afNo">Cancelar</button></div>`;
+    const dif = () => { const s = $('#afSis').value, f = $('#afFis').value, p = sel.man ? Number($('#afPvp').value) || 0 : sel.pvp;
+      const d = Number(f) - Number(s);
+      $('#afDif').innerHTML = s === '' || f === '' ? '' : !d ? 'Cuadra: no hay nada que agregar' : `${d < 0 ? 'Faltante' : 'Sobrante'} <b class="${d < 0 ? 'bad-t' : ''}">${ivSig(d)}</b> · ${ivDin(Math.round(d * p * 100) / 100)} al PVP`; };
+    ['afSis', 'afFis', 'afPvp'].forEach(i => { const x = $('#' + i); if (x) x.oninput = dif; }); dif();
+    $('#afNo').onclick = () => { box.innerHTML = ''; };
+    $('#afOk').onclick = () => afGuardar(sel, box);
+    ($('#afFis') || {}).focus && $('#afFis').focus();
+  };
+  const buscar = () => {
+    const q = $('#afQ').value.trim(), res = $('#afRes'); sel = null; pintarSel();
+    if (!st.afCat) return;
+    if (q.length < 2) { res.innerHTML = 'Escribe al menos 2 letras.'; return; }
+    const Q = q.toUpperCase(), t = Q.split(/\s+/);
+    const L = st.afCat.d.filter(p => p[0].toUpperCase() === Q || String(p[2]).split(' ').indexOf(q) >= 0)
+      .concat(st.afCat.d.filter(p => t.every(w => (p[0] + ' ' + p[1] + ' ' + p[2]).toUpperCase().indexOf(w) >= 0))).filter((p, i, a) => a.indexOf(p) === i).slice(0, 8);
+    res.innerHTML = (L.length ? L.map((p, i) => { const ya = enLista.has(p[0].toUpperCase());
+      return `<button class="iv-row" data-afi="${i}" ${ya ? 'disabled' : ''} style="grid-template-columns:1fr auto auto"><span class="c"><b>${esc(p[0])}</b><span class="small faint">${esc(p[1])}${ya ? ' · ya está en la lista: búscalo abajo' : ''}</span></span>
+        <span class="small">$${Number(p[3] || 0).toLocaleString('es-EC', {minimumFractionDigits: 2})}</span><span class="small faint">${ti == null ? '' : 'stock ' + p[12 + ti]}</span></button>`; }).join('') : '<div class="small faint">No está en el catálogo del ERP.</div>') +
+      (enLista.has(Q) ? '' : `<button class="btn" id="afMan" style="margin-top:6px">Agregar “${esc(q.toUpperCase())}” a mano</button>`);
+    res.querySelectorAll('[data-afi]').forEach(b => b.onclick = () => { const p = L[+b.dataset.afi]; sel = {cod: p[0], desc: p[1], pvp: Number(p[3]) || 0, stk: ti == null ? null : p[12 + ti]}; res.innerHTML = ''; pintarSel(); });
+    const m = $('#afMan'); if (m) m.onclick = () => { sel = {cod: q.toUpperCase(), desc: '', pvp: 0, stk: null, man: true}; res.innerHTML = ''; pintarSel(); };
+  };
+  let tq; $('#afQ').oninput = () => { clearTimeout(tq); tq = setTimeout(buscar, 150); };
+  $('#afQ').focus();
+  afCatalogo().then(() => { if ($('#afRes')) { $('#afRes').textContent = 'Catálogo del ERP' + (st.afCat.fecha ? ' al ' + st.afCat.fecha : '') + '. Escribe para buscar.'; if ($('#afQ').value) buscar(); } })
+    .catch(e => { st.afCat = {fecha: '', d: []}; const r = $('#afRes'); if (r) r.textContent = 'No pude abrir el catálogo del ERP (' + (e && e.message || e) + '). Puedes agregarlo a mano: escribe el código.'; });
+}
+async function afGuardar(sel, box){
+  const ui = st.ivUI, falta = $('#afFalta'), b = $('#afOk');
+  const s = $('#afSis').value.trim(), f = $('#afFis').value.trim(), mot = $('#afMot').value.trim();
+  const desc = sel.man ? ($('#afDesc').value || '').trim() : sel.desc, pvp = sel.man ? Number($('#afPvp').value) : sel.pvp;
+  const msg = sel.man && desc.length < 3 ? 'Escribe la descripción.' : !(pvp > 0) ? 'Falta el PVP.' : !/^\d+$/.test(s) || !/^\d+$/.test(f) ? 'Pon sistema y físico en unidades enteras.' :
+    Number(f) === Number(s) ? 'Sistema y físico son iguales: no hay diferencia que agregar.' : mot.length < 3 ? 'Escribe el motivo.' : '';
+  if (msg) { falta.textContent = msg; falta.hidden = false; return; }
+  falta.hidden = true; b.disabled = true; b.textContent = 'Guardando…';
+  const fin = Number(f) - Number(s);
+  const fila = [stamp(), ui.sem, ui.tienda, "'" + sel.cod, safe(desc), Number(s), '', Number(f), fin, '', fin < 0 ? AF_DEC : AF_SOB,
+    safe(AF_TXT + (ui.tipo === 'cic' ? ' (cíclico)' : '') + ': ' + mot), 'Diego', Math.round(pvp * 100) / 100];
+  try {
+    const co = await getRange('MueCorrecciones!A1:M', true, CLAVES), n = Math.max(co.length, 1) + 1;
+    await setRange('MueCorrecciones!A' + n + ':N' + n, [fila], CLAVES);
+    const local = fila.slice(); local[3] = sel.cod; if (!(st.d && st.d.stockTok) && st.yo) local[12] = st.yo.nombre;
+    st.mue.co = (co.length ? co : [['Fecha']]).concat([local]);
+    box.innerHTML = ''; ui.ver = fin < 0 ? 'falt' : 'sobr'; ui.exp = sel.cod; toast(sel.cod + (fin < 0 ? ' agregado como faltante' : ' agregado como sobrante')); invPintar(); if (typeof renderInventario === 'function') renderInventario();
+  } catch (e) { b.disabled = false; b.textContent = 'Agregar al inventario'; falta.textContent = 'No se pudo guardar: ' + (e && e.message || e); falta.hidden = false; }
+}
+async function afQuitar(o, b){
+  if (!(typeof okToque === 'function' ? okToque(b, '¿Quitar? Toca otra vez') : confirm('¿Quitar ' + o.cod + ' del inventario?'))) return;
+  const ui = st.ivUI; b.disabled = true; b.textContent = 'Quitando…';
+  const fila = [stamp(), ui.sem, ui.tienda, "'" + o.cod, safe(o.desc), o.teo, '', '', '', '', IV_ANUL, 'Producto agregado quitado', 'Diego'];
+  try {
+    const co = await getRange('MueCorrecciones!A1:M', true, CLAVES), n = Math.max(co.length, 1) + 1;
+    await setRange('MueCorrecciones!A' + n + ':M' + n, [fila], CLAVES);
+    const local = fila.slice(); local[3] = o.cod; st.mue.co = (co.length ? co : [['Fecha']]).concat([local]);
+    ui.exp = null; toast(o.cod + ' quitado'); invPintar(); if (typeof renderInventario === 'function') renderInventario();
+  } catch (e) { b.disabled = false; b.textContent = 'Quitar del inventario'; toast('No se pudo quitar: ' + (e && e.message || e), 5000); }
+}
 function invDetalle(tienda, sem, filtro, q0){
   const lista = (st.mue ? st.mue.ml : []).slice(1).filter(r => r[1] === tienda && r[0]);
   const semanas = [...new Set(lista.map(r => String(r[0])))].sort().reverse();
@@ -3039,25 +3151,25 @@ function invPintar(){
   const ui = st.ivUI; if (!ui || !$('#ivList')) return;
   const corr = invCorr(ui.sem, ui.tienda);
   const todas = st.mue.ml.slice(1).filter(r => r[0] === ui.sem && r[1] === ui.tienda && !ivExhib(r)).map(r => ivFila(r, corr[sinApo(r[3])]));
-  const F = todas.filter(o => ui.tipo === 'cic' ? o.cic : !o.cic), n = F.length;
+  const F = todas.filter(o => ui.tipo === 'cic' ? o.cic : !o.cic), n = F.length, FA = F.concat(ivAgr(ui.sem, ui.tienda, corr).filter(o => ui.tipo === 'cic' ? o.cic : !o.cic));   /* af1 */
   const cerr = F.filter(o => o.cerrado), okA = F.filter(o => /^OK/.test(o.estado)).length, okD = F.filter(o => o.cerrado && o.fin === 0).length;
-  const sum = (k, sg) => F.reduce((a, o) => a + (o[k] == null ? 0 : sg < 0 ? Math.min(0, o[k]) : Math.max(0, o[k])), 0);
+  const sum = (k, sg) => FA.reduce((a, o) => a + (o[k] == null ? 0 : sg < 0 ? Math.min(0, o[k]) : Math.max(0, o[k])), 0);
   const conDif = F.filter(o => o.cerrado && o.dif !== 0), rev = F.filter(o => o.cr).length, porRev = conDif.filter(o => !o.cr).length;
-  const cambio = F.some(o => o.cr);
+  const cambio = FA.some(o => o.cr);
   const kp = (b, t, sub, cls) => `<div><b class="${cls || ''}">${b}</b><span>${t}</span>${sub ? `<small>${sub}</small>` : ''}</div>`;
   $('#ivKp').innerHTML = !cerr.length ? `<div class="banner">La tienda todavía no cierra este conteo: verás el sistema de cada producto, sin lo contado. Igual puedes registrar tu recuento.</div>` :
     `<div class="iv-kp">${kp(pct(okD / n), 'exactitud' + (cambio ? ' tras la revisión' : ''), cambio ? 'conteo de la tienda: ' + pct(okA / n) : '', okD / n >= .98 ? 'good-t' : okD / n < .95 ? 'bad-t' : '')}
       ${kp(conDif.length + ' de ' + n, 'con diferencia', porRev ? porRev + ' sin revisar' : conDif.length ? 'todas revisadas' : '')}
       ${kp(ivDin(sum('finp', -1)), 'faltante al PVP', 'costo ' + ivDin(sum('find', -1)) + (cambio ? ' · conteo de la tienda: ' + ivDin(sum('difp', -1)) : ''), sum('finp', -1) < 0 ? 'bad-t' : '')}
       ${kp(ivDin(sum('finp', 1)), 'sobrante al PVP', 'costo ' + ivDin(sum('find', 1)) + (cambio ? ' · conteo de la tienda: ' + ivDin(sum('difp', 1)) : ''))}</div>`;   // la cifra grande es la final (tras la revisión y ajustes)
-  let L = F;
+  let L = FA;
   const FIL = {dif: ['Con diferencia', o => (o.fin != null && o.fin !== 0) || o.estado === 'Reconteo'], falt: ['Faltantes', o => o.fin != null && o.fin < 0],
     sobr: ['Sobrantes', o => o.fin != null && o.fin > 0], sinrev: ['Sin revisar', o => o.cerrado && o.dif !== 0 && !o.cr], rev: ['Revisados', o => !!o.cr], todos: ['Todos', () => true]};
-  $('#ivVer').innerHTML = Object.keys(FIL).map(k => { const c = F.filter(FIL[k][1]).length; return k !== 'todos' && k !== 'dif' && !c ? '' :
+  $('#ivVer').innerHTML = Object.keys(FIL).map(k => { const c = FA.filter(FIL[k][1]).length; return k !== 'todos' && k !== 'dif' && !c ? '' :
     `<button class="chip${!ui.q && ui.ver === k ? ' on' : ''}" data-v="${k}">${FIL[k][0]}<b>${c}</b></button>`; }).join('');
   $('#ivVer').querySelectorAll('[data-v]').forEach(b => b.onclick = () => { ui.ver = b.dataset.v; ui.q = ''; $('#ivQ').value = ''; ui.abierto = ui.exp = null; invPintar(); });
-  if (ui.q) { const t = ui.q.split(/\s+/).filter(Boolean); L = F.filter(o => { const s = (o.cod + ' ' + o.desc + ' ' + o.barras + ' ' + o.grupo).toLowerCase(); return t.every(w => s.indexOf(w) >= 0); }); }
-  else L = F.filter((FIL[ui.ver] || FIL.todos)[1]);
+  if (ui.q) { const t = ui.q.split(/\s+/).filter(Boolean); L = FA.filter(o => { const s = (o.cod + ' ' + o.desc + ' ' + o.barras + ' ' + o.grupo).toLowerCase(); return t.every(w => s.indexOf(w) >= 0); }); }
+  else L = FA.filter((FIL[ui.ver] || FIL.todos)[1]);
   const exacto = ui.q && L.filter(o => o.cod.toLowerCase() === ui.q || String(o.barras).split(/\s+/).indexOf(ui.q) >= 0);
   if (exacto && exacto.length === 1) { L = exacto; ui.exp = exacto[0].cod; }
   L = L.slice().sort((a, b) => ui.ver === 'todos' && !ui.q ? (Number(a.n) || 0) - (Number(b.n) || 0) || a.cod.localeCompare(b.cod) : Math.abs(b.finp || 0) - Math.abs(a.finp || 0) || a.cod.localeCompare(b.cod));
@@ -3076,12 +3188,13 @@ function invPintar(){
       <div class="iv-desc">${esc(o.desc)}</div>
       <div class="iv-nums"><div><span>Sistema</span><b>${o.teo}</b></div><div><span>1er conteo</span><b>${o.c1 == null ? '–' : o.c1}</b></div><div><span>2do conteo</span><b>${o.c2 == null ? '–' : o.c2}</b></div>
         <div><span>Diferencia</span><b class="${o.dif < 0 ? 'bad-t' : ''}">${o.dif == null ? '–' : ivSig(o.dif)}</b></div><div><span>Al PVP</span><b class="${o.difp < 0 ? 'bad-t' : ''}" style="font-size:${Math.abs(o.difp || 0) >= 1000 ? 12 : 14}px">${o.difp == null || o.difp === 0 ? '–' : ivDin(o.difp)}</b></div></div>
-      ${o.causa || o.exp ? `<div class="iv-why"><span class="small faint">Comentario de la tienda</span><br><b>${esc(o.causa || 'Explicación')}:</b> ${esc(o.exp || '')}</div>` : ''}
+      ${(o.causa || o.exp) && !o.agr ? `<div class="iv-why"><span class="small faint">Comentario de la tienda</span><br><b>${esc(o.causa || 'Explicación')}:</b> ${esc(o.exp || '')}</div>` : ''}
       ${qq ? `<div class="iv-quien">1er conteo: ${esc(qq[1].join(', ') || '–')}${qq[2].length ? ' · 2do: ' + esc(qq[2].join(', ')) : ''}</div>` : ''}
       <div class="iv-quien">PVP $${o.pvp.toLocaleString('es-EC', {minimumFractionDigits: 2})} · costo $${o.costo.toLocaleString('es-EC', {minimumFractionDigits: 2})}${o.barras ? ' · barras ' + esc(String(o.barras).split(/\s+/)[0]) : ''}</div>
       ${cr ? `<div class="iv-rev ${/revisión/.test(cr[10]) ? 'abierta' : ''}"><b>Tu revisión${cr[0] ? ' · ' + esc(fmtF(cr[0])) : ''}:</b> ${cr[7] !== '' && cr[7] != null ? 'recuento ' + esc(cr[7]) + ' · ' : ''}diferencia final ${esc(ivSig(o.fin))} (${esc(ivDin(o.finp))} al PVP) · ${esc(cr[10] || '')}${cr[11] ? '<br>' + esc(cr[11]) : ''}</div>` : ''}
-      ${abierto ? invForm(o) : `<div><button class="btn" data-corr="${esc(o.cod)}">${cr ? 'Cambiar revisión' : 'Registrar revisión'}</button></div>`}
+      ${o.agr ? `<div><button class="btn" data-afq="${esc(o.cod)}">Quitar del inventario</button></div>` : abierto ? invForm(o) : `<div><button class="btn" data-corr="${esc(o.cod)}">${cr ? 'Cambiar revisión' : 'Registrar revisión'}</button></div>`}
     </div>`; }).join('');
+  $('#ivList').querySelectorAll('[data-afq]').forEach(b => b.onclick = () => afQuitar(FA.find(o => o.cod === b.dataset.afq), b));   /* af1 */
   $('#ivList').querySelectorAll('[data-corr]').forEach(b => b.onclick = () => { ui.abierto = b.dataset.corr; invPintar(); const i = $('#ivRec'); if (i) i.focus(); });
   $('#ivList').querySelectorAll('[data-exp]').forEach(b => b.onclick = () => { ui.exp = b.dataset.exp || null; ui.abierto = null; if (!ui.exp && ui.q) { ui.q = ''; $('#ivQ').value = ''; } invPintar();
     const x = ui.exp && $('#ivList').querySelector('.iv-it'); if (x) x.scrollIntoView({block: 'nearest'}); });
@@ -3101,11 +3214,12 @@ function infHTML(f){
   const hh = s => { const m = /(\d{1,2}):(\d{2})/.exec(String(s || '')); if (!m) return e(s); const n = +m[1]; return (n % 12 || 12) + ':' + m[2] + ' ' + (n < 12 ? 'a.m.' : 'p.m.'); };
   const td = 'border:1px solid #bbb;padding:4px 6px;vertical-align:top', th = td + ';background:#eee;text-align:left;font-weight:700';
   const falt = f.items.filter(x => x.dif < 0), sobr = f.items.filter(x => x.dif > 0);
+  const cob = !!(f.precio && f.precio !== 'pvp'), pcU = x => x.pc != null ? x.pc : f.precio === 'bw' ? Math.round(x.pvp * 80) / 100 : x.pvp;   // pc1
   const tabla = (L, conDesc) => `<table style="width:100%;border-collapse:collapse;font-size:10.5px;margin-top:4px"><thead><tr>
       <th style="${th}">Código</th><th style="${th}">Descripción</th><th style="${th};text-align:right">Sistema</th><th style="${th};text-align:right">Físico</th>
-      <th style="${th};text-align:right">Dif.</th><th style="${th};text-align:right">PVP unit.</th><th style="${th};text-align:right">Total PVP</th><th style="${th}">Resolución</th></tr></thead><tbody>` +
+      <th style="${th};text-align:right">Dif.</th><th style="${th};text-align:right">PVP unit.</th><th style="${th};text-align:right">Total PVP</th>${cob && conDesc ? `<th style="${th};text-align:right">Precio cobro</th><th style="${th};text-align:right">A cobrar</th>` : ''}<th style="${th}">Resolución</th></tr></thead><tbody>` +
     L.map(x => `<tr style="page-break-inside:avoid"><td style="${td};white-space:nowrap">${e(x.cod)}</td><td style="${td}">${e(x.desc)}</td><td style="${td};text-align:right">${e(x.sis)}</td><td style="${td};text-align:right">${e(x.cont)}</td>
-      <td style="${td};text-align:right">${sg(x.dif)}</td><td style="${td};text-align:right">${d(x.pvp)}</td><td style="${td};text-align:right">${d(x.tot)}</td>
+      <td style="${td};text-align:right">${sg(x.dif)}</td><td style="${td};text-align:right">${d(x.pvp)}</td><td style="${td};text-align:right">${d(x.tot)}</td>${cob && conDesc ? `<td style="${td};text-align:right">${x.des ? d(pcU(x)) : '–'}</td><td style="${td};text-align:right">${x.des ? d(Math.round(pcU(x) * x.dif * 100) / 100) : '–'}</td>` : ''}
       <td style="${td}">${e(x.dec || '')}${conDesc ? (x.des ? '<br><b>Se descuenta</b>' : '<br>No se descuenta') : ''}</td></tr>`).join('') + '</tbody></table>';
   const firma = r => `<table style="width:100%;border-collapse:collapse;border:1px solid #bbb;font-size:11px"><tr><td style="padding:8px 10px;vertical-align:top"><b>${e(r.n)}</b><br><span style="color:#555">${e(r.c)}</span></td>
       <td style="padding:8px 10px;text-align:right;vertical-align:top;width:120px">Valor a descontar<br><b style="font-size:14px">${d(r.v)}</b></td></tr>
@@ -3140,8 +3254,8 @@ function infHTML(f){
   <h3 style="font:700 14px Arial;margin:12px 0 2px">${f.orig ? '3. Resultado final · ' : ''}Faltantes</h3>${falt.length ? tabla(falt, true) : '<p style="margin:2px 0">Sin faltantes.</p>'}
   <h3 style="font:700 14px Arial;margin:12px 0 2px">${f.orig ? 'Resultado final · ' : ''}Sobrantes</h3>${sobr.length ? tabla(sobr, false) + '<p style="margin:4px 0 0;font-size:10.5px;color:#555">Los sobrantes se cargan a la tienda una vez confirmadas las cantidades; no reducen el faltante.</p>' : '<p style="margin:2px 0">Sin sobrantes.</p>'}
   <div style="page-break-inside:avoid;margin-top:14px;border:2px solid #15202b;border-radius:6px;padding:10px 12px">
-    <table style="width:100%;border-collapse:collapse"><tr><td><b style="font-size:14px">Valor a descontar al personal (PVP)</b></td><td style="text-align:right"><b style="font-size:20px">${d(f.desc)}</b></td></tr></table>
-    <div style="font-size:10.5px;color:#555;margin-top:2px">${e(f.regla || '')}</div>
+    <table style="width:100%;border-collapse:collapse"><tr><td><b style="font-size:14px">Valor a descontar al personal (${e(cob ? f.precioNom || 'precio Black Week −20%' : 'PVP')})</b></td><td style="text-align:right"><b style="font-size:20px">${d(f.desc)}</b></td></tr></table>
+    ${cob && f.descPvp != null ? `<div style="font-size:11.5px;margin-top:2px">A PVP normal serían <b>${d(f.descPvp)}</b></div>` : ''}<div style="font-size:10.5px;color:#555;margin-top:2px">${e(f.regla || '')}</div>
     ${f.tol ? '<div style="margin-top:4px;font-weight:700">El faltante está dentro de la tolerancia de $10: no se descuenta.</div>' : ''}
   </div>
   ${f.obs ? `<p style="margin:10px 0 0"><b>Observaciones:</b> ${e(f.obs)}</p>` : ''}
@@ -3165,10 +3279,10 @@ const infDatos = r => { try { return JSON.parse(r[15]); } catch (e) { return nul
 function infLista(){
   const ui = st.ivUI, el = $('#ivInf'); if (!ui || !el) return;
   const L = infFilas().filter(r => r[4] === ui.tienda && (ui.tipo === 'cic') === /c[ií]clico/i.test(r[5] || '')).reverse();   // solo los informes de la pestaña abierta (Top 50 o Cíclico)
-  el.innerHTML = `<div class="actions" style="margin:0"><button class="btn primary" id="infNuevo">Informe de inventario</button></div>` +
+  el.innerHTML = `<div class="actions" style="margin:0"><button class="btn primary" id="infNuevo">Informe de inventario</button><button class="btn" id="afNuevo" title="Un producto que no estaba en la lista: faltante o sobrante">Agregar producto</button></div>` +
     (L.length ? `<div class="lbl">Informes guardados</div>` + L.map(r => `<div class="sv-it"><div><b>${esc(r[0])}</b> · ${esc(fmtF(r[1], r[2]))}<div class="small faint">${esc(r[5])} ${esc(r[3])} · a descontar ${esc(ivMon(num(r[11]) || 0))}</div></div>
       <span class="pol-acc">${(e0 => `<span class="pill ${e0 === 'Por firmar' ? 'p-warn' : 'p-good'}">${esc(e0)}</span>`)(!(num(r[11]) > 0) && (!r[13] || r[13] === 'Por firmar') ? 'Sin descuento' : r[13] || 'Por firmar')}${icEstado(r[0])}<button class="btn" data-infpdf="${esc(r[0])}">PDF</button><button class="btn" data-infmail="${esc(r[0])}">Correo</button>${r[13] === 'Firmado' || !(num(r[11]) > 0) ? '' : `<button class="btn" data-inffir="${esc(r[0])}">Firmado</button>`}</span></div>`).join('') : '');
-  $('#infNuevo').onclick = () => infNuevo();
+  $('#infNuevo').onclick = () => infNuevo(); $('#afNuevo').onclick = () => afAbrir();   /* af1 */
   el.querySelectorAll('[data-infmail]').forEach(b => b.onclick = () => { const r = infFilas().find(x => x[0] === b.dataset.infmail), f = r && infDatos(r); if (f) icAbrir(Object.assign(f, {id: r[0]}), b.closest('.sv-it')); else toast('Este informe no tiene datos para el correo.'); });
   icLeer();
   el.querySelectorAll('[data-infpdf]').forEach(b => b.onclick = () => { const r = infFilas().find(x => x[0] === b.dataset.infpdf), f = r && infDatos(r); if (f) infPdf(f, b); else toast('Este informe no tiene datos para el PDF.'); });
@@ -3265,14 +3379,15 @@ async function icEnviar(f, box){
 function infNuevo(){
   const ui = st.ivUI, corr = invCorr(ui.sem, ui.tienda);
   const F = st.mue.ml.slice(1).filter(r => r[0] === ui.sem && r[1] === ui.tienda && !ivExhib(r)).map(r => ivFila(r, corr[sinApo(r[3])])).filter(o => ui.tipo === 'cic' ? o.cic : !o.cic);
+  const FA = F.concat(ivAgr(ui.sem, ui.tienda, corr).filter(o => ui.tipo === 'cic' ? o.cic : !o.cic));   /* af1 */
   const abiertos = F.filter(o => !o.cerrado && !o.cr).length, enRev = F.filter(o => o.cr && /revisión/.test(o.cr[10])).length, sinRev = F.filter(o => o.cerrado && o.dif !== 0 && !o.cr).length;
-  const items = F.filter(o => o.fin != null && o.fin !== 0).map(o => { const dec = o.cr ? o.cr[10] : (o.causa ? 'Tienda: ' + o.causa : '');
+  const items = FA.filter(o => o.fin != null && o.fin !== 0).map(o => { const dec = o.agr ? o.cr[10] + ' · agregado fuera de la lista' : o.cr ? o.cr[10] : (o.causa ? 'Tienda: ' + o.causa : '');
     return {cod: o.cod, desc: o.desc, sis: o.teo, cont: o.teo + o.fin, dif: o.fin, pvp: o.pvp, tot: Math.round(o.fin * o.pvp * 100) / 100, dec, des: o.fin < 0 && !(o.cr && INF_NO_DESC.indexOf(o.cr[10]) >= 0)}; })
     .sort((a, b) => a.tot - b.tot);
   const okF = F.filter(o => o.cerrado && o.fin === 0).length;
   const nv = x => x == null || x === '' ? '' : x, expl = o => [o.causa, o.exp].filter(Boolean).join(': ');
   const orig = F.filter(o => o.cerrado && o.dif !== 0).sort((a, b) => (a.difp || 0) - (b.difp || 0)).map(o => [o.cod, o.desc, o.teo, nv(o.c1), nv(o.c2), o.dif, o.difp || 0, expl(o)]);
-  const corrL = F.filter(o => o.cr).map(o => [o.cod, o.desc, nv(o.dif), nv(o.cr[7]), nv(o.fin), o.cr[10] || '', o.cr[11] || '']);
+  const corrL = FA.filter(o => o.cr).map(o => [o.cod, o.desc, nv(o.dif), nv(o.cr[7]), nv(o.fin), o.cr[10] || '', o.cr[11] || '']);
   const todos = F.slice().sort((a, b) => (Number(a.n) || 0) - (Number(b.n) || 0)).map(o => [o.cod, o.desc, o.teo, nv(o.c1), nv(o.c2), o.cr ? nv(o.cr[7]) : '', o.fin == null ? '' : o.teo + o.fin, nv(o.fin)]);
   const gente = (st.ivPe || []).slice(1).filter(r => r[1] === ui.tienda && String(r[6] || 'Activo').trim() === 'Activo').map(r => ({n: String(r[0]).trim(), c: String(r[4] || '').trim()}));
   const lid = (gente.find(p => /^gerente/i.test(p.c)) || gente.find(p => /^sub\s*gerente/i.test(p.c)) || gente[0] || {}).n || '';
