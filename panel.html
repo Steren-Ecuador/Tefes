@@ -815,11 +815,12 @@ function infHTML(f){
   const hh = s => { const m = /(\d{1,2}):(\d{2})/.exec(String(s || '')); if (!m) return e(s); const n = +m[1]; return (n % 12 || 12) + ':' + m[2] + ' ' + (n < 12 ? 'a.m.' : 'p.m.'); };
   const td = 'border:1px solid #bbb;padding:4px 6px;vertical-align:top', th = td + ';background:#eee;text-align:left;font-weight:700;color:#15202b;text-transform:none;letter-spacing:0;font-size:inherit;white-space:normal';
   const falt = f.items.filter(x => x.dif < 0), sobr = f.items.filter(x => x.dif > 0);
+  const cob = !!(f.precio && f.precio !== 'pvp'), pcU = x => x.pc != null ? x.pc : f.precio === 'bw' ? Math.round(x.pvp * 80) / 100 : x.pvp;   // pc1
   const tabla = (L, conDesc) => `<table style="width:100%;border-collapse:collapse;font-size:10.5px;margin-top:4px"><thead><tr>
       <th style="${th}">Código</th><th style="${th}">Descripción</th><th style="${th};text-align:right">Sistema</th><th style="${th};text-align:right">Físico</th>
-      <th style="${th};text-align:right">Dif.</th><th style="${th};text-align:right">PVP unit.</th><th style="${th};text-align:right">Total PVP</th><th style="${th}">Resolución</th></tr></thead><tbody>` +
+      <th style="${th};text-align:right">Dif.</th><th style="${th};text-align:right">PVP unit.</th><th style="${th};text-align:right">Total PVP</th>${cob && conDesc ? `<th style="${th};text-align:right">Precio cobro</th><th style="${th};text-align:right">A cobrar</th>` : ''}<th style="${th}">Resolución</th></tr></thead><tbody>` +
     L.map(x => `<tr style="page-break-inside:avoid"><td style="${td};white-space:nowrap">${e(x.cod)}</td><td style="${td}">${e(x.desc)}</td><td style="${td};text-align:right">${e(x.sis)}</td><td style="${td};text-align:right">${e(x.cont)}</td>
-      <td style="${td};text-align:right">${sg(x.dif)}</td><td style="${td};text-align:right">${d(x.pvp)}</td><td style="${td};text-align:right">${d(x.tot)}</td>
+      <td style="${td};text-align:right">${sg(x.dif)}</td><td style="${td};text-align:right">${d(x.pvp)}</td><td style="${td};text-align:right">${d(x.tot)}</td>${cob && conDesc ? `<td style="${td};text-align:right">${x.des ? d(pcU(x)) : '–'}</td><td style="${td};text-align:right">${x.des ? d(Math.round(pcU(x) * x.dif * 100) / 100) : '–'}</td>` : ''}
       <td style="${td}">${e(x.dec || '')}${conDesc ? (x.des ? '<br><b>Se descuenta</b>' : '<br>No se descuenta') : ''}</td></tr>`).join('') + '</tbody></table>';
   const firma = r => `<table style="width:100%;border-collapse:collapse;border:1px solid #bbb;font-size:11px"><tr><td style="padding:8px 10px;vertical-align:top"><b>${e(r.n)}</b><br><span style="color:#555">${e(r.c)}</span></td>
       <td style="padding:8px 10px;text-align:right;vertical-align:top;width:120px">Valor a descontar<br><b style="font-size:14px">${d(r.v)}</b></td></tr>
@@ -857,8 +858,8 @@ function infHTML(f){
   <h3 style="font:700 14px Arial;margin:12px 0 2px">${f.orig ? '3. Resultado final · ' : ''}Faltantes</h3>${falt.length ? tabla(falt, true) : '<p style="margin:2px 0">Sin faltantes.</p>'}
   <h3 style="font:700 14px Arial;margin:12px 0 2px">${f.orig ? 'Resultado final · ' : ''}Sobrantes</h3>${sobr.length ? tabla(sobr, false) + '<p style="margin:4px 0 0;font-size:10.5px;color:#555">Los sobrantes se cargan a la tienda una vez confirmadas las cantidades; no reducen el faltante.</p>' : '<p style="margin:2px 0">Sin sobrantes.</p>'}
   <div style="page-break-inside:avoid;margin-top:14px;border:2px solid #15202b;border-radius:6px;padding:10px 12px">
-    <table style="width:100%;border-collapse:collapse"><tr><td><b style="font-size:14px">Valor a descontar al personal (PVP)</b></td><td style="text-align:right"><b style="font-size:20px">${d(f.desc)}</b></td></tr></table>
-    <div style="font-size:10.5px;color:#555;margin-top:2px">${e(f.regla || '')}</div>
+    <table style="width:100%;border-collapse:collapse"><tr><td><b style="font-size:14px">Valor a descontar al personal (${e(cob ? f.precioNom || 'precio Black Week −20%' : 'PVP')})</b></td><td style="text-align:right"><b style="font-size:20px">${d(f.desc)}</b></td></tr></table>
+    ${cob && f.descPvp != null ? `<div style="font-size:11.5px;margin-top:2px">A PVP normal serían <b>${d(f.descPvp)}</b></div>` : ''}<div style="font-size:10.5px;color:#555;margin-top:2px">${e(f.regla || '')}</div>
     ${f.tol ? '<div style="margin-top:4px;font-weight:700">El faltante está dentro de la tolerancia de $10: no se descuenta.</div>' : ''}
   </div>
   ${f.obs ? `<p style="margin:10px 0 0"><b>Observaciones:</b> ${e(f.obs)}</p>` : ''}
@@ -3213,11 +3214,12 @@ function infHTML(f){
   const hh = s => { const m = /(\d{1,2}):(\d{2})/.exec(String(s || '')); if (!m) return e(s); const n = +m[1]; return (n % 12 || 12) + ':' + m[2] + ' ' + (n < 12 ? 'a.m.' : 'p.m.'); };
   const td = 'border:1px solid #bbb;padding:4px 6px;vertical-align:top', th = td + ';background:#eee;text-align:left;font-weight:700';
   const falt = f.items.filter(x => x.dif < 0), sobr = f.items.filter(x => x.dif > 0);
+  const cob = !!(f.precio && f.precio !== 'pvp'), pcU = x => x.pc != null ? x.pc : f.precio === 'bw' ? Math.round(x.pvp * 80) / 100 : x.pvp;   // pc1
   const tabla = (L, conDesc) => `<table style="width:100%;border-collapse:collapse;font-size:10.5px;margin-top:4px"><thead><tr>
       <th style="${th}">Código</th><th style="${th}">Descripción</th><th style="${th};text-align:right">Sistema</th><th style="${th};text-align:right">Físico</th>
-      <th style="${th};text-align:right">Dif.</th><th style="${th};text-align:right">PVP unit.</th><th style="${th};text-align:right">Total PVP</th><th style="${th}">Resolución</th></tr></thead><tbody>` +
+      <th style="${th};text-align:right">Dif.</th><th style="${th};text-align:right">PVP unit.</th><th style="${th};text-align:right">Total PVP</th>${cob && conDesc ? `<th style="${th};text-align:right">Precio cobro</th><th style="${th};text-align:right">A cobrar</th>` : ''}<th style="${th}">Resolución</th></tr></thead><tbody>` +
     L.map(x => `<tr style="page-break-inside:avoid"><td style="${td};white-space:nowrap">${e(x.cod)}</td><td style="${td}">${e(x.desc)}</td><td style="${td};text-align:right">${e(x.sis)}</td><td style="${td};text-align:right">${e(x.cont)}</td>
-      <td style="${td};text-align:right">${sg(x.dif)}</td><td style="${td};text-align:right">${d(x.pvp)}</td><td style="${td};text-align:right">${d(x.tot)}</td>
+      <td style="${td};text-align:right">${sg(x.dif)}</td><td style="${td};text-align:right">${d(x.pvp)}</td><td style="${td};text-align:right">${d(x.tot)}</td>${cob && conDesc ? `<td style="${td};text-align:right">${x.des ? d(pcU(x)) : '–'}</td><td style="${td};text-align:right">${x.des ? d(Math.round(pcU(x) * x.dif * 100) / 100) : '–'}</td>` : ''}
       <td style="${td}">${e(x.dec || '')}${conDesc ? (x.des ? '<br><b>Se descuenta</b>' : '<br>No se descuenta') : ''}</td></tr>`).join('') + '</tbody></table>';
   const firma = r => `<table style="width:100%;border-collapse:collapse;border:1px solid #bbb;font-size:11px"><tr><td style="padding:8px 10px;vertical-align:top"><b>${e(r.n)}</b><br><span style="color:#555">${e(r.c)}</span></td>
       <td style="padding:8px 10px;text-align:right;vertical-align:top;width:120px">Valor a descontar<br><b style="font-size:14px">${d(r.v)}</b></td></tr>
@@ -3252,8 +3254,8 @@ function infHTML(f){
   <h3 style="font:700 14px Arial;margin:12px 0 2px">${f.orig ? '3. Resultado final · ' : ''}Faltantes</h3>${falt.length ? tabla(falt, true) : '<p style="margin:2px 0">Sin faltantes.</p>'}
   <h3 style="font:700 14px Arial;margin:12px 0 2px">${f.orig ? 'Resultado final · ' : ''}Sobrantes</h3>${sobr.length ? tabla(sobr, false) + '<p style="margin:4px 0 0;font-size:10.5px;color:#555">Los sobrantes se cargan a la tienda una vez confirmadas las cantidades; no reducen el faltante.</p>' : '<p style="margin:2px 0">Sin sobrantes.</p>'}
   <div style="page-break-inside:avoid;margin-top:14px;border:2px solid #15202b;border-radius:6px;padding:10px 12px">
-    <table style="width:100%;border-collapse:collapse"><tr><td><b style="font-size:14px">Valor a descontar al personal (PVP)</b></td><td style="text-align:right"><b style="font-size:20px">${d(f.desc)}</b></td></tr></table>
-    <div style="font-size:10.5px;color:#555;margin-top:2px">${e(f.regla || '')}</div>
+    <table style="width:100%;border-collapse:collapse"><tr><td><b style="font-size:14px">Valor a descontar al personal (${e(cob ? f.precioNom || 'precio Black Week −20%' : 'PVP')})</b></td><td style="text-align:right"><b style="font-size:20px">${d(f.desc)}</b></td></tr></table>
+    ${cob && f.descPvp != null ? `<div style="font-size:11.5px;margin-top:2px">A PVP normal serían <b>${d(f.descPvp)}</b></div>` : ''}<div style="font-size:10.5px;color:#555;margin-top:2px">${e(f.regla || '')}</div>
     ${f.tol ? '<div style="margin-top:4px;font-weight:700">El faltante está dentro de la tolerancia de $10: no se descuenta.</div>' : ''}
   </div>
   ${f.obs ? `<p style="margin:10px 0 0"><b>Observaciones:</b> ${e(f.obs)}</p>` : ''}
