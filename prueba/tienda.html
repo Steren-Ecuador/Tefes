@@ -1138,7 +1138,7 @@ function aucItemHtml(x){
     '<div class="small"><b>' + esc(x.motivo) + '</b>: ' + esc(x.detalle) + '</div>' +
     '<div class="vf-obs">' + esc(x.productos) + '</div>' +
     (x.estado !== 'Por autorizar' && x.comentario ? '<div class="small" style="color:' + (x.estado === 'Rechazada' ? 'var(--bad)' : 'var(--ok)') + '">' + esc(x.reviso || 'Revisión') + ': ' + esc(x.comentario) + '</div>' : '') +
-    '<div class="tiny muted">Factura del ' + fechaCorta(x.fechaFac) + ' · pidió ' + esc(x.pidio) + ' · registró ' + esc(x.registro) + ' el ' + fechaCorta(x.fecha) +
+    '<div class="tiny muted">Factura del ' + fechaCorta(x.fechaFac) + (x.para ? ' · para ' + esc(x.para) : '') + ' · pidió ' + esc(x.pidio) + ' · registró ' + esc(x.registro) + ' el ' + fechaCorta(x.fecha) +
       (x.fechaRev ? ' · revisada el ' + fechaCorta(x.fechaRev) : '') + (x.foto ? ' · <a href="' + esc(x.foto) + '" target="_blank" rel="noopener">ver foto</a>' : '') + '</div></div>';
 }
 function aucHtml(){
@@ -1167,6 +1167,7 @@ function aucFormulario(){
     '<label class="f">Valor total de la factura (con IVA)</label><input type="number" id="aucValor" min="0" step="0.01" inputmode="decimal" placeholder="0,00">' +
     '<label class="f">Motivo</label><select id="aucMot"><option value="">Elige el motivo</option>' + AUC_MOTIVOS.map(m => '<option>' + esc(m) + '</option>').join('') + '</select>' +
     '<label class="f">Explica el motivo</label><textarea id="aucDet" maxlength="500" placeholder="Para qué se usó, a quién se entregó, por qué no se vendió…"></textarea>' +
+    '<label class="f">¿Para quién es?</label><input type="text" id="aucPara" maxlength="100" autocomplete="off" placeholder="Cliente o persona que recibe el producto">' +   /* aco3 */
     '<label class="f">¿Quién lo pidió o autorizó?</label><input type="text" id="aucPidio" maxlength="80" autocomplete="off" placeholder="Ej.: Diego Revelo por WhatsApp">' +
     '<label class="f">¿Quién registra?</label>' + vfQuien('aucQuien') +
     '<label class="f">Foto de la factura (opcional)</label><input type="file" id="aucFoto" accept="image/*">' +
@@ -1174,10 +1175,10 @@ function aucFormulario(){
   $('#aucNo').onclick = closeModal;
   $('#aucSi').onclick = async () => {
     const d = {factura: $('#aucFac').value.trim(), fechaFac: $('#aucFecha').value, valor: $('#aucValor').value, productos: '',   /* ac2: el detalle sale del ERP con el n.º de factura */
-      motivo: $('#aucMot').value, detalle: $('#aucDet').value.trim(), pidio: $('#aucPidio').value.trim(), registro: $('#aucQuien').value.trim()};
+      motivo: $('#aucMot').value, detalle: $('#aucDet').value.trim(), pidio: $('#aucPidio').value.trim(), para: ($('#aucPara').value || '').trim(), registro: $('#aucQuien').value.trim()};
     const falta = (d.factura.match(/\d/g) || []).length < 3 ? 'Escribe el número de factura.' : !d.fechaFac ? 'Pon la fecha de la factura.' : !(Number(d.valor) > 0) ? 'Pon el valor total de la factura.' :
       !d.motivo ? 'Elige el motivo.' : d.detalle.length < 10 ? 'Explica el motivo con un poco más de detalle.' :
-      d.pidio.length < 3 ? 'Escribe quién lo pidió o autorizó.' : !d.registro ? 'Elige tu nombre.' : '';
+      d.para.length < 3 ? 'Escribe para quién es (cliente o persona que lo recibe).' : d.pidio.length < 3 ? 'Escribe quién lo pidió o autorizó.' : !d.registro ? 'Elige tu nombre.' : '';
     if (falta) { toast(falta, 3500); return; }
     const b = $('#aucSi'); b.disabled = true;
     try {
@@ -1534,8 +1535,8 @@ function fpgHtml(){
   h += '<div class="fpt-res"><button class="r" data-fptir="fptRojo"><b>' + pend.length + '</b><span>por registrar' + (pend.length ? ' · ' + fpgUsd(pend.reduce((a, p) => a + p.valor, 0)) : '') + '</span></button>' +
     '<button class="a" data-fptir="fptAmbar"><b>' + rev.length + '</b><span>por revisar</span></button><button class="v" data-fptir="fptVerde"><b>' + sem.length + '</b><span>listas esta semana</span></button></div>';
   h += '<div class="fpt-bx fpt-rojo" id="fptRojo"><div class="fpt-bh"><div>🔴 Por registrar<small>El POS los cobró y nadie los registró. Registra cada uno.</small></div><span class="n">' + pend.length + '</span></div>' +
-    (pend.length ? pend.map((p, i) => '<div class="fpt-it"><div><b>Factura ' + esc(fpgFac(p.sec)) + '</b><small>' + (p.tipo === 'NC' ? 'Pagada con nota de crédito' : 'Transferencia' + (p.ref ? ' · comprobante ' + esc(p.ref) : '')) + ' · ' + fpgDia(p.fecha) +
-      (p.total > p.valor + 0.009 ? ' · factura de ' + fpgUsd(p.total) : '') + '</small></div><span class="fpt-v">' + fpgUsd(p.valor) + '</span><button class="btn primary" data-fpgp="' + i + '">' + (p.tipo === 'NC' ? 'Registrar NC' : 'Registrar') + '</button></div>').join('')
+    (pend.length ? pend.map((p, i) => '<div class="fpt-it' + (p.cc ? ' fpt-cc' : '') + '"><div><b>Factura ' + esc(fpgFac(p.sec)) + '</b>' + (p.cc ? '<span class="fpt-cct">📞 Call center · ' + esc(p.cc) + '</span>' : '') + '<small>'   /* fpt2 */ + (p.tipo === 'NC' ? 'Pagada con nota de crédito' : 'Transferencia' + (p.ref ? ' · comprobante ' + esc(p.ref) : '')) + ' · ' + fpgDia(p.fecha) +
+      (p.total > p.valor + 0.009 ? ' · factura de ' + fpgUsd(p.total) : '') + (p.cc ? '<br>Venta del call center: la registra ' + esc(String(p.cc).split(' ')[0]) + ' desde su panel. No la registres tú.' : '') + '</small></div><span class="fpt-v">' + fpgUsd(p.valor) + '</span><button class="btn ' + (p.cc ? 'ghost' : 'primary') + '" data-fpgp="' + i + '">' + (p.tipo === 'NC' ? 'Registrar NC' : 'Registrar') + '</button></div>').join('')
       : '<div class="fpt-ok">✓ Nada pendiente. ¡Bien!</div>') + '</div>';
   if (rev.length) h += '<div class="fpt-bx fpt-ambar" id="fptAmbar"><div class="fpt-bh"><div>🟡 Por revisar<small>Ya están registrados, pero algo no cuadra con el POS.</small></div><span class="n">' + rev.length + '</span></div>' + rev.map((r, i) => { const x = r.x;
     const txt = r.tipo === 'valor' ? 'Registraste ' + fpgUsd(r.suma) + ', pero en el POS ' + (r.pos.tipo === 'NC' ? 'la nota de crédito' : 'la transferencia') + ' de esta factura es de <b>' + fpgUsd(r.pos.valor) + '</b>. Si te equivocaste, anúlalo y regístralo de nuevo.'
@@ -3840,5 +3841,6 @@ header:has(.cab)::after{content:"";position:absolute;right:-60px;top:-70px;width
 @media(max-width:560px){.fpt-verde .fpt-tag{grid-column:2;justify-self:end}.fpt-fm{grid-template-columns:repeat(2,1fr)}.fpt-it{grid-template-columns:1fr auto}.fpt-it .btn{grid-column:1/-1;width:100%}.fpt-res b{font-size:19px}}
 </style>
 
+<style>/* fpt2 */.fpt-cct{display:inline-block;margin-left:8px;padding:2px 9px;border-radius:999px;background:#ede9fe;color:#5b21b6;font-size:12px;font-weight:700;vertical-align:middle}.fpt-rojo .fpt-it.fpt-cc{background:#faf8ff}.fpt-rojo .fpt-it.fpt-cc .btn{background:#fff;color:#64748b;border-color:#cbd5e1}</style>
 </body>
 </html>
