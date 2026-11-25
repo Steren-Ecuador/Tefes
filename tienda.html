@@ -1172,17 +1172,19 @@ function inventarioHtml(){
   const txt = invTexto(v);
   const avance = v.fase === 'Contando' && v.total ? Math.round(v.contados / v.total * 100) : null;
   return '<div class="sec-t" style="margin-top:16px"><h3>Inventario</h3></div>' +
-    '<div class="card"><div class="tiny muted" style="font-weight:600;letter-spacing:.3px;text-transform:uppercase;margin-bottom:4px">Muestreo Top 50</div><div class="inv"><div><b>' + esc(txt) + '</b>' +
+    '<div class="card"><div class="tiny muted" style="font-weight:600;letter-spacing:.3px;text-transform:uppercase;margin-bottom:4px">Muestreo Top 50' + semCorta(v.semana) + '</div><div class="inv"><div><b>' + esc(txt) + '</b>' +
     (v.fase && v.fase !== 'Enviado' ? '<div class="tiny muted">Entregar hasta el ' + fechaCorta(v.vence) + '</div>' : '') + '</div>' +
     (f[1] && v.enlace ? '<a class="btn ' + f[2] + '" href="' + esc(v.enlace) + '" target="_top">' + f[1] + '</a>' : '') + '</div>' +
     (avance != null ? '<div class="inv-bar"><i style="width:' + avance + '%"></i></div>' : '') + '</div>';
 }
+/* sem1 (Diego 2026-11-24): la tienda ve a qué semana corresponde cada inventario: "2026-S47" -> " · S47" */
+function semCorta(s){ const m = String(s || '').match(/S(\d+)/); return m ? ' · S' + m[1] : ''; }
 /* Informes de inventario: historial de la tienda con PDF para imprimir y firmar */
 function informesInvHtml(){
   const L = S.data.informesInv || [];
   if (!L.length) return '';
   const din = n => '$' + Number(n || 0).toFixed(2).replace('.', ',');
-  return '<div class="sec-t" style="margin-top:16px"><h3>Informes de inventario</h3></div><div class="card">' + L.map(x => '<div class="toca"><div><b>' + esc(x.id) + ' · ' + esc(x.tipo) + '</b>' +
+  return '<div class="sec-t" style="margin-top:16px"><h3>Informes de inventario</h3></div><div class="card">' + L.map(x => '<div class="toca"><div><b>' + esc(x.id) + ' · ' + esc(x.tipo) + semCorta(x.semana) + '</b>' +
     '<span class="tiny muted">' + (x.fecha ? fechaCorta(x.fecha) : '') + (x.hora ? ' · ' + esc(fmtH(x.hora)) : '') + ' · a descontar ' + din(x.desc) + ' · ' + esc(x.estado) + '</span></div>' +
     '<button class="btn" data-infinv="' + esc(x.id) + '">PDF</button></div>').join('') + '</div>';
 }
