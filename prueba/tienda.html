@@ -341,7 +341,7 @@ nav .ic,nav .lbl-m,#bLeer,.perfil,.leer-seg,.tk-sec{display:none}
   nav button{color:var(--muted);border:0;padding:4px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:11px;letter-spacing:0;font-weight:600;position:relative;min-height:50px}
   nav button.on{color:var(--brand);border:0;font-weight:800}
   nav button[data-v=inicio]{order:1} nav button[data-v=pend]{order:2} nav button[data-v=sup]{order:3} nav button[data-v=inv]{order:4} nav button[data-v=pol]{order:5}
-  nav button[data-v=gui],nav #bPol{display:none}
+  nav button[data-v=gui],nav button[data-v=esp],nav #bPol{display:none}
   nav .ic{display:block;width:26px;height:26px}
   nav button.on .ic{stroke-width:2.3}
   nav .lbl-d{display:none} nav .lbl-m{display:inline}
@@ -639,11 +639,12 @@ function infHTML(f){
   const hh = s => { const m = /(\d{1,2}):(\d{2})/.exec(String(s || '')); if (!m) return e(s); const n = +m[1]; return (n % 12 || 12) + ':' + m[2] + ' ' + (n < 12 ? 'a.m.' : 'p.m.'); };
   const td = 'border:1px solid #bbb;padding:4px 6px;vertical-align:top', th = td + ';background:#eee;text-align:left;font-weight:700;color:#15202b;text-transform:none;letter-spacing:0;font-size:inherit;white-space:normal';
   const falt = f.items.filter(x => x.dif < 0), sobr = f.items.filter(x => x.dif > 0);
+  const cob = !!(f.precio && f.precio !== 'pvp'), pcU = x => x.pc != null ? x.pc : f.precio === 'bw' ? Math.round(x.pvp * 80) / 100 : x.pvp;   // pc1
   const tabla = (L, conDesc) => `<table style="width:100%;border-collapse:collapse;font-size:10.5px;margin-top:4px"><thead><tr>
       <th style="${th}">Código</th><th style="${th}">Descripción</th><th style="${th};text-align:right">Sistema</th><th style="${th};text-align:right">Físico</th>
-      <th style="${th};text-align:right">Dif.</th><th style="${th};text-align:right">PVP unit.</th><th style="${th};text-align:right">Total PVP</th><th style="${th}">Resolución</th></tr></thead><tbody>` +
+      <th style="${th};text-align:right">Dif.</th><th style="${th};text-align:right">PVP unit.</th><th style="${th};text-align:right">Total PVP</th>${cob && conDesc ? `<th style="${th};text-align:right">Precio cobro</th><th style="${th};text-align:right">A cobrar</th>` : ''}<th style="${th}">Resolución</th></tr></thead><tbody>` +
     L.map(x => `<tr style="page-break-inside:avoid"><td style="${td};white-space:nowrap">${e(x.cod)}</td><td style="${td}">${e(x.desc)}</td><td style="${td};text-align:right">${e(x.sis)}</td><td style="${td};text-align:right">${e(x.cont)}</td>
-      <td style="${td};text-align:right">${sg(x.dif)}</td><td style="${td};text-align:right">${d(x.pvp)}</td><td style="${td};text-align:right">${d(x.tot)}</td>
+      <td style="${td};text-align:right">${sg(x.dif)}</td><td style="${td};text-align:right">${d(x.pvp)}</td><td style="${td};text-align:right">${d(x.tot)}</td>${cob && conDesc ? `<td style="${td};text-align:right">${x.des ? d(pcU(x)) : '–'}</td><td style="${td};text-align:right">${x.des ? d(Math.round(pcU(x) * x.dif * 100) / 100) : '–'}</td>` : ''}
       <td style="${td}">${e(x.dec || '')}${conDesc ? (x.des ? '<br><b>Se descuenta</b>' : '<br>No se descuenta') : ''}</td></tr>`).join('') + '</tbody></table>';
   const firma = r => `<table style="width:100%;border-collapse:collapse;border:1px solid #bbb;font-size:11px"><tr><td style="padding:8px 10px;vertical-align:top"><b>${e(r.n)}</b><br><span style="color:#555">${e(r.c)}</span></td>
       <td style="padding:8px 10px;text-align:right;vertical-align:top;width:120px">Valor a descontar<br><b style="font-size:14px">${d(r.v)}</b></td></tr>
@@ -681,8 +682,8 @@ function infHTML(f){
   <h3 style="font:700 14px Arial;margin:12px 0 2px">${f.orig ? '3. Resultado final · ' : ''}Faltantes</h3>${falt.length ? tabla(falt, true) : '<p style="margin:2px 0">Sin faltantes.</p>'}
   <h3 style="font:700 14px Arial;margin:12px 0 2px">${f.orig ? 'Resultado final · ' : ''}Sobrantes</h3>${sobr.length ? tabla(sobr, false) + '<p style="margin:4px 0 0;font-size:10.5px;color:#555">Los sobrantes se cargan a la tienda una vez confirmadas las cantidades; no reducen el faltante.</p>' : '<p style="margin:2px 0">Sin sobrantes.</p>'}
   <div style="page-break-inside:avoid;margin-top:14px;border:2px solid #15202b;border-radius:6px;padding:10px 12px">
-    <table style="width:100%;border-collapse:collapse"><tr><td><b style="font-size:14px">Valor a descontar al personal (PVP)</b></td><td style="text-align:right"><b style="font-size:20px">${d(f.desc)}</b></td></tr></table>
-    <div style="font-size:10.5px;color:#555;margin-top:2px">${e(f.regla || '')}</div>
+    <table style="width:100%;border-collapse:collapse"><tr><td><b style="font-size:14px">Valor a descontar al personal (${e(cob ? f.precioNom || 'precio Black Week −20%' : 'PVP')})</b></td><td style="text-align:right"><b style="font-size:20px">${d(f.desc)}</b></td></tr></table>
+    ${cob && f.descPvp != null ? `<div style="font-size:11.5px;margin-top:2px">A PVP normal serían <b>${d(f.descPvp)}</b></div>` : ''}<div style="font-size:10.5px;color:#555;margin-top:2px">${e(f.regla || '')}</div>
     ${f.tol ? '<div style="margin-top:4px;font-weight:700">El faltante está dentro de la tolerancia de $10: no se descuenta.</div>' : ''}
   </div>
   ${f.obs ? `<p style="margin:10px 0 0"><b>Observaciones:</b> ${e(f.obs)}</p>` : ''}
@@ -755,6 +756,7 @@ function ipdfBajar(blob, nombre){
     <button data-v="pago"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18v12H3zM3 10h18M7 15h4"/></svg>Formas de pago <span class="badge" id="bPago" hidden></span></button>
     <button data-v="pend"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>Pendientes <span class="badge" id="bPend">·</span></button>
     <button data-v="inv"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"/></svg>Inventario</button>
+    <button data-v="esp">Lista de espera</button>
     <button data-v="pol"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h7v14H4zM13 5h7v14h-7z"/></svg><span class="lbl-d">Políticas</span><span class="lbl-m">Cómo trabajamos</span><span class="dot" id="bPol" hidden></span><span class="dot" id="bLeer" hidden></span></button>
     <button data-v="gui">Guías<span class="dot" id="bGui" hidden></span></button>
     <button data-v="sup"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6v3H9zM6 5h12v16H6zM9 12l2 2 4-4"/></svg><span class="lbl-d">Supervisión</span><span class="lbl-m">Supervisar</span></button>
@@ -911,10 +913,10 @@ function perfilHtml(){
     '<button data-ir="pend"><b class="' + (abiertos ? 'mal' : '') + '">' + abiertos + '</b><span>Pendientes</span></button>' +
     '<button data-ir="pol"><b class="' + (porLeer ? 'warn' : '') + '">' + porLeer + '</b><span>Por leer</span></button>' +
     '<button data-ir="sup"><b>' + (ult ? pct(ult.total) : '–') + '</b><span>Puntaje</span></button></div></div>' +
-    '<div class="pf-btns"><button class="pri" data-ir="sup">Supervisar</button><button data-ir="inv">Muestreo 50</button><button data-ir="inv">Lista de espera</button></div>' +
+    '<div class="pf-btns"><button class="pri" data-ir="sup">Supervisar</button><button data-ir="inv">Muestreo 50</button><button data-ir="esp">Lista de espera</button></div>' +
     '<div class="pf-hist">' + circ('Anuncios', ICO6.anuncio, 'inicio', 'anuncios', anunNuevo) + circ('Políticas', ICO6.politica, 'pol', '', polPend().length > 0) +
       circ('Guías', ICO6.guia, 'gui', '', guiaPend().length > 0) + ((D.guias || []).some(g => g.tipo === 'Manual') ? circ('Manuales', ICO6.manual, 'gui', 'manuales', false) : '') +
-      circ('Ventas fut.', ICO6.vf, 'inv', '', false) + '</div></section>';
+      circ('Ventas fut.', ICO6.vf, 'esp', '', false) + '</div></section>';
 }
 const leerSeg = v => '<div class="seg leer-seg">' + [['pol', 'Políticas'], ['gui', 'Manuales y guías']].map(([k, l]) => '<button data-leer="' + k + '" class="' + (k === v ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
 const leerWire = () => document.querySelectorAll('[data-leer]').forEach(b => b.onclick = () => irA(b.dataset.leer));
@@ -962,8 +964,9 @@ function tkFiesta(){
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => irA(b.dataset.v));
 function irA(v){
   if (v === 'hist') v = 'sup';   // Historial ahora vive dentro de Supervisión
+  if (v === 'esp' && esCel()) v = 'inv';   // le1: en celular la lista de espera sigue dentro de Inventario
   S.vista = v;
-  if (window.REG) REG.vista({inicio: 'Hoy', pend: 'Pendientes', pago: 'Formas de pago', inv: 'Inventario', sup: 'Supervisión', pol: 'Políticas', gui: 'Manuales y guías'}[v] || v);
+  if (window.REG) REG.vista({inicio: 'Hoy', pend: 'Pendientes', pago: 'Formas de pago', inv: 'Inventario', esp: 'Lista de espera', sup: 'Supervisión', pol: 'Políticas', gui: 'Manuales y guías'}[v] || v);
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v || (v === 'gui' && b.dataset.v === 'pol' && esCel())));
   window.scrollTo(0,0); render();
 }
@@ -979,6 +982,7 @@ function render(){
   else if(S.vista === 'pend') renderPend();
   else if(S.vista === 'pago') renderPago();
   else if(S.vista === 'inv') renderInv();
+  else if(S.vista === 'esp') renderEsp();
   else renderSup();
   setHH(); fpgMarca();   // fpg21
 }
@@ -1109,17 +1113,19 @@ function inventarioHtml(){
   const txt = invTexto(v);
   const avance = v.fase === 'Contando' && v.total ? Math.round(v.contados / v.total * 100) : null;
   return '<div class="sec-t" style="margin-top:16px"><h3>Inventario</h3></div>' +
-    '<div class="card"><div class="tiny muted" style="font-weight:600;letter-spacing:.3px;text-transform:uppercase;margin-bottom:4px">Muestreo Top 50</div><div class="inv"><div><b>' + esc(txt) + '</b>' +
+    '<div class="card"><div class="tiny muted" style="font-weight:600;letter-spacing:.3px;text-transform:uppercase;margin-bottom:4px">Muestreo Top 50' + semCorta(v.semana) + '</div><div class="inv"><div><b>' + esc(txt) + '</b>' +
     (v.fase && v.fase !== 'Enviado' ? '<div class="tiny muted">Entregar hasta el ' + fechaCorta(v.vence) + '</div>' : '') + '</div>' +
     (f[1] && v.enlace ? '<a class="btn ' + f[2] + '" href="' + esc(v.enlace) + '" target="_top">' + f[1] + '</a>' : '') + '</div>' +
     (avance != null ? '<div class="inv-bar"><i style="width:' + avance + '%"></i></div>' : '') + '</div>';
 }
+/* sem1 (Diego 2026-11-24): la tienda ve a qué semana corresponde cada inventario: "2026-S47" -> " · S47" */
+function semCorta(s){ const m = String(s || '').match(/S(\d+)/); return m ? ' · S' + m[1] : ''; }
 /* Informes de inventario: historial de la tienda con PDF para imprimir y firmar */
 function informesInvHtml(){
   const L = S.data.informesInv || [];
   if (!L.length) return '';
   const din = n => '$' + Number(n || 0).toFixed(2).replace('.', ',');
-  return '<div class="sec-t" style="margin-top:16px"><h3>Informes de inventario</h3></div><div class="card">' + L.map(x => '<div class="toca"><div><b>' + esc(x.id) + ' · ' + esc(x.tipo) + '</b>' +
+  return '<div class="sec-t" style="margin-top:16px"><h3>Informes de inventario</h3></div><div class="card">' + L.map(x => '<div class="toca"><div><b>' + esc(x.id) + ' · ' + esc(x.tipo) + semCorta(x.semana) + '</b>' +
     '<span class="tiny muted">' + (x.fecha ? fechaCorta(x.fecha) : '') + (x.hora ? ' · ' + esc(fmtH(x.hora)) : '') + ' · a descontar ' + din(x.desc) + ' · ' + esc(x.estado) + '</span></div>' +
     '<button class="btn" data-infinv="' + esc(x.id) + '">PDF</button></div>').join('') + '</div>';
 }
@@ -1704,9 +1710,10 @@ function fpgFormulario(){   // fpg5: asistente de 4 pasos
     alGuardar: r => { if (window.REG) REG.ev('Forma de pago', r.id + ' · ' + r.factura); FPGS.lista = [r].concat((FPGS.lista || []).filter(x => x.id !== r.id)); if (S.vista === 'pago') renderPago(); }});
 }
 function renderInv(){
-  $('#main').innerHTML = vfHtml() + inventarioHtml() + informesInvHtml();   /* fac1: autoconsumo pasa a Formas de pago */   // aco1 + fpg1
+  $('#main').innerHTML = (esCel() ? vfHtml() : '') + inventarioHtml() + informesInvHtml();   // le1: en computadora la lista de espera tiene su opción   /* fac1: autoconsumo pasa a Formas de pago */   // aco1 + fpg1
   vfEnlazar(); aucEnlazar();
 }
+function renderEsp(){ $('#main').innerHTML = vfHtml(); vfEnlazar(); }   // le1
 function renderPago(){   // fpg4: Formas de pago (opción principal del menú; Diego 17-nov la renombró)
   $('#main').innerHTML = fpgHtml();
   fpgEnlazar();
@@ -1733,17 +1740,17 @@ const VF_ABIERTOS = ['Esperando', 'Llegó', 'Avisado'];
 function vfToca(linea){
   const r = S.data.ventasFuturas; if (!r) return '';
   if (r.llego) return linea(r.llego === 1 ? 'Llegó un producto que espera un cliente' : 'Llegaron ' + r.llego + ' productos que esperan clientes',
-    'Contacta al cliente hoy', 'var(--ok)', '<button class="btn primary" data-ir="inv">Ver</button>');
+    'Contacta al cliente hoy', 'var(--ok)', '<button class="btn primary" data-ir="esp">Ver</button>');
   if (r.bodega) return linea(r.bodega === 1 ? 'Hay en otras tiendas un producto que espera un cliente' : 'Hay en otras tiendas ' + r.bodega + ' productos que esperan clientes',
-    'Pide la transferencia a tu tienda', 'var(--warn)', '<button class="btn" data-ir="inv">Ver</button>');
+    'Pide la transferencia a tu tienda', 'var(--warn)', '<button class="btn" data-ir="esp">Ver</button>');
   if (r.viejos) return linea(r.viejos === 1 ? 'Un cliente espera hace más de 60 días' : r.viejos + ' clientes esperan hace más de 60 días',
-    'Llámalo y ofrécele una alternativa', 'var(--warn)', '<button class="btn" data-ir="inv">Ver</button>');
+    'Llámalo y ofrécele una alternativa', 'var(--warn)', '<button class="btn" data-ir="esp">Ver</button>');
   return '';
 }
 function vfCargar(){
   if (VFS.cargando) return; VFS.cargando = true; VFS.error = '';
   api('apiVFLista').then(L => { VFS.lista = L || []; }).catch(e => { VFS.error = e.message || 'No se pudo cargar.'; })
-    .finally(() => { VFS.cargando = false; if (S.vista === 'inv') renderInv(); });
+    .finally(() => { VFS.cargando = false; if (S.vista === 'inv') renderInv(); else if (S.vista === 'esp') renderEsp(); });
 }
 const vfCel = c => String(c || '').replace(/\D/g, '');
 const vfOculto = c => { const d = vfCel(c); return d.length > 6 ? d.slice(0, 3) + ' *** ' + d.slice(-4) : d; };
@@ -1785,7 +1792,7 @@ function vfHtml(){
 }
 function vfEnlazar(){
   const n = $('#vfNuevo'); if (n) n.onclick = vfFormulario;
-  const re = $('#vfRe'); if (re) re.onclick = () => { VFS.error = ''; VFS.lista = null; renderInv(); };
+  const re = $('#vfRe'); if (re) re.onclick = () => { VFS.error = ''; VFS.lista = null; (S.vista === 'esp' ? renderEsp : renderInv)(); };
   document.querySelectorAll('[data-vf]').forEach(el => {
     const v = (VFS.lista || []).find(x => x.id === el.dataset.vf); if (!v) return;
     const b = el.querySelector('[data-vfver]'); if (b) b.onclick = () => { VFS.abiertos[v.id] = !VFS.abiertos[v.id]; renderInv(); };
@@ -3079,7 +3086,7 @@ setTimeout(() => { if (!S.data) $('#main').innerHTML = '<div class="empty">La co
     const r = D.ventasFuturas;
     if (r && (r.llego || r.bodega || r.viejos)) out.push(sl(1, '<div class="tk-pic">⏳</div>', 'Lista de espera',
       r.llego ? (r.llego === 1 ? 'Llegó un producto que espera un cliente' : 'Llegaron ' + r.llego + ' productos que esperan clientes') : r.bodega ? (r.bodega === 1 ? 'Un producto que espera un cliente está en otra tienda' : r.bodega + ' productos que esperan clientes están en otras tiendas') : (r.viejos === 1 ? 'Un cliente espera hace más de 60 días' : r.viejos + ' clientes esperan hace más de 60 días'),
-      r.llego ? 'Contacta al cliente hoy.' : r.bodega ? 'Pide la transferencia a tu tienda.' : 'Llámalo y ofrécele una alternativa.', bt('Ver lista de espera', 'data-ir="inv"')));
+      r.llego ? 'Contacta al cliente hoy.' : r.bodega ? 'Pide la transferencia a tu tienda.' : 'Llámalo y ofrécele una alternativa.', bt('Ver lista de espera', 'data-ir="esp"')));
     out.push(sl(3, '<div class="tk-pic">🧾</div>', 'Clientes', 'Proformas del equipo', '<span id="pfDet">Revisando…</span>', bt('Ver proformas', 'id="pfVer"')));
     /* 8. Logros de la semana */
     const inv = D.inventario, invOk = inv && (!inv.fase || inv.fase === 'Enviado'), ex = inv && inv.exactitud != null ? Math.round(inv.exactitud * (inv.exactitud <= 1 ? 100 : 1)) : null;
@@ -3195,8 +3202,8 @@ window.bs2Extra = function(out){
 <script>
 window.TEM_ABRIR = s => { const d = document.querySelector(s); if (d) { d.open = true; d.scrollIntoView({block: 'start'}); } };
 window.TEM = {tabs: "header > nav", montarBuscar: "#temTop .marca", dondeBuscar: "afterend", placeholder: "¿Qué necesitas? Conteo, caja chica, garantía…",
-  temas: [{"id": "inicio", "nombre": "Inicio", "vistas": ["inicio"]}, {"id": "ventas", "nombre": "Formas de pago", "vistas": ["pago"]}, {"id": "trabajo", "nombre": "Mi trabajo", "vistas": ["pend", "sup", "inv"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["pol", "gui"]}],
-  items: [{"t": "Formas de pago de las facturas", "v": "pago", "sub": "Menú Formas de pago · registrar Deuna, transferencias, Tipti, Shopping Dólares, MobiSol", "kw": "forma pago formas deuna transferencia banco tipti shopping dolares mobisol voucher factura"}, {"t": "Inicio", "v": "inicio", "sub": "Inicio · anuncios, actividades y venta del mes", "kw": "inicio anuncios actividades caja chica avisos"}, {"t": "Venta del mes (Flash de Ventas)", "v": "inicio", "sub": "Inicio", "kw": "ventas venta presupuesto meta flash cumplimiento"}, {"t": "Pendientes", "v": "pend", "sub": "Mi trabajo", "kw": "tareas hallazgos correcciones corregir vencidos"}, {"t": "Supervisión", "v": "sup", "sub": "Mi trabajo · autosupervisión e historial", "kw": "supervisar autosupervision visita checklist historial puntaje"}, {"t": "Inventario", "v": "inv", "sub": "Mi trabajo · conteo de la semana", "kw": "conteo muestreo top 50 stock existencias diferencias"}, {"t": "Lista de espera", "v": "inv", "sub": "Mi trabajo › Inventario · lo que pide un cliente", "kw": "cliente pedido registrar venta futura lista de espera sin stock"}, {"t": "Políticas", "v": "pol", "sub": "Cómo trabajamos · leer y responder la prueba", "kw": "normas reglas lineamientos prueba preguntas leer"}, {"t": "Manuales y guías", "v": "gui", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer"}],
+  temas: [{"id": "inicio", "nombre": "Inicio", "vistas": ["inicio"]}, {"id": "ventas", "nombre": "Formas de pago", "vistas": ["pago"]}, {"id": "trabajo", "nombre": "Mi trabajo", "vistas": ["pend", "sup", "inv", "esp"]}, {"id": "como", "nombre": "Cómo trabajamos", "vistas": ["pol", "gui"]}],
+  items: [{"t": "Formas de pago de las facturas", "v": "pago", "sub": "Menú Formas de pago · registrar Deuna, transferencias, Tipti, Shopping Dólares, MobiSol", "kw": "forma pago formas deuna transferencia banco tipti shopping dolares mobisol voucher factura"}, {"t": "Inicio", "v": "inicio", "sub": "Inicio · anuncios, actividades y venta del mes", "kw": "inicio anuncios actividades caja chica avisos"}, {"t": "Venta del mes (Flash de Ventas)", "v": "inicio", "sub": "Inicio", "kw": "ventas venta presupuesto meta flash cumplimiento"}, {"t": "Pendientes", "v": "pend", "sub": "Mi trabajo", "kw": "tareas hallazgos correcciones corregir vencidos"}, {"t": "Supervisión", "v": "sup", "sub": "Mi trabajo · autosupervisión e historial", "kw": "supervisar autosupervision visita checklist historial puntaje"}, {"t": "Inventario", "v": "inv", "sub": "Mi trabajo · conteo de la semana", "kw": "conteo muestreo top 50 stock existencias diferencias"}, {"t": "Lista de espera", "v": "esp", "sub": "Mi trabajo › Lista de espera · lo que pide un cliente", "kw": "cliente pedido registrar venta futura lista de espera sin stock"}, {"t": "Políticas", "v": "pol", "sub": "Cómo trabajamos · leer y responder la prueba", "kw": "normas reglas lineamientos prueba preguntas leer"}, {"t": "Manuales y guías", "v": "gui", "sub": "Cómo trabajamos", "kw": "manual guia proceso procedimiento como hacer"}],
   extra: function(){
     const D = window.TEM_DATA && TEM_DATA(); if (!D) return [];
     const out = [];
