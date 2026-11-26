@@ -9,7 +9,7 @@ Uso: python3 aplicar_mt1.py archivo.html"""
 import sys
 p = sys.argv[1]
 s = open(p, encoding='utf-8').read()
-if 'mt1' in s:
+if 'function mtArmar(' in s:
     print('ya estaba mt1'); sys.exit(0)
 
 def rep(a, b, n=1):
