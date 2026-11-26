@@ -5498,7 +5498,7 @@ table.us td.bad{color:#e5534b}table.us tr.ut-pe{cursor:pointer}table.us tr.ut-pe
       (CC.jefe ? '<li><b>Aquí ves todo el call center.</b><small>Lo rojo son ventas que el POS cobró con transferencia, Deuna, Tipti o nota de crédito y que el agente aún no registra. Recuérdale registrarlas.</small></li>' :
       '<li><b>Empieza por lo rojo.</b><small>Son tus ventas que el POS cobró con transferencia, Deuna, Tipti o nota de crédito y que aún no registras. Toca <b>Registrar</b>: la factura, el valor y la fecha ya vienen llenos. Elige la forma de pago y sube la foto del comprobante.</small></li>') +
       '<li><b>Luego lo amarillo.</b><small>Son registros que no cuadran con el POS (otra factura u otro valor). Lee qué pasó y avisa a Diego o a Financiero para corregirlo.</small></li>' +
-      '<li><b>Si una venta no aparece en rojo</b><small>El POS se actualiza cada 2 horas. Vuelve a revisar más tarde con <b>Actualizar</b>.</small></li>' +
+      '<li><b>Si una venta no aparece en rojo</b><small>El POS se actualiza cada hora. Vuelve a revisar más tarde con <b>Actualizar</b>.</small></li>' +
       '<li><b>Meta del día:</b> nada en rojo antes de terminar tu turno.<small>Lo verde ya está registrado; no tienes que hacer nada.</small></li></ol><button class="fpt-gx" id="fptGx">Entendido, ocultar guía</button></div>';
     const vRojo = PEN.reduce((a, x) => a + x.p.valor, 0);
     h += '<div class="fpt-res"><button class="r" data-fptir="fptRojo"><b>' + PEN.length + '</b><span>por registrar' + (PEN.length ? ' · ' + usd(vRojo) : '') + '</span></button>' +
