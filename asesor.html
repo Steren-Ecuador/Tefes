@@ -1281,7 +1281,7 @@ function arrancar(){
     document.querySelector('header').style.visibility = '';
     registrarIngreso('Asesor: ' + yo);
     if (!window.__ca1) { window.__ca1 = 1; const s = Math.round((Date.now() - t0) / 100) / 10;   /* ca1 */
-      llamar('apiRegistroTienda', TOKEN, SES, DISP, [{ev: 'Carga', det: 'asesor · datos ' + String(s).replace('.', ',') + ' s · ' + DISP + (previo ? ' · con datos guardados' : ''), seg: s, t: Date.now(), n: 2}]).catch(() => {}); }
+      llamar('apiRegistroTienda', TOKEN, SES, DISP, [{ev: 'Carga', det: 'asesor · datos ' + String(s).replace('.', ',') + ' s · ' + DISP + (previo ? ' · con datos guardados' : '') + ' · ' + yo, seg: s, t: Date.now(), n: 2}]).catch(() => {}); }
     try { localStorage.setItem(CK, JSON.stringify({t: Date.now(), d: d})); } catch (e) {}   /* ac3 */
     if (!previo || JSON.stringify(previo.d) !== JSON.stringify(d)) { const y = window.scrollY; pintarAs(d, yo); if (previo) window.scrollTo(0, y); }
     llamar('apiVFLista', TOKEN).then(L => { E.futuras = (L || []).filter(x => x.asesor === YO.nombre).map(vfLocal); render(); }, () => {});
