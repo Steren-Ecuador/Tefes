@@ -1381,10 +1381,11 @@ function fpgWizard(o){
   const FORMAS = (GRUPOS[o.grupo || 'tr'] || GRUPOS.tr).concat(gExtra(o.grupo || 'tr')).filter(f => permitidas.indexOf(f) >= 0).filter((f, i, A) => !o.forma || A.indexOf(o.forma) < 0 || f === o.forma);   // fpt1: forma elegida desde el botón
   const FPG_APAGADAS = {'Préstamo empleado': 1, 'Descuento inventario': 1};   // fpg18: se ven transparentes, aún no se usan
   const solo = FORMAS.length === 1;
+  const NCM = solo && FORMAS[0] === 'Nota de crédito';   // fnc1: la NC pide primero la factura devuelta y al final la nueva
   const CUENTAS = o.cuentas && o.cuentas.length ? o.cuentas : BANCOS;   // fpg8: cuentas de la empresa (Diego las define)
   const TIT = o.forma && FORMAS.length === 1 ? 'Registrar ' + (NOM[o.forma] || o.forma) : {tr: 'Registrar pago con transferencia', ot: 'Registrar otra forma de pago', asesor: 'Registrar forma de pago'}[o.grupo || 'tr'] || 'Registrar forma de pago';
   const D = {pto: localStorage.getItem('fpgPto') || o.prefijo || '', sec: '', fechaFac: hoy, valorFac: '', forma: solo ? FORMAS[0] : '', otra: '', banco: '', pedido: '', valor: '', foto: '', fotoFile: null, fotoUrl: '', quien: o.quienFijo || '', vend: o.quienFijo || '', confirmo: false};
-  let paso = 1, guardando = false, err = '', fijo = null, tocado = false, pasoVisto = 0;   // fpg13
+  let paso = NCM ? 3 : 1, guardando = false, err = '', fijo = null, tocado = false, pasoVisto = 0;   // fpg13
   const cerrar = () => { if (D.fotoUrl) URL.revokeObjectURL(D.fotoUrl); bg.remove(); };
   const facNorm = () => { const a = D.pto.replace(/[^\d-]/g, '').split('-').filter(Boolean), s = D.sec.replace(/\D/g, '');
     if (a.length !== 2 || a[0].length > 3 || a[1].length > 3 || !s || s.length > 9 || !Number(s) || !Number(a[0])) return '';
@@ -1406,6 +1407,9 @@ function fpgWizard(o){
       if (pv && pv.vendedor && D.vend && pv.vendedor !== D.vend) return 'Esta factura ya está registrada con el vendedor ' + (pv.vendedorVer || pv.vendedor) + '.';
       if (pv && pv.valorFac && Math.abs(pv.valorFac - num(D.valorFac)) > 0.004) return 'Esta factura ya está registrada con total ' + usd(pv.valorFac) + '.';
       if (pv && ya() >= num(D.valorFac) - 0.004) return 'Esta factura ya tiene registrado todo su valor (' + usd(ya()) + ').';
+      if (NCM) { if (sri(D.banco) === facNorm()) return 'La factura nueva es otra, no la devuelta (' + sri(D.banco) + ').';   // fnc1
+        if (valorPago() > num(D.valorFac) + 0.004) return 'La nota de crédito (' + usd(valorPago()) + ') es más que el total de la factura nueva.';
+        if (ya() + valorPago() > num(D.valorFac) + 0.004) return 'Con lo ya registrado (' + usd(ya()) + ') la nota de crédito pasaría el total de la factura nueva.'; }
       return '';
     }
     if (p === 2) return D.forma ? '' : 'Elige la forma de pago.';
@@ -1426,17 +1430,17 @@ function fpgWizard(o){
       if (!numOk(D.valor)) return 'Escribe el valor en dólares, con punto o coma para los centavos (ej. 45,90).';
       const v = valorPago();
       if (!(v > 0)) return 'Pon el valor pagado con ' + nom(f) + '.';
-      if (v > num(D.valorFac) + (esVale() ? 0.99 : 0) + 0.004) return 'Es más que el total de la factura (' + usd(num(D.valorFac)) + ').';
-      if (ya() + v > num(D.valorFac) + (esVale() ? 0.994 : 0.004)) return 'Con lo ya registrado (' + usd(ya()) + ') pasaría el total de la factura.';
+      if (!NCM && v > num(D.valorFac) + (esVale() ? 0.99 : 0) + 0.004) return 'Es más que el total de la factura (' + usd(num(D.valorFac)) + ').';
+      if (!NCM && ya() + v > num(D.valorFac) + (esVale() ? 0.994 : 0.004)) return 'Con lo ya registrado (' + usd(ya()) + ') pasaría el total de la factura.';
       if (fotoOblig() && !D.fotoFile && !D.foto) return 'Toma la foto del ' + (f === 'Transferencias' ? 'comprobante.' : 'vale y la factura.');
       return '';
     }
     if (p === 4) { if (!D.quien) return 'Elige quién registra.'; if (!D.confirmo) return 'Marca que revisaste los datos.'; return ''; }
     return '';
   }
-  const ROT = solo ? [[1, 'Factura'], [3, 'Datos'], [4, 'Confirmar']] : [[1, 'Factura'], [2, 'Forma de pago'], [3, 'Datos del pago'], [4, 'Confirmar']];
-  function barra(){ return '<div class="fw-pasos">' + ROT.map((t, i) => '<div class="' + (t[0] < paso ? 'ok' : t[0] === paso ? 'on' : '') + '"><i></i>' + (i + 1) + '. ' + t[1] + '</div>').join('') + '</div>'; }
-  function nav(sig){ return '<div class="fw-nav">' + (paso > 1 ? '<button class="fw-atras" data-fw="atras">← Atrás</button>' : '<button class="fw-atras" data-fw="x">Cancelar</button>') +
+  const ROT = NCM ? [[3, 'Factura devuelta'], [1, 'Factura nueva'], [4, 'Confirmar']] : solo ? [[1, 'Factura'], [3, 'Datos'], [4, 'Confirmar']] : [[1, 'Factura'], [2, 'Forma de pago'], [3, 'Datos del pago'], [4, 'Confirmar']];
+  function barra(){ const ix = paso > 4 ? 99 : ROT.findIndex(t => t[0] === paso); return '<div class="fw-pasos">' + ROT.map((t, i) => '<div class="' + (i < ix ? 'ok' : i === ix ? 'on' : '') + '"><i></i>' + (i + 1) + '. ' + t[1] + '</div>').join('') + '</div>'; }
+  function nav(sig){ return '<div class="fw-nav">' + (paso !== ROT[0][0] ? '<button class="fw-atras" data-fw="atras">← Atrás</button>' : '<button class="fw-atras" data-fw="x">Cancelar</button>') +
     '<button class="fw-sig' + (errPaso(paso) ? ' fw-off' : '') + '" data-fw="sig" ' + (guardando ? 'disabled' : '') + '>' + (guardando ? 'Guardando…' : sig) + '</button></div><div class="fw-h err" id="fwMsg" style="text-align:center;margin-top:8px">' + esc(err || '') + '</div>'; }
   const ob = '<span class="fw-ob">*</span>';
   const campoUsd = (lab, ph) => '<label>' + lab + ' ' + ob + '</label><div class="fw-usd"><input id="fwVal" inputmode="decimal" placeholder="' + ph + '" value="' + esc(D.valor) + '" autocomplete="off"></div>';
@@ -1444,7 +1448,8 @@ function fpgWizard(o){
   const cuotaTxt = () => { const q = cuotas(); return !q ? '' : q.n === 1 ? 'Se descuenta ' + usd(q.c) + ' en un solo mes.' : 'Se descuenta ' + usd(q.c) + ' al mes durante ' + q.n + ' meses' + (Math.abs(q.u - q.c) > 0.004 ? ' (la última cuota: ' + usd(q.u) + ')' : '') + '.'; };
   function datosHtml(){
     const f = D.forma, falta = Math.max(0, num(D.valorFac) - ya()), ph = Number(falta).toFixed(2).replace('.', ',');
-    let h = '<h3>' + ico(f) + esc(nom(f)) + '</h3><p class="fw-s">Factura ' + facNorm() + ' · total ' + usd(num(D.valorFac)) + ' · falta registrar ' + usd(falta) + '</p>';
+    let h = NCM ? '<h3>' + ico(f) + '¿Qué factura devolvió el cliente?</h3><p class="fw-s">Primero la factura devuelta y la nota de crédito. La factura nueva la pones al final.</p>'   // fnc1
+      : '<h3>' + ico(f) + esc(nom(f)) + '</h3><p class="fw-s">Factura ' + facNorm() + ' · total ' + usd(num(D.valorFac)) + ' · falta registrar ' + usd(falta) + '</p>';
     const ref = (lab, attrs, phr) => '<label>' + lab + ' ' + ob + '</label><input id="fwRef" ' + attrs + ' autocomplete="off" placeholder="' + (phr || '') + '" value="' + esc(D.pedido) + '">';
     const valor = lab => campoUsd(lab, ph) + '<div class="fw-err" id="fwValAv" style="margin-top:6px" hidden></div>' + (falta ? '<div class="fw-h"><button type="button" data-fw="todo" style="border:0;background:none;color:#0077c0;padding:0;font-size:13px;cursor:pointer">Usar lo que falta: ' + usd(falta) + '</button></div>' : '');
     if (f === 'Deuna') h += valor('Valor pagado con Deuna') + ref('Comprobante (solo números)', 'inputmode="numeric" maxlength="30"', 'Ej.: 123456789') + '<div class="fw-err" id="fwRefAv" style="margin-top:6px" hidden></div>';
@@ -1472,7 +1477,7 @@ function fpgWizard(o){
     h += '<label>Foto ' + (fotoOblig() ? '(obligatoria) ' : '(opcional) ') + 'del ' + (esVale() ? 'vale y la factura' : 'comprobante') + '</label>' +
       '<div class="fw-foto">' + (D.fotoUrl ? '<img src="' + D.fotoUrl + '" alt="">' : '') + '<label class="fw-fbtn">📷 ' + (D.fotoUrl ? 'Cambiar foto' : 'Tomar o elegir foto') + '<input type="file" id="fwFoto" accept="image/*" hidden></label></div>';
     if (f === 'Transferencias') h += '<div class="fw-h" style="margin-top:14px;color:#64748b;font-size:13px;line-height:1.4">ℹ️ La transferencia la valida Financiero antes de facturar, con su respaldo. Este registro no reemplaza esa validación.</div>';   // fpg15
-    return h + nav('Revisar →');
+    return h + nav(NCM ? 'Siguiente →' : 'Revisar →');
   }
   function resumen(){
     const f = D.forma, fila = (a, b) => '<div><span>' + a + '</span><b>' + b + '</b></div>';
@@ -1492,7 +1497,7 @@ function fpgWizard(o){
     let h = '<div class="fw-top"><b>' + esc(TIT) + '</b><button class="fw-x" data-fw="x" aria-label="Cerrar">×</button></div>' + barra();
     if (paso === 1) {
       const pv = previos();
-      h += '<h3>¿Qué factura es?</h3><p class="fw-s">Cópiala tal como sale en el PDF de la factura del POS.</p>' +
+      h += (NCM ? '<h3>¿Cuál es la factura nueva?</h3><p class="fw-s">La que se hizo con la nota de crédito ' + esc(sri(D.pedido)) + '. Cópiala tal como sale en el PDF.</p>' : '<h3>¿Qué factura es?</h3><p class="fw-s">Cópiala tal como sale en el PDF de la factura del POS.</p>') +   // fnc1
         '<label>N° de factura ' + ob + '</label><div class="fw-fac"><input id="fwPto" inputmode="numeric" placeholder="005-001" value="' + esc(D.pto) + '" maxlength="7"><input id="fwSec" inputmode="numeric" placeholder="Número (ej. 4800)" value="' + esc(D.sec) + '" maxlength="9" autocomplete="off"></div>' +
         '<div class="fw-h" id="fwFacV">' + (facNorm() ? 'Factura <b>' + facNorm() + '</b>' : 'Punto de emisión y número') + '</div>' +
         '<div class="fw-dos"><div><label>Fecha de la factura ' + ob + '</label><input type="date" id="fwFecha" value="' + esc(D.fechaFac) + '" max="' + hoy + '" min="' + dias(hoy, -45) + '"' + (fijo ? ' disabled' : '') + '></div>' +
@@ -1520,6 +1525,7 @@ function fpgWizard(o){
   }
   /* fpg11: aviso en vivo del valor pagado */
   function avisoValor(){ if (paso !== 3 || !String(D.valor || '').trim()) return '';
+    if (NCM) return numOk(D.valor) ? '' : '⚠️ Escribe el valor en dólares, con punto o coma para los centavos (ej. 45,90).';   // fnc1
     if (!numOk(D.valor)) return '⚠️ Escribe el valor en dólares, con punto o coma para los centavos (ej. 45,90).';
     const v = valorPago(), t = num(D.valorFac);
     if (v > t + (esVale() ? 0.99 : 0) + 0.004) return '⚠️ ' + usd(v) + ' es más que el total de la factura (' + usd(t) + '). Revisa el valor.';
@@ -1550,17 +1556,17 @@ function fpgWizard(o){
   }
   async function accion(a){
     if (a === 'x') return cerrar();
-    if (a === 'atras') { paso = paso === 3 ? (solo ? 1 : 2) : paso === 4 ? 3 : paso - 1; err = ''; return pintar(); }
+    if (a === 'atras') { paso = NCM ? (paso === 4 ? 1 : 3) : paso === 3 ? (solo ? 1 : 2) : paso === 4 ? 3 : paso - 1; err = ''; return pintar(); }
     if (a === 'todo') { D.valor = Number(Math.max(0, num(D.valorFac) - ya())).toFixed(2).replace('.', ','); return pintar(false); }
     if (a === 'otraForma' || a === 'nueva') {
       const keep = a === 'otraForma';
       Object.assign(D, {forma: solo ? FORMAS[0] : '', otra: '', banco: '', pedido: '', valor: '', foto: '', fotoFile: null, confirmo: false}); if (D.fotoUrl) URL.revokeObjectURL(D.fotoUrl); D.fotoUrl = '';
-      if (!keep) { D.sec = ''; D.valorFac = ''; D.fechaFac = hoy; if (!o.quienFijo) D.vend = ''; fijo = null; paso = 1; } else { fijo = true; paso = solo ? 3 : 2; }
+      if (!keep) { D.sec = ''; D.valorFac = ''; D.fechaFac = hoy; if (!o.quienFijo) D.vend = ''; fijo = null; paso = NCM ? 3 : 1; } else { fijo = true; paso = solo ? 3 : 2; }
       return pintar();
     }
     if (a !== 'sig') return;
     const e = errPaso(paso); if (e) { err = e; return refrescarNav(); }
-    if (paso < 4) { paso = paso === 1 ? (solo ? 3 : 2) : paso + 1; if (paso === 4 && !D.quien) D.quien = D.vend; err = ''; return pintar(); }
+    if (paso < 4) { paso = NCM ? (paso === 3 ? 1 : 4) : paso === 1 ? (solo ? 3 : 2) : paso + 1; if (paso === 4 && !D.quien) D.quien = D.vend; err = ''; return pintar(); }
     guardando = true; err = ''; refrescarNav();
     try {
       if (D.fotoFile && !D.foto) { const b = $w('[data-fw="sig"]'); if (b) b.textContent = 'Subiendo foto…'; D.foto = await o.subirFoto(D.fotoFile, 'pago_' + facNorm().replace(/\D/g, '')); if (o.subirOk) D.foto = o.subirOk(D.foto); }
@@ -1596,7 +1602,7 @@ function fpgHtml(){
   if (guia) h += '<div class="fpt-guia"><h4>Cómo registrar los pagos</h4><ol>' +
     '<li><b>Empieza por lo rojo.</b><small>Son facturas que el POS cobró con transferencia, Deuna, Tipti o nota de crédito y que nadie ha registrado. Toca <b>Registrar</b>: la factura, el valor y la fecha ya vienen llenos. Solo eliges quién vendió y subes la foto del comprobante.</small></li>' +
     '<li><b>Luego lo amarillo.</b><small>Son registros que no cuadran con el POS, por ejemplo un número de factura o un valor distinto. Lee qué pasó y toca <b>Corregir</b>, o anúlalo y regístralo de nuevo.</small></li>' +
-    '<li><b>Si el cliente pagó y no aparece en rojo</b><small>El POS se actualiza cada 2 horas. Elige cómo pagó en <b>Registrar un pago</b> y sigue los pasos.</small></li>' +
+    '<li><b>Si el cliente pagó y no aparece en rojo</b><small>El POS se actualiza cada hora. Elige cómo pagó en <b>Registrar un pago</b> y sigue los pasos.</small></li>' +
     '<li><b>Meta del día:</b> nada en rojo antes del cierre.<small>Lo verde ya está listo; no tienes que hacer nada.</small></li></ol><button class="fpt-gx" id="fptGx">Entendido, ocultar guía</button></div>';
   if (FPGS.error) return h + '<div class="card small">' + esc(FPGS.error) + ' <button class="link" id="fpgRe">Reintentar</button></div>';
   if (FPGS.lista === null) return h + '<div class="card muted small"><span class="spin"></span> Cargando…</div>';
