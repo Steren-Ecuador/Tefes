@@ -1438,7 +1438,7 @@ function fpgWizard(o){
     if (p === 4) { if (!D.quien) return 'Elige quién registra.'; if (!D.confirmo) return 'Marca que revisaste los datos.'; return ''; }
     return '';
   }
-  const ROT = NCM ? [[3, 'Factura devuelta'], [1, 'Factura nueva'], [4, 'Confirmar']] : solo ? [[1, 'Factura'], [3, 'Datos'], [4, 'Confirmar']] : [[1, 'Factura'], [2, 'Forma de pago'], [3, 'Datos del pago'], [4, 'Confirmar']];
+  const ROT = NCM ? [[3, 'Factura afectada'], [1, 'Factura nueva'], [4, 'Confirmar']] : solo ? [[1, 'Factura'], [3, 'Datos'], [4, 'Confirmar']] : [[1, 'Factura'], [2, 'Forma de pago'], [3, 'Datos del pago'], [4, 'Confirmar']];
   function barra(){ const ix = paso > 4 ? 99 : ROT.findIndex(t => t[0] === paso); return '<div class="fw-pasos">' + ROT.map((t, i) => '<div class="' + (i < ix ? 'ok' : i === ix ? 'on' : '') + '"><i></i>' + (i + 1) + '. ' + t[1] + '</div>').join('') + '</div>'; }
   function nav(sig){ return '<div class="fw-nav">' + (paso !== ROT[0][0] ? '<button class="fw-atras" data-fw="atras">← Atrás</button>' : '<button class="fw-atras" data-fw="x">Cancelar</button>') +
     '<button class="fw-sig' + (errPaso(paso) ? ' fw-off' : '') + '" data-fw="sig" ' + (guardando ? 'disabled' : '') + '>' + (guardando ? 'Guardando…' : sig) + '</button></div><div class="fw-h err" id="fwMsg" style="text-align:center;margin-top:8px">' + esc(err || '') + '</div>'; }
@@ -1448,7 +1448,7 @@ function fpgWizard(o){
   const cuotaTxt = () => { const q = cuotas(); return !q ? '' : q.n === 1 ? 'Se descuenta ' + usd(q.c) + ' en un solo mes.' : 'Se descuenta ' + usd(q.c) + ' al mes durante ' + q.n + ' meses' + (Math.abs(q.u - q.c) > 0.004 ? ' (la última cuota: ' + usd(q.u) + ')' : '') + '.'; };
   function datosHtml(){
     const f = D.forma, falta = Math.max(0, num(D.valorFac) - ya()), ph = Number(falta).toFixed(2).replace('.', ',');
-    let h = NCM ? '<h3>' + ico(f) + '¿Qué factura devolvió el cliente?</h3><p class="fw-s">Primero la factura devuelta y la nota de crédito. La factura nueva la pones al final.</p>'   // fnc1
+    let h = NCM ? '<h3>' + ico(f) + 'Factura afectada</h3><div class="fw-ya" style="margin:4px 0 6px;font-size:14.5px">⚠️ Aquí va la <b>factura AFECTADA</b>: la factura anterior que el cliente devolvió y que la nota de crédito anula. <b>NO pongas la factura nueva</b>: esa la pides en el paso 2.</div>'   // fnc1 fnc2
       : '<h3>' + ico(f) + esc(nom(f)) + '</h3><p class="fw-s">Factura ' + facNorm() + ' · total ' + usd(num(D.valorFac)) + ' · falta registrar ' + usd(falta) + '</p>';
     const ref = (lab, attrs, phr) => '<label>' + lab + ' ' + ob + '</label><input id="fwRef" ' + attrs + ' autocomplete="off" placeholder="' + (phr || '') + '" value="' + esc(D.pedido) + '">';
     const valor = lab => campoUsd(lab, ph) + '<div class="fw-err" id="fwValAv" style="margin-top:6px" hidden></div>' + (falta ? '<div class="fw-h"><button type="button" data-fw="todo" style="border:0;background:none;color:#0077c0;padding:0;font-size:13px;cursor:pointer">Usar lo que falta: ' + usd(falta) + '</button></div>' : '');
@@ -1459,8 +1459,8 @@ function fpgWizard(o){
     else if (f === 'Otra') h += '<label>Detalle: ¿qué forma de pago es? ' + ob + '</label><div class="fw-ban" style="margin-bottom:6px">' + VALES_OTRA.map(b => '<button data-otra="' + esc(b) + '" class="' + (D.otra === b ? 'sel' : '') + '">' + esc(b) + '</button>').join('') + '</div>' +
       '<textarea id="fwOtra" rows="2" maxlength="100" placeholder="Ej.: Shopping Dólares Condado, MobiSol, tarjeta Diners…">' + esc(D.otra) + '</textarea>' +
       '<label>N° de comprobante o de los vales ' + ob + '</label><textarea id="fwRef" rows="2" maxlength="1500" placeholder="Si son vales, un número por línea">' + esc(D.pedido) + '</textarea>' + valor('Valor pagado');
-    else if (f === 'Nota de crédito') h += '<label>N° de la factura devuelta ' + ob + '</label><input id="fwBan" maxlength="17" placeholder="005-001-000004700" value="' + esc(D.banco) + '" autocomplete="off">' +
-      '<div class="fw-h" id="fwDevV">' + (sri(D.banco) ? 'Factura devuelta <b>' + sri(D.banco) + '</b>' : 'Como sale en el PDF de la factura') + '</div>' +
+    else if (f === 'Nota de crédito') h += '<label>' + (NCM ? 'N° de la factura AFECTADA (la que devolvió el cliente) ' : 'N° de la factura devuelta ') + ob + '</label><input id="fwBan" maxlength="17" placeholder="005-001-000004700" value="' + esc(D.banco) + '" autocomplete="off">' +
+      '<div class="fw-h" id="fwDevV">' + (sri(D.banco) ? 'Factura ' + (NCM ? 'afectada' : 'devuelta') + ' <b>' + sri(D.banco) + '</b>' : NCM ? 'La que sale como factura afectada en el PDF de la nota de crédito' : 'Como sale en el PDF de la factura') + '</div>' +
       ref('N° de la nota de crédito', 'maxlength="17"', '005-001-000000123') + '<div class="fw-h" id="fwNcV">' + (sri(D.pedido) ? 'NC <b>' + sri(D.pedido) + '</b>' : 'Como sale en el PDF de la nota de crédito') + '</div>' +
       valor('Valor de la nota de crédito (con IVA)') + '<label>Motivo (opcional)</label><input id="fwOtra" maxlength="100" placeholder="Ej.: devolución por garantía" value="' + esc(D.otra) + '">';
     else if (f === 'Descuento inventario') h += '<label>Empleado al que se le descuenta ' + ob + '</label>' + (o.quienHtml || '').replace(/id="[^"]*"/, 'id="fwEmp"').replace('Elige tu nombre', 'Elige el empleado').replace('Tu nombre y apellido', 'Nombre del empleado') +
@@ -1481,10 +1481,10 @@ function fpgWizard(o){
   }
   function resumen(){
     const f = D.forma, fila = (a, b) => '<div><span>' + a + '</span><b>' + b + '</b></div>';
-    let r = fila('Factura', facNorm()) + fila('Fecha de la factura', fCorta(D.fechaFac)) + fila('Total de la factura (con IVA)', usd(num(D.valorFac))) + (o.quienFijo ? '' : fila('Vendedor', esc(D.vend))) + fila('Forma de pago', esc(nom(f)));
+    let r = fila(NCM ? 'Factura nueva' : 'Factura', facNorm()) + fila('Fecha de la factura', fCorta(D.fechaFac)) + fila('Total de la factura (con IVA)', usd(num(D.valorFac))) + (o.quienFijo ? '' : fila('Vendedor', esc(D.vend))) + fila('Forma de pago', esc(nom(f)));
     if (f === 'Transferencias') r += fila('Cuenta que recibió', esc(D.banco));
     if (f === 'Otra') r += fila('Detalle', esc(D.otra));
-    if (f === 'Nota de crédito') r += fila('Factura devuelta', esc(sri(D.banco))) + (D.otra.trim() ? fila('Motivo', esc(D.otra)) : '');
+    if (f === 'Nota de crédito') r += fila(NCM ? 'Factura afectada (devuelta)' : 'Factura devuelta', esc(sri(D.banco))) + (D.otra.trim() ? fila('Motivo', esc(D.otra)) : '');
     const conCuotas = f === 'Préstamo empleado' || f === 'Descuento inventario' || (EXW[f] && EXW[f].p === 'D');
     if (conCuotas) r += fila('Empleado', esc(D.otra));
     if (conCuotas && cuotas()) r += fila('Descuento mensual', esc(cuotaTxt().replace('Se descuenta ', '')));
@@ -1536,7 +1536,7 @@ function fpgWizard(o){
     const b = $w('[data-fw="sig"]'); if (b) { b.disabled = guardando; b.classList.toggle('fw-off', !!errPaso(paso)); } const m = $w('#fwMsg'); if (m) { const ya3 = (!!$w('#fwValAv') && !$w('#fwValAv').hidden) || (!!$w('#fwRefAv') && !$w('#fwRefAv').hidden);   // fpg13
       const t3 = err || (tocado && !ya3 ? errPaso(paso) : ''); m.textContent = t3 ? (/^⚠️/.test(t3) ? t3 : '⚠️ ' + t3) : ''; m.className = t3 ? 'fw-err' : 'fw-h err'; m.style.textAlign = t3 ? 'left' : 'center'; }
     const fv = $w('#fwFacV'); if (fv) fv.innerHTML = facNorm() ? 'Factura <b>' + facNorm() + '</b>' : 'Punto de emisión y número';
-    const dv = $w('#fwDevV'); if (dv) dv.innerHTML = sri(D.banco) ? 'Factura devuelta <b>' + sri(D.banco) + '</b>' : 'Como sale en el PDF de la factura';
+    const dv = $w('#fwDevV'); if (dv) dv.innerHTML = sri(D.banco) ? 'Factura ' + (NCM ? 'afectada' : 'devuelta') + ' <b>' + sri(D.banco) + '</b>' : NCM ? 'La que sale como factura afectada en el PDF de la nota de crédito' : 'Como sale en el PDF de la factura';
     const cv = $w('#fwCuoV'); if (cv) cv.textContent = cuotaTxt();
     const nv = $w('#fwNcV'); if (nv) nv.innerHTML = sri(D.pedido) ? 'NC <b>' + sri(D.pedido) + '</b>' : 'Como sale en el PDF de la nota de crédito'; }
   function enlazar(){
